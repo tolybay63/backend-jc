@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+     <domain name="AuthUser" parent="id" tag.db="true"
+             genid.start="1000" genid.step="1" title="Пользователи">
+         <!-- Пользователи -->
+         <field name="authUserGr" parent="AuthUserGr/ref"/>
+         <field name="accessLevel" parent="long" title="Уровень доступа"/>
+         <field name="login" parent="string" size="32" title="Логин">
+             <!--@
+             Уникальное поле
+             -->
+         </field>
+         <field name="passwd" parent="string" size="64" title="Пароль"/>
+         <field name="email" parent="string" size="32" title="Электронная почта">
+             <!--@
+             Уникальное поле
+             -->
+         </field>
+         <field name="phone" parent="string" size="32" title="Телефон"/>
+         <field name="name" parent="string" size="50" title="Наименование"/>
+         <field name="fullName" parent="string" size="100" title="Полное наименование"/>
+         <field name="locked" parent="boolean" title="Заблокирован" />
+
+         <field name="cmt" parent="f.cmt" />
+
+         <!-- ============================================== -->
+         <dbindex name="i_login" fields="login" unique="true"/>
+         <dbindex name="i_email" fields="email" unique="true"/>
+
+     </domain>
+
+
+</root>

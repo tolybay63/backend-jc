@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="Permis" parent="base" tag.db="true" title="Привилегии">
+        <!-- Привилегии -->
+        <field name="id" parent="string" size="60"/>
+        <field name="parent"  parent="string" size="60" title="Родитель"/>
+        <field name="text" parent="string" size="300" title="Наименование"/>
+        <field name="ord" parent="f.ord" />
+    </domain>
+
+    <domain name="Permis.full" parent="Permis">
+        <field name="accessLevel" parent="long"/>
+        <field name="idInTable" parent="long"/>
+        <field name="checked" parent="boolean"/>
+    </domain>
+    <!--=======================================================-->
+
+</root>

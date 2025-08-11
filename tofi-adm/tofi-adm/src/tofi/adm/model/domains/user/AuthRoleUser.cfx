@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="AuthRoleUser" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Роли пользователей">
+        <!--  -->
+        <field name="authRole" parent="AuthRole/ref"/>
+        <field name="authUser" parent="AuthUser/ref"/>
+        <field name="ord" parent="f.ord" />
+    </domain>
+
+</root>

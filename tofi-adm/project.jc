@@ -1,0 +1,28 @@
+import jandcode.core.jc.AppRunBat
+import jandcode.jc.ProjectScript
+import jandcode.jc.std.BuildProject
+import jandcode.jc.std.GitVersion
+import jandcode.jc.std.RootProject
+
+class P extends ProjectScript {
+
+    static beforeLoad = {
+        include("jc/apx-project")
+        load("../tofi-tbox")
+    }
+
+
+    void onInclude() {
+        //
+        project.name = "tofi-adm"
+        project.version = include(GitVersion)
+        //
+        include(AppRunBat).with {
+            mainClass = "tofi.adm.main.Main"
+        }
+        include(RootProject).with {
+            modules("tofi-adm",
+	    )
+        }
+    }
+}

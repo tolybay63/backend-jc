@@ -1,0 +1,29 @@
+import jandcode.jc.ProjectScript
+import jandcode.jc.std.JavaProject
+
+class P extends ProjectScript {
+
+    static beforeLoad = {
+    }
+
+    void onInclude() {
+        //
+        project.name = "tofi-adm"
+        //
+        include(JavaProject).with {
+            moduleDef("tofi.adm").with {
+                depends.prod(
+                    "jandcode.core.apx",
+                    "jandcode.core.db.postgresql",
+                        "tofi-api-adm",
+                        "tofi-api-dta",
+                        "tofi-api-mdl",
+                        "tofi-auth",
+                )
+                depends.dev(
+                )
+            }
+        }
+    }
+
+}

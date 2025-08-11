@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="AuthUserGr" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Группы пользователей">
+        <!-- Группы пользователей -->
+        <field name="parent" parent="AuthUserGr/ref"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt" />
+    </domain>
+
+</root>

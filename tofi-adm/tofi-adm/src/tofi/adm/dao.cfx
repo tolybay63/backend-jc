@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+        <dao>
+            <holder name="api" invoker="model:default">
+
+                <item name="auth"
+                      class="tofi.adm.model.dao.auth.AuthDao"
+                      method="*"
+                />
+
+                <item name="role"
+                      class="tofi.adm.model.dao.role.RoleDao"
+                      method="*"
+                />
+
+                <item name="usr"
+                      class="tofi.adm.model.dao.usr.UsrMdbUtils"
+                      method="*"
+                />
+
+
+                <item name="permis"
+                      class="tofi.adm.model.dao.permis.PermisDao"
+                      method="*"
+                />
+
+                //
+                <item name="dict"
+                      invoker="model:meta"
+                      class="tofi.adm.model.metadao.MetaDao"
+                      method="*"
+                />
+            </holder>
+
+        </dao>
+
+</root>
