@@ -1,0 +1,31 @@
+import jandcode.jc.ProjectScript
+import jandcode.jc.std.JavaProject
+
+class P extends ProjectScript {
+
+    static beforeLoad = {
+    }
+
+    void onInclude() {
+        //
+        project.name = "dtj-nsi"
+        //
+        include(JavaProject).with {
+            moduleDef("dtj.nsi").with {
+                depends.prod(
+                    "jandcode.core.apx",
+                    "jandcode.core.db.postgresql",
+                    "tofi-api-adm",
+                    "tofi-api-dta",
+                    "tofi-api-mdl",
+                    "tofi-auth",
+		    "poi-ooxml", "log4j-core", "documents4j-api", "documents4j-local",
+			"documents4j-transformer-msoffice-word", "documents4j-transformer-msoffice-excel", "pdfbox"
+                )
+                depends.dev(
+                )
+            }
+        }
+    }
+
+}

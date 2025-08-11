@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="Obj.ProcessCharts" parent="base">
+        <field name="obj" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+        <field name="fullName" parent="string"/>
+        <field name="nameCls" parent="string"/>
+
+        <field name="idCollections" parent="long"/>
+        <field name="pvCollections" parent="long"/>
+        <field name="objCollections" parent="long"/>
+        <field name="nameCollections" parent="string"/>
+
+        <field name="idNumberSource" parent="long"/>
+        <field name="NumberSource" parent="string"/>
+
+        <field name="idPeriodType" parent="long"/>
+        <field name="pvPeriodType" parent="long"/>
+        <field name="fvPeriodType" parent="long"/>
+
+        <field name="idPeriodicity" parent="long"/>
+        <field name="Periodicity" parent="double"/>
+
+    </domain>
+
+    <domain name="Obj.TypesObjects" parent="base">
+        <field name="number" parent="long"/>
+        <field name="id" parent="long"/>
+        <field name="parent" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+        <field name="nameCls" parent="string"/>
+
+        <field name="idNumberOt" parent="long"/>
+        <field name="NumberOt" parent="string"/>
+
+        <field name="idShape" parent="long"/>
+        <field name="pvShape" parent="long"/>
+        <field name="fvShape" parent="long"/>
+
+        <field name="ord" parent="long"/>
+
+    </domain>
+
+    <domain name="Obj.Station" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idStartKm" parent="long"/>
+        <field name="StartKm" parent="double"/>
+
+        <field name="idStartPicket" parent="long"/>
+        <field name="StartPicket" parent="double"/>
+
+        <field name="idFinishKm" parent="long"/>
+        <field name="FinishKm" parent="double"/>
+
+        <field name="idFinishPicket" parent="long"/>
+        <field name="FinishPicket" parent="double"/>
+    </domain>
+
+    <domain name="Obj.Stage" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idStartKm" parent="long"/>
+        <field name="StartKm" parent="double"/>
+
+        <field name="idStartPicket" parent="long"/>
+        <field name="StartPicket" parent="double"/>
+
+        <field name="idFinishKm" parent="long"/>
+        <field name="FinishKm" parent="double"/>
+
+        <field name="idFinishPicket" parent="long"/>
+        <field name="FinishPicket" parent="double"/>
+
+        <field name="idStageLength" parent="long"/>
+        <field name="StageLength" parent="double"/>
+    </domain>
+
+    <domain name="Obj.ProdArea" parent="base">
+        <field name="id" parent="long"/>
+        <field name="parent" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idStartKm" parent="long"/>
+        <field name="StartKm" parent="double"/>
+
+        <field name="idFinishKm" parent="long"/>
+        <field name="FinishKm" parent="double"/>
+
+        <field name="idStageLength" parent="long"/>
+        <field name="StageLength" parent="double"/>
+    </domain>
+
+    <domain name="Obj.Components" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+    </domain>
+
+    <domain name="Obj.Defects" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idDefectsComponent" parent="long"/>
+        <field name="pvDefectsComponent" parent="long"/>
+        <field name="objDefectsComponent" parent="long"/>
+        <field name="nameDefectsComponent" parent="string"/>
+
+        <field name="idDefectsCategory" parent="long"/>
+        <field name="pvDefectsCategory" parent="long"/>
+        <field name="fvDefectsCategory" parent="long"/>
+
+        <field name="idDefectsIndex" parent="long"/>
+        <field name="DefectsIndex" parent="string"/>
+
+        <field name="idDefectsNote" parent="long"/>
+        <field name="DefectsNote" parent="string"/>
+    </domain>
+
+    <domain name="Obj.ComponentsObject" parent="base">
+        <field name="id" parent="long"/>
+        <field name="obj" parent="long"/>
+        <field name="name" parent="string"/>
+        <field name="cmt" parent="memo"/>
+    </domain>
+
+    <domain name="Obj.ComponentsObject.full" parent="base">
+        <field name="number" parent="long"/>
+        <field name="id" parent="long"/>
+        <field name="parent" parent="long"/>
+        <field name="name" parent="string"/>
+        <field name="ord" parent="long"/>
+        <field name="cmt" parent="string"/>
+    </domain>
+
+    <domain name="RelObjMember.all" parent="base">
+        <field name="id" parent="string"/>
+        <field name="parent" parent="string"/>
+        <field name="name" parent="f.name"/>
+        <field name="cod" parent="string"/>
+        <field name="cls" parent="long"/>
+        <field name="relcls" parent="long"/>
+        <field name="ent" parent="long"/>
+        <field name="checked" parent="boolean"/>
+        <field name="rcm" parent="long"/>
+        <field name="membs" parent="string"/>
+        <field name="ord" parent="f.ord"/>
+    </domain>
+
+    <domain name="Obj.SourceCollections" parent="base">
+        <field name="id" parent="long"/>
+        <field name="obj" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idDocumentNumber" parent="long"/>
+        <field name="DocumentNumber" parent="string"/>
+
+        <field name="idDocumentApprovalDate" parent="long"/>
+        <field name="DocumentApprovalDate" parent="date"/>
+
+        <field name="idDocumentAuthor" parent="long"/>
+        <field name="DocumentAuthor" parent="string"/>
+
+        <field name="idDocumentStartDate" parent="long"/>
+        <field name="DocumentStartDate" parent="date"/>
+
+        <field name="idDocumentEndDate" parent="long"/>
+        <field name="DocumentEndDate" parent="date"/>
+    </domain>
+
+    <domain name="Obj.Parameters" parent="base">
+        <field name="id" parent="long"/>
+        <field name="obj" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+
+        <field name="idCollections" parent="long"/>
+        <field name="pvCollections" parent="long"/>
+        <field name="objCollections" parent="long"/>
+        <field name="nameCollections" parent="string"/>
+
+        <field name="idParamsMeasure" parent="long"/>
+        <field name="pvParamsMeasure" parent="long"/>
+        <field name="meaParamsMeasure" parent="long"/>
+
+        <field name="idParamsDescription" parent="long"/>
+        <field name="ParamsDescription" parent="string"/>
+    </domain>
+
+    <domain name="Obj.Parameters.component" parent="base">
+        <field name="number" parent="long"/>
+        <field name="id" parent="long"/>
+        <field name="parent" parent="long"/>
+        <field name="name" parent="string"/>
+        <field name="ord" parent="long"/>
+        <field name="cmt" parent="string"/>
+
+        <field name="idParamsLimitMax" parent="long"/>
+        <field name="ParamsLimitMax" parent="double"/>
+
+        <field name="idParamsLimitMin" parent="long"/>
+        <field name="ParamsLimitMin" parent="double"/>
+
+        <field name="idParamsLimitNorm" parent="long"/>
+        <field name="ParamsLimitNorm" parent="double"/>
+
+    </domain>
+
+
+</root>
+
+
+
+

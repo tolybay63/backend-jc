@@ -1,0 +1,38 @@
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    String v
+
+    // poi
+    v = '5.3.0'
+    implementation (group: 'org.apache.poi', name: 'poi-ooxml', version: v) {
+    }
+    v = '2.24.3'
+    implementation (group: 'org.apache.logging.log4j', name: 'log4j-core', version: v) {
+    }
+    v = '1.1.12'
+    implementation (group: 'com.documents4j', name: 'documents4j-api', version: v) {
+    }
+    v = '1.1.12'
+    implementation (group: 'com.documents4j', name: 'documents4j-local', version: v) {
+        exclude group: 'org.slf4j'
+    }
+    v = '1.1.12'
+    implementation (group: 'com.documents4j', name: 'documents4j-transformer-msoffice-word', version: v) {
+        exclude group: 'org.slf4j'
+    }
+    v = '1.1.12'
+    implementation (group: 'com.documents4j', name: 'documents4j-transformer-msoffice-excel', version: v) {
+        exclude group: 'org.slf4j'
+    }
+    v = '3.0.3'
+    implementation (group: 'org.apache.pdfbox', name: 'pdfbox', version: v) {
+    }
+
+
+
+
+}
+

@@ -1,0 +1,15 @@
+import jandcode.jc.*
+import jandcode.jc.std.*
+import jandcode.commons.*
+
+class P extends ProjectScript {
+
+    void onInclude() {
+        project.name = "lib-builder"
+        include(GradleTools).with {
+            publishDir = "../_jc/${project.name}"
+            tempDir = "../temp/${project.name}"
+        }
+    }
+
+}
