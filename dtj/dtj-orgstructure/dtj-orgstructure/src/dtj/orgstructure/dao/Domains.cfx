@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="Obj.location" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="parent" parent="long"/>
+        <field name="name" parent="string"/>
+        <field name="nameCls" parent="string"/>
+        <field name="nameParent" parent="string"/>
+
+        <field name="idAddress" parent="long"/>
+        <field name="Address" parent="string"/>
+
+        <field name="idPhone" parent="long"/>
+        <field name="Phone" parent="string"/>
+
+        <field name="objObjectTypeMulti" parent="string"/>
+        <field name="nameObjectTypeMulti" parent="string"/>
+
+        <field name="idStartKm" parent="long"/>
+        <field name="StartKm" parent="double"/>
+        <field name="idFinishKm" parent="long"/>
+        <field name="FinishKm" parent="double"/>
+        <field name="idStageLength" parent="long"/>
+        <field name="StageLength" parent="double"/>
+
+        <field name="idRegion" parent="long"/>
+        <field name="pvRegion" parent="long"/>
+        <field name="fvRegion" parent="long"/>
+        <field name="nameRegion" parent="string"/>
+
+        <field name="idIsActive" parent="long"/>
+        <field name="pvIsActive" parent="long"/>
+        <field name="fvIsActive" parent="long"/>
+        <field name="nameIsActive" parent="string"/>
+
+        <field name="idCreatedAt" parent="long"/>
+        <field name="CreatedAt" parent="string"/>
+
+        <field name="idUpdatedAt" parent="long"/>
+        <field name="UpdatedAt" parent="string"/>
+
+        <field name="idDescription" parent="long"/>
+        <field name="Description" parent="string"/>
+
+    </domain>
+
+</root>

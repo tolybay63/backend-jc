@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <app
+            title="DtjObject"
+            mainmodule="dtj.personnal"
+    />
+
+    <x-depends module="dtj.personnal"/>
+
+</root>

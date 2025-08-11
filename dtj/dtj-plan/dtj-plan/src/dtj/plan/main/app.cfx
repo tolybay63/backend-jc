@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <app
+            title="DtjObject"
+            mainmodule="dtj.plan"
+    />
+
+    <x-depends module="dtj.plan"/>
+
+</root>

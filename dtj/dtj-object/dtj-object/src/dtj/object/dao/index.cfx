@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <dao>
+
+        <holder name="api">
+
+            <item name="data" method="*" invoker="model:default"
+                  class="dtj.object.dao.DataDao"/>
+
+
+        </holder>
+
+    </dao>
+
+</root>

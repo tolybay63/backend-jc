@@ -1,0 +1,20 @@
+<configuration>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!--<charset>cp866</charset>-->
+            <pattern>%d{HH:mm:ss.SSS} %-5p %-25c{1} - %X{request}%m%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+    <logger name="org.apache" level="OFF"/>
+    <logger name="org.eclipse" level="OFF"/>
+    <logger name="jandcode.core.web.std" level="OFF"/>
+    <logger name="jandcode.commons" level="OFF"/>
+    <logger name="jandcode.commons.moduledef" level="OFF"/>
+
+</configuration>
