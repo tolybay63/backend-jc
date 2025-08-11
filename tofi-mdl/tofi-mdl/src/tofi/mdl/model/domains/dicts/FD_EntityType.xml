@@ -1,0 +1,42 @@
+<root>
+    <row id="1" text="Единица измерения" vis="1" ord="1" tableName="Measure" code="Measure"/>
+    <row id="2" text="Атрибут" vis="1" ord="2" tableName="Attrib" code="Attrib"/>
+    <row id="3" text="Фактор" vis="1" ord="3" tableName="Factor" code="Factor"/>
+    <row id="4" text="Значение фактора" vis="1" ord="4" tableName="Factor" code="FactorVal"/>
+    <row id="5" text="Измеритель" vis="1" ord="5" tableName="Meter" code="Meter"/>
+    <row id="6" text="Показатель" vis="1" ord="6" tableName="MeterRate" code="MeterRate"/>
+    <row id="7" text="Шкала" vis="0" ord="7" tableName="Scale" code="Scale"/>
+    <row id="8" text="Настройка шкалы" vis="0" ord="8" tableName="ScaleAsgn" code="ScaleAsgn"/>
+    <row id="9" text="Роль типа объектов и отношений" vis="0" ord="9" tableName="Role" code="Role"/>
+    <row id="10" text="Тип объектов" vis="1" ord="10" tableName="Typ" code="Type"/>
+    <row id="11" text="Класс объектов" vis="1" ord="11" tableName="Cls" code="Cls"/>
+    <row id="12" text="Система кодирования" vis="0" ord="12" tableName="SysCoding" code="SysCoding"/>
+    <row id="13" text="Группа свойств" vis="0" ord="13" tableName="PropGr" code="PropGr"/>
+    <row id="14" text="Свойство" vis="1" ord="14" tableName="Prop" code="Prop"/>
+    <row id="15" text="Группа измерений многомерного свойства" vis="0" ord="15" tableName="DimMultiPropGr" code="DimMultiPropGr"/>
+    <row id="16" text="Измерения многомерного свойства" vis="1" ord="16" tableName="DimMultiProp" code="DimMultiProp"/>
+    <row id="17" text="Элементы измерения многомерного свойства" vis="1" ord="17" tableName="DimMultiPropItem" code="DimMultiPropItem"/>
+    <row id="18" text="Группа многомерных свойств" vis="0" ord="18" tableName="MultiPropGr" code="MultiPropGr"/>
+    <row id="19" text="Многомерные свойства" vis="1" ord="19" tableName="MultiProp" code="MultiProp"/>
+    <row id="20" text="Группа характеристических свойств типа объектов" vis="0" ord="20" tableName="TypCharGr" code="TypCharGr"/>
+    <row id="21" text="Отношени между типами объектов" vis="1" ord="21" tableName="RelTyp" code="RelTyp"/>
+    <row id="22" text="Отношени между классами объектов" vis="1" ord="22" tableName="RelCls" code="RelCls"/>
+    <row id="23" text="Группа характеристических свойств отношения между типами объектов" vis="0" ord="23" tableName="RelTypCharGr" code="RelTypCharGr"/>
+    <row id="24" text="Измерение периодов" vis="1" ord="24" tableName="DimPeriod" code="DimPeriod"/>
+    <row id="25" text="Группа измерений свойств" vis="0" ord="25" tableName="DimPropGr" code="DimPropGr"/>
+    <row id="26" text="Измерение свойств" vis="1" ord="26" tableName="DimProp" code="DimProp"/>
+    <row id="27" text="Группа измерений объектов и отношений" vis="0" ord="27" tableName="DimObjGr" code="DimObjGr"/>
+    <row id="28" text="Измерение объектов и отношений" vis="1" ord="28" tableName="DimObj" code="DimObj"/>
+    <row id="29" text="Перечень базы данных" vis="0" ord="29" tableName="DataBase" code="DataBase"/>
+    <row id="30" text="Плоские таблицы" vis="0" ord="30" tableName="FlatTable" code="FlatTable"/>
+    <row id="31" text="Группа стандартных кубов" vis="0" ord="31" tableName="CubeSGr" code="CubeSGr"/>
+    <row id="32" text="Стандартные кубы" vis="1" ord="32" tableName="CubeS" code="CubeS"/>
+
+
+<!--
+    <row id="33" text="Факторно-балансовая матрица" vis="0" ord="33" tableName="FBM" code="FBM"/>
+    <row id="34" text="Фрактальное дерево" vis="0" ord="34" tableName="FTree" code="FTree"/>
+    <row id="35" text="Граф" vis="0" ord="35" tableName="TGraph" code="TGraph"/>
+-->
+
+</root>

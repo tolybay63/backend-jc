@@ -1,0 +1,27 @@
+import jandcode.jc.*
+import jandcode.jc.std.*
+
+class P extends ProjectScript {
+
+    static beforeLoad = {
+    }
+
+    void onInclude() {
+        //
+        project.name = "tofi-minio"
+        //
+        include(JavaProject).with {
+            moduleDef("tofi.minio").with {
+                depends.prod(
+                        "commons-compress",
+                        "okio-jvm",
+
+                        "minio",
+                )
+                depends.dev(
+                )
+            }
+        }
+    }
+
+}

@@ -1,0 +1,6 @@
+<root>
+    <row id="1" text="Пользователи и роли" vis="1" ord="1" code="usr"/>
+    <row id="2" text="Метаданные" vis="1" ord="2" code="meta"/>
+    <row id="3" text="Данные" vis="1" ord="3" code="data"/>
+    <row id="4" text="Кубы" vis="1" ord="4" code="cube"/>
+</root>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="RelCls" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Классы отношений">
+
+        <field name="relTyp" parent="RelTyp/ref"/>
+
+        <field name="accessLevel" parent="FD_AccessLevel/ref" req="true"/>
+
+        <field name="cod" parent="f.cod"/>
+
+        <field name="isOpenness" parent="boolean"
+               title="Открытость типа" req="true">
+            <!--@
+                Открытость отношения между типами объектов
+            -->
+        </field>
+
+        <field name="dataBase" parent="DataBase/ref"/>
+        <field name="icon" parent="f.icon"/>
+        <field name="cmt" parent="f.cmt"/>
+        <field name="ord" parent="f.ord"/>
+    </domain>
+
+    <domain name="RelCls.full" parent="RelCls">
+        <include name="VerTable"/>
+    </domain>
+
+</root>

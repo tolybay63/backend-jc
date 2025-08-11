@@ -1,0 +1,5 @@
+<root>
+    <row id="1" text="Добавление" vis="1" ord="1" code="shortt"/>
+    <row id="2" text="Изменение" vis="1" ord="2" code="full"/>
+    <row id="3" text="Удаление" vis="1" ord="3" code="cod_short"/>
+</root>

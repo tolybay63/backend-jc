@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="ScaleValAsgn" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Настройки значений шкалы">
+
+        <field name="scaleVal" parent="ScaleVal/ref"/>
+        <field name="scaleAsgn" parent="ScaleAsgn/ref"/>
+        <field name="scaleValNumber" parent="double" title="Числовое значение значения шкалы"/>
+        <field name="scaleValColor" parent="string" size="16" title="Цвет значения шкалы"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+
+    </domain>
+
+    <domain name="ScaleValAsgn.full" parent="ScaleValAsgn">
+        <field name="val" parent="string"/>
+        <field name="checked" parent="boolean"/>
+    </domain>
+
+</root>
+

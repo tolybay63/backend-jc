@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="CubeSFace" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Грани прокуба объектов и отношений">
+        <!--
+            Грани прокуба объектов и отношений.
+         -->
+
+        <field name="cubeS" parent="CubeS/ref"/>
+        <field name="countDim" parent="int">
+            <!--
+                Количество измерений граня прокуба объектов и отношений или размерность грани.
+            -->
+        </field>
+    </domain>
+
+
+
+
+</root>

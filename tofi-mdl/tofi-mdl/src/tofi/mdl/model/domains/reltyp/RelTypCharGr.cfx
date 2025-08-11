@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="RelTypCharGr" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Характеристические группы отношений типов объектов">
+        <!--
+           Характеристические группы отношений типов объектов.
+        -->
+        <field name="cod" parent="f.cod"/>
+        <field name="accessLevel" parent="FD_AccessLevel/ref" req="true"/>
+        <field name="relTyp" parent="RelTyp/ref"/>
+        <field name="relCls" parent="RelCls/ref"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
+        <field name="ord" parent="f.ord"/>
+    </domain>
+
+
+    <domain name="RelTypCharGr.full" parent="RelTypCharGr">
+        <field name="relClsName" parent="string"/>
+        <field name="dbId" parent="long"/>
+        <field name="modelName" parent="string"/>
+        <field name="dbNames" parent="string"/>
+    </domain>
+
+    <domain name="RelTypCharGr.info" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cod" parent="RelTypCharGr/cod"/>
+        <field name="rcgName" parent="RelTypCharGr/name"/>
+        <field name="dbs" parent="string"/>
+        <field name="modelName" parent="string"/>
+        <field name="dbTitle" parent="string"/>
+    </domain>
+
+
+    <!-- ========================================================= -->
+    <domain name="RelTypCharGrProp" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Свойства, входящие в характеристическую группу">
+        <!--
+           Свойства, входящие в характеристическую группу.
+        -->
+        <field name="relTypCharGr" parent="RelTypCharGr/ref"/>
+        <field name="prop" parent="Prop/ref"/>
+        <field name="relTypCharGrProp_measure" parent="Prop/ref">
+            <!--@
+                Ссылка на характеристическое свойство типа единица измерения текущего отношения между типами объектов
+                или его участника, который является отношнием между типами объектов.
+                Отношение между типами объектов определяется из поля relTyp таблицы RelTypCharGr.
+                Заполняется только для характеристических свойств типа измеритель или показатель,
+                которые не имеют единицу измерения.
+                Заполняется только одно из полей typCharGrProp_measure или relTypCharGrProp_measure.
+            -->
+        </field>
+
+        <field name="propVal_measure" parent="PropVal/ref">
+            <!--@
+                Ссылка на возможное значение свойства, указанного в одном из полей typCharGrProp_measure или
+                relTypCharGrProp_measure, в котором нужно показывать значение текущего характеристического свойства
+                типа измеритель или показатель.
+            -->
+        </field>
+
+        <field name="multiProp" parent="MultiProp/ref"/>
+        <field name="storageType" parent="FD_StorageType/ref"/>
+        <field name="flatTable" parent="FlatTable/ref">
+            <!--@
+                Ссылка на плоскую таблицу (id таблицы FlatTable), при этом в таблице FlatTableProp должна быть запись,
+                у которой поле prop равен текущему свойству, а поле flatTable совпадает с текущим полем.
+                Если такой записи нет, то она добавляется. Кроме того, в таблице FlatTableOwn должна быть запись,
+                у которой поле typ равен полю typ таблицы TypCharGr, а поле flatTable совпадает с текущим полем.
+                Если такой записи нет, то она добавляется
+            -->
+        </field>
+
+    </domain>
+
+    <!-- ========================================================= -->
+
+    <domain name="RelTypCharGrProp.prop" parent="base">
+        <field name="id" parent="string"/>
+        <field name="parent" parent="string"/>
+        <field name="relTypCharGrProp" parent="RelTypCharGrProp/ref"/>
+        <field name="relTypCharGrProp_measure" parent="Prop/ref"/>
+        <field name="propVal_measure" parent="PropVal/ref"/>
+        <field name="storageType" parent="FD_StorageType/ref"/>
+        <field name="flatTable" parent="FlatTable/ref"/>
+        <field name="prop" parent="Prop/ref"/>
+        <field name="propGr" parent="PropGr/ref"/>
+        <field name="propType" parent="long"/>
+        <field name="cod" parent="string"/>
+        <field name="name" parent="string"/>
+        <field name="p_measure" parent="string"/>
+        <field name="pv_measure" parent="string"/>
+        <field name="isItem" parent="boolean"/>
+    </domain>
+
+    <domain name="RelTypCharGrProp.prop.checked" parent="RelTypCharGrProp.prop">
+        <field name="checked" parent="boolean"/>
+    </domain>
+
+    <domain name="RelTypCharGrProp.propGr" parent="base">
+        <field name="id" parent="string"/>
+        <field name="parent" parent="string"/>
+        <field name="propGr" parent="PropGr/ref"/>
+        <field name="prop" parent="Prop/ref"/>
+    </domain>
+
+    <domain name="RelTypCharGrProp.multiProp" parent="base">
+        <field name="id" parent="string"/>
+        <field name="parent" parent="string"/>
+        <field name="relTypCharGrProp" parent="RelTypCharGrProp/ref"/>
+        <field name="storageType" parent="FD_StorageType/ref"/>
+        <field name="multiProp" parent="MultiProp/ref"/>
+        <field name="multiPropGr" parent="MultiPropGr/ref"/>
+        <field name="cod" parent="f.cod"/>
+        <field name="name" parent="f.name"/>
+    </domain>
+
+    <domain name="RelTypCharGrProp.multiProp.checked" parent="RelTypCharGrProp.multiProp">
+        <field name="checked" parent="boolean"/>
+    </domain>
+
+    <domain name="RelTypCharGrProp.multiPropGr" parent="base">
+        <field name="id" parent="string"/>
+        <field name="parent" parent="string"/>
+        <field name="multiPropGr" parent="MultiPropGr/ref"/>
+    </domain>
+
+
+</root>

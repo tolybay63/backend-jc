@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="DimObjItemProp" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Свойства, которые определяют значение или владельца">
+        <!-- Свойства, которые определяют значение или владельца -->
+
+        <field name="dimObjItem" parent="DimObjItem/ref"/>
+        <field name="prop" parent="Prop/ref"/>
+        <field name="propStatus" parent="PropStatus/ref"/>
+        <field name="propStatusMissing" parent="FD_PropStatusMissing/ref"/>
+
+        <field name="propProvider" parent="PropProvider/ref"/>
+        <field name="propProviderMissing" parent="FD_PropProviderMissing/ref"/>
+
+    </domain>
+
+    <domain name="DimObjItemProp.full" parent="DimObjItemProp">
+        <field name="name" parent="string"/>
+        <field name="propType" parent="long"/>
+        <field name="nameStatus" parent="string"/>
+        <field name="namePprovider" parent="string"/>
+        <field name="nameMeasure" parent="string"/>
+        <field name="kfrombase" parent="double"/>
+        <field name="pt" parent="long"/>
+    </domain>
+
+    <domain name="DimObjItemProp.source" parent="DimObjItemProp">
+        <field name="idFlatTable" parent="long"/>
+        <field name="nameFlatTable" parent="string"/>
+        <field name="statusFactor" parent="long"/>
+        <field name="providerTyp" parent="long"/>
+        <field name="defaultStatus" parent="long"/>
+        <field name="defaultProvider" parent="long"/>
+    </domain>
+
+</root>

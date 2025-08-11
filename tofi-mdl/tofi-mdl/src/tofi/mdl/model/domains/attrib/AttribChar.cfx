@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="AttribChar" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Характеристики атрибута">
+
+        <field name="attrib" parent="Attrib/ref"/>
+        <field name="maskReg" parent="string" size="30" title="Маска">
+            <!--@ Маска строки в виде регулярного выражения.
+                Заполняется только для атрибута с типом "строка с маской"-->
+        </field>
+        <field name="format" parent="string" size="30" title="Формат">
+            <!--@
+            Формат значения атрибута, заполняется только для атрибута с типом "дата", "время", "дата и время"-->
+        </field>
+        <field name="fileExt" parent="string" size="30" title="Расширение файла">
+            <!--@ Заполняется только для атрибута с типом "Файл" -->
+        </field>
+
+        <field name="entityType" parent="FD_EntityType/ref" title="Сущность ТОФИ">
+            <!--@
+               Заполняется только для атрибута с типом значения "Сущность ТОФИ"-->
+        </field>
+
+        <field name="periodType" parent="FD_PeriodType/ref" title="Тип периода">
+            <!--@
+               Заполняется только для атрибута с типом "Период"-->
+        </field>
+    </domain>
+
+</root>

@@ -1,0 +1,4 @@
+<root>
+    <row id="1" text="Детерминированный измеритель" vis="1" ord="1" code="determ"/>
+    <row id="2" text="Стохастический измеритель" vis="1" ord="2" code="stohast"/>
+</root>

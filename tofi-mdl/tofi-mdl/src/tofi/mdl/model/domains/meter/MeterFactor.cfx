@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="MeterFactor" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Факторы мягкого измерителя">
+        <!-- Факторы мягкого измерителя -->
+        <field name="meter" parent="Meter/ref"/>
+        <field name="factor" parent="Factor/ref"/>
+        <field name="ordDim" parent="long"/>
+        <field name="ordFactorInDim" parent="long"/>
+
+    </domain>
+
+    <domain name="MeterFactor.tree" parent="MeterFactor">
+        <field name="cod" parent="f.cod" size="30"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="parent" parent="ref"/>
+    </domain>
+</root>
+

@@ -1,0 +1,25 @@
+import jandcode.jc.*
+import jandcode.jc.std.*
+
+class P extends ProjectScript {
+
+    static beforeLoad = {
+    }
+
+    void onInclude() {
+        //
+        project.name = "tofi-pulsar"
+        //
+        include(JavaProject).with {
+            moduleDef("tofi.pulsar").with {
+                depends.prod(
+                    "pulsar-client",
+                    "pulsar-client-admin",
+                )
+                depends.dev(
+                )
+            }
+        }
+    }
+
+}

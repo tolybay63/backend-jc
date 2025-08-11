@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+     <domain name="DataMultiPropValArgs" parent="id" tag.db="true"
+             genid.start="1000" genid.step="1">
+         <!--
+            Аргументы формул.
+            При определении значения prop учитывается внешние условия из поля multiPropCond
+            (например, если во внешних условиях указаны значения факторов, то вместо указанного prop
+            берется дочерний prop c учетом указанных значений факторов, если не указан own,
+            то own береся из внешнего условия).
+         -->
+
+         <field name="dataMultiPropCell" parent="DataMultiPropCell/ref"/>
+         <field name="sign" parent="f.sign"/>
+         <field name="cls" parent="ref"/>
+         <field name="obj" parent="Obj/ref"/>
+         <field name="relCls" parent="ref"/>
+         <field name="relObj" parent="RelObj/ref"/>
+         <field name="prop" parent="ref"/>
+         <field name="status" parent="ref"/>
+         <field name="statusMissing" parent="ref"/>
+         <field name="provider" parent="Obj/ref"/>
+         <field name="providerMissing" parent="ref"/>
+
+         <field name="periodType" parent="ref"/>
+         <field name="dbeg" parent="ref"/>
+
+     </domain>
+
+    <!-- ========================================================= -->
+
+
+</root>

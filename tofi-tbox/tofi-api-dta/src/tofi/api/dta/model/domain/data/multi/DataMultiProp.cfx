@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="DataMultiProp" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Координаты стандартных многомерных данных">
+
+        <field name="isObj" parent="boolean"/>
+        <field name="objOrRelObj" parent="ref"/>
+        <field name="multiProp" parent="ref"/>
+
+        <field name="status" parent="ref">
+            <!-- Ссылка на таблицу Factor(parent not null)-->
+        </field>
+        <field name="provider" parent="Obj/ref"/>
+        <field name="periodType" parent="ref"/>
+
+        <field name="multiPropCond" parent="string" size="8000">
+            <!--
+                Значения внешних условий, имеет формат списка json-ов. Структура json-а:
+                {multiPropCond: multiPropCond_id, id: val_id},
+                где val_id есть либо factorVal_id, либо obj_id, либо relObj_id
+            -->
+
+        </field>
+
+    </domain>
+
+
+
+</root>

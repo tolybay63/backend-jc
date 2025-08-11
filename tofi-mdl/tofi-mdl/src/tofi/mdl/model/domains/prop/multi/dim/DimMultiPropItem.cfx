@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="DimMultiPropItem" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Элементы измерения многомерного свойства">
+        <!--@
+        Элементы измерения многомерного свойства.
+        Каждый элемент измерения многомерного свойства определяет тип значения ячейки
+        многомерного свойства в которое измерение включено.
+        Значениями элемента измерения многомерного свойства могут быть:
+        1) не определено
+        2) строка, дата, время, файл, в этом случае конкретный тип значения указывается
+           в таблице DimMultiPropItemAttrib,
+        3) число, в этом случае единица измерения, максимальное и минимальное значения и
+           точность указываются в таблице DimMultiPropItemMeter,
+        4) значение фактора, в этом случае возможные факторы указываются
+           в таблице DimMultiPropItemFactor,
+        5) объект, в этом случае возможные классы указываются в таблице DimMultiPropItemCls,
+        6) отношение между объектами, в этом случае возможные отношения между классами указываются
+           в таблице DimMultiPropItemRelCls,
+        7) единица измерения, в этом случае возможные базовые единицы измерения указываются
+           в таблице DimMultiPropItemMeasure,
+        8) выходная переменная алгоритма,
+        9) формула, аргументами формул могут быть свойства или ячейки многомерных свойств.
+         -->
+
+        <field name="dimMultiProp" parent="DimMultiProp/ref"/>
+        <field name="cod" parent="f.cod"/>
+        <field name="parent" parent="DimMultiPropItem/ref"/>
+        <field name="prop" parent="Prop/ref"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="multiEntityType" parent="FD_MultiValEntityType/ref"/>
+        <field name="multiPropItemTag" parent="string" size="100">
+        </field>
+        <field name="cmt" parent="f.cmt"/>
+        <field name="ord" parent="f.ord"/>
+
+    </domain>
+
+    <domain name="DimMultiPropItem.full" parent="DimMultiPropItem">
+        <field name="entityType" parent="string"/>
+    </domain>
+
+</root>
+

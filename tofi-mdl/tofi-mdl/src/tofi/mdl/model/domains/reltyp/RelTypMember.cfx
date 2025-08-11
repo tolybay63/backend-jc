@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="RelTypMember" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Участники отношения между типами объектов">
+        <!-- Участники отношения между типами объектов -->
+
+        <field name="relTyp" parent="RelTyp/ref" req="true"/>
+
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="card" parent="int"
+               title="Число кардинальности" req="true">
+            <!--@
+                Число кардинальности участника отношения между типами объектов
+            -->
+        </field>
+
+        <field name="memberType" parent="FD_MemberType/ref"/>
+        <field name="typ" parent="Typ/ref"/>
+        <field name="relTypMemb" parent="RelTyp/ref"/>
+        <field name="role" parent="Role/ref"/>
+
+        <field name="cmt" parent="f.cmt"/>
+        <field name="ord" parent="f.ord"/>
+
+    </domain>
+
+    <domain name="RelTypMember.full" parent="RelTypMember">
+        <field name="memberName" parent="string"/>
+    </domain>
+
+
+</root>

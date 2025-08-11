@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="DimMultiPropItemFactor" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1"
+            title="Возможные значения элемента измерения многомерного свойства типа значение фактора">
+        <!--
+            заполняется только для тех элементов измерения,
+            у которых поле isFactorVal=true
+        -->
+
+        <field name="dimMultiPropItem" parent="DimMultiPropItem/ref"/>
+        <field name="factor" parent="Factor/ref"/>
+        <field name="visualFormat" parent="FD_VisualFormat/ref">
+            <!--
+                Ссылка на словарь FD_visualFormat.
+                Указывает в каком формате необходимо показывать значение свойства
+                на интерфейсе клиента
+            -->
+        </field>
+    </domain>
+
+    <domain name="DimMultiPropItemFactor.full" parent="DimMultiPropItemFactor">
+        <field name="name" parent="string"/>
+    </domain>
+
+</root>
+

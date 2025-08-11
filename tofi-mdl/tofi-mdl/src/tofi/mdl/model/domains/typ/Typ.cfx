@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="Typ" parent="id" tag.db="true" genid.start="1000" genid.step="1"
+            title="Типы объектов">
+        <field name="accessLevel" parent="FD_AccessLevel/ref" req="true" title="Уровень доступа">
+            <!--@
+                Словарь уровней доступа. Возможные значения:
+                1-общедоступный уровень;
+                2-первый уровень доступа;
+                3-второй уровень доступа;
+                4-...
+               10-девятый уровень доступа.
+            -->
+        </field>
+        <field name="parent" parent="Typ/ref" title="Родительский тип">
+            <!--@
+             Ссылка на родительский тип объектов
+            -->
+        </field>
+        <field name="cod" parent="f.cod"/>
+
+        <field name="isOpenness" parent="boolean"
+               title="Открытость типа" req="true">
+            <!--@
+                Открытость типа объектов
+            -->
+        </field>
+
+        <field name="typCategory" parent="FD_TypCategory/ref"
+               title="Категория типа объектов" req="true">
+            <!--@
+               Категория типа объектов:
+               1) Стандартный;
+               2) Регистр.
+
+               Регистры не участвуют в отношениях между типами.
+               Регистры не могут являться дочерним типом объектов.
+            -->
+        </field>
+
+        <field name="cmt" parent="f.cmt"/>
+        <field name="ord" parent="f.ord"/>
+
+    </domain>
+
+    <domain name="Typ.full" parent="Typ">
+        <include name="VerTable"/>
+    </domain>
+
+</root>

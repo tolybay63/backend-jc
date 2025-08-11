@@ -1,0 +1,6 @@
+<root>
+    <row id="1" text="Входит начало периода" vis="1" ord="1" code="dbeg"/>
+    <row id="2" text="Входит конец периода" vis="1" ord="2" code="dend"/>
+    <row id="3" text="Входит начало и конец периода" vis="1" ord="3" code="dbegAndDend"/>
+    <row id="4" text="Входит начало или конец периода" vis="1" ord="4" code="dbegOrDend"/>
+</root>

@@ -1,0 +1,8 @@
+<root>
+
+    <row id="1" text="Иерархия свойств" vis="1" ord="1" code="prop"/>
+    <row id="2" text="Иерархия значений факторов" vis="1" ord="2" code="factor"/>
+    <row id="3" text="Список многомерных свойств" vis="1" ord="3" code="multiList"/>
+    <row id="4" text="Измерение многомерного свойства" vis="1" ord="3" code="dimMultiProp"/>
+
+</root>

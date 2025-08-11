@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="PropProvider" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Поставщик свойства">
+        <!--
+           Поставщик свойства.
+        -->
+
+        <field name="prop" parent="Prop/ref"/>
+        <field name="cls" parent="Cls/ref"/>
+        <field name="obj" parent="long"/>
+        <field name="isDefault" parent="boolean">
+            <!--@
+               Если true, то указанный в поле obj объект является поставщиком по умолчанию.
+            -->
+        </field>
+
+    </domain>
+
+    <domain name="PropProvider.full" parent="PropProvider">
+        <field name="cod" parent="f.cod"/>
+        <field name="nameCls" parent="f.name"/>
+        <field name="nameObj" parent="f.name"/>
+        <field name="checked" parent="boolean"/>
+        <field name="modelName" parent="string"/>
+    </domain>
+
+
+</root>

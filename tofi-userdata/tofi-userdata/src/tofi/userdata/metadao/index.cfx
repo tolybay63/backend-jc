@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <dao>
+
+        <holder name="api">
+
+            <item name="meta" method="*" invoker="model:meta"
+                  class="tofi.userdata.metadao.MetaDao"/>
+        </holder>
+
+    </dao>
+
+</root>

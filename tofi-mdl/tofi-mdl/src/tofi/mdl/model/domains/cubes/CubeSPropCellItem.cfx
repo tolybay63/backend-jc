@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="CubeSPropCellItem" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Координаты ячеек прокуба свойств">
+        <!--
+            Координаты ячеек прокуба свойств.
+         -->
+
+        <field name="cubeSPropCell" parent="CubeSPropCell/ref"/>
+        <field name="dimPropItem" parent="DimPropItem/ref"/>
+    </domain>
+
+
+
+
+</root>

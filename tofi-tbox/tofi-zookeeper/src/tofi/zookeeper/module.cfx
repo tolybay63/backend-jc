@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <bean name="tofi.zookeeper.ZookeeperService"
+          class="tofi.zookeeper.impl.ZookeeperServiceImpl"/>
+
+    <!-- ===================================================================== -->
+
+    <cfg>
+
+        <zookeeper
+                connectionString="localhost:2181"
+        >
+            <retryPolicy
+                    sleep="1000"
+                    retries="3"
+            />
+        </zookeeper>
+
+    </cfg>
+
+</root>

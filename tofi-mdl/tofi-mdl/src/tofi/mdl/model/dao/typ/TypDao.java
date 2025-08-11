@@ -1,0 +1,332 @@
+package tofi.mdl.model.dao.typ;
+
+import jandcode.commons.UtCnv;
+import jandcode.core.dbm.dao.BaseModelDao;
+import jandcode.core.store.Store;
+import jandcode.core.store.StoreRecord;
+import tofi.mdl.model.dao.reltyp.RelTypMemberMdbUtils;
+
+import java.util.Map;
+
+public class TypDao extends BaseModelDao {
+
+    //---------------------- Typ --------------------------------
+    public Map<String, Object> loadTypPaginate(Map<String, Object> params) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "Typ");
+        return u.loadTypPaginate(params);
+    }
+
+    public void delete(Map<String, Object> params) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "Typ");
+        u.delete(UtCnv.toMap(params.get("rec")));
+    }
+
+    public Store update(Map<String, Object> params) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "Typ");
+        return u.update(params);
+    }
+
+    public Store insert(Map<String, Object> params) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "Typ");
+        return u.insert(params);
+    }
+
+    public StoreRecord loadRec(long id) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "Typ");
+        return u.loadRec(id);
+    }
+
+    public Store loadTypParent(Map<String, Object> params) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "Typ");
+        return u.loadTypParent(params);
+    }
+
+
+    //---------------------- TypVer --------------------------------
+    public Store loadVer(long typ) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "Typ");
+        return u.loadVer(typ);
+    }
+
+    public Store updateVer(Map<String, Object> params) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "Typ");
+        return u.updateVer(params);
+    }
+
+    public Store insertVer(Map<String, Object> params) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "Typ");
+        return u.insertVer(params);
+    }
+
+    public void deleteVer(Map<String, Object> params) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "Typ");
+        u.deleteVer(UtCnv.toMap(params.get("rec")));
+    }
+
+    //---------------------- TypRole --------------------------------
+    public Store loadTypRole(long typ) throws Exception {
+        TypRoleMdbUtils u = new TypRoleMdbUtils(getMdb());
+        return u.loadTypRole(typ);
+    }
+
+    public Store selectTypRole(long typ) throws Exception {
+        TypRoleMdbUtils u = new TypRoleMdbUtils(getMdb());
+        return u.selectTypRole(typ);
+    }
+
+
+    public Store insertTypRole(Map<String, Object> params) throws Exception {
+        TypRoleMdbUtils u = new TypRoleMdbUtils(getMdb());
+        return u.insertTypRole(params);
+    }
+
+    public Store updateTypRole(Map<String, Object> params) throws Exception {
+        TypRoleMdbUtils u = new TypRoleMdbUtils(getMdb());
+        return u.updateTypRole(params);
+    }
+
+    public void deleteTypRole(Map<String, Object> params) throws Exception {
+        TypRoleMdbUtils u = new TypRoleMdbUtils(getMdb());
+        u.deleteTypRole(UtCnv.toMap(params.get("rec")));
+    }
+
+    //---------------------- TypRoleLifeInterval --------------------------------
+    public Store loadTypRoleLife(long typRole) throws Exception {
+        TypRoleMdbUtils u = new TypRoleMdbUtils(getMdb());
+        return u.loadTypRoleLife(typRole);
+    }
+
+    public Store insertTypRoleLife(Map<String, Object> params) throws Exception {
+        TypRoleMdbUtils u = new TypRoleMdbUtils(getMdb());
+        return u.insertTypRoleLife(params);
+    }
+
+    public Store updateTypRoleLife(Map<String, Object> params) throws Exception {
+        TypRoleMdbUtils u = new TypRoleMdbUtils(getMdb());
+        return u.updateTypRoleLife(params);
+    }
+
+    public void deleteTypRoleLife(Map<String, Object> params) throws Exception {
+        TypRoleMdbUtils u = new TypRoleMdbUtils(getMdb());
+        u.deleteTypRoleLife(UtCnv.toMap(params.get("rec")));
+    }
+
+    //---------------------- TypClusterFactor --------------------------------
+
+    public Store loadTypClusterFactor(long typ) throws Exception {
+        TypClusterFactorMdbUtils u = new TypClusterFactorMdbUtils(getMdb());
+        return u.loadTypClusterFactor(typ);
+    }
+
+    public Store insertTypClusterFactor(Map<String, Object> params) throws Exception {
+        TypClusterFactorMdbUtils u = new TypClusterFactorMdbUtils(getMdb());
+        return u.insertTypClusterFactor(params);
+    }
+
+    public Store updateTypClusterFactor(Map<String, Object> params) throws Exception {
+        TypClusterFactorMdbUtils u = new TypClusterFactorMdbUtils(getMdb());
+        return u.updateTypClusterFactor(params);
+    }
+
+    public void deleteTypClusterFactor(Map<String, Object> params) throws Exception {
+        TypClusterFactorMdbUtils u = new TypClusterFactorMdbUtils(getMdb());
+        u.deleteTypClusterFactor(UtCnv.toMap(params.get("rec")));
+    }
+
+    public Store loadFactors(long typ, String mode) throws Exception {
+        TypClusterFactorMdbUtils u = new TypClusterFactorMdbUtils(getMdb());
+        return u.loadFactors(typ, mode);
+    }
+
+    //---------------------- Cls --------------------------------
+
+    public Store loadCls(long typ) throws Exception {
+        ClsMdbUtils u = new ClsMdbUtils(getMdb(), "Cls");
+        return u.loadCls(typ);
+    }
+
+    public Store loadClsFVforUpd(long typ, long cls) throws Exception {
+        ClsMdbUtils u = new ClsMdbUtils(getMdb(), "ClsFactorVal");
+        return u.loadClsFVforUpd(typ, cls);
+    }
+
+    public Store loadClsFV(long typ, long cls) throws Exception {
+        ClsMdbUtils u = new ClsMdbUtils(getMdb(), "ClsFactorVal");
+        return u.loadClsFV(typ, cls);
+    }
+
+    public Store insertCls(Map<String, Object> params) throws Exception {
+        ClsMdbUtils u = new ClsMdbUtils(getMdb(), "Cls");
+        return u.insertCls(params);
+    }
+
+    public Store updateCls(Map<String, Object> params) throws Exception {
+        ClsMdbUtils u = new ClsMdbUtils(getMdb(), "Cls");
+        return u.updateCls(params);
+    }
+
+    public void deleteCls(Map<String, Object> params) throws Exception {
+        ClsMdbUtils u = new ClsMdbUtils(getMdb(), "Cls");
+        u.deleteCls(params);
+    }
+
+    public Store loadClsTree(Map<String, Object> params) throws Exception {
+        ClsTreeMdbUtils u = new ClsTreeMdbUtils(getMdb());
+        return u.loadClsTree(params);
+    }
+
+    public Store loadClsVer(long cls) throws Exception {
+        ClsMdbUtils u = new ClsMdbUtils(getMdb(), "Cls");
+        return u.loadClsVer(cls);
+    }
+
+    public StoreRecord loadRecCls(long id) throws Exception {
+        ClsMdbUtils u = new ClsMdbUtils(getMdb(), "Cls");
+        return u.loadRecCls(id);
+    }
+
+    public Store updateClsVer(Map<String, Object> rec) throws Exception {
+        ClsMdbUtils u = new ClsMdbUtils(getMdb(), "Cls");
+        return u.updateClsVer(rec);
+    }
+
+    public Store insertClsVer(Map<String, Object> rec) throws Exception {
+        ClsMdbUtils u = new ClsMdbUtils(getMdb(), "Cls");
+        return u.insertClsVer(rec);
+    }
+
+    public void deleteClsVer(Map<String, Object> rec) throws Exception {
+        ClsMdbUtils u = new ClsMdbUtils(getMdb(), "Cls");
+        u.deleteClsVer(rec);
+    }
+
+
+    //---------------------- NotExtended --------------------------------
+
+    public Store loadNotExtended(long typ) throws Exception {
+        NotExtendedMdbUtils u = new NotExtendedMdbUtils(getMdb());
+        return u.loadNotExtended(typ);
+    }
+
+
+    public Store insertNotExtended(Map<String, Object> params) throws Exception {
+        NotExtendedMdbUtils u = new NotExtendedMdbUtils(getMdb());
+        return u.insertNotExtended(params);
+    }
+
+    public Store updateNotExtended(Map<String, Object> params) throws Exception {
+        NotExtendedMdbUtils u = new NotExtendedMdbUtils(getMdb());
+        return u.updateNotExtended(UtCnv.toMap(params.get("rec")));
+    }
+
+
+    public void deleteNotExtended(Map<String, Object> params) throws Exception {
+        NotExtendedMdbUtils u = new NotExtendedMdbUtils(getMdb());
+        u.deleteNotExtended(params);
+    }
+
+
+    //todo 07_09
+    public Store loadClsTreeForSelect() throws Exception {
+        ClsMdbUtils u = new ClsMdbUtils(getMdb(), "Cls");
+        return u.loadClsTreeForSelect();
+    }
+
+    //TypCharGr
+    public Store loadTypCharGr() throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "Typ");
+        return u.loadTypCharGr();
+    }
+
+    public StoreRecord loadTypCharGrInfo(long id) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "Typ");
+        return u.loadTypCharGrInfo(id);
+    }
+
+
+    //todo Delete
+/*    public Store loadTypCharGr2(long typ) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "Typ");
+        return u.loadTypCharGr2(typ);
+    }*/
+
+
+    public Store loadTypClustFactorVal(long typ, String mode) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "Typ");
+        return u.loadTypClustFactorVal(typ, mode);
+    }
+
+    public Store insertTypCharGr(Map<String, Object> rec) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "TypCharGr");
+        return u.insertTypCharGr(rec);
+    }
+
+    public Store updateTypCharGr(Map<String, Object> rec) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "TypCharGr");
+        return u.updateTypCharGr(rec);
+    }
+
+    public void deleteTypCharGr(Map<String, Object> rec) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "TypCharGr");
+        u.deleteTypCharGr(rec);
+    }
+
+    //TypCharGrProp
+    public Store loadTypCharGrProp(Map<String, Object> params) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "TypCharGr");
+        return u.loadTypCharGrProp(params);
+    }
+
+    public Store loadTypCharGrPropForUpd(long typCharGr) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "TypCharGr");
+        return u.loadTypCharGrPropForUpd(typCharGr);
+    }
+
+    public String saveTypCharGrProps(Map<String, Object> params) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "TypCharGr");
+        return u.saveTypCharGrProps(params);
+    }
+
+    //TypCharGrMultiProp
+    public Store loadTypCharGrMultiProp(Map<String, Object> params) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "TypCharGr");
+        return u.loadTypCharGrMultiProp(params);
+    }
+
+    public Store loadTypCharGrMultiPropForUpd(long typCharGr) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "TypCharGr");
+        return u.loadTypCharGrMultiPropForUpd(typCharGr);
+    }
+
+    public String saveTypCharGrMultiProp(Map<String, Object> params) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "TypCharGr");
+        return u.saveTypCharGrMultiProp(params);
+    }
+
+    public void updateTypCharGrMultiProp(Map<String, Object> rec) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "TypCharGr");
+        u.updateTypCharGrMultiProp(rec);
+    }
+
+    public void updateTypCharGrProp(Map<String, Object> rec) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "TypCharGr");
+        u.updateTypCharGrProp(rec);
+    }
+
+    public Store loadPropMeasure(long typCharGr) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "TypCharGr");
+        return u.loadPropMeasure(typCharGr);
+    }
+
+    public Store loadMeasure(long prop) throws Exception {
+        TypMdbUtils u = new TypMdbUtils(getMdb(), "TypCharGr");
+        return u.loadMeasure(prop);
+    }
+
+
+    //---------------------- Typ For Select --------------------------------
+    public Store loadTypForSelect(Map<String, Object> params) throws Exception {
+        RelTypMemberMdbUtils ut = new RelTypMemberMdbUtils(getMdb());
+        return ut.loadTypForSelect(params);
+    }
+}

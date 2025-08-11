@@ -1,0 +1,32 @@
+import jandcode.core.jc.*
+import jandcode.jc.*
+import jandcode.jc.std.*
+
+class P extends ProjectScript {
+
+    static beforeLoad = {
+    }
+
+    void onInclude() {
+        //
+        project.name = "tofi-tbox"
+        project.version = include(GitVersion)
+        //
+        include(RootProject).with {
+            moduleGroup = "tofi-tbox"
+            modules(
+                "tofi-apinator",
+                "tofi-api-adm",
+                "tofi-api-dta",
+                "tofi-api-mdl",
+                "tofi-zookeeper",
+                "tofi-minio",
+                "tofi-pulsar",
+                "tofi-config",
+                "tofi-auth",
+            )
+        }
+        //
+    }
+
+}

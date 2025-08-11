@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="Typ" parent="id" title="Типы объектов">
+        <field name="accessLevel" parent="ref" req="true" title="Уровень доступа"/>
+        <field name="parent" parent="ref" title="Родительский тип"/>
+        <field name="cod" parent="f.cod"/>
+        <field name="isOpenness" parent="boolean" title="Открытость типа" req="true"/>
+        <field name="typCategory" parent="ref" title="Категория типа объектов" req="true"/>
+        <field name="cmt" parent="f.cmt"/>
+        <field name="ord" parent="f.ord"/>
+    </domain>
+
+    <domain name="Typ.full" parent="Typ">
+        <include name="VerTable"/>
+    </domain>
+
+</root>

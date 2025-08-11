@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+     <domain name="DataPropVal" parent="id" tag.db="true"
+             genid.start="1000" genid.step="1" title="Значения стандартных данных">
+
+         <field name="dataProp" parent="DataProp/ref"/>
+         <field name="numberVal" parent="double"/>
+         <field name="strVal" parent="string" size="1000"/>
+         <field name="multiStrVal" parent="memo"/>
+         <field name="dateTimeVal" parent="datetime"/>
+         <field name="propVal" parent="ref">
+             <!--@ Ссылка на таблицу PropVal -->
+         </field>
+         <field name="obj" parent="ref"/>
+         <field name="relobj" parent="ref"/>
+
+         <field name="fileVal" parent="ref">
+             <!--@ Ссылка на таблицу DbFileStorage -->
+         </field>
+         <field name="dbeg" parent="f.dbeg"/>
+         <field name="dend" parent="f.dend"/>
+         <field name="inputType" parent="ref">
+             <!--@ Ссылка на словарь FD_InputType -->
+         </field>
+         <field name="parent" parent="DataPropVal/ref"/>
+         <field name="ord" parent="f.ord"/>
+         <field name="authUser" parent="ref">
+             <!--@ Ссылка на таблицу AuthUser -->
+         </field>
+         <field name="cmt" parent="f.cmt"/>
+         <field name="timeStamp" parent="datetime"/>
+
+     </domain>
+
+    <!-- ***************************************************************** -->
+    <domain name="DataPropVal.meter" parent="base">
+        <field name="id" parent="long"/>
+        <field name="prop" parent="ref"/>
+        <field name="dataProp" parent="ref"/>
+        <field name="numberVal" parent="double"/>
+        <field name="digit" parent="int"/>
+        <field name="dbeg" parent="f.dbeg"/>
+        <field name="dend" parent="f.dend"/>
+        <field name="inputType" parent="ref"/>
+        <field name="parent" parent="ref"/>
+        <field name="ord" parent="f.ord"/>
+        <field name="authUser" parent="ref"/>
+        <field name="cmt" parent="f.cmt"/>
+        <field name="timeStamp" parent="datetime"/>
+    </domain>
+
+    <domain name="DataPropVal.meter.list" parent="DataPropVal.meter">
+        <field name="provider" parent="long"/>
+        <field name="status" parent="long"/>
+        <field name="periodType" parent="long"/>
+        <field name="period" parent="string"/>
+        <field name="dataPropVal" parent="long"/>
+    </domain>
+
+    <!-- ***************************************************************** -->
+    <domain name="DataPropVal.ref" parent="base">
+        <field name="id" parent="long"/>
+        <field name="prop" parent="ref"/>
+        <field name="dataProp" parent="ref"/>
+        <field name="propVal" parent="ref"/>
+        <field name="factorVal" parent="ref"/>
+        <field name="measure" parent="ref"/>
+        <field name="obj" parent="ref"/>
+        <field name="relobj" parent="ref"/>
+        <field name="dbeg" parent="f.dbeg"/>
+        <field name="dend" parent="f.dend"/>
+        <field name="parent" parent="ref"/>
+        <field name="inputType" parent="ref"/>
+        <field name="ord" parent="f.ord"/>
+        <field name="authUser" parent="ref"/>
+        <field name="cmt" parent="f.cmt"/>
+        <field name="timeStamp" parent="datetime"/>
+
+    </domain>
+
+    <domain name="DataPropVal.ref.list" parent="DataPropVal.ref">
+        <field name="provider" parent="long"/>
+        <field name="status" parent="long"/>
+        <field name="periodType" parent="long"/>
+        <field name="period" parent="string"/>
+    </domain>
+
+    <domain name="DataPropVal.ref.upd" parent="DataPropVal.ref.list">
+        <field name="cls" parent="ref"/>
+        <field name="relcls" parent="ref"/>
+        <field name="cod" parent="string"/>
+        <field name="name" parent="string"/>
+        <field name="checked" parent="boolean"/>
+        <field name="dataPropVal" parent="long"/>
+    </domain>
+
+    <!-- ***************************************************************** -->
+    <domain name="DataPropVal.attrib" parent="base">
+        <field name="id" parent="long"/>
+        <field name="prop" parent="ref"/>
+        <field name="dataProp" parent="ref"/>
+        <field name="strVal" parent="string" size="1000"/>
+        <field name="multiStrVal" parent="memo"/>
+        <field name="dateTimeVal" parent="datetime"/>
+        <field name="propVal" parent="ref"/>
+        <field name="fileVal" parent="ref"/>
+        <field name="dbeg" parent="f.dbeg"/>
+        <field name="dend" parent="f.dend"/>
+        <field name="inputType" parent="ref"/>
+        <field name="parent" parent="ref"/>
+        <field name="ord" parent="f.ord"/>
+        <field name="authUser" parent="ref"/>
+        <field name="cmt" parent="f.cmt"/>
+        <field name="timeStamp" parent="datetime"/>
+    </domain>
+
+    <domain name="DataPropVal.attrib.list" parent="DataPropVal.attrib">
+        <field name="provider" parent="long"/>
+        <field name="status" parent="long"/>
+        <field name="periodType" parent="long"/>
+        <field name="period" parent="string"/>
+    </domain>
+
+    <!-- ***************************************************************** -->
+    <domain name="DataPropVal.attrib.file" parent="base">
+        <field name="id" parent="long"/>
+        <field name="prop" parent="ref"/>
+        <field name="dataProp" parent="ref"/>
+        <field name="fileVal" parent="ref"/>
+        <field name="fileName" parent="string"/>
+        <field name="dbeg" parent="f.dbeg"/>
+        <field name="dend" parent="f.dend"/>
+        <field name="inputType" parent="ref"/>
+        <field name="parent" parent="ref"/>
+        <field name="ord" parent="f.ord"/>
+        <field name="authUser" parent="ref"/>
+        <field name="cmt" parent="f.cmt"/>
+        <field name="timeStamp" parent="datetime"/>
+    </domain>
+
+    <domain name="DataPropVal.attrib.file.list" parent="DataPropVal.attrib.file">
+        <field name="provider" parent="long"/>
+        <field name="status" parent="long"/>
+        <field name="periodType" parent="long"/>
+        <field name="period" parent="string"/>
+    </domain>
+
+    <!-- ***************************************************************** -->
+    <domain name="DataPropVal.complex" parent="base">
+        <field name="id" parent="long"/>
+        <field name="prop" parent="ref"/>
+        <field name="dataProp" parent="ref"/>
+        <field name="strVal" parent="string"/>
+        <field name="dbeg" parent="f.dbeg"/>
+        <field name="dend" parent="f.dend"/>
+        <field name="inputType" parent="ref"/>
+        <field name="parent" parent="ref"/>
+        <field name="ord" parent="f.ord"/>
+        <field name="authUser" parent="ref"/>
+        <field name="cmt" parent="f.cmt"/>
+        <field name="timeStamp" parent="datetime"/>
+    </domain>
+
+    <domain name="DataPropVal.complex.list" parent="DataPropVal.complex">
+        <field name="provider" parent="long"/>
+        <field name="status" parent="long"/>
+        <field name="periodType" parent="long"/>
+        <field name="period" parent="string"/>
+    </domain>
+
+    <domain name="DataPropVal.complex.item" parent="base">
+        <field name="id" parent="long"/>
+        <field name="prop" parent="ref"/>
+        <field name="dataProp" parent="ref"/>
+        <field name="val" parent="string"/>
+        <field name="kFromBase" parent="double"/>
+        <field name="digit" parent="int"/>
+        <field name="dbeg" parent="f.dbeg"/>
+        <field name="dend" parent="f.dend"/>
+        <field name="inputType" parent="ref"/>
+        <field name="parent" parent="ref"/>
+        <field name="ord" parent="f.ord"/>
+        <field name="authUser" parent="ref"/>
+        <field name="cmt" parent="f.cmt"/>
+        <field name="timeStamp" parent="datetime"/>
+        <field name="prop" parent="long"/>
+        <field name="propType" parent="long"/>
+        <field name="attribValType" parent="long"/>
+        <field name="entityType" parent="long"/>
+        <field name="isUniq" parent="boolean"/>
+    </domain>
+
+    <domain name="DataPropVal.complex.item.list" parent="DataPropVal.complex.item">
+        <field name="strVal" parent="string"/>
+        <field name="numberVal" parent="double"/>
+        <field name="dateTimeVal" parent="date"/>
+        <field name="propVal" parent="long"/>
+        <field name="propVal" parent="long"/>
+        <field name="obj" parent="long"/>
+        <field name="relobj" parent="long"/>
+        <field name="propName" parent="string"/>
+        <field name="provider" parent="long"/>
+        <field name="status" parent="long"/>
+        <field name="periodType" parent="long"/>
+        <field name="period" parent="string"/>
+    </domain>
+
+</root>

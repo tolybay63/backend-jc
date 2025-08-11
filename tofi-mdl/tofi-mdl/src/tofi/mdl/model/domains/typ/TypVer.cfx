@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="TypVer" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1"
+            title="Версионная часть типа объекта">
+        <!--@
+            В этой таблице хранится значения части свойств типа в определенный
+            период dbeg-dend. Каждый тип имеет как минимум одну запись TypVer
+        -->
+
+        <field name="ownerVer" parent="Typ/ref">
+            <!--@
+                Ссылка на тип объектов.
+            -->
+        </field>
+
+        <include name="VerTable"/>
+
+    </domain>
+
+</root>

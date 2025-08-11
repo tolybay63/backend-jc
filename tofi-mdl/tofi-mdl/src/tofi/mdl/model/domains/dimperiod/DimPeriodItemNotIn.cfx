@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="DimPeriodItemNotIn" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Исключаемые периоды">
+        <!--@
+           Исключаемые периоды внутри элемента периода и внутри параметров. Содержит исключаемые периоды.
+           Типы периодов образуют иерархическую структуру: годы содержат кварталы, кварталы содержат месяцы и т.д.
+           Если родительским типом периода является год, а дочерним типом периода является месяц,
+           то в поле numb можно указать 3, 6, 9, 12, тогда под каждым конкретным годом в измерении появятся
+           все месяцы года, кроме март, июнь, сентябрь и декабрь
+        -->
+        <field name="dimPeriodItem" parent="DimPeriodItem/ref" refCascade="true"/>
+
+        <field name="numb" parent="int"/>
+
+        <!-- =================== create index =================== -->
+        <dbindex name="i_dimPeriodItem" fields="dimPeriodItem, numb" unique="true"/>
+    </domain>
+
+    <domain name="DimPeriodItemNotIn.full" parent="DimPeriodItemNotIn">
+        <field name="name" parent="string"/>
+    </domain>
+
+    <domain name="DimPeriodItemNotIn.edit" parent="DimPeriodItemNotIn.full">
+        <field name="checked" parent="boolean"/>
+    </domain>
+</root>

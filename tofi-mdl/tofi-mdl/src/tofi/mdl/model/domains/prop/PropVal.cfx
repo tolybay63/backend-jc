@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="PropVal" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Возможные значения ссылочных свойств">
+        <!--@
+           Возможные значения свойств типа единица измерения, фактор, тип объектов,
+           отношение между типами объектов, атрибут с типом значения "сущность ТОФИ".
+        -->
+
+        <field name="prop" parent="Prop/ref"/>
+        <field name="measure" parent="Measure/ref" refCascade="true"/>
+        <field name="factorVal" parent="Factor/ref" refCascade="true"/>
+        <field name="cls" parent="Cls/ref" refCascade="true"/>
+        <field name="relCls" parent="RelCls/ref" refCascade="true"/>
+        <field name="entityId" parent="ref" refCascade="true">
+            <!--@
+               Id экземпляра сущности ТОФИ.
+               Заполняется только для свойств с типом "атрибут", у которых тип значения - "сущность ТОФИ".
+               Поле allItem для данного поля не работает, все возможные значения добавляются вручную.
+            -->
+        </field>
+
+    </domain>
+
+    <domain name="PropVal.full" parent="PropVal">
+        <field name="cod" parent="f.cod"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="checked" parent="boolean"/>
+        <field name="entId" parent="ref"/>
+        <field name="parent" parent="ref"/>
+    </domain>
+
+    <domain name="PropVal.full.tree" parent="base">
+        <field name="id" parent="string"/>
+        <field name="parent" parent="string"/>
+        <field name="cod" parent="f.cod"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="propVal" parent="long"/>
+        <field name="prop" parent="Prop/ref"/>
+        <field name="propGr" parent="PropGr/ref"/>
+        <field name="checked" parent="boolean"/>
+        <field name="entityId" parent="ref"/>
+        <field name="isEntity" parent="boolean"/>
+        <field name="propType" parent="long"/>
+        <field name="ord" parent="f.ord"/>
+    </domain>
+
+
+</root>

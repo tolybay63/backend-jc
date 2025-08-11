@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <domain name="Account" parent="id">
+        <field name="own" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="UserId" parent="long"/>
+        <field name="authUser" parent="long"/>
+        <field name="name" parent="string"/>
+        <field name="UserSecondNameId" parent="long"/>
+        <field name="UserSecondName" parent="string"/>
+        <field name="UserFirstNameId" parent="long"/>
+        <field name="UserFirstName" parent="string"/>
+        <field name="UserMiddleNameId" parent="long"/>
+        <field name="UserMiddleName" parent="string"/>
+        <field name="UserDateBirthId" parent="long"/>
+        <field name="UserDateBirth" parent="date"/>
+        <field name="UserEmailId" parent="long"/>
+        <field name="UserEmail" parent="string"/>
+        <field name="UserPhoneId" parent="long"/>
+        <field name="UserPhone" parent="string"/>
+        <field name="UserSexId" parent="long"/>
+        <field name="UserSexPropVal" parent="long"/>
+        <field name="UserSex" parent="long"/>
+    </domain>
+
+</root>

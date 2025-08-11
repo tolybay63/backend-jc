@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="RelClsMember" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Участники класса отношений">
+
+        <field name="relCls" parent="RelCls/ref" req="true" refCascade="true"/>
+
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="card" parent="int"
+               title="Число кардинальности" req="true">
+            <!--@
+                Число кардинальности участника отношения между типами объектов
+            -->
+        </field>
+
+        <field name="memberType" parent="FD_MemberType/ref"/>
+        <field name="cls" parent="Cls/ref"/>
+        <field name="relClsMemb" parent="RelCls/ref"/>
+
+        <field name="cmt" parent="f.cmt"/>
+
+    </domain>
+
+    <domain name="RelClsMember.all" parent="base">
+        <field name="id" parent="string"/>
+        <field name="parent" parent="string"/>
+        <field name="cod" parent="f.cod"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="memberType" parent="long"/>
+        <field name="card" parent="int"/>
+        <field name="ent" parent="long"/>
+        <field name="isOwn" parent="int"/>
+        <field name="checked" parent="boolean"/>
+        <field name="ord" parent="f.ord"/>
+    </domain>
+
+</root>

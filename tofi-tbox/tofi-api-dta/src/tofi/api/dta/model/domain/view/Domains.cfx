@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <domain name="Base" parent="base">
+    </domain>
+
+    <domain name="DomainTreeOwns" parent="base">
+        <field name="id" parent="string"/>
+        <field name="parent" parent="string"/>
+        <field name="node" parent="ref"/>
+        <field name="typORrel" parent="ref"/>
+        <field name="isObj" parent="boolean"/>
+        <field name="loaded" parent="boolean"/>
+        <field name="cod" parent="string"/>
+        <field name="cls" parent="long"/>
+        <field name="relCls" parent="long"/>
+        <field name="relTyp" parent="long"/>
+        <field name="name" parent="string"/>
+        <field name="fullName" parent="string"/>
+    </domain>
+
+    <domain name="IdName" parent="base">
+        <field name="id" parent="long"/>
+        <field name="name" parent="string"/>
+    </domain>
+
+    <domain name="IdCodNameFullName" parent="IdName">
+        <field name="cod" parent="string"/>
+        <field name="fullName" parent="string"/>
+    </domain>
+
+    <domain name="IdCodNameFullName.ent" parent="IdCodNameFullName">
+        <field name="cls" parent="ref"/>
+        <field name="relcls" parent="ref"/>
+    </domain>
+
+    <domain name="IdNameParent" parent="IdName">
+        <field name="parent" parent="long"/>
+    </domain>
+
+    <domain name="Cond.domain" parent="base">
+        <field name="id" parent="long"/>
+        <field name="parent" parent="long"/>
+        <field name="name" parent="string"/>
+        <field name="type" parent="long"/>
+        <field name="isReq" parent="boolean"/>
+        <field name="checked" parent="boolean"/>
+        <field name="key" parent="string"/>
+    </domain>
+
+    <domain name="TreeCombo.domain" parent="IdCodNameFullName">
+        <field name="parent" parent="long"/>
+        <field name="ent" parent="long"/>
+    </domain>
+
+    <domain name="Obj.Personnal" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+        <field name="fullName" parent="string"/>
+
+        <field name="login" parent="string"/>
+        <field name="passwd" parent="string"/>
+
+        <field name="idTabNumber" parent="long"/>
+        <field name="TabNumber" parent="string"/>
+        <field name="idUserSecondName" parent="long"/>
+        <field name="UserSecondName" parent="string"/>
+        <field name="idUserFirstName" parent="long"/>
+        <field name="UserFirstName" parent="string"/>
+        <field name="idUserMiddleName" parent="long"/>
+        <field name="UserMiddleName" parent="string"/>
+        <field name="idUserEmail" parent="long"/>
+        <field name="UserEmail" parent="string"/>
+        <field name="idUserPhone" parent="long"/>
+        <field name="UserPhone" parent="string"/>
+
+        <field name="idUserDateBirth" parent="long"/>
+        <field name="UserDateBirth" parent="string"/>
+        <field name="idDateEmployment" parent="long"/>
+        <field name="DateEmployment" parent="string"/>
+        <field name="idDateDismissal" parent="long"/>
+        <field name="DateDismissal" parent="string"/>
+        <field name="idCreatedAt" parent="long"/>
+        <field name="CreatedAt" parent="string"/>
+        <field name="idUpdatedAt" parent="long"/>
+        <field name="UpdatedAt" parent="string"/>
+
+        <field name="fvUserSex" parent="long"/>
+        <field name="pvUserSex" parent="long"/>
+        <field name="nameUserSex" parent="string"/>
+
+        <field name="fvPosition" parent="long"/>
+        <field name="pvPosition" parent="long"/>
+        <field name="namePosition" parent="string"/>
+
+        <field name="idLocation" parent="long"/>
+        <field name="pvLocation" parent="long"/>
+        <field name="objLocation" parent="long"/>
+        <field name="nameLocation" parent="string"/>
+    </domain>
+
+    <domain name="Obj.objectServedForSelect" parent="base">
+        <field name="objObject" parent="long"/>
+        <field name="linkCls" parent="long"/>
+        <field name="nameObject" parent="string"/>
+        <field name="pvObject" parent="long"/>
+
+        <field name="objObjectType" parent="long"/>
+        <field name="nameObjectType" parent="string"/>
+
+        <field name="objSection" parent="long"/>
+        <field name="nameSection" parent="string"/>
+
+        <field name="StartKm" parent="double"/>
+
+        <field name="FinishKm" parent="double"/>
+
+        <field name="StartPicket" parent="double"/>
+
+        <field name="FinishPicket" parent="double"/>
+    </domain>
+
+</root>

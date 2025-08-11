@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <cfg>
+
+        <dbsource name="default"
+                  dbdriver="postgresql"
+                  host="localhost"
+                  database="fish_cube"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="meta"
+                  id="fish"
+                  dbdriver="postgresql"
+                  host="localhost"
+                  database="fish_model"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="adm"
+                  dbdriver="postgresql"
+                  host="localhost"
+                  database="fish_admin"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="userdata"
+                  dbdriver="postgresql"
+                  host="localhost"
+                  database="fish_userdata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="nsidata"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="fish_nsi"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="monitoringdata"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="fish_monitoring"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+
+    </cfg>
+
+    <datadir>
+        <path name="dbfilestorage" path="C:/dbfilestorage"/>
+
+
+        <!--
+                <minio
+                        url="http://localhost:9000"
+                        bucketName = "nsidata"
+                        accessKey = "O9kIqOQfBobkdPZ7LOb1"
+                        secretKey = "YoVr0eZNMnfpSP4SSBHQNtB67qUorZZEB0M2zqrB">
+
+                </minio>
+        -->
+
+
+    </datadir>
+    
+</root>

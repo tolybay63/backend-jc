@@ -1,0 +1,5 @@
+<root>
+    <row id="1" text="Только указанный статус" vis="1" ord="1" code="only_choice"/>
+    <row id="2" text="Статус по умолчанию" vis="1" ord="2" code="only_default"/>
+    <row id="3" text="Любой статус, имеющий значение" vis="1" ord="3" code="any_has_value"/>
+</root>

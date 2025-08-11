@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="CubeSDim" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Измерения стандартного куба">
+        <!-- Измерения стандартного куба. -->
+
+        <field name="cubeS" parent="CubeS/ref"/>
+        <field name="cubeSDimType" parent="FD_CubeSDimType/ref"/>
+        <field name="dimPeriod" parent="DimPeriod/ref"/>
+        <field name="dimProp" parent="DimProp/ref"/>
+        <field name="dimObj" parent="DimObj/ref"/>
+        <field name="dOrg" parent="date"/>
+    </domain>
+
+    <domain name="CubeSDim.full" parent="CubeSDim">
+        <field name="name" parent="string"/>
+        <field name="dimPropType" parent="long"/>
+        <field name="dimPropTypeName" parent="string"/>
+    </domain>
+
+    <domain name="Dims.select" parent="base">
+        <field name="id" parent="long"/>
+        <field name="parent" parent="long"/>
+        <field name="name" parent="string"/>
+        <field name="dimProp" parent="long"/>
+        <field name="dimObj" parent="long"/>
+    </domain>
+
+</root>

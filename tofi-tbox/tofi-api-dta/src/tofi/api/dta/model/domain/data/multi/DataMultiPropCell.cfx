@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+     <domain name="DataMultiPropCell" parent="id" tag.db="true"
+             genid.start="1000" genid.step="1" title="Значения стандартных многомерных данных">
+
+         <field name="dataMultiProp" parent="DataMultiProp/ref"/>
+         <field name="entityType" parent="ref">
+             <!-- Тип значения ячейки. Ссылка на словарь FD_MultiValEntityType -->
+         </field>
+         <field name="numberVal" parent="double"/>
+         <field name="measure" parent="ref"/>
+         <field name="strVal" parent="string" size="1000"/>
+         <field name="dateTimeVal" parent="datetime"/>
+         <field name="factorVal" parent="ref"/>
+         <field name="cls" parent="ref"/>
+         <field name="obj" parent="Obj/ref"/>
+         <field name="relCls" parent="ref"/>
+         <field name="relObj" parent="Obj/ref"/>
+         <field name="algAsgn" parent="ref"/>
+         <field name="algVars" parent="ref"/>
+         <field name="dbeg" parent="f.dbeg"/>
+         <field name="dend" parent="f.dend"/>
+         <field name="inputType" parent="ref"/>
+         <field name="authUser" parent="ref"/>
+         <field name="cmt" parent="f.cmt"/>
+         <field name="timeStamp" parent="datetime"/>
+
+     </domain>
+
+    <domain name="DataMultiPropCellCoord" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Координаты ячейки многомерного свойства">
+
+        <!--
+            Последние пять полей заполняются для динамических измерений многомерного свойства
+        -->
+        <field name="dataMultiPropCell" parent="DataMultiPropCell/ref"/>
+        <field name="multiPropDim" parent="ref">
+            <!--
+                Ссылка на измерение многомерного свойства из таблицы MultiPropDim
+            -->
+        </field>
+        <field name="dimMultiPropItem" parent="ref"/>
+        //
+        <field name="factorVal" parent="ref"/>
+        <field name="cls" parent="ref"/>
+        <field name="obj" parent="ref"/>
+        <field name="relCls" parent="ref"/>
+        <field name="relObj" parent="ref"/>
+    </domain>
+
+    <!-- ***************************************************************** -->
+    <domain name="DataMultiPropCell.meter" parent="base">
+        <field name="id" parent="long"/>
+        <field name="multiProp" parent="ref"/>
+        <field name="dataMultiProp" parent="ref"/>
+        <field name="numberVal" parent="double"/>
+        <field name="measure" parent="ref"/>
+        <field name="measureName" parent="string"/>
+        <field name="kfc" parent="double"/>
+        <field name="minVal" parent="double"/>
+        <field name="maxVal" parent="double"/>
+        <field name="digit" parent="int"/>
+        <field name="dbeg" parent="f.dbeg"/>
+        <field name="dend" parent="f.dend"/>
+        <field name="inputType" parent="ref"/>
+        <field name="parent" parent="ref"/>
+        <field name="ord" parent="f.ord"/>
+        <field name="authUser" parent="ref"/>
+        <field name="cmt" parent="f.cmt"/>
+        <field name="timeStamp" parent="datetime"/>
+    </domain>
+
+    <domain name="DataMultiPropCell.meter.list" parent="DataMultiPropCell.meter">
+        <field name="provider" parent="long"/>
+        <field name="status" parent="long"/>
+        <field name="periodType" parent="long"/>
+        <field name="period" parent="string"/>
+        <field name="DataMultiPropCell" parent="long"/>
+    </domain>
+
+
+</root>
+

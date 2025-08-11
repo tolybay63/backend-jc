@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="DimMultiPropItemName" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Дополнительные названия элементов измерения">
+        <!--
+            Дополнительные названия элементов измерения.
+            Для каждого dimMultiPropItem столько записей, сколько записей в таблице DimMultiPropName
+            для текущего DimMultiProp.
+        -->
+
+        <field name="DimMultiPropItem" parent="DimMultiPropItem/ref"/>
+        <field name="DimMultiPropName" parent="DimMultiPropName/ref"/>
+        <field name="name" parent="f.name" title="Наименование"/>
+    </domain>
+
+
+</root>

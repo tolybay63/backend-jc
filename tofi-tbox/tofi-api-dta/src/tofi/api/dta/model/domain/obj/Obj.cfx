@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+     <domain name="Obj" parent="id" tag.db="true"
+             genid.start="1000" genid.step="1"  title="Объекты">
+
+         <field name="accessLevel" parent="long" title="Уровень доступа"/>
+
+         <field name="cod" parent="f.cod"/>
+
+         <field name="cls" parent="long"/>
+
+         <field name="cmt" parent="f.cmt"/>
+
+         <field name="ord" parent="f.ord"/>
+
+         <field name="timeStamp" parent="datetime"/>
+     </domain>
+
+    <domain name="Obj.full" parent="Obj">
+        <field name="parent" parent="long"/>
+        <include name="VerTable"/>
+    </domain>
+
+    <domain name="Obj.cust" parent="base">
+        <field name="id" parent="long"/>
+        <field name="parent" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+        <field name="fullName" parent="string"/>
+        <field name="nameCls" parent="string"/>
+        <field name="cmt" parent="memo"/>
+        <field name="ord" parent="long"/>
+    </domain>
+
+    <domain name="Obj.file" parent="base">
+        <field name="obj" parent="long"/>
+        <field name="idDPV" parent="long"/>
+        <field name="fileVal" parent="string"/>
+        <field name="fileName" parent="string"/>
+        <field name="cmt" parent="memo"/>
+    </domain>
+
+    <domain name="Obj.select" parent="base">
+        <field name="id" parent="long"/>
+        <field name="parent" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="label" parent="string"/>
+        <field name="isOwn" parent="int"/>
+        <field name="isInh" parent="int"/>
+    </domain>
+
+</root>
+

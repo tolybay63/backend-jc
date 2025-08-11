@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="PropPeriodType" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Типы периодов">
+        <!--@
+           Типы периодов, для которых данное свойство может иметь значения.
+        -->
+
+        <field name="prop" parent="Prop/ref"/>
+        <field name="periodType" parent="FD_PeriodType/ref"/>
+
+    </domain>
+
+    <domain name="PropPeriodType.full" parent="PropPeriodType">
+        <field name="name" parent="f.name"/>
+        <field name="checked" parent="boolean"/>
+        <field name="idInTable" parent="long"/>
+    </domain>
+
+</root>

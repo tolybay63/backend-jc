@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="MultiPropCond" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Внешние условия">
+        <!--@
+           Значения многомерного свойства могут зависеть от внешних условий.
+           Здесь указываются возможные значения внешних условий.
+           Внешние условия имеют вид: obj=obj_id, factorVal=factorVal_id, relObj=relObj_id.
+           В данной таблице указываются все типы объектов, отношения между типами объектов, факторы, объекты,
+           отношения между объектами и значения факторов которых могут участвовать во внешних условиях
+        -->
+
+        <field name="multiProp" parent="MultiProp/ref"/>
+        <field name="factor" parent="Factor/ref"/>
+        <field name="typ" parent="Typ/ref"/>
+        <field name="relTyp" parent="RelTyp/ref"/>
+        <field name="isReq" parent="boolean">
+            <!--@
+               Булево поле.
+               Обязательность внешнего условия
+            -->
+        </field>
+
+    </domain>
+
+    <domain name="MultiPropCond.full" parent="MultiPropCond">
+        <field name="name" parent="string"/>
+        <field name="cod" parent="string"/>
+        <field name="flag" parent="string"/>
+        <field name="checked" parent="boolean"/>
+    </domain>
+
+
+</root>

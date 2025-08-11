@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+     <domain name="DataMultiPropValHistrory" parent="id" tag.db="true"
+             genid.start="1000" genid.step="1" title="История изменений значений стандартных данных">
+
+         <field name="dataMultiPropCell" parent="DataMultiPropCell/ref"/>
+         <field name="dateTimeUpd" parent="datetime"/>
+         <field name="authUser" parent="ref"/>
+
+         <field name="mode" parent="ref"/>
+         <field name="infoValue" parent="string" size="4000"/>
+
+     </domain>
+
+</root>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <field name="f.name" parent="string" size="200"
+           title="Краткое наименование" req="true"/>
+
+    <!-- полное наименование -->
+    <field name="f.fullName" parent="string" size="400" req="true"
+           title="Полное наименование"/>
+
+    <!-- код -->
+    <field name="f.cod" parent="string" size="30" title="Код" req="true">
+        <validator name="unique"/>
+    </field>
+
+    <!-- начало интервала -->
+    <field name="f.dbeg" parent="date" title="Начало интервала"/>
+
+    <!-- конец интервала -->
+    <field name="f.dend" parent="date" title="Конец интервала"/>
+
+    <!-- Порядок -->
+    <field name="f.ord" parent="long" title="Порядковый номер"/>
+
+    <!-- обозначение -->
+    <field name="f.sign" parent="string" size="60" title="Обозначение"/>
+
+    <!-- комментарий -->
+    <field name="f.cmt" parent="memo" title="Комментарий"/>
+
+    <!-- иконка -->
+    <field name="f.icon" parent="string" size="60" title="Иконка"/>
+
+</root>

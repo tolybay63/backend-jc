@@ -1,0 +1,23 @@
+import jandcode.jc.*
+import jandcode.jc.std.*
+
+class P extends ProjectScript {
+
+    static beforeLoad = {
+    }
+
+    void onInclude() {
+        //
+        project.name = "tofi-auth"
+        //
+        include(JavaProject).with {
+            moduleDef("tofi.auth").with {
+                depends.prod(
+                )
+                depends.dev(
+                )
+            }
+        }
+    }
+
+}

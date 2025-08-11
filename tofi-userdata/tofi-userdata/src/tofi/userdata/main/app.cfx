@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <app
+            title="TofiUserdata"
+            mainmodule="tofi.userdata"
+    />
+
+    <x-depends module="tofi.userdata"/>
+
+</root>

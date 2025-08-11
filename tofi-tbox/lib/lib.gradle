@@ -1,0 +1,39 @@
+repositories {
+    mavenCentral()
+
+    configurations {
+        implementation {
+            exclude module: "checker-qual"
+            exclude module: "commons-compress"
+            exclude module: "commons-io"
+            exclude module: "commons-lang3"
+            exclude module: 'slf4j-api'
+        }
+    }
+
+}
+
+dependencies {
+    String v
+
+    // pulsar
+    v = '3.2.1'
+    implementation(group: 'org.apache.pulsar', name: 'pulsar-client', version: v) {
+    }
+    implementation(group: 'org.apache.pulsar', name: 'pulsar-client-admin', version: v) {
+    }
+
+    // minio
+    v = '8.5.9'
+    implementation(group: 'io.minio', name: 'minio', version: v) {
+        exclude group: 'org.jetbrains'
+        exclude module: 'commons-codec'
+    }
+
+    // zookeeper
+    v = '5.6.0'
+    implementation(group: 'org.apache.curator', name: 'curator-recipes', version: v) {
+    }
+
+}
+

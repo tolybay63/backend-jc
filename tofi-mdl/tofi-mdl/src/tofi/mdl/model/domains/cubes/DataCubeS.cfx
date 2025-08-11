@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="DataCubeS" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Данные по формированию стандартных кубов">
+        <!--@
+            Данные по формированию стандартных кубов.
+            В данной таблице фиксируются все действия пользователей по формированию и обновлению кубов.
+            Каждая запись - одно действие по формированию или обновлению кубов конкретным пользователем,
+            пользователем может быть как человек, так и другая система.
+        -->
+        <field name="cubeS" parent="long"/>
+
+
+        <field name="cubeSActionType" parent="FD_CubeSActionType/ref">
+            <!--@
+                Тип действия. Является словарем FD_CubeSActionType.
+                Принимает значения:
+                1 - формирование;
+                2 - очистка.
+            -->
+        </field>
+
+        <field name="dtBeg" parent="datetime" title="Дата и время начала действия">
+            <!--@
+                Дата и время начала действия (формирования, очистки или обновления).
+            -->
+        </field>
+
+        <field name="dtEnd" parent="datetime" title="Дата и время окончания действия">
+            <!--@
+                Дата и время окончания действия (формирования, очистки или обновления).
+            -->
+        </field>
+
+        <field name="authUser" parent="long">
+            <!--@
+                Пользователь, который произвел эти действия
+            -->
+        </field>
+
+        <field name="countProCubeOwn" parent="long" title="Количество ячеек прокуба объектов">
+            <!--@
+                Количество ячеек прокуба объектов
+            -->
+        </field>
+
+        <field name="countProCubeProp" parent="long" title="Количество ячеек прокуба свойств">
+            <!--@
+                Количество ячеек прокуба свойств
+            -->
+        </field>
+
+        <field name="countProCubePeriod" parent="long" title="Количество ячеек измерения периодов">
+            <!--@
+                Количество ячеек измерения периодов
+            -->
+        </field>
+
+        <field name="countCells" parent="long" title="Количество ячеек куба">
+            <!--@
+                Количество ячеек куба
+            -->
+        </field>
+
+        <field name="countDataCells" parent="long" title="Количество заполненных ячеек куба">
+            <!--@
+                Количество заполненных ячеек куба
+            -->
+        </field>
+
+        <field name="isComplete" parent="boolean" title="Статус завершения">
+            <!--@
+                Булево поле.
+                true - действие завершено успешно;
+                false - действие завершено неудачно.
+            -->
+        </field>
+
+        <field name="isSheduled" parent="boolean" title="Статус действия">
+            <!--@
+                Булево поле.
+                true - действие по расписанию;
+                false - действие вручную.
+            -->
+        </field>
+
+
+        <field name="errorMessage" parent="string" size="2000" title="Сообщение">
+            <!--@
+                Сообщение об ошибке. Заполняется только если isComplete = false
+            -->
+        </field>
+
+    </domain>
+
+    <domain name="DataCubeS.full" parent="DataCubeS">
+        <field name="name" parent="f.name"/>
+        <field name="cod" parent="f.cod"/>
+        <field name="dt" parent="string" size="200" title="Время выполнения">
+        </field>
+        <field name="dtBegStr" parent="string" title="Дата и время начала действия"/>
+
+        <field name="dtEndStr" parent="string" title="Дата и время окончания действия"/>
+
+    </domain>
+
+</root>

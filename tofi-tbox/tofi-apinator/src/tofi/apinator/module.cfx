@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <bean name="tofi.apinator.ApinatorService"
+          class="tofi.apinator.impl.ApinatorServiceImpl"/>
+
+    <bean name="tofi.apinator.ApinatorExcludeMethodsService"
+          class="tofi.apinator.impl.ApinatorExcludeMethodsServiceImpl"/>
+
+    <apinator>
+
+        <logger name="default"
+                class="tofi.apinator.std.ApinatorLoggerDefault"/>
+
+        <excludeMethods name="java.lang.Object"/>
+        <excludeMethods name="tofi.apinator.ApinatorFilter"/>
+
+        <!-- groovy -->
+        <excludeMethods name="groovy.lang.GroovyObject"/>
+        <excludeMethods name="propertyMissing"/>
+        <excludeMethods name="methodMissing"/>
+
+        <!-- model -->
+        <excludeMethods name="jandcode.core.IAppLink"/>
+        <excludeMethods name="jandcode.core.IAppLinkSet"/>
+        <excludeMethods name="jandcode.core.dbm.mdb.IMdbLink"/>
+        <excludeMethods name="jandcode.core.dbm.mdb.IMdbLinkSet"/>
+        <excludeMethods name="jandcode.core.dbm.IModelLink"/>
+        <excludeMethods name="jandcode.core.dbm.IModelMember"/>
+
+        <!-- базовый invoker, без фильтров. Используется по умолчанию, если явно нет назначенного для api -->
+        <invoker name="base">
+        </invoker>
+
+        <!-- invoker, который может работать в контексте модели и управляет mdb
+             Имя модели берется из атрибута model, который можно указать как для api (по умолчанию для всех item),
+             так и для конкретного item
+
+                <api name="name1" invoker="model" model="mod1">
+                    <item name="my.Interface1"
+                          class="my.Interface1Impl"
+                          model="mod2"
+                    />
+                </api>
+
+        -->
+        <invoker name="model">
+            <filter name="model"
+                    class="tofi.apinator.std.ApinatorFilterModel"/>
+        </invoker>
+
+        <!-- определение invoker
+
+        <invoker name="invoker1">
+            <filter name="n1" class="ApinatorFilter"/>
+        </invoker>
+
+        -->
+
+
+        <!-- определение api
+
+        <api name="name1" invoker="invoker1" contextAttr1="v1">
+            <item name="my.Interface1"
+                  class="my.Interface1Impl"
+                  shortname="int1"
+                  contextAttr2="v2"
+            />
+            <item name="my.Class1"
+                  shortname="Class1"
+            />
+            <item name="my.Class1"
+            />
+        </api>
+
+
+        -->
+
+    </apinator>
+
+</root>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="PropNameOnPeriod" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1"
+            title="Наименование свойства зависит от периода">
+        <!--@
+           Заполняется только для тех свойств, для которых значение поля isDependNameOnPeriod = True.
+        -->
+
+        <field name="prop" parent="Prop/ref"/>
+        <field name="periodType" parent="FD_PeriodType/ref"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+
+    </domain>
+
+
+</root>

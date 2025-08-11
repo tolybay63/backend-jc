@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <dao>
+        <holder name="api" invoker="model:default">
+
+            <item name="auth" invoker="model:adm"
+                  class="tofi.mdl.model.dao.auth.AuthDao"
+                  method="*"
+            />
+
+            <item name="database"
+                  class="tofi.mdl.model.dao.database.DataBaseDao"
+                  method="*"
+            />
+
+            <item name="measure"
+                  class="tofi.mdl.model.dao.measure.MeasureDao"
+                  method="*"
+            />
+
+            <item name="attrib"
+                  class="tofi.mdl.model.dao.attrib.AttribDao"
+                  method="*"
+            />
+
+            <item name="factor"
+                  class="tofi.mdl.model.dao.factor.FactorDao"
+                  method="*"
+            />
+
+            <item name="factorrel"
+                  class="tofi.mdl.model.dao.factor.FactorRelDao"
+                  method="*"
+            />
+
+            <item name="meter"
+                  class="tofi.mdl.model.dao.meter.MeterDao"
+                  method="*"
+            />
+            <item name="meterfactor"
+                  class="tofi.mdl.model.dao.meter.MeterFactorDao"
+                  method="*"
+            />
+            <item name="meterrate"
+                  class="tofi.mdl.model.dao.meter.MeterRateDao"
+                  method="*"
+            />
+            <item name="role"
+                  class="tofi.mdl.model.dao.role.RoleDao"
+                  method="*"
+            />
+            <item name="typ"
+                  class="tofi.mdl.model.dao.typ.TypDao"
+                  method="*"
+            />
+
+            <item name="reltyp"
+                  class="tofi.mdl.model.dao.reltyp.RelTypDao"
+                  method="*"
+            />
+
+            <item name="relcls"
+                  class="tofi.mdl.model.dao.reltyp.relcls.RelClsDao"
+                  method="*"
+            />
+
+            <item name="group"
+                  class="tofi.mdl.model.dao.group.GroupDao"
+                  method="*"
+            />
+
+            <item name="prop"
+                  class="tofi.mdl.model.dao.prop.PropDao"
+                  method="*"
+            />
+
+            <item name="dimMultiProp"
+                  class="tofi.mdl.model.dao.prop.multi.dim.DimMultiPropDao"
+                  method="*"
+            />
+
+            <item name="multiProp"
+                  class="tofi.mdl.model.dao.prop.multi.MultiPropDao"
+                  method="*"
+            />
+
+            <item name="flatTable"
+                  class="tofi.mdl.model.dao.flat.table.FlatTableDao"
+                  method="*"
+            />
+
+            <item name="dimperiod"
+                  class="tofi.mdl.model.dao.dimperiod.DimPeriodDao"
+                  method="*"
+            />
+            <item name="dimperioditem"
+                  class="tofi.mdl.model.dao.dimperiod.DimPeriodItemDao"
+                  method="*"
+            />
+            <item name="dimprop"
+                  class="tofi.mdl.model.dao.dimprop.DimPropDao"
+                  method="*"
+            />
+            <item name="dimobj"
+                  class="tofi.mdl.model.dao.dimobj.DimObjDao"
+                  method="*"
+            />
+
+            <item name="cubes"
+                  class="tofi.mdl.model.dao.cubes.CubesDao"
+                  method="*"
+            />
+
+            <item name="file"
+                  class="tofi.mdl.model.dao.file.FileDao"
+                  method="*"
+            />
+
+            <item name="scale"
+                  class="tofi.mdl.model.dao.scale.ScaleDao"
+                  method="*"
+            />
+
+
+            //-----------------
+            <item name="test"
+                  class="tofi.mdl.model.dao.typ.test.TestDao"
+                  method="*"
+            />
+
+            //-----------------
+
+            <item name="dict"
+                  class="tofi.mdl.model.dict.DictDao"
+                  method="*"
+            />
+
+
+        </holder>
+    </dao>
+
+</root>

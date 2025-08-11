@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="DomainTreeOwns" parent="base">
+        <field name="id" parent="string"/>
+        <field name="parent" parent="string"/>
+        <field name="node" parent="ref"/>
+        <field name="typORrel" parent="ref"/>
+        <field name="isObj" parent="boolean"/>
+        <field name="loaded" parent="boolean"/>
+        <field name="cod" parent="string"/>
+        <field name="cls" parent="long"/>
+        <field name="relCls" parent="long"/>
+        <field name="relTyp" parent="long"/>
+        <field name="name" parent="string"/>
+        <field name="fullName" parent="string"/>
+    </domain>
+
+    <domain name="IdName" parent="base">
+        <field name="id" parent="long"/>
+        <field name="name" parent="string"/>
+    </domain>
+
+    <domain name="IdCodNameFullName" parent="IdName">
+        <field name="cod" parent="string"/>
+        <field name="fullName" parent="string"/>
+    </domain>
+
+    <domain name="IdCodNameFullName.ent" parent="IdCodNameFullName">
+        <field name="cls" parent="ref"/>
+        <field name="relcls" parent="ref"/>
+    </domain>
+
+    <domain name="IdNameParent" parent="IdName">
+        <field name="parent" parent="long"/>
+    </domain>
+
+    <domain name="Cond.domain" parent="base">
+        <field name="id" parent="long"/>
+        <field name="parent" parent="long"/>
+        <field name="name" parent="string"/>
+        <field name="type" parent="long"/>
+        <field name="isReq" parent="boolean"/>
+        <field name="checked" parent="boolean"/>
+        <field name="key" parent="string"/>
+    </domain>
+
+    <domain name="TreeCombo.domain" parent="IdCodNameFullName">
+        <field name="parent" parent="long"/>
+        <field name="ent" parent="long"/>
+    </domain>
+
+    <!-- ***************************************************************** -->
+    <domain name="DataPropVal.ref" parent="base">
+        <field name="id" parent="long"/>
+        <field name="prop" parent="ref"/>
+        <field name="dataProp" parent="ref"/>
+        <field name="propVal" parent="ref"/>
+        <field name="factorVal" parent="ref"/>
+        <field name="measure" parent="ref"/>
+        <field name="obj" parent="ref"/>
+        <field name="relobj" parent="ref"/>
+        <field name="dbeg" parent="f.dbeg"/>
+        <field name="dend" parent="f.dend"/>
+        <field name="parent" parent="ref"/>
+        <field name="inputType" parent="ref"/>
+        <field name="ord" parent="f.ord"/>
+        <field name="authUser" parent="ref"/>
+        <field name="cmt" parent="f.cmt"/>
+        <field name="timeStamp" parent="datetime"/>
+
+    </domain>
+
+    <domain name="DataPropVal.ref.list" parent="DataPropVal.ref">
+        <field name="provider" parent="long"/>
+        <field name="status" parent="long"/>
+        <field name="periodType" parent="long"/>
+        <field name="period" parent="string"/>
+    </domain>
+
+    <domain name="DataPropVal.ref.upd" parent="DataPropVal.ref.list">
+        <field name="cls" parent="ref"/>
+        <field name="relcls" parent="ref"/>
+        <field name="cod" parent="string"/>
+        <field name="name" parent="string"/>
+        <field name="checked" parent="boolean"/>
+        <field name="dataPropVal" parent="long"/>
+    </domain>
+
+    <domain name="Analis.fish.sex" parent="base">
+        <field name="name" parent="string"/>
+        <field name="cod" parent="string"/>
+        <field name="prop" parent="long"/>
+        <field name="relobj" parent="long"/>
+    </domain>
+
+
+</root>

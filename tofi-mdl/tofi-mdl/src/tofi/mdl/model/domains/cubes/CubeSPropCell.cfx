@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="CubeSPropCell" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Ячейки прокуба свойств">
+        <!--
+            Ячейки прокуба свойств.
+            Если измерениями данной ячейки прокуба свойств являются измерения многомерного свойства,
+            то поле prop таблицы не заполняется (так как это ячейка многомернорго свойства).
+         -->
+
+        <field name="cubeS" parent="CubeS/ref"/>
+        <field name="prop" parent="Prop/ref"/>
+        <field name="propStatus" parent="PropStatus/ref"/>
+        <field name="propProvider" parent="PropProvider/ref"/>
+        <field name="multiProp" parent="MultiProp/ref"/>
+        <field name="multiPropStatus" parent="MultiPropStatus/ref"/>
+        <field name="multiPropProvider" parent="MultiPropProvider/ref"/>
+        <field name="measure" parent="Measure/ref"/>
+        <field name="propStatusMissing" parent="FD_PropStatusMissing/ref"/>
+        <field name="propProviderMissing" parent="FD_PropProviderMissing/ref"/>
+    </domain>
+
+
+
+
+</root>

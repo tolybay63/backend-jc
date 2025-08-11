@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="FactorValRel" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Несовместные значения факторов и зависимые факторы">
+        <!-- Несовместные значения факторов и зависимые факторы. -->
+        <field name="factor1" parent="Factor/ref"/>
+        <field name="factor2" parent="Factor/ref"/>
+        <field name="cmt" parent="f.cmt"/>
+
+    </domain>
+
+</root>

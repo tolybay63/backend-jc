@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <!--
+        <cfg>
+
+            <dbsource name="adm"
+                      dbdriver="postgresql"
+                      host="192.168.1.39"
+                      database="t_admin"
+                      username="pg"
+                      password="1q2w3e4R"
+            />
+
+            <dbsource name="meta"
+                      id="kpi"
+                      dbdriver="postgresql"
+                      host="192.168.1.39"
+                      database="t_model"
+                      username="pg"
+                      password="1q2w3e4R"
+            />
+
+            <dbsource name="userdata"
+                      dbdriver="postgresql"
+                      host="192.168.1.39"
+                      database="t_userdata"
+                      username="pg"
+                      password="1q2w3e4R"
+            />
+
+            <dbsource name="polldata"
+                      dbdriver="postgresql"
+                      host="192.168.1.39"
+                      database="t_polls"
+                      username="pg"
+                      password="1q2w3e4R"
+            />
+
+            <dbsource name="kpidata"
+                      dbdriver="postgresql"
+                      host="192.168.1.39"
+                      database="t_kpi"
+                      username="pg"
+                      password="1q2w3e4R"
+            />
+
+            <dbsource name="indicatordata"
+                      dbdriver="postgresql"
+                      host="192.168.1.39"
+                      database="t_monecoind"
+                      username="pg"
+                      password="1q2w3e4R"
+            />
+        </cfg>
+
+
+    <cfg>
+
+        <dbsource name="adm"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="fish_admin"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="meta"
+		  id="fish"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="fish_model"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="userdata"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="fish_userdata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+
+        <dbsource name="nsidata"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="fish_nsi"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="monitoringdata"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="fish_monitoring"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+    </cfg>
+
+
+
+
+
+        <datadir>
+            <path name="dbfilestorage" path="c:/dbfilestorage"/>
+
+            <minio
+                    url="http://127.0.0.1:9000"
+                    bucketName = "ksi_factor_tofi_test"
+                    accessKey = "qd5tXs2vcea7DeFzWYaz"
+                    secretKey = "WYLjNiLmdHPwfdKCBUN7O2E9iEovEGLRe2l4p5ND">
+            </minio>
+
+        </datadir>
+
+    -->
+
+</root>

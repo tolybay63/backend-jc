@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="DimPeriod" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Измерение периодов">
+        <!-- Измерение периодов -->
+        <field name="accessLevel" parent="FD_AccessLevel/ref"/>
+        <field name="periodNameTml" parent="FD_PeriodNameTml/ref"/>
+        <field name="cod" parent="f.cod"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="dbeg" parent="f.dbeg"/>
+        <field name="dend" parent="f.dend"/>
+        <field name="cmt" parent="f.cmt"/>
+
+    </domain>
+
+
+</root>

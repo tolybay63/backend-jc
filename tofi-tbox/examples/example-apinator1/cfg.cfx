@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <cfg>
+
+        <dbsource name="default"
+                  host="localhost"
+                  database="tofi_dta"
+                  username="user"
+                  password="111"
+        />
+
+        <dbsource name="adm"
+                  host="localhost"
+                  database="tofi_adm"
+                  username="user"
+                  password="111"
+        />
+
+        <dbsource name="meta"
+                  host="localhost"
+                  database="tofi_mdl"
+                  username="user"
+                  password="111"
+        />
+
+    </cfg>
+
+</root>

@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="dict.tofi" parent="dict.base">
+        <field name="text" parent="string" size="200" title="Наименование"/>
+        <field name="vis" parent="boolean" title="Видимость">
+            <!--
+                Признак: показывать или не показывать на интерфейсе пользователя.
+                По умолчанию true.
+            -->
+        </field>
+        <field name="ord" parent="long" title="Порядок">
+            <!-- Порядковый номер уровня доступа -->
+        </field>
+        <field name="code" parent="string" size="20" title="Код">
+            <!-- Для сгенир-х констант -->
+        </field>
+    </domain>
+
+    <!-- Словарь языков. -->
+	<domain name="FD_Lang" parent="dict.tofi" tag.db="true">
+        <field name="sign" parent="string" size="5" title="Обозначение"/>
+    </domain>
+    <dict name="FD_Lang" parent="base" domain="FD_Lang"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+    <!--
+        Словарь уровней доступа.
+        Возможные значения:
+        1) общедоступный уровень;
+        2) первый уровень доступа;
+        3) второй уровень доступа;
+        …
+        10) девятый уровень доступа.
+    -->
+    <domain name="FD_AccessLevel" parent="dict.tofi" tag.db="true"/>
+    <dict name="FD_AccessLevel" parent="base" domain="FD_AccessLevel"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+    <!--
+        Словарь "Сущности ТОФИ".
+        Возможные значения:
+        1) единица измерения;
+        2) атрибут;
+        3) фактор;
+        4) значение фактора;
+        5) измеритель;
+        6) показатель;
+        7) роли;
+        8) тип объектов;
+        9) класс объектов;
+        10) объект;
+        11) группа характеристических свойств типа объектов;
+        12) отношени между типами объектов;
+        13) отношение между объектами;
+        14) группа характеристических свойств отношения между типами объектов;
+        15) группа свойств;
+        16) свойство;
+        17) группа матриц ТОФИ;
+        18) матрица ТОФИ;
+        19) шкала;
+        20) измерение периодов;
+        21) группа измерений свойств;
+        22) измерение свойств;
+        23) группа измерений объектов и отношений;
+        24) измерение объектов и отношений;
+        25) группа стандартных кубов;
+        26) стандартный куб;
+        27) факторно-балансовая матрица;
+        28) система кодирования;
+        29) фрактальное дерево;
+        30) граф;
+        31)
+    -->
+    <domain name="FD_EntityType" parent="dict.tofi" tag.db="true">
+        <field name="tableName" parent="string" size="30" title="Имя таблицы"/>
+    </domain>
+    <dict name="FD_EntityType" parent="base" domain="FD_EntityType"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+    <!--
+        Словарь "Типы периодов".
+        Возможные значения (id, name):
+        11 - год;
+        12 - девять месяцев;
+        13 - учебный год;
+        21 - поугодие;
+        22 - полугодие с накоплением;
+        23 - семестр;
+        31 - квартал;
+        32 - квартал с накоплением;
+        33 - четверть;
+        41 - месяц;
+        42 - месяц с накоплением;
+        51 - декада;
+        52 - декада с накоплением;
+        61 - неделя;
+        62 - неделя с накоплением;
+        71 - сутки;
+        72 - сутки с накоплением;
+        99 - нестандартный период.
+    -->
+    <domain name="FD_PeriodType" parent="dict.tofi" tag.db="true"/>
+    <dict name="FD_PeriodType" parent="base" domain="FD_PeriodType"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+    <!--
+        Словарь "Значения атрибута".
+        Возможные значения:
+        1) строка;
+        2) строка с маской;
+        3) дата;
+        4) время;
+        5) дата и время;
+        6) целое число;
+        7) дробное число;
+        8) многострочный текст;
+        9) файл;
+        10) сущность ТОФИ;
+        11) Период.
+    -->
+    <domain name="FD_AttribValType" parent="dict.tofi" tag.db="true"/>
+    <dict name="FD_AttribValType" parent="base" domain="FD_AttribValType"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+    <!--
+        Словарь "Структура измерителя".
+        Возможные значения:
+        1) жесткий измеритель;
+        2) мягкий измеритель.
+    -->
+    <domain name="FD_MeterStruct" parent="dict.tofi" tag.db="true"/>
+    <dict name="FD_MeterStruct" parent="base" domain="FD_MeterStruct"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+    <!--
+        Словарь "Детерминированность измерителя".
+        Возможные значения:
+        1) детерминированный измеритель;
+        2) стохастический измеритель.
+    -->
+    <domain name="FD_MeterDeterm" parent="dict.tofi" tag.db="true"/>
+    <dict name="FD_MeterDeterm" parent="base" domain="FD_MeterDeterm"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+
+    <!--
+        Словарь "Тип измерителя".
+        Возможные значения:
+        1) интегральный измеритель;
+        2) дифференциальный измеритель.
+    -->
+    <domain name="FD_MeterType" parent="dict.tofi" tag.db="true"/>
+    <dict name="FD_MeterType" parent="base" domain="FD_MeterType"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+
+    <!--
+        Словарь "Поведение измерителя".
+        Возможные значения:
+        1) положительное поведение;
+        2) отрицательное поведение;
+        3) нейтральное поведение.
+    -->
+    <domain name="FD_MeterBehavior" parent="dict.tofi" tag.db="true"/>
+    <dict name="FD_MeterBehavior" parent="base" domain="FD_MeterBehavior"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+    <!--
+        Словарь "Закон распределения случайной величины".
+        Возможные значения:
+        1) равномерный закон распределения;
+        2) нормальный закон распределения;
+        3) геометрический закон распределения;
+        4) закон распределения Бернулли;
+    -->
+    <domain name="FD_DistributionLaw" parent="dict.tofi" tag.db="true"/>
+    <dict name="FD_DistributionLaw" parent="base" domain="FD_DistributionLaw"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+
+    <!--
+        Словарь "Категория типа объектов".
+        Возможные значения:
+        1) стандартный тип объектов;
+        2) регистр;
+    -->
+    <domain name="FD_TypCategory" parent="dict.tofi" tag.db="true"/>
+    <dict name="FD_TypCategory" parent="base" domain="FD_TypCategory"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+
+    <!--
+        Тип участника отношения между типами объектов.
+        Возможные значения:
+        1) тип объектов;
+        2) класс объектов;
+        3) отношение между типами объектов.
+    -->
+    <domain name="FD_MemberType" parent="dict.tofi" tag.db="true"/>
+    <dict name="FD_MemberType" parent="base" domain="FD_MemberType"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+
+    <!--
+        Тип свойства.
+        Возможные значения:
+        1) единица измерения;
+        11) фактор;
+        21) измеритель;
+        22) показатель;
+        31) атрибут;
+        41) тип объектов;
+        51) отношение между тпами объектов;
+        61) комплексное свойство.
+    -->
+    <domain name="FD_PropType" parent="dict.tofi" tag.db="true"/>
+    <dict name="FD_PropType" parent="base" domain="FD_PropType"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+    <!--
+        Cловарь форматов визуализации значений качественных свойств.
+        Возможные значения:
+        1) краткое наименование;
+        2) полное наименование;
+        3) код и краткое наименование;
+        4) код и полное наименование;
+        5) код.
+    -->
+    <domain name="FD_VisualFormat" parent="dict.tofi" tag.db="true"/>
+    <dict name="FD_VisualFormat" parent="base" domain="FD_VisualFormat"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+    <!--
+        База данных хранения значений свойства.
+        Принимает следующие значения:
+        1 - значение свойства хранится только как стандартное свойство;
+        2 - значение свойства хранится только как плоское свойство;
+        3 - значение свойства хранится только в noSQL базе данных;
+        4 - значение свойства хранится и как стандартное свойство, и в noSQL базе данных;
+        5 - значение свойства хранится и как плоское свойство и в noSQL базе данных.
+        Значение по умолчанию равно 1.
+    -->
+    <domain name="FD_StorageDB" parent="dict.tofi" tag.db="true"/>
+    <dict name="FD_StorageDB" parent="base" domain="FD_StorageDB"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+    <!--
+        Словарь "Тип ввода данных".
+        Возможные значения:
+        1) интерактивный ввод из среды моделирования;
+        2) интерактивный ввод из интерфейса пользователя главного приложения;
+        3) интерактивный ввод из системы сбора данных;
+        4) ввод через ETL-приложение.
+    -->
+    <domain name="FD_InputType" parent="dict.tofi" tag.db="true"/>
+    <dict name="FD_InputType" parent="base" domain="FD_InputType"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+    <!--
+        Словарь "Режим изменения данных".
+        Возможные значения:
+        1) добавление;
+        2) изменение;
+        3) удаление.
+    -->
+    <domain name="FD_Mode" parent="dict.tofi" tag.db="true"/>
+    <dict name="FD_Mode" parent="base" domain="FD_Mode"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+    <!--
+        Тип значения ячейки многомерного свойства.
+        Возможные значения:
+        1) измеритель;
+        2) значение фактора;
+        3) объект;
+        4) Формула;
+        5) настройка алгоритма;
+        41) атрибут-строка;
+        42) атрибут с маской;
+        43) атрибут - дата;
+        46) атрибут - целое число;
+        47) атрибут - дробное число.
+    -->
+    <domain name="FD_MatrixValEntityType" parent="dict.tofi" tag.db="true"/>
+    <dict name="FD_MatrixValEntityType" parent="base" domain="FD_MatrixValEntityType"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+    <!--
+        Словарь "При отсутствии значения свойства по указанному статусу".
+        Возможные значения:
+        1) только указанный статус;
+        2) статус по умолчанию;
+        3) любой статус, имеющий значение.
+    -->
+    <domain name="FD_StatusNotValue" parent="dict.tofi" tag.db="true"/>
+    <dict name="FD_StatusNotValue" parent="base" domain="FD_StatusNotValue"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+    <!--
+        Словарь "При отсутствии значения свойства по указанному поставщику".
+        Возможные значения:
+        1) только указанный поставщик;
+        2) поставщик по умолчанию;
+        3) любой поставщик, имеющий значение.
+    -->
+    <domain name="FD_ProviderNotValue" parent="dict.tofi" tag.db="true"/>
+    <dict name="FD_ProviderNotValue" parent="base" domain="FD_ProviderNotValue"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+    <!--
+        Словарь "Шаблон наименования периодов".
+        Возможные значения:
+            1) Полное наименование;
+            2) Краткое наименование;
+            3) Полное наименование с арабскими цифрами;
+            4) Краткое наименование с арабскими цифрами;
+            5) Полное наименование с римскими цифрами;
+            6) Краткое наименование с римскими цифрами;
+            7) Полное наименование без родительского периода;
+    -->
+    <domain name="FD_PeriodNameTml" parent="dict.tofi" tag.db="true"/>
+    <dict name="FD_PeriodNameTml" parent="base" domain="FD_PeriodNameTml"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+    <!--
+        Словарь "Признак включения периода в родительский период".
+        Возможные значения:
+            1) входит начало периода;
+            2) входит конец периода;
+            3) входит начало и конец периода;
+            4) входит начало или конец периода;
+    -->
+    <domain name="FD_PeriodIncludeTag" parent="dict.tofi" tag.db="true"/>
+    <dict name="FD_PeriodIncludeTag" parent="base" domain="FD_PeriodIncludeTag"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+    <!--
+        Словарь "Типы измерения свойства.".
+        Возможные значения:
+            1) иерархия свойств;
+            2) иерархия значений факторов;
+            3) список поставщиков свойств;
+            4) список статусов свойств;
+            5) измерение многомерного свойства;
+    -->
+    <domain name="FD_DimPropType" parent="dict.tofi" tag.db="true"/>
+    <dict name="FD_DimPropType" parent="base" domain="FD_DimPropType"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+    <!--
+        Словарь "Типы компонента измерения объектов и отношений".
+        Возможные значения:
+            1) тип объектов;
+            2) класс объектов;
+            3) объект;
+            4) отношение между типами объектов;
+            5) отношение между объектами;
+            6)участник отношения между типами объектов (тип объектов);
+            7)участник отношения между типами объектов (класс объектов);
+            8) участник отношения между типами объектов (отношение между типами объектов);
+    -->
+    <domain name="FD_DimObjItemType" parent="dict.tofi" tag.db="true"/>
+    <dict name="FD_DimObjItemType" parent="base" domain="FD_DimObjItemType"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+    <!--
+    Словарь "Тип связи между родительским и дочерним компонентами".
+    Возможные значения:
+        1) отсутствует;
+        2) родительский и дочерний компоненты - участники отношения между типами объектов;
+        3) дочерний компонент - участник родительского компонента;
+        4) родительский компонент - участник дочернего компонента;
+        5) дочерний компонент - значения свойств родительского компонента;
+        6) дочерний компонент - значения свойств участников родительского компонента;
+        7) участник(и) дочернего компонента - значения свойств родительского компонента;
+        8) участник(и) дочернего компонента - значения свойств участников родительского компонента;
+        9) родительский компонент - значения свойств дочернего компонента;
+        10) родительский компонент - значения свойств участников дочернего компонента;
+        11) участник(и) родительского компонента - значения свойств дочернего компонента;
+        12) участник(и) родительского компонента - значения свойств участников дочернего компонента;
+    -->
+    <domain name="FD_LinkType" parent="dict.tofi" tag.db="true"/>
+    <dict name="FD_LinkType" parent="base" domain="FD_LinkType"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+
+    <!--
+        Словарь "Выбор статуса при его отсутствии".
+        Возможные значения:
+        1) только указанный статус;
+        2) статус по умолчанию;
+        3) любой статус, имеющий значение.
+    -->
+    <domain name="FD_PropStatusMissing" parent="dict.tofi" tag.db="true"/>
+    <dict name="FD_PropStatusMissing" parent="base" domain="FD_PropStatusMissing"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+    <!--
+        Словарь "Выбор поставщика при его отсутствии".
+        Возможные значения:
+        1) только указанный поставщик;
+        2) поставщик по умолчанию;
+        3) любой поставщик, имеющий значение.
+    -->
+    <domain name="FD_PropProviderMissing" parent="dict.tofi" tag.db="true"/>
+    <dict name="FD_PropProviderMissing" parent="base" domain="FD_PropProviderMissing"
+          handler="tofi.api.mdl.utils.DictHandler"/>
+
+
+
+    <!--******************************************************************-->
+    <!--Fill Dicts-->
+    <ddl name="dbdata.system"
+         class="jandcode.core.dbm.dbdata.DDLProvider_dbdata"
+         stage="data"
+         path="#{path}/data/dicts/*.*"/>
+
+</root>

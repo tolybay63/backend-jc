@@ -1,0 +1,10 @@
+<root>
+    <row id="1" text="Фактор" vis="1" ord="1" code="factor"/>
+    <row id="2" text="Измеритель" vis="1" ord="2" code="meter"/>
+    <row id="3" text="Показатель" vis="1" ord="3" code="rate"/>
+    <row id="4" text="Атрибут" vis="1" ord="4" code="attr"/>
+    <row id="5" text="Тип объектов" vis="1" ord="5" code="typ"/>
+    <row id="6" text="Отношение между типами объектов" vis="1" ord="6" code="reltyp"/>
+    <row id="7" text="Единица измерения" vis="1" ord="7" code="measure"/>
+    <row id="8" text="Комплексное свойство" vis="1" ord="8" code="complex"/>
+</root>

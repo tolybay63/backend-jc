@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="DimProp" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Измерения свойств">
+        <!-- Измерения свойств -->
+
+        <field name="dimPropGr" parent="DimPropGr/ref"/>
+        <field name="dimPropType" parent="FD_DimPropType/ref"/>
+        <field name="dimMultiProp" parent="DimMultiProp/ref"/>
+        <field name="cod" parent="f.cod"/>
+        <field name="accessLevel" parent="FD_AccessLevel/ref" req="true"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
+        <field name="ord" parent="f.ord"/>
+
+    </domain>
+
+    <domain name="DimProp.full" parent="DimProp">
+        <field name="dimMultiPropType" parent="long"/>
+    </domain>
+
+</root>

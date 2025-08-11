@@ -1,0 +1,24 @@
+import jandcode.jc.*
+import jandcode.jc.std.*
+
+class P extends ProjectScript {
+
+    static beforeLoad = {
+    }
+
+    void onInclude() {
+        //
+        project.name = "tofi-zookeeper"
+        //
+        include(JavaProject).with {
+            moduleDef("tofi.zookeeper").with {
+                depends.prod(
+                    "curator-recipes",
+                )
+                depends.dev(
+                )
+            }
+        }
+    }
+
+}

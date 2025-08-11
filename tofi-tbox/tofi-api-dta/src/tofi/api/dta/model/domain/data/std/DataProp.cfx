@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+     <domain name="DataProp" parent="id" tag.db="true"
+             genid.start="1000" genid.step="1" title="Координаты стандартных данных">
+
+         <field name="isObj" parent="boolean"/>
+         <field name="objOrRelObj" parent="ref"/>
+         <field name="prop" parent="ref"/>
+         <field name="status" parent="ref">
+             <!-- Ссылка на таблицу Factor(parent not null)-->
+         </field>
+         <field name="provider" parent="ref"/>
+         <field name="periodType" parent="ref">
+             <!--@ Ссылка на словарь FD_PeriodType -->
+         </field>
+
+     </domain>
+
+</root>

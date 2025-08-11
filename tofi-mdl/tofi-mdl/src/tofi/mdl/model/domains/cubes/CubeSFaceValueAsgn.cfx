@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="CubeSFaceValueAsgn" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Сопоставление участников">
+        <!--
+            Сопоставление участников CubeSFaceValue.relTyp и CubeSFaceValue.relCls компонентам измерений грани прокуба объектов и отношений.
+         -->
+
+        <field name="cubeSFaceValue" parent="CubeSFaceValue/ref"/>
+        <field name="relTypMember" parent="RelTypMember/ref"/>
+        <field name="relClsMember" parent="RelClsMember/ref"/>
+        <field name="dimObjItem" parent="DimObjItem/ref"/>
+    </domain>
+
+</root>

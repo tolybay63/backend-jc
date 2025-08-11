@@ -1,0 +1,4 @@
+<root>
+    <row id="1" text="Формирование куба" vis="1" ord="1" code="form"/>
+    <row id="2" text="Очистка куба" vis="1" ord="2" code="clear"/>
+</root>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+     <domain name="ObjVer" parent="id" tag.db="true"
+             genid.start="1000" genid.step="1" title="Версионная часть объекта">
+
+         <field name="ownerVer" parent="Obj/ref">
+             <!--@
+                 Ссылка на объект
+             -->
+         </field>
+
+         <field name="objParent" parent="Obj/ref" title="Родительский объект"/>
+
+         <include name="VerTable"/>
+
+     </domain>
+
+</root>

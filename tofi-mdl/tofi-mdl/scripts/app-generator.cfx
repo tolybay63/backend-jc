@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <!-- конфигурации приложения для генерации файлов по структуре -->
+
+    <x-depends module="tofi.mdl"/>
+
+    <dbm>
+        <model name="default" instance="tofi.mdl.model"/>
+    </dbm>
+
+</root>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+     <domain name="SysCod" parent="id" tag.db="true"
+             genid.start="1000" genid.step="1"
+             title="Уникальные внутренние (встроенные) коды объектов и отношений между объектами">
+
+         <!--@
+            Код объекта, формируемый системой имеет вид _O_idCls_idObj.
+            Код отношения между объектами, формируемый системой имеет вид _RO_idRelCls_idRelObj
+         -->
+
+         <field name="cod" parent="f.cod"/>
+
+         <field name="entityType" parent="ref" title="Ссылка на словарь 'Сущности ТОФИ'"/>
+
+         <field name="entityId" parent="ref" title="Ссылка на id 'Сущности ТОФИ'"/>
+
+     </domain>
+
+
+    <domain name="SysCodingCod" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1"
+            title="Внешний код в системе кодирования sysCoding">
+            <!--@
+                Соответствие внутренних и внешних (по конкретной системе кодирования) кодов
+            -->
+        <field name="sysCod" parent="SysCod/ref"/>
+
+        <field name="sysCoding" parent="ref">
+            <!--@
+                Ссылка на систему кодирования
+            -->
+        </field>
+
+        <field name="cod" parent="f.cod">
+            <!--@
+                Соответствующий внутреннему внешний код в системе кодирования sysCoding
+            -->
+        </field>
+
+    </domain>
+
+
+
+</root>

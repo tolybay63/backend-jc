@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="DimMultiPropItemMeasure" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1"
+            title="Возможные значения элемента измерения многомерного свойства типа единица измерения">
+        <!--
+            заполняется только для тех элементов измерения,
+            у которых поле isMeasure=true
+        -->
+
+        <field name="dimMultiPropItem" parent="DimMultiPropItem/ref"/>
+        <field name="measure" parent="Measure/ref"/>
+        <field name="visualFormat" parent="FD_VisualFormat/ref">
+            <!--
+                Ссылка на словарь FD_VisualFormat.
+                Указывает в каком формате необходимо показывать значение свойства
+                на интерфейсе клиента
+            -->
+        </field>
+
+    </domain>
+
+    <domain name="DimMultiPropItemMeasure.full" parent="DimMultiPropItemMeasure">
+        <field name="name" parent="string"/>
+    </domain>
+
+
+
+</root>
+

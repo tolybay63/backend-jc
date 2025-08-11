@@ -1,0 +1,7 @@
+<root>
+    <row id="1" text="Код" vis="1" ord="1" code="cod"/>
+    <row id="2" text="Краткое наименование" vis="1" ord="2" code="shortt"/>
+    <row id="3" text="Полное наименование" vis="1" ord="3" code="full"/>
+    <row id="4" text="Код и краткое наименование" vis="1" ord="4" code="cod_short"/>
+    <row id="5" text="Код и полное наименование" vis="1" ord="5" code="cod_full"/>
+</root>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="RelObjMember" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Участники отношения между объектами">
+
+        <field name="relObj" parent="RelObj/ref"/>
+
+        <field name="relClsMember" parent="long" title="Ссылка на участника отношения между классами объектов"/>
+
+        <field name="cls" parent="long"/>
+
+        <field name="obj" parent="long"/>
+
+        <field name="relCls" parent="long"/>
+
+        <field name="relObjMemb" parent="long"/>
+
+    </domain>
+
+
+</root>

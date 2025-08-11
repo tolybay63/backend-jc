@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <dao>
+
+        <holder name="api">
+
+            <item name="cube" method="*" invoker="model:default"
+                  class="tofi.cube.dao.CubeDao"/>
+
+
+        </holder>
+
+    </dao>
+
+</root>

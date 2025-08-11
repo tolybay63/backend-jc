@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="ClsTree" parent="Cls">
+        <!-- Дерево классов -->
+        <field name="id" parent="string"/>
+        <field name="parent" parent="string"/>
+        <field name="name" parent="ClsVer/name"/>
+        <field name="fullName" parent="ClsVer/fullName"/>
+        <field name="kind" parent="int"/>
+        <field name="ent" parent="long"/>
+        <field name="isOwn" parent="int"/>
+        <field name="typParent" parent="long"/>
+    </domain>
+
+
+    <domain name="ClsTemp" parent="id">
+        <field name="id" parent="string"/>
+        <field name="parent" parent="string"/>
+        <field name="sfv" parent="string"/>
+        <field name="cnt" parent="int"/>
+        <field name="isDone" parent="int"/>
+        <field name="id_" parent="string"/>
+        <field name="isOwn" parent="int"/>
+    </domain>
+
+    <domain name="ClsFV.factorVal" parent="id">
+        <field name="factorVal" parent="long"/>
+    </domain>
+
+</root>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="SourceStockGr" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Группы источников и стоков данных">
+
+        <field name="cod" parent="f.cod"/>
+        <field name="accessLevel" parent="FD_AccessLevel/ref" req="true"/>
+        <field name="parent" parent="PropGr/ref"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
+
+    </domain>
+
+
+</root>

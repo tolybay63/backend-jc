@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+
+    <web>
+        <mount-module/>
+
+        <action name="root"
+                class="tofi.mdl.action.RootAction"
+        />
+
+        <action name="auth"
+                class="jandcode.core.apx.auth.AuthAction"/>
+
+        <action name="download"
+                class="tofi.mdl.action.DownLoadAction"/>
+
+        <x-if env.dev="true">
+            <!-- автологин подключаем только в режиме dev -->
+            <filter name="auth-autologin"
+                    class="jandcode.core.apx.auth.AuthAutoLoginFilter"
+                    type="startRequest" weight="-100"/>
+        </x-if>
+
+        <filter name="auth"
+                class="jandcode.core.apx.auth.AuthFilter"
+                type="*" weight="-100"/>
+
+    </web>
+
+
+    <bean name="jandcode.core.auth.AuthService"
+          class="jandcode.core.auth.impl.AuthServiceImpl">
+
+        <!-- AuthProcessor. По умолчанию - заглушка для admin/111, user1/111 -->
+        <auth-processor name="default"
+                        class="tofi.mdl.auth.TofiAuthProcessor"/>
+
+    </bean>
+
+
+    <dbm>
+
+        <model name="tofi.mdl.model">
+            <include name="apx.base"/>
+            <include name="jandcode.core.dbm.genid"/>
+            <x-include path="model/index-model.cfx"/>
+
+            <dbsource name="default"
+                      dbdriver="postgresql"
+            />
+        </model>
+
+        <!-- =================== -->
+
+    </dbm>
+
+
+    <dbm>
+        <model name="default" instance="tofi.mdl.model"/>
+        <model name="adm" instance="tofi.api.adm.model"/>
+        //
+        <model name="userdata" instance="tofi.api.dta.model"/>
+<!--
+        <model name="kpidata" instance="tofi.api.dta.model"/>
+        <model name="polldata" instance="tofi.api.dta.model"/>
+        <model name="indicatordata" instance="tofi.api.dta.model"/>
+-->
+        <model name="monitoringdata" instance="tofi.api.dta.model"/>
+        <model name="nsidata" instance="tofi.api.dta.model"/>
+        <model name="objectdata" instance="tofi.api.dta.model"/>
+        <model name="orgstructuredata" instance="tofi.api.dta.model"/>
+        <model name="personnaldata" instance="tofi.api.dta.model"/>
+        <model name="plandata" instance="tofi.api.dta.model"/>
+
+    </dbm>
+
+
+    <x-include path="dao.cfx"/>
+    <x-include path="fixture/index.cfx"/>
+
+
+</root>

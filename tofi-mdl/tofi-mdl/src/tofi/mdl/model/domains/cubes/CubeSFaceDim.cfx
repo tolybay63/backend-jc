@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="CubeSFaceDim" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Измерения грани прокуба объектов и отношений">
+        <!--
+            Измерения грани прокуба объектов и отношений.
+         -->
+
+        <field name="cubeSFace" parent="CubeSFace/ref"/>
+        <field name="dimObj" parent="DimObj/ref"/>
+    </domain>
+
+
+
+</root>

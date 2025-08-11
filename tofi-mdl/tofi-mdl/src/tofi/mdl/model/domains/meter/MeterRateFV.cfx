@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="MeterRateFV" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1"
+            title="Значения факторов, от которых зависит показатель мягкого измерителя">
+
+        <field name="meterRate" parent="MeterRate/ref"/>
+        <field name="factorVal" parent="Factor/ref"/>
+
+    </domain>
+</root>

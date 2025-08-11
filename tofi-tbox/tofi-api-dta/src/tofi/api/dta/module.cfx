@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <dbm>
+        <model name="tofi.api.dta.model">
+            <include name="apx.base"/>
+            <include name="jandcode.core.dbm.genid"/>
+            <x-include path="model/index-model.cfx"/>
+
+            <dbsource name="default" dbdriver="postgresql"/>
+        </model>
+    </dbm>
+
+    <apinator>
+
+        <api name="userdata" invoker="model" model="userdata">
+            <item name="tofi.api.dta.ApiUserData"
+                  class="tofi.api.dta.impl.ApiUserDataImpl"/>
+        </api>
+
+        <api name="polldata" invoker="model" model="polldata">
+            <item name="tofi.api.dta.ApiPollData"
+                  class="tofi.api.dta.impl.ApiPollDataImpl"/>
+        </api>
+
+        <api name="kpidata" invoker="model" model="kpidata">
+            <item name="tofi.api.dta.ApiKPIData"
+                  class="tofi.api.dta.impl.ApiKPIDataImpl"/>
+        </api>
+
+        <api name="indicatordata" invoker="model" model="indicatordata">
+            <item name="tofi.api.dta.ApiIndicatorData"
+                  class="tofi.api.dta.impl.ApiIndicatorDataImpl"/>
+        </api>
+
+        <api name="nsidata" invoker="model" model="nsidata">
+            <item name="tofi.api.dta.ApiNSIData"
+                  class="tofi.api.dta.impl.ApiNSIDataImpl"/>
+        </api>
+
+        <api name="monitoringdata" invoker="model" model="monitoringdata">
+            <item name="tofi.api.dta.ApiMonitoringData"
+                  class="tofi.api.dta.impl.ApiMonitoringDataImpl"/>
+        </api>
+
+        <api name="objectdata" invoker="model" model="objectdata">
+            <item name="tofi.api.dta.ApiObjectData"
+                  class="tofi.api.dta.impl.ApiObjectDataImpl"/>
+        </api>
+
+        <api name="personnaldata" invoker="model" model="personnaldata">
+            <item name="tofi.api.dta.ApiPersonnalData"
+                  class="tofi.api.dta.impl.ApiPersonnalDataImpl"/>
+        </api>
+
+        <api name="plandata" invoker="model" model="plandata">
+            <item name="tofi.api.dta.ApiPlanData"
+                  class="tofi.api.dta.impl.ApiPlanDataImpl"/>
+        </api>
+
+        <api name="orgstructuredata" invoker="model" model="orgstructuredata">
+            <item name="tofi.api.dta.ApiOrgStructureData"
+                  class="tofi.api.dta.impl.ApiOrgStructureDataImpl"/>
+        </api>
+
+    </apinator>
+
+
+</root>

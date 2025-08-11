@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+<!--
+    <cfg>
+        <dbsource name="default"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="tt_userdata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="meta"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="tt_model"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="adm"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="tt_admin"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="polldata"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="tt_polls"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="userdata"
+                  dbdriver="postgresql"
+                  host="localhost"
+                  database="t_userdata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+    </cfg>
+-->
+    
+</root>

@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="Prop" parent="id" title="Свойства">
+
+        <field name="accessLevel" parent="long"/>
+        <field name="cod" parent="f.cod"/>
+        <field name="propGr" parent="long"/>
+        <field name="parent" parent="long"/>
+        <field name="propType" parent="long">
+            <!--@
+               Ссылка на словарь Dict_propType. Тип свойства.
+            -->
+        </field>
+        <field name="isUniq" parent="boolean">
+            <!--@
+               Булево поле.
+               Если True, значение свойства однозначное, если False, значение свойства многозначное.
+            -->
+        </field>
+
+        <field name="isDependValueOnPeriod" parent="boolean">
+            <!--@
+               Булево поле.
+               Если True, то значение свойства зависит от периода, если False, то - не зависит.
+               Значение по умолчанию True.
+            -->
+        </field>
+
+        <field name="isDependNameOnPeriod" parent="boolean">
+            <!--@
+               Булево поле.
+               Если True, то наименование свойства может зависеть от типа периода.
+               Тогда соответствующие наименования заполняются в таблице PropNameOnPeriod.
+               Значение по умолчанию False.
+            -->
+        </field>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+
+        <field name="attrib" parent="long"/>
+        <field name="factor" parent="long"/>
+        <field name="meter" parent="long"/>
+        <field name="meterRate" parent="long"/>
+        <field name="typ" parent="long"/>
+        <field name="relTyp" parent="long"/>
+        <field name="allItem" parent="boolean">
+            <!--@
+               Булево поле.
+               Если true, то при добавлений новых значений фактора,
+               объекта или отношения между объектами они автоматически добавляются в таблицу PropVal.
+            -->
+        </field>
+
+        <field name="visualFormat" parent="long">
+            <!--@
+               Ссылка на словарь Dict_visualFormat.
+               Указывает в каком формате необходимо показывать значение свойства на интерфейсе клиента.
+            -->
+        </field>
+
+        <field name="statusFactor" parent="long">
+            <!--@
+               Ссылка на фактор, значения которых являются статусами данных.
+               Если Null, то у свойства нет статуса. Если не Null,
+               то возможные значения статуса и статус по умолчанию указываются в таблице PropStatus.
+            -->
+        </field>
+        <field name="providerTyp" parent="long">
+            <!--@
+               Ссылка на тип объектов, объекты которого являются поставщиками данных.
+               Если Null, то свойство не имеет поставщика данных. Если не Null,
+               то возможные поставщики и поставщик по умолчанию указываются в таблице PropProvider.
+            -->
+        </field>
+
+        <field name="ord" parent="f.ord"/>
+
+        <field name="measure" parent="long">
+            <!--@
+               Единица измерения свойства типа "Измеритель" или "Показатель".
+            -->
+        </field>
+
+        <field name="meterBehavior" parent="long">
+            <!--@
+               Ссылка на словарь "Поведение измерителя".
+            -->
+        </field>
+
+        <field name="minVal" parent="double"/>
+        <field name="maxVal" parent="double"/>
+        <field name="digit" parent="int"/>
+
+
+        <field name="propTag" parent="string" size="1000">
+            <!--@
+               Тэг свойства. Для вспомогательного программного использования.
+            -->
+        </field>
+
+        <field name="cmt" parent="f.cmt"/>
+
+    </domain>
+
+    <domain name="Prop.cust" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cod" parent="string"/>
+        <field name="propType" parent="long"/>
+        <field name="attribValType" parent="long"/>
+        <field name="isUniq" parent="boolean"/>
+        <field name="dependPeriod" parent="boolean"/>
+        <field name="statusFactor" parent="long"/>
+        <field name="providerTyp" parent="long"/>
+        <field name="koef" parent="double"/>
+        <field name="digit" parent="int"/>
+    </domain>
+
+    <domain name="PropsOfProp" parent="base">
+        <field name="cod" parent="string"/>
+        <field name="propType" parent="long"/>
+        <field name="attribValType" parent="long"/>
+        <field name="maskReg" parent="string"/>
+        <field name="format" parent="string"/>
+        <field name="entityType" parent="long"/>
+        <field name="periodTypeAttr" parent="long"/>
+        <field name="fileExt" parent="string"/>
+        <field name="dependPeriod" parent="boolean"/>
+        <field name="periodType" parent="long"/>
+        <field name="dependPeriodName" parent="boolean"/>
+        <field name="isUniq" parent="boolean"/>
+        <field name="minVal" parent="double"/>
+        <field name="maxVal" parent="double"/>
+        <field name="visualFormat" parent="long"/>
+        <field name="status" parent="boolean"/>
+        <field name="statusFactor" parent="long"/>
+        <field name="provider" parent="boolean"/>
+        <field name="providerTyp" parent="long"/>
+        <field name="measure" parent="long"/>
+        <field name="measureName" parent="string"/>
+        <field name="kfc" parent="double"/>
+        <field name="digit" parent="int"/>
+        <field name="flatTable" parent="long"/>
+        <field name="nameTable" parent="string"/>
+    </domain>
+
+    <domain name="Prop.rec" parent="Prop">
+        <field name="meterStruct" parent="ref"/>
+        <field name="attribValType" parent="ref"/>
+        <field name="entityType" parent="ref"/>
+        <field name="namePropType" parent="string"/>
+        <field name="kfc" parent="double"/>
+        <field name="parentPropType" parent="ref"/>
+    </domain>
+
+    <domain name="Prop.meter" parent="id">
+        <field name="accessLevel" parent="ref"/>
+        <field name="cod" parent="f.cod"/>
+        <field name="propGr" parent="ref"/>
+        <field name="parent" parent="ref"/>
+        <field name="propType" parent="ref"/>
+        <field name="isDependValueOnPeriod" parent="boolean"/>
+        <field name="isDependNameOnPeriod" parent="boolean"/>
+        <field name="meter" parent="ref"/>
+        <field name="meterRate" parent="ref"/>
+        <field name="statusFactor" parent="ref"/>
+        <field name="providerTyp" parent="ref"/>
+        <field name="measure" parent="ref"/>
+        <field name="meterBehavior" parent="ref"/>
+        <field name="minVal" parent="double"/>
+        <field name="maxVal" parent="double"/>
+        <field name="digit" parent="int"/>
+        <field name="propTag" parent="string"/>
+        <field name="cmt" parent="f.cmt"/>
+        <field name="ord" parent="f.ord"/>
+    </domain>
+
+    <domain name="Prop.meter.full" parent="Prop.meter">
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+    </domain>
+
+    <domain name="Prop.meter.checked" parent="Prop.meter.full">
+        <field name="checked" parent="boolean"/>
+    </domain>
+
+    <domain name="Prop.measure" parent="id">
+        <field name="parent" parent="ref"/>
+        <field name="propGr" parent="ref"/>
+        <field name="propType" parent="ref"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+    </domain>
+
+    <domain name="Prop.entity.select" parent="base">
+        <field name="id" parent="ref"/>
+        <field name="cod" parent="string"/>
+        <field name="name" parent="string"/>
+        <field name="fullName" parent="string"/>
+    </domain>
+
+    <domain name="Prop.propGr" parent="base">
+        <field name="id" parent="string"/>
+        <field name="parent" parent="string"/>
+        <field name="propGr" parent="ref"/>
+    </domain>
+
+    <domain name="Prop.multi" parent="base">
+        <field name="id" parent="string"/>
+        <field name="parent" parent="string"/>
+        <field name="cod" parent="string"/>
+        <field name="name" parent="string"/>
+        <field name="multiProp" parent="long"/>
+        <field name="dimMultiProp" parent="long"/>
+        <field name="dimMultiPropItem" parent="long"/>
+        <field name="isItem" parent="int"/>
+
+    </domain>
+
+    <domain name="PropsOfMultiProp" parent="base">
+        <field name="multiProp" parent="long"/>
+        <field name="cod" parent="string"/>
+        <field name="multiPropDim" parent="long"/>
+        <field name="dimMultiPropItem" parent="long"/>
+        <field name="multiEntityType" parent="long"/>
+        <field name="isUniq" parent="boolean"/>
+        <field name="dependPeriod" parent="boolean"/>
+        <field name="status" parent="long"/>
+        <field name="provider" parent="long"/>
+        <field name="dimNumber" parent="int"/>
+        <field name="isFilled" parent="boolean"/>
+        <field name="fillMore" parent="int"/>
+        <field name="countHasValue" parent="int"/>
+    </domain>
+
+    <domain name="Meter.info" parent="id">
+        <field name="measure" parent="long"/>
+        <field name="measureName" parent="string"/>
+        <field name="kfc" parent="double"/>
+        <field name="minVal" parent="double"/>
+        <field name="maxVal" parent="double"/>
+        <field name="digit" parent="int"/>
+    </domain>
+
+</root>

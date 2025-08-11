@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="MultiPropDim" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1"
+            title="Упорядоченный набор измерений многомерного свойства">
+        <!--
+           Упорядоченный набор измерений многомерного свойства.
+        -->
+        <field name="multiProp" parent="MultiProp/ref"/>
+        <field name="dimMultiProp" parent="DimMultiProp/ref"/>
+        <field name="dimNumber" parent="int" title="Номер измерения">
+            <!--
+                Номер измерения.
+                В одном измерении может быть несколько dimMultiProp.
+
+                Имеет смысл приоритета измерения, то есть тип значения в ячейке многомерного измерения
+                определяется типом значения первого измерения, если первое измерение не имеет типа значния,
+                то тип значения ячейки определяется вторым измерением и т.д.
+            -->
+        </field>
+        <field name="ord" parent="f.ord"/>
+        <field name="isFilled" parent="int">
+            <!--@
+                Целое число. Если 0, то узлы не имеют значения,
+                если 1, то все узлы измерения имеют значение,
+                если 2, то значение имеют только узлы начиная
+                со второго уровня и т.д.
+                По умолчанию значение равно 0.
+            -->
+        </field>
+    </domain>
+
+    <domain name="MultiPropDim.full" parent="MultiPropDim">
+        <field name="name" parent="string"/>
+        <field name="fullName" parent="string"/>
+        <field name="cod" parent="string"/>
+        <field name="checked" parent="boolean"/>
+        <field name="dimId" parent="ref"/>
+    </domain>
+
+
+</root>

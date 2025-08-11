@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <dao>
+
+        <holder name="api">
+
+            <item name="data" method="*" invoker="model:default"
+                  class="tofi.userdata.dao.DataDao"/>
+
+            <item name="entity" method="*" invoker="model:default"
+                  class="tofi.userdata.dao.EntityDao"/>
+
+        </holder>
+
+    </dao>
+
+</root>

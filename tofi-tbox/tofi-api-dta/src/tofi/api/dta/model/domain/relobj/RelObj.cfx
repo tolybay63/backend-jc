@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+     <domain name="RelObj" parent="id" tag.db="true"
+             genid.start="1000" genid.step="1" title="Отношение между объектами">
+
+         <field name="relCls" parent="long" title="Ссылка на отношение между классами"/>
+
+         <field name="accessLevel" parent="long" title="Уровень доступа"/>
+
+         <field name="cod" parent="f.cod"/>
+
+         <field name="cmt" parent="f.cmt"/>
+
+         <field name="ord" parent="f.ord"/>
+
+         <field name="timeStamp" parent="datetime"/>
+     </domain>
+
+    <domain name="RelObj.full" parent="RelObj">
+        <include name="VerTable"/>
+    </domain>
+
+</root>

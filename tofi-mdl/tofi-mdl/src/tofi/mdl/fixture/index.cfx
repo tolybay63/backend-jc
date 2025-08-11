@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <dbm>
+        <fixture-suite name="testMeasure">
+            <fixture-builder name="measure" class="tofi.model.fixture.Measure_fixture"/>
+        </fixture-suite>
+
+        <fixture-suite name="testAttrib">
+            <fixture-builder name="attrib" class="tofi.model.fixture.Attrib_fixture"/>
+        </fixture-suite>
+
+        <fixture-suite name="testFactor">
+            <fixture-builder name="factor" class="tofi.model.fixture.Factor_fixture"/>
+        </fixture-suite>
+
+        <fixture-suite name="testMeter">
+            <fixture-builder name="meter" class="tofi.model.fixture.Meter_fixture"/>
+        </fixture-suite>
+
+        <fixture-suite name="testRole">
+            <fixture-builder name="role" class="tofi.model.fixture.Role_fixture"/>
+        </fixture-suite>
+
+        <fixture-suite name="testTyp">
+            <fixture-builder name="typ" class="tofi.model.fixture.Typ_fixture"/>
+        </fixture-suite>
+
+
+    </dbm>
+
+</root>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="RelTyp" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Отношения между типами объектов">
+        <!-- Отношения между типами объектов -->
+        <field name="accessLevel" parent="FD_AccessLevel/ref" req="true"/>
+
+        <field name="cod" parent="f.cod"/>
+
+        <field name="isOpenness" parent="boolean"
+               title="Открытость типа" req="true">
+            <!--@
+                Открытость отношения между типами объектов
+            -->
+        </field>
+
+        <field name="card" parent="int"
+               title="Число кардинальности" req="true">
+            <!--@
+                Число кардинальности отношения между типами объектов
+            -->
+        </field>
+
+        <field name="icon" parent="f.icon"/>
+        <field name="cmt" parent="f.cmt"/>
+        <field name="ord" parent="f.ord"/>
+    </domain>
+
+    <domain name="RelTyp.full" parent="RelTyp">
+        <include name="VerTable"/>
+    </domain>
+
+</root>

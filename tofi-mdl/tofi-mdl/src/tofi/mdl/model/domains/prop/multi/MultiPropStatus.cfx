@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="MultiPropStatus" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Статусы свойства">
+        <!--
+           Статусы свойства.
+        -->
+
+        <field name="multiProp" parent="MultiProp/ref"/>
+        <field name="factorVal" parent="Factor/ref"/>
+        <field name="isDefault" parent="boolean">
+            <!--@
+               Если true, то текущий статус - статус по умолчанию, если false - нет.
+               По умолчанию - false.
+            -->
+        </field>
+
+    </domain>
+
+    <domain name="MultiPropStatus.full" parent="MultiPropStatus">
+        <field name="name" parent="f.name"/>
+        <field name="cod" parent="f.cod"/>
+        <field name="checked" parent="boolean"/>
+    </domain>
+
+
+</root>

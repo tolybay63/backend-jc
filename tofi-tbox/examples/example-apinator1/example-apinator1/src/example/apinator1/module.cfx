@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <web>
+        <mount-module/>
+    </web>
+
+    <dbm>
+
+        <model name="default" instance="tofi.api.dta.model"/>
+        <model name="meta" instance="tofi.api.mdl.model"/>
+        <model name="adm" instance="tofi.api.adm.model"/>
+
+    </dbm>
+
+</root>

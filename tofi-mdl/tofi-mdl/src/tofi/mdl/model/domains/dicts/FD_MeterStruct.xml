@@ -1,0 +1,4 @@
+<root>
+    <row id="1" text="Жесткий измеритель" vis="1" ord="1" code="hard"/>
+    <row id="2" text="Мягкий измеритель" vis="1" ord="2" code="soft"/>
+</root>

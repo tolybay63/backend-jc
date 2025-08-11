@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="DimPropItemFV" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Значения факторов">
+        <!--@
+               Значения факторов, если dimPropType = 2
+        -->
+
+        <field name="dimPropItem" parent="DimPropItem/ref" refCascade="true"/>
+        <field name="factorVal" parent="Factor/ref"/>
+
+    </domain>
+
+    <domain name="FactorVal.select" parent="id">
+        <field name="name" parent="f.name"/>
+        <field name="parent" parent="long"/>
+        <field name="checked" parent="boolean"/>
+    </domain>
+
+</root>

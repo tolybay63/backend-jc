@@ -1,0 +1,4 @@
+<root>
+    <row id="1" text="Интегральный измеритель" vis="1" ord="1" code="integral"/>
+    <row id="2" text="Дифференциальный измеритель" vis="1" ord="2" code="differ"/>
+</root>

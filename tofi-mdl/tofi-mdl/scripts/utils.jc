@@ -1,0 +1,136 @@
+import jandcode.core.App
+import jandcode.core.AppLoader
+import jandcode.core.dbm.ModelService
+import jandcode.core.dbm.dbstruct.DomainDbUtils
+import jandcode.core.dbm.fixture.Fixture
+import jandcode.core.store.Store
+import jandcode.jc.CmArgs
+import jandcode.jc.GspScript
+import jandcode.jc.ProjectScript
+
+class P extends ProjectScript {
+
+    private String moduleSrcGenDir = "src.gen/tofi/mdl"
+
+    /**
+     * Список таблиц, для которых нужно генерировать файлы констант
+     */
+    List constsTables = [
+            'FD_AccessLevel',
+            'FD_AttribValType',
+            'FD_DistributionLaw',
+            'FD_EntityType',
+            'FD_Lang',
+            'FD_MeterBehavior',
+            'FD_MeterDeterm',
+            'FD_MeterStruct',
+            'FD_MeterType',
+            'FD_PeriodType',
+            'FD_TypCategory',
+            'FD_MemberType',
+            'FD_PropType',
+            'FD_VisualFormat',
+            'FD_StorageType',
+            'FD_InputType',
+            'FD_Mode',
+            'FD_MultiValEntityType',
+            'FD_StatusNotValue',
+            'FD_ProviderNotValue',
+            'FD_PeriodNameTml',
+            'FD_PeriodIncludeTag',
+            'FD_DimPropType',
+            'FD_DimObjItemType',
+            'FD_LinkType',
+            'FD_propStatusMissing',
+            'FD_providerMissing',
+            'FD_DataBaseType',
+            'FD_ScaleType',
+            'FD_CubeSType',
+            'FD_CubeSDimType',
+            'FD_DimMultiPropType',
+	    'FD_CubeSActionType'
+    ]
+
+    void onInclude() {
+        //
+        cm.add("gen-all", this.&cmGenAll,
+                "Запуск всех генераторов (см. readme.md)")
+        //
+        cm.add("gen-dto", this.&cmGenDto,
+                "Генерация файлов для поддержки структуры базы данных (см. readme.md)")
+        cm.add("gen-consts", this.&cmGenConsts,
+                "Генерация файлов констант для справочников (см. readme.md)")
+    }
+
+    void cmGenAll(CmArgs args) {
+        cmGenDto(args)
+        cmGenConsts(args)
+    }
+
+    void cmGenDto(CmArgs args) {
+        classpath("tofi.mdl")
+        App app = AppLoader.load("${scriptDir}/app-generator.cfx")
+
+        // берем все нужные домены
+        def model = app.bean(ModelService).getModel()
+        DomainDbUtils dbUtils = new DomainDbUtils(model)
+
+        // генерируем
+        String pakName = "tofi.mdl.dto"
+
+        def outDir = wd("${moduleSrcGenDir}/dto")
+        ut.cleandir(outDir)
+        GspScript gs = create("${scriptDir}/gen-dto.gsp")
+
+        log "Generating java..."
+        ut.stopwatch.start()
+        gs.generate("${outDir}/out.txt", [
+                dbUtils: dbUtils,
+                pakName: pakName,
+        ])
+        log "java generated to: ${outDir}"
+        ut.stopwatch.stop()
+    }
+
+    void cmGenConsts(CmArgs args) {
+        classpath("tofi.mdl")
+        App app = AppLoader.load("${scriptDir}/app-generator.cfx")
+
+        // берем все нужные домены
+        def model = app.bean(ModelService).getModel()
+        DomainDbUtils dbUtils = new DomainDbUtils(model)
+
+        // берем каталог dbdata
+        String dbdataPath = model.getConf().getString("ddl/dbdata.system/path")
+
+        // загружаем данные
+        Fixture fx = Fixture.create(model)
+        fx.loadFromPath(dbdataPath)
+
+        // выбираем нужные
+        List<Store> stores = []
+        for (Store st in fx.stores) {
+            if (constsTables.contains(st.name)) {
+                stores.add(st)
+            }
+        }
+
+        // генерируем
+        String pakName = "tofi.mdl.consts"
+
+        def outDir = wd("${moduleSrcGenDir}/consts")
+        ut.cleandir(outDir)
+        GspScript gs = create("${scriptDir}/gen-consts.gsp")
+
+        log "Generating consts..."
+        ut.stopwatch.start()
+        gs.generate("${outDir}/out.txt", [
+                dbUtils: dbUtils,
+                pakName: pakName,
+                stores : stores,
+        ])
+        log "java generated to: ${outDir}"
+        ut.stopwatch.stop()
+    }
+
+}

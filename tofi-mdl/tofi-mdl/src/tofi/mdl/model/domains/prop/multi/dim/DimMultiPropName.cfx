@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="DimMultiPropName" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Дополнительные столбцы измерения">
+        <!--
+            Дополнительные столбцы измерения, типа код статьи, код строки и т.д.
+        -->
+
+        <field name="DimMultiProp" parent="DimMultiProp/ref"/>
+        <field name="title" parent="f.name" title="Заголовок"/>
+        <field name="ord" parent="f.ord"/>
+    </domain>
+
+
+</root>

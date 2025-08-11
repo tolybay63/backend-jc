@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="ScaleVal" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Значения шкалы">
+
+        <field name="scale" parent="Scale/ref"/>
+        <field name="minVal" parent="double" title="Нижняя граница значения шкалы"/>
+        <field name="isMinValOpen" parent="boolean" title="Открытость нижней границы значения шкалы"/>
+        <field name="maxVal" parent="double" title="Верхняя граница значения шкалы"/>
+        <field name="isMaxValOpen" parent="boolean" title="Открытость верхней границы значения шкалы"/>
+        <field name="cmt" parent="f.cmt"/>
+
+    </domain>
+
+    <domain name="ScaleVal.full" parent="ScaleVal">
+        <field name="name" parent="string"/>
+    </domain>
+
+</root>

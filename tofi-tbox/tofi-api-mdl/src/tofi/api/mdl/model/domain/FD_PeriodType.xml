@@ -1,0 +1,20 @@
+<root>
+    <row id="11" text="Год" vis="1" ord="1" code="year"/>
+    <row id="12" text="Девять месяцев" vis="1" ord="2" code="ninemonth"/>
+    <row id="13" text="Учебный год" vis="1" ord="3" code="academicyear"/>
+    <row id="21" text="Поугодие" vis="1" ord="4" code="halfyear"/>
+    <row id="22" text="Полугодие с накоплением" vis="1" ord="5" code="halfyearaccum"/>
+    <row id="23" text="Семестр" vis="1" ord="6" code="semester"/>
+    <row id="31" text="Квартал" vis="1" ord="7" code="quarter"/>
+    <row id="32" text="Квартал с накоплением" vis="1" ord="8" code="quarteraccum"/>
+    <row id="41" text="Месяц" vis="1" ord="9" code="month"/>
+    <row id="42" text="Месяц с накоплением" vis="1" ord="10" code="monthaccum"/>
+    <row id="51" text="Декада" vis="1" ord="11" lang="1" code="decade"/>
+    <row id="52" text="Декада с накоплением" vis="1" ord="12" code="decadeaccum"/>
+    <row id="61" text="Неделя" vis="1" ord="13" lang="1" code="week"/>
+    <row id="62" text="Неделя с накоплением" vis="1" ord="14" code="weekaccum"/>
+    <row id="71" text="Сутки" vis="1" ord="15" lang="1" code="day"/>
+    <row id="72" text="Сутки с накоплением" vis="1" ord="16" code="dayaccum"/>
+    <row id="99" text="Нестандартный период" vis="1" ord="17" code="nonstandard"/>
+</root>
+

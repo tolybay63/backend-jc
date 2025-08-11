@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="MeterRate" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Показатели">
+        <!-- Показатели -->
+        <field name="meter" parent="Meter/ref"/>
+        <field name="cod" parent="f.cod"/>
+        <field name="accessLevel" parent="FD_AccessLevel/ref"/>
+        <field name="parent" parent="MeterRate/ref"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
+        <field name="ord" parent="f.ord"/>
+
+    </domain>
+
+    <domain name="MeterRate.soft.tree" parent="MeterRate">
+        <field name="parent" parent="string" title="parent"/>
+        <field name="fvs" parent="string"/>
+        <field name="sz" parent="long"/>
+        <field name="checked" parent="boolean"/>
+        <field name="path" parent="string"/>
+    </domain>
+
+    <domain name="MeterRate.hard.path" parent="id">
+        <field name="parent" parent="string"/>
+        <field name="path" parent="string"/>
+    </domain>
+
+
+</root>

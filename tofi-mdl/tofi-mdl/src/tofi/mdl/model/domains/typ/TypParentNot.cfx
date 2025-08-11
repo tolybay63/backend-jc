@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="TypParentNot" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Исключаемые классы и объекты родительского типа">
+        <!--@
+           Классы и объекты родительского типа, которые не наследуются дочерним типом
+           (дочерним типом является тип, указанный в поле typ).
+        -->
+        <field name="typ" parent="Typ/ref"/>
+        <field name="clsOrObjCls" parent="Cls/ref"/>
+        <field name="obj" parent="long"/>
+    </domain>
+
+    <domain name="TypParentNot.full" parent="TypParentNot">
+        <field name="nameClass" parent="f.name"/>
+        <field name="nameObj" parent="f.name"/>
+        <field name="modelName" parent="string"/>
+    </domain>
+
+
+</root>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <dbm>
+        <model name="tofi.api.mdl.model">
+            <include name="apx.base"/>
+            <include name="jandcode.core.dbm.genid"/>
+            <x-include path="model/index-model.cfx"/>
+
+            <dbsource name="default" dbdriver="postgresql"/>
+
+            <bean name="tofi.api.mdl.utils.dbfilestorage.DbFileStorageService"
+                  class="tofi.api.mdl.utils.dbfilestorage.impl.DbFileStorageServiceImpl">
+            </bean>
+        </model>
+    </dbm>
+
+    <apinator>
+
+        <api name="meta" invoker="model" model="meta">
+            <item name="tofi.api.mdl.ExampleApiMeta"
+                  class="tofi.api.mdl.impl.ExampleApiMetaImpl"/>
+
+            //Model
+            <item name="tofi.api.mdl.ApiMeta"
+                  class="tofi.api.mdl.impl.ApiMetaImpl"/>
+
+            <item name="tofi.api.mdl.ApiMetaIndicator"
+                  class="tofi.api.mdl.impl.ApiMetaIndicatorImpl"/>
+
+            <item name="tofi.api.mdl.ApiMetaKPI"
+                  class="tofi.api.mdl.impl.ApiMetaKPIImpl"/>
+
+            <item name="tofi.api.mdl.ApiMetaFish"
+                  class="tofi.api.mdl.impl.ApiMetaFishImpl"/>
+
+            <item name="tofi.api.mdl.ApiMetaData"
+                  class="tofi.api.mdl.impl.ApiMetaDataImpl"/>
+
+            <item name="tofi.api.mdl.ApiMetaCube"
+                  class="tofi.api.mdl.impl.ApiMetaCubeImpl"/>
+
+        </api>
+
+    </apinator>
+
+
+</root>

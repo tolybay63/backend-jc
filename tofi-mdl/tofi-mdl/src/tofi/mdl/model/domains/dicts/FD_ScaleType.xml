@@ -1,0 +1,4 @@
+<root>
+    <row id="1" text="Шкала с конечным числом значений" vis="1" ord="1" code="finite"/>
+    <row id="2" text="Шкала с бесконечным числом значений" vis="1" ord="2" code="infinite"/>
+</root>

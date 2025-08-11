@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <domain name="FlatTable" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Плоские таблицы">
+        <!--@
+            Специальные таблицы, в которых хранятся некоторые данные некоторых владельцев данных.
+            При добавлении новой записи автоматически создается таблица (в базе данных класса или отношения между классами)
+            с указанным наименованием. Также автоматически создаются столбцы isObj, owner, status, provider, periodType, dBeg, dEnd.
+            Остальные поля типа prop, с названиями совпадающими с кодом свойства создаются по мере добавления записей
+            в таблицы TypCharGrProp и RelTypCharGrProp, в которых поле flatTable содержит id данной записи.
+        -->
+        <field name="cod" parent="f.cod"/>
+        <field name="accessLevel" parent="FD_AccessLevel/ref"/>
+        <field name="nameTable" parent="string" size="50" title="Название таблицы"/>
+        <field name="relCls" parent="RelCls/ref" req="true"/>
+        <field name="cls" parent="Cls/ref"/>
+        <field name="relCls" parent="RelCls/ref"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
+    </domain>
+    <!--=========================================================-->
+    <domain name="FlatTable.full" parent="FlatTable">
+        <field name="db" parent="DataBase/ref"/>
+        <field name="nameDb" parent="DataBase/name"/>
+        <field name="nameCls" parent="f.name"/>
+    </domain>
+
+
+</root>

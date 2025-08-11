@@ -1,0 +1,5 @@
+<root>
+    <row id="1" text="Положительное поведение" vis="1" ord="1" code="positive"/>
+    <row id="2" text="Отрицательное поведение" vis="1" ord="2" code="negative"/>
+    <row id="3" text="Нейтральное поведение" vis="1" ord="3" code="neutral"/>
+</root>

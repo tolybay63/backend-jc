@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="MultiPropPeriodType" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Типы периодов для многомерных свойств">
+        <!--@
+           Типы периодов, для которых данное свойство может иметь значения
+        -->
+
+        <field name="multiProp" parent="MultiProp/ref"/>
+        <field name="periodType" parent="FD_PeriodType/ref"/>
+
+    </domain>
+
+    <domain name="MultiPropPeriodType.full" parent="MultiPropPeriodType">
+        <field name="name" parent="f.name"/>
+        <field name="checked" parent="boolean"/>
+        <field name="idInTable" parent="long"/>
+    </domain>
+
+</root>

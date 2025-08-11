@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <web>
+        <mount-module/>
+
+        <action name="root"
+                class = "tofi.userdata.action.RootAction"
+        />
+
+
+        <action name="auth"
+                class="jandcode.core.apx.auth.AuthAction"/>
+
+    </web>
+
+    <bean name="jandcode.core.auth.AuthService"
+          class="jandcode.core.auth.impl.AuthServiceImpl">
+
+        <!-- AuthProcessor. По умолчанию - заглушка для admin/111, user1/111 -->
+        <auth-processor name="default"
+                        class="tofi.userdata.auth.TofiAuthProcessor"/>
+
+    </bean>
+
+
+    <dbm>
+        <model name="tofi.api.dta.model">
+            <x-include path="dao/index-domain.cfx"/>
+        </model>
+
+        <model name="default" instance="tofi.api.dta.model"/>
+        <model name="meta" instance="tofi.api.mdl.model"/>
+        <model name="adm" instance="tofi.api.adm.model"/>
+        //
+        <model name="userdata" instance="tofi.api.dta.model"/>
+
+    </dbm>
+
+    <x-include path="dao/index.cfx"/>
+    <x-include path="metadao/index.cfx"/>
+
+</root>

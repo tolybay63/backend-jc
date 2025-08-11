@@ -1,0 +1,6 @@
+<root>
+    <row id="1" text="Тип объектов" vis="1" ord="1" code="typ"/>
+    <row id="2" text="Отношение между типами объектов" vis="1" ord="2" code="reltyp"/>
+    <row id="3" text="Класс объектов" vis="1" ord="3" code="cls"/>
+    <row id="4" text="Класс отношений" vis="1" ord="4" code="relcls"/>
+</root>

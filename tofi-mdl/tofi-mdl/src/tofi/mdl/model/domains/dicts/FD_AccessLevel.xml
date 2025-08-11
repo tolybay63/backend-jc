@@ -1,0 +1,17 @@
+<root>
+    <row id="1" text="Общедоступный уровень" vis="1" ord="1" code="common"/>
+    <row id="2" text="Первый уровень" vis="1" ord="2" code="first"/>
+    <row id="3" text="Второй уровень" vis="1" ord="3" code="second"/>
+    <row id="4" text="Третьий уровень" vis="1" ord="4" code="third"/>
+    <row id="5" text="Четвертый уровень" vis="1" ord="5" code="fourth"/>
+    <row id="6" text="Пятый уровень" vis="1" ord="6" code="fifth"/>
+    <row id="7" text="Шестой уровень" vis="1" ord="7" code="sixth"/>
+    <row id="8" text="Седьмой уровень" vis="1" ord="8" code="seventh"/>
+    <row id="9" text="Восьмой уровень" vis="1" ord="9" code="eighth"/>
+    <row id="10" text="Невидимый уровень" vis="1" ord="10" code="invisible"/>
+</root>
+
+
+
+
+

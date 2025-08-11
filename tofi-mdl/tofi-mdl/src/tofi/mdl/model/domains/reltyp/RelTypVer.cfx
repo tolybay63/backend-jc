@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="RelTypVer" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1"
+            title="Версионная часть отношений между типами объектов">
+
+        <field name="ownerVer" parent="RelTyp/ref"/>
+
+        <include name="VerTable"/>
+
+    </domain>
+
+</root>

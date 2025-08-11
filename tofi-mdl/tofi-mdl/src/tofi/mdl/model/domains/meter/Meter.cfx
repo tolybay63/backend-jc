@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="Meter" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Измерители">
+        <!-- Измерители -->
+        <field name="cod" parent="f.cod"/>
+        <field name="accessLevel" parent="FD_AccessLevel/ref"/>
+        <field name="measure" parent="Measure/ref"/>
+        <field name="meterStruct" parent="FD_MeterStruct/ref"/>
+        <field name="meterDeterm" parent="FD_MeterDeterm/ref"/>
+        <field name="distributionLaw" parent="FD_DistributionLaw/ref"/>
+        <field name="meterTypeByRate" parent="FD_MeterType/ref"/>
+        <field name="meterTypeByPeriod" parent="FD_MeterType/ref"/>
+        <field name="meterTypeByMember" parent="FD_MeterType/ref"/>
+        <field name="meterBehavior" parent="FD_MeterBehavior/ref"/>
+        <field name="minVal" parent="double"/>
+        <field name="maxVal" parent="double"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
+
+    </domain>
+
+    <domain name="Meter.select" parent="id">
+        <field name="name" parent="f.name"/>
+        <field name="meterStruct" parent="FD_MeterStruct/ref"/>
+        <field name="measure" parent="Measure/ref"/>
+    </domain>
+
+
+</root>

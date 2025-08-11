@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="MultiPropProvider" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Поставщики свойства">
+        <!--
+           Поставщики свойства.
+        -->
+
+        <field name="multiProp" parent="MultiProp/ref"/>
+        <field name="cls" parent="Cls/ref"/>
+        <!--@
+            Содержит id класса объектов, тогда поле obj пусто,
+            либо содержит класс объектов объекта из поля obj.
+        -->
+        <field name="obj" parent="long"/>
+        <field name="isDefault" parent="boolean">
+            <!--@
+               Если true, то указанный в поле obj объект является поставщиком по умолчанию.
+            -->
+        </field>
+
+    </domain>
+
+    <domain name="MultiPropProvider.full" parent="MultiPropProvider">
+        <field name="cod" parent="f.cod"/>
+        <field name="nameCls" parent="f.name"/>
+        <field name="nameObj" parent="f.name"/>
+        <field name="checked" parent="boolean"/>
+    </domain>
+
+
+</root>

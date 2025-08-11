@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <dao>
+
+        <holder name="api">
+
+            <item name="data" method="*" invoker="model:default"
+                  class="tofi.data.model.DataDao"/>
+
+            <item name="std" method="*" invoker="model:default"
+                  class="tofi.data.model.DataStdDao"/>
+
+            <item name="multi" method="*" invoker="model:default"
+                  class="tofi.data.model.DataMultiDao"/>
+
+            <item name="flat" method="*" invoker="model:default"
+                  class="tofi.data.model.DataFlatDao"/>
+
+        </holder>
+
+    </dao>
+
+</root>

@@ -1,0 +1,4 @@
+<root>
+    <row id="1" text="Стандартный тип объектов" vis="1" ord="1" code="std"/>
+    <row id="2" text="Регистр" vis="1" ord="2" code="reg"/>
+</root>

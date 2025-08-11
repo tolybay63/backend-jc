@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="Scale" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Шкалы">
+
+        <field name="cod" parent="f.cod"/>
+        <field name="accessLevel" parent="FD_AccessLevel/ref"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="scaleType" parent="FD_ScaleType/ref" title="Тип шкалы"/>
+        <field name="cmt" parent="f.cmt"/>
+
+    </domain>
+
+</root>

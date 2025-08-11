@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="TypCharGrProp.prop" parent="base">
+        <field name="id" parent="string"/>
+        <field name="parent" parent="string"/>
+        <field name="typCharGrProp" parent="ref"/>
+        <field name="typCharGrProp_measure" parent="ref"/>
+        <field name="propVal_measure" parent="ref"/>
+        <field name="storageDB" parent="long"/>
+        <field name="flatTable" parent="ref"/>
+        <field name="prop" parent="ref"/>
+        <field name="propGr" parent="ref"/>
+        <field name="propType" parent="long"/>
+        <field name="cod" parent="string"/>
+        <field name="name" parent="string"/>
+        <field name="p_measure" parent="string"/>
+        <field name="pv_measure" parent="string"/>
+        <field name="isItem" parent="boolean"/>
+    </domain>
+
+    <domain name="TypCharGrProp.prop.checked" parent="TypCharGrProp.prop">
+        <field name="checked" parent="boolean"/>
+    </domain>
+
+    <domain name="TypCharGrProp.propGr" parent="base">
+        <field name="id" parent="string"/>
+        <field name="parent" parent="string"/>
+        <field name="propGr" parent="ref"/>
+    </domain>
+
+    <domain name="TypCharGrProp.multiProp" parent="base">
+        <field name="id" parent="string"/>
+        <field name="parent" parent="string"/>
+        <field name="typCharGrProp" parent="ref"/>
+        <field name="storageDB" parent="long"/>
+        <field name="multiProp" parent="ref"/>
+        <field name="multiPropGr" parent="ref"/>
+        <field name="cod" parent="f.cod"/>
+        <field name="name" parent="f.name"/>
+    </domain>
+
+    <domain name="TypCharGrProp.multiProp.checked" parent="TypCharGrProp.multiProp">
+        <field name="checked" parent="boolean"/>
+    </domain>
+
+    <domain name="TypCharGrProp.multiPropGr" parent="base">
+        <field name="id" parent="string"/>
+        <field name="parent" parent="string"/>
+        <field name="multiPropGr" parent="ref"/>
+    </domain>
+
+    <domain name="DomainPath" parent="base">
+        <field name="id" parent="ref"/>
+        <field name="parent" parent="ref"/>
+        <field name="path" parent="string"/>
+    </domain>
+
+    <!-- ===============================================-->
+
+    <domain name="RelTypCharGrProp.prop" parent="base">
+        <field name="id" parent="string"/>
+        <field name="parent" parent="string"/>
+        <field name="relTypCharGrProp" parent="ref"/>
+        <field name="relTypCharGrProp_measure" parent="ref"/>
+        <field name="propVal_measure" parent="ref"/>
+        <field name="storageDB" parent="long"/>
+        <field name="flatTable" parent="ref"/>
+        <field name="prop" parent="ref"/>
+        <field name="propGr" parent="ref"/>
+        <field name="propType" parent="long"/>
+        <field name="cod" parent="string"/>
+        <field name="name" parent="string"/>
+        <field name="p_measure" parent="string"/>
+        <field name="pv_measure" parent="string"/>
+        <field name="isItem" parent="boolean"/>
+    </domain>
+
+    <domain name="RelTypCharGrProp.prop.checked" parent="RelTypCharGrProp.prop">
+        <field name="checked" parent="boolean"/>
+    </domain>
+
+    <domain name="RelTypCharGrProp.propGr" parent="base">
+        <field name="id" parent="string"/>
+        <field name="parent" parent="string"/>
+        <field name="propGr" parent="ref"/>
+    </domain>
+
+    <domain name="RelTypCharGrProp.multiProp" parent="base">
+        <field name="id" parent="string"/>
+        <field name="parent" parent="string"/>
+        <field name="relTypCharGrProp" parent="ref"/>
+        <field name="storageDB" parent="long"/>
+        <field name="multiProp" parent="ref"/>
+        <field name="multiPropGr" parent="ref"/>
+        <field name="cod" parent="f.cod"/>
+        <field name="name" parent="f.name"/>
+    </domain>
+
+    <domain name="RelTypCharGrProp.multiProp.checked" parent="RelTypCharGrProp.multiProp">
+        <field name="checked" parent="boolean"/>
+    </domain>
+
+    <domain name="RelTypCharGrProp.multiPropGr" parent="base">
+        <field name="id" parent="string"/>
+        <field name="parent" parent="string"/>
+        <field name="multiPropGr" parent="ref"/>
+    </domain>
+
+
+
+
+
+</root>

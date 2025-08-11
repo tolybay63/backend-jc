@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="MultiProp" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1"
+            title="Многомерные свойства">
+        <!--@
+             Представляет собой упорядоченный набор измерений многомерных свойств
+        -->
+
+        <field name="cod" parent="f.cod"/>
+        <field name="accessLevel" parent="FD_AccessLevel/ref" req="true"/>
+        <field name="MultiPropGr" parent="MultiPropGr/ref"/>
+        <field name="isUniq" parent="boolean">
+            <!--@
+               Булево поле.
+               Если True, значение свойства однозначное, если False, значение свойства многозначное.
+            -->
+        </field>
+        <field name="isDependValueOnPeriod" parent="boolean">
+            <!--@
+               Булево поле.
+               Если True, то значение свойства зависит от периода, если False, то - не зависит.
+               Значение по умолчанию True.
+            -->
+        </field>
+
+
+        <field name="statusFactor" parent="Factor/ref">
+            <!--@
+               Ссылка на фактор, значения которых являются статусами данных.
+               Если Null, то у свойства нет статуса. Если не Null,
+               то возможные значения статуса и статус по умолчанию указываются в таблице PropStatus.
+            -->
+        </field>
+        <field name="providerTyp" parent="Typ/ref">
+            <!--@
+               Ссылка на тип объектов, объекты которого являются поставщиками данных.
+               Если Null, то свойство не имеет поставщика данных. Если не Null,
+               то возможные поставщики и поставщик по умолчанию указываются в таблице PropProvider.
+            -->
+        </field>
+
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="ord" parent="f.ord"/>
+
+        <field name="fillMore" parent="int">
+            <!--@
+               Целое число.
+               Указывает размерность, начиная с каторой грани заполняются данными.
+               Минимальное значение равно двум, максимальное значение равно количеству измерений куба.
+               По умолчанию равно количеству измерений куба.
+            -->
+        </field>
+
+
+        <field name="propTag" parent="string" size="100">
+            <!--@
+               Тэг свойства. Для вспомогательного программного использования.
+            -->
+        </field>
+
+        <field name="cmt" parent="f.cmt"/>
+
+    </domain>
+
+    <!-- ========================================================= -->
+
+
+
+
+</root>

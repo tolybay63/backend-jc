@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="DimMultiPropItemAttrib" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1"
+            title="Тип атрибутивного значения элемента измерения многомерного свойства">
+        <!--
+            Заполняется только для элементов измерения,
+            у которых поле isAttrib=true
+        -->
+
+        <field name="dimMultiPropItem" parent="DimMultiPropItem/ref"/>
+        <field name="attribValType" parent="FD_AttribValType/ref"/>
+        <field name="format" parent="string" size="60">
+            <!--
+                Формат показа значения. (регулярное выражение)
+            -->
+        </field>
+
+    </domain>
+
+
+</root>
+

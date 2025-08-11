@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="PropTypNotCls" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Исключаемые классы">
+        <!--@
+           Исключаемые классы типа объектов.
+           Заполняется только для propType = "Тип объектов".
+           Объекты этих классов не являются значениями данного свойства, и,
+           в частности, на них не распространяется allItem = true.
+        -->
+
+        <field name="prop" parent="Prop/ref"/>
+        <field name="cls" parent="Cls/ref"/>
+
+    </domain>
+
+
+</root>

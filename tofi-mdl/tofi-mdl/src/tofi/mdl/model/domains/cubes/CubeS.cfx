@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="CubeS" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Стандартные кубы">
+        <!-- Стандартные кубы -->
+        <field name="cod" parent="f.cod"/>
+        <field name="cubeSGr" parent="CubeSGr/ref"/>
+        <field name="accessLevel" parent="FD_AccessLevel/ref"/>
+        <field name="cubeSType" parent="FD_CubeSType/ref"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="dOrg" parent="date">
+            <!--
+                Дата, на которую нужно формировать куб.
+                Необязательное поле. Если поле пустое, то куб формируется на последнюю дату
+                последнего периода измерения периодов.
+                Если куб не содержит измерение периодов, то эта дата используется как
+                измерение периодов
+            -->
+        </field>
+        <field name="ord" parent="f.ord"/>
+        <field name="cmt" parent="f.cmt"/>
+
+    </domain>
+
+
+    <domain name="IdName" parent="base">
+        <field name="id" parent="long"/>
+        <field name="name" parent="string"/>
+        <field name="doi" parent="long"/>
+    </domain>
+
+</root>

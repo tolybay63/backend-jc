@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="DimObjItemPropVal" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Значение свойства для класса или отношения между классами">
+        <!--@
+            Значение свойства для класса или отношения между классами,
+            когда компонентом является cls или relCls с заданным значением свойства
+        -->
+        <field name="dimObjItemProp" parent="DimObjItemProp/ref"/>
+        <field name="numberVal" parent="double"/>
+        <field name="strVal" parent="string" size="1000"/>
+        <field name="multiStrVal" parent="memo"/>
+        <field name="dateTimeVal" parent="datetime"/>
+        <field name="propVal" parent="PropVal/ref"/>
+    </domain>
+
+</root>

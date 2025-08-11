@@ -1,0 +1,25 @@
+import jandcode.jc.*
+import jandcode.jc.std.*
+
+class P extends ProjectScript {
+
+    static beforeLoad = {
+    }
+
+    void onInclude() {
+        //
+        project.name = "tofi-api-adm"
+        //
+        include(JavaProject).with {
+            moduleDef("tofi.api.adm").with {
+                depends.prod(
+                        "jandcode.core.apx",
+                        "tofi-apinator",
+                )
+                depends.dev(
+                )
+            }
+        }
+    }
+
+}

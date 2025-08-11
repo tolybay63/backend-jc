@@ -1,0 +1,5 @@
+<root>
+    <row id="1" text="Измерение периодов" vis="1" ord="1" code="period"/>
+    <row id="2" text="Измерение свойств" vis="1" ord="2" code="prop"/>
+    <row id="3" text="Измерение объектов и отношений" vis="1" ord="3" code="obj"/>
+</root>

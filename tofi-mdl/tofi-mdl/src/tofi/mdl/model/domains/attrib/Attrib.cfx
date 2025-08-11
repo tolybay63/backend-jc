@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="Attrib" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Атрибутивные свойства">
+
+        <field name="cod" parent="f.cod"/>
+        <field name="accessLevel" parent="FD_AccessLevel/ref"/>
+        <field name="attribValType" parent="FD_AttribValType/ref"/>
+        <field name="isMultiLang" parent="boolean" title="Многоязычность">
+            <!--@
+               true: да, false: нет
+            -->
+        </field>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
+
+    </domain>
+
+</root>
+

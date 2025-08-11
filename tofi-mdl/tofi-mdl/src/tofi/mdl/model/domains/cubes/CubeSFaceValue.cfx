@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="CubeSFaceValue" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Отношения между типам объектов">
+        <!--
+            Отношения между типам объектов, экземпляры которых сопоставляются с ячейками куба.
+         -->
+
+        <field name="cubeSFace" parent="CubeSFace/ref"/>
+        <field name="relTyp" parent="RelTyp/ref"/>
+        <field name="relCls" parent="RelCls/ref">
+            <!--
+                Количество измерений граня прокуба объектов и отношений или размерность грани.
+            -->
+        </field>
+        <field name="dimObjItemComb" parent="string" size="4000"/>
+    </domain>
+
+
+
+</root>

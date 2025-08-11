@@ -1,0 +1,33 @@
+<root>
+
+    <domain name="DataBase" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Базы данных">
+        <!--@ Перечень базы данных микросервисов -->
+
+        <field name="cod" parent="f.cod"/>
+
+        <field name="modelName" parent="string" size="32" title="Иентификатор базы данных">
+            <!--@ Имя api -->
+        </field>
+
+        <field name="dataBaseType" parent="FD_DataBaseType/ref"/>
+
+        <field name="name" parent="f.name">
+            <!-- Наименование базы данных -->
+        </field>
+
+        <field name="fullName" parent="f.fullName">
+            <!-- Полное наименование базы данных -->
+        </field>
+
+        <field name="cmt" parent="f.cmt">
+            <!-- Комментарий -->
+        </field>
+
+        <!-- =================== create index =================== -->
+        <dbindex name="i_modelName" fields="modelName" unique="true"/>
+
+
+    </domain>
+
+</root>

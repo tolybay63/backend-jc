@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="Factor" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Факторы и значения факторов">
+        <!-- Факторы и значения факторов -->
+        <field name="accessLevel" parent="FD_AccessLevel/ref"/>
+        <field name="parent" parent="Factor/ref">
+            <!--@
+             Если текущая запись есть значение фактора, то ссылка на фактор. Если текущая запись фактор, то null
+            -->
+        </field>
+        <field name="cod" parent="f.cod"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
+        <field name="ord" parent="f.ord"/>
+
+    </domain>
+
+
+    <domain name="Factor.select" parent="id">
+        <field name="name" parent="f.name"/>
+    </domain>
+
+    <domain name="Factor.cfv" parent="Factor">
+        <field name="key" parent="long"/>
+    </domain>
+
+</root>

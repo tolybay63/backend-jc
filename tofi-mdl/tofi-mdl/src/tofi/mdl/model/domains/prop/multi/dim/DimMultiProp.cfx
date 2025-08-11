@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="DimMultiProp" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Измерения многомерного свойства">
+        <!--
+            Измерения многомерного свойства.
+            Измерение многомерного свойства представляет собой иерархию элементов
+            измерения (таблица DimMultiPropItem).
+            Измерение многомерного свойства может быть статическим (все элементы измерения
+            указаны явно в таблице DimMultiPropItem) или динамическое
+            (в таблице DimMultiPropItem не указываются элементы измерения,
+            они формипуются динамически, как значения некоторого многозначного свойства).
+            Если измерение свойств динамическое, то заполняется поле Prop
+            в таблице DimMultiPropItem.
+        -->
+
+        <field name="DimMultiPropGr" parent="DimMultiPropGr/ref"/>
+        <field name="cod" parent="f.cod"/>
+        <field name="accessLevel" parent="FD_AccessLevel/ref"/>
+        <field name="dimMultiPropType" parent="FD_DimMultiPropType/ref"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
+
+    </domain>
+
+    <domain name="DimMultuProp.select" parent="base">
+        <field name="id" parent="long"/>
+        <field name="parent" parent="long"/>
+        <field name="name" parent="string"/>
+        <field name="dimMultiProp" parent="long"/>
+        <field name="dimMultiPropType" parent="long"/>
+    </domain>
+
+</root>

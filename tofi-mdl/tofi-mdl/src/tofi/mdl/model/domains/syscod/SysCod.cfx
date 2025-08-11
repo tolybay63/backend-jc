@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="SysCod" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Встроенные коды">
+        <!--@
+           Встроенные (внутренние) коды всех экземпляров сущностей ТОФИ
+        -->
+        <field name="cod" parent="f.cod"/>
+        <field name="linkType" parent="ref"/>
+        <field name="linkId" parent="ref"/>
+
+
+    </domain>
+
+</root>

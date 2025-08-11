@@ -1,0 +1,13 @@
+<root>
+    <row id="1" text="Строка" vis="1" ord="1" code="str"/>
+    <row id="2" text="Строка с маской" vis="1" ord="2" code="mask"/>
+    <row id="3" text="Дата" vis="1" ord="3" code="dt"/>
+    <row id="4" text="Время" vis="1" ord="4" code="tm"/>
+    <row id="5" text="Дата и время" vis="1" ord="5" code="dttm"/>
+    <row id="6" text="Многострочный текст" vis="1" ord="6" code="multistr"/>
+    <row id="7" text="Файл" vis="1" ord="7" code="file"/>
+    <row id="8" text="Сущность ТОФИ" vis="1" ord="8" code="entity"/>
+    <row id="9" text="Период" vis="1" ord="9" code="period"/>
+    <row id="10" text="Однозначный выбор" vis="1" ord="10" code="choice_unq"/>
+    <row id="11" text="Многозначный выбор" vis="1" ord="11" code="choice_multi"/>
+</root>

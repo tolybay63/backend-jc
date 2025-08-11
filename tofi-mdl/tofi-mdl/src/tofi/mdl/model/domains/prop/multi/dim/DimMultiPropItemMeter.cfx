@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="DimMultiPropItemMeter" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1"
+            title="Свойства значения элемента измерения многомерного свойства типа число">
+        <!--
+            Заполняется только для элементов измерения,
+            у которых поле isMeter=true
+        -->
+
+        <field name="dimMultiPropItem" parent="DimMultiPropItem/ref"/>
+        <field name="measure" parent="Measure/ref"/>
+        <field name="minVal" parent="double"/>
+        <field name="maxVal" parent="double"/>
+        <field name="digit" parent="int"/>
+
+    </domain>
+
+    <domain name="DimMultiPropItemMeter.full" parent="DimMultiPropItemMeter">
+        <field name="measureName" parent="string"/>
+    </domain>
+
+</root>
+

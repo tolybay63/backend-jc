@@ -1,0 +1,5 @@
+<root>
+    <row id="1" text="Только указанный поставщик" vis="1" ord="1" code="only_choice"/>
+    <row id="2" text="Поставщик по умолчанию" vis="1" ord="2" code="only_default"/>
+    <row id="3" text="Любой поставщик, имеющий значение" vis="1" ord="3" code="any_has_value"/>
+</root>

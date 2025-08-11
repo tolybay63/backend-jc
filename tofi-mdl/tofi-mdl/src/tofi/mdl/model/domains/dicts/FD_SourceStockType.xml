@@ -1,0 +1,7 @@
+<root>
+    <row id="1" text="Файл" vis="1" ord="1" code="file"/>
+    <row id="2" text="База данных" vis="1" ord="2" code="db"/>
+    <row id="3" text="Приложение (API)" vis="1" ord="3" code="api"/>
+    <row id="4" text="Очередь" vis="1" ord="4" code="queue"/>
+</root>
+

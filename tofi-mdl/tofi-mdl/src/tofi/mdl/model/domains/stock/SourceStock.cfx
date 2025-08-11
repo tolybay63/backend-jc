@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="SourceStock" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Источники и стоки данных">
+
+        <field name="cod" parent="f.cod"/>
+        <field name="accessLevel" parent="FD_AccessLevel/ref" req="true"/>
+
+        <field name="parent" parent="SourceStock/ref"/>
+
+        <field name="name" parent="f.name"/>
+
+        <field name="fullName" parent="f.fullName"/>
+
+        <field name="sourceStockType" parent="FD_SourceStockType/ref"
+               title="Тип источника данных" req="true">
+        </field>
+
+        <field name="isOwn" parent="boolean" title="Собсвенный источник или сток данных"
+               titleShort="Принадлежность">
+            <!--
+                Булево поле
+                true - собсвенный источник или сток данных;
+                false - несобственный источник или сток данных
+            -->
+        </field>
+
+        <field name="dbeg" parent="f.dbeg"/>
+
+        <field name="dend" parent="f.dend"/>
+
+        <field name="host" parent="string" size="30" title="Хост"/>
+
+        <field name="portNumber" parent="string" size="30" title="Номер порта"/>
+
+        <field name="usrLogin" parent="string" size="30" title="Логин"/>
+
+        <field name="usrPassword" parent="string" size="64" title="Пароль"/>
+
+        <field name="formatType" parent="long" size="64" title="Формат данных">
+            <!--@
+
+            FD_DataFormatType/ref
+
+                Формат данных, в котором принимаются или отправляются данные.
+                Является словарем FD_DataFormatType. Принимает значения:
+                1) txt;
+                2) xml;
+                3) json;
+                4) csv;
+                5) xls;
+                6) dbf;
+                7) mdb (access);
+                8) map;
+                9) doc;
+                Какой конвертор использовать для первичного преобразования во внутренний формат
+                решает шаг задания (или алгоритм внутри шага).
+            -->
+        </field>
+
+        <field name="sourceStockPath" parent="string" size="100" title="Путь к папке">
+            <!--@
+                Путь к папке, где лежат файлы. Поле заполняется только для sourceStockType = 'файл'.
+            -->
+        </field>
+
+        <field name="fileNameRegExp" parent="string" size="30" title="Шаблон для имени файлов">
+            <!--@
+                Шаблон для имени файлов источника данных в виде регулярного выражения.
+                Заполняется только для sourceStockType = 'файл'.
+            -->
+        </field>
+
+        <field name="uRL" parent="string" size="30" title="URL-адрес">
+            <!--@
+                Поле заполняется только для sourceStockType = 'приложение' или 'очередь'.
+                Под URL понимается строка адреса до параметров
+            -->
+        </field>
+
+        <field name="driver" parent="string" size="30" title="Драйвер БД">
+            <!--@
+                Поле заполняется только для sourceStockType = 'База данных'.
+            -->
+        </field>
+
+        <field name="ord" parent="f.ord"/>
+
+        <field name="cmt" parent="f.cmt">
+        </field>
+
+    </domain>
+
+
+</root>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+     <domain name="DataPropHistrory" parent="id" tag.db="true"
+             genid.start="1000" genid.step="1" title="История изменений данных">
+
+         <field name="dataProp" parent="DataProp/ref"/>
+         <field name="dateTimeUpd" parent="datetime"/>
+         <field name="authUser" parent="ref"/>
+
+         <field name="mode" parent="ref"/>
+         <field name="infoValue" parent="string" size="4000">
+             <!--@
+             Содержание измененной записи таблицы DataProp до изменения
+             -->
+         </field>
+
+     </domain>
+
+
+
+</root>

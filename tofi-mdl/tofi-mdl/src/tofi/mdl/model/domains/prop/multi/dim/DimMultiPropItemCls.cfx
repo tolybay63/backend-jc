@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="DimMultiPropItemCls" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1"
+            title="Возможные значения элемента измерения многомерного свойства типа объект">
+        <!--
+            заполняется только для тех элементов измерения,
+            у которых поле isObj=true
+        -->
+
+        <field name="dimMultiPropItem" parent="DimMultiPropItem/ref"/>
+        <field name="cls" parent="Cls/ref"/>
+        <field name="visualFormat" parent="FD_VisualFormat/ref">
+            <!--
+                Ссылка на словарь FD_VisualFormat.
+                Указывает в каком формате необходимо показывать значение свойства
+                на интерфейсе клиента
+            -->
+        </field>
+
+    </domain>
+
+    <domain name="DimMultiPropItemCls.full" parent="DimMultiPropItemCls">
+        <field name="name" parent="string"/>
+    </domain>
+
+
+</root>
+

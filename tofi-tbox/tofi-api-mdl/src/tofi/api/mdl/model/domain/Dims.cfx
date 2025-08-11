@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="DimPeriodItem.view" parent="id">
+
+        <field name="id" parent="string"/>
+        <field name="name" parent="f.name" title="Название"/>
+        <field name="parent" parent="string"/>
+        <field name="dimperiod" parent="long"/>
+        <field name="dimPeriodItem" parent="long"/>
+        <field name="periodNameTml" parent="long"/>
+        <field name="periodType" parent="long" req="true" title="Тип периодов"/>
+        <field name="ord" parent="f.ord"/>
+        <field name="dbeg" parent="f.dbeg"/>
+        <field name="dend" parent="f.dend"/>
+        <field name="lagCurrentDate" parent="int"/>
+        <field name="countPeriod" parent="int"/>
+        <field name="leaf" parent="boolean"/>
+
+    </domain>
+
+    <domain name="DimPeriodItem.tree" parent="id">
+        <field name="dimPeriod" parent="long"/>
+        <field name="periodType" parent="long"/>
+        <field name="parent" parent="long"/>
+        <field name="periodNameTml" parent="long"/>
+        <field name="periodIncludeTag" parent="long"/>
+        <field name="ord" parent="f.ord"/>
+        <field name="dbeg" parent="f.dbeg"/>
+        <field name="countPeriod" parent="int"/>
+        <field name="dend" parent="f.dend"/>
+        <field name="lagCurrentDate" parent="int"/>
+        <field name="leaf" parent="boolean"/>
+    </domain>
+
+    <domain name="DataCubeS" parent="id"
+            genid.start="1000" genid.step="1"  tag.db="true" title="Данные по формированию стандартных кубов">
+        <field name="cubeS" parent="long"/>
+        <field name="cubeSActionType" parent="long"/>
+        <field name="dtBeg" parent="datetime" title="Дата и время начала действия"/>
+        <field name="dtEnd" parent="datetime" title="Дата и время окончания действия"/>
+        <field name="authUser" parent="long"/>
+        <field name="countProCubeOwn" parent="long" title="Количество ячеек прокуба объектов"/>
+        <field name="countProCubeProp" parent="long" title="Количество ячеек прокуба свойств"/>
+        <field name="countProCubePeriod" parent="long" title="Количество ячеек измерения периодов"/>
+        <field name="countCells" parent="long" title="Количество ячеек куба"/>
+        <field name="countDataCells" parent="long" title="Количество заполненных ячеек куба"/>
+        <field name="isComplete" parent="boolean" title="Статус завершения"/>
+        <field name="isSheduled" parent="boolean" title="Статус действия"/>
+        <field name="errorMessage" parent="string" size="4000" title="Сообщение"/>
+    </domain>
+
+    <domain name="DataCubeS.full" parent="DataCubeS">
+        <field name="name" parent="f.name"/>
+        <field name="cod" parent="f.cod"/>
+        <field name="dt" parent="string" size="200" title="Время выполнения"/>
+        <field name="dtBegStr" parent="string" title="Дата и время начала действия"/>
+        <field name="dtEndStr" parent="string" title="Дата и время окончания действия"/>
+    </domain>
+
+
+</root>

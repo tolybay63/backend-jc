@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="RelTypRole" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Роли типы объектов">
+        <!-- Роли типы объектов -->
+        <field name="relTyp" parent="RelTyp/ref"/>
+        <field name="role" parent="Role/ref"/>
+        <field name="cmt" parent="f.cmt"/>
+
+    </domain>
+
+    <domain name="RelTypRoleLifeInterval" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Интервалы жизни ролей">
+        <!--@
+        Интервалы жизни ролей отношений между типами объектов. dBeg и dEnd показывает интервал времени,
+        в течение которого данный тип объектов обладает данной ролью
+        -->
+
+        <field name="reltypRole" parent="RelTypRole/ref"/>
+        <field name="dbeg" parent="f.dbeg"/>
+        <field name="dend" parent="f.dend"/>
+        <field name="cmt" parent="f.cmt"/>
+    </domain>
+
+    <domain name="RelTypRole.full" parent="RelTypRole">
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+    </domain>
+
+</root>

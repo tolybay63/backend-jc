@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="Period" parent="id">
+        <!-- Период -->
+        <field name="periodType" parent="FD_PeriodType/ref"/>
+        <field name="dbeg" parent="f.dbeg"/>
+        <field name="dend" parent="f.dend"/>
+    </domain>
+
+</root>

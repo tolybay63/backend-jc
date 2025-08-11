@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <bean name="tofi.config.TofiConfigService"
+          class="tofi.config.impl.TofiConfigServiceImpl"/>
+
+    <tofi>
+
+        <!-- настройка модуля tofi-config -->
+        <tofi-config
+                zookeeperEnable="true"
+        >
+        </tofi-config>
+
+    </tofi>
+
+    <cfg>
+
+        <tofi>
+
+            <!-- Все настройки по умолчанию берутся отсюда. Все приложения могут тут настраивать
+                 необходимые им значения по умолчанию. Любые.
+             -->
+            <tofi-config>
+                <!--
+                    Разрешен двух-уровневый формат: секция и атрибуты в секции:
+
+                    <section-name-1
+                        param1="value1"
+                        param2="value2"
+                    />
+
+                    <section-name-2
+                        param1="value1"
+                        param2="value2"
+                    />
+
+                    Фактически можно представить в виде json:
+
+                    {
+                      "section-name-1": {
+                        "param1": "value1",
+                        "param2": "value2"
+                      },
+                      "section-name-2": {
+                        "param1": "value1",
+                        "param2": "value2"
+                      }
+                    }
+
+                -->
+            </tofi-config>
+
+        </tofi>
+
+    </cfg>
+
+</root>

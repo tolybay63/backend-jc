@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <x-depends module="tofi.apinator"/>
+
+
+    <apinator>
+
+        <api name="api1">
+
+            <item name="tofi.apinator.api1.Task1"
+                  class="tofi.apinator.api1.Task1Impl"
+            />
+
+            <item name="tofi.apinator.api1.Task2"
+                  shortName="task2short"
+            />
+
+        </api>
+
+    </apinator>
+
+</root>

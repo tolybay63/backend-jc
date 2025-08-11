@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="TypClusterFactor" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Кластерные факторы">
+        <!-- Кластерные факторы -->
+        <field name="typ" parent="Typ/ref"/>
+        <field name="factor" parent="Factor/ref"/>
+        <field name="isReq" parent="boolean" title="Обязательность кластерного фактора "/>
+        <field name="isUniq" parent="boolean" title="Однозначность кластерного фактора "/>
+    </domain>
+
+    <domain name="TypClusterFactor.full" parent="TypClusterFactor">
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cod" parent="f.cod"/>
+        <field name="parent" parent="long"/>
+        <field name="isOwn" parent="int"/>
+    </domain>
+
+    <domain name="TypClusterFactor.tree" parent="TypClusterFactor.full">
+        <field name="ord" parent="f.ord"/>
+        <field name="checked" parent="int"/>
+    </domain>
+
+</root>

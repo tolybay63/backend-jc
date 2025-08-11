@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="DimPeriodItem" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Элементы измерения периодов">
+        <!-- Элементы измерения периодов -->
+        <field name="dimPeriod" parent="DimPeriod/ref"/>
+        <field name="periodType" parent="FD_PeriodType/ref"/>
+        <field name="parent" parent="DimPeriodItem/ref"/>
+        <field name="periodNameTml" parent="FD_PeriodNameTml/ref">
+            <!--@
+               Шаблон наименования периодов элемента измерения.
+               Указывается тэг java-класса для формирования наименования конкретных периодов.
+            -->
+        </field>
+        <field name="periodIncludeTag" parent="FD_PeriodIncludeTag/ref">
+            <!--@
+               Признак включения конкретных периодов в родитеьский элемент:
+               1 - входит начало;
+               2 - входит конец;
+               3 - входит начало и конец;
+               4 - входит начало или конец.
+            -->
+        </field>
+        <field name="ord" parent="f.ord"/>
+        <!-- =================== Параметры =================== -->
+        <!--
+           Параметры элемента измерения периодов.
+           Указывает начальную и конечную даты. Поле LagCurrenDate указывается, если DEnd пустой.
+           В этом случае последний период определяется количеством периодов вперед (LagCurrentDate>0)
+           или назад (LagCurrentDate<0) от периода, содержащего текущую дату.
+           Если LagCurrentDate=0, то последний период есть период, содержащий текущую дату.
+           Поле CountPeriod указывается, если DBeg пустой. В этом случае первый период определяется отсчитыванием от
+           последнео периода этого количества периодов.
+           Для одного элемента может быть указаны несколько раз параметры для формирования разрывных измерений периодов.
+        -->
+
+        <field name="dbeg" parent="f.dbeg"/>
+
+        <field name="countPeriod" parent="int">
+            <!--@
+               Пусто, если указан dbeg.
+               Если dbeg пусто, то определяет первый период измерения периодов.
+            -->
+        </field>
+
+        <field name="dend" parent="f.dend"/>
+        <field name="lagCurrentDate" parent="int">
+            <!--@
+               Пусто, если указан dend.
+               Если пусто dend, то количество периодов от периода, содержащего текущую дату.
+               Определяет последний период измерения периодов.
+            -->
+        </field>
+    </domain>
+
+
+    <domain name="DimPeriodItem.tree" parent="DimPeriodItem">
+        <field name="leaf" parent="boolean"/>
+    </domain>
+
+
+    <domain name="DimPeriodItem.view" parent="id">
+
+        <field name="id" parent="string"/>
+        <field name="name" parent="f.name" title="Название"/>
+        <field name="parent" parent="string"/>
+        <field name="dimperiod" parent="DimPeriod/ref"/>
+        <field name="dimPeriodItem" parent="DimPeriodItem/ref"/>
+        <field name="periodNameTml" parent="FD_PeriodNameTml/ref"/>
+        <field name="periodType" parent="FD_PeriodType/ref" req="true" title="Тип периодов"/>
+        <field name="ord" parent="f.ord"/>
+        <field name="dbeg" parent="f.dbeg"/>
+        <field name="dend" parent="f.dend"/>
+        <field name="lagCurrentDate" parent="DimPeriodItem/lagCurrentDate"/>
+        <field name="countPeriod" parent="DimPeriodItem/countPeriod"/>
+        <field name="leaf" parent="boolean"/>
+
+    </domain>
+
+</root>

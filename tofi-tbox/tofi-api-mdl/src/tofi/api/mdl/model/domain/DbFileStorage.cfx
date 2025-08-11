@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+     <domain name="DbFileStorage" parent="id" tag.db="true"
+             genid.start="1000" genid.step="1">
+         <!-- Хранилище файлов -->
+         <field name="path" parent="string" size="255"
+                title="Физический путь в хранилище">
+         </field>
+
+         <field name="originalFilename" parent="string" size="255"
+                title="Оригинальное имя файла">
+         </field>
+
+     </domain>
+
+</root>

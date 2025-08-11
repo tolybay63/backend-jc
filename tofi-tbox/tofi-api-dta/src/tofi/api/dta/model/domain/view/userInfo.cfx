@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="UserInfo" parent="id">
+        <field name="authUser" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+        <field name="UserSecondName" parent="string"/>
+        <field name="UserFirstName" parent="string"/>
+        <field name="UserMiddleName" parent="string"/>
+        <field name="checked" parent="boolean"/>
+        <field name="parent" parent="long"/>
+    </domain>
+
+    <domain name="DomainIdName" parent="base">
+        <field name="id" parent="string"/>
+        <field name="name" parent="string"/>
+        <field name="parent" parent="long"/>
+        <field name="ent" parent="long"/>
+    </domain>
+
+</root>
