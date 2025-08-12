@@ -14,6 +14,7 @@ import jandcode.core.std.CfgService
 import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
+import tofi.api.dta.ApiInspectionData
 import tofi.api.dta.ApiNSIData
 import tofi.api.dta.ApiObjectData
 import tofi.api.dta.ApiOrgStructureData
@@ -53,6 +54,9 @@ class DataDao extends BaseMdbUtils {
     }
     ApinatorApi apiOrgStructureData() {
         return app.bean(ApinatorService).getApi("orgstructuredata")
+    }
+    ApinatorApi apiInspectioData() {
+        return app.bean(ApinatorService).getApi("inspectiondata")
     }
 
     /* =================================================================== */
@@ -106,6 +110,14 @@ class DataDao extends BaseMdbUtils {
                 """, "", "plandata")
                 if (stData.size() > 0)
                     lstService.add("plandata")
+                //
+                stData = loadSqlService("""
+                    select id from DataPropVal
+                    where propval in (${idsPV.join(",")}) and obj=${owner}
+                """, "", "inspectiondata")
+                if (stData.size() > 0)
+                    lstService.add("inspectiondata")
+                //
                 if (lstService.size()>0) {
                     throw new XError("${name} используется в ["+ lstService.join(", ") + "]")
                 }
@@ -959,6 +971,8 @@ class DataDao extends BaseMdbUtils {
             return apiPersonnalData().get(ApiPersonnalData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("orgstructuredata"))
             return apiOrgStructureData().get(ApiOrgStructureData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("inspectiondata"))
+            return apiInspectioData().get(ApiInspectionData).loadSql(sql, domain)
         else
             throw new XError("Unknown model [${model}]")
     }
@@ -976,6 +990,8 @@ class DataDao extends BaseMdbUtils {
             return apiPersonnalData().get(ApiPersonnalData).loadSqlWithParams(sql, params, domain)
         else if (model.equalsIgnoreCase("orgstructuredata"))
             return apiOrgStructureData().get(ApiOrgStructureData).loadSqlWithParams(sql, params, domain)
+        else if (model.equalsIgnoreCase("inspectiondata"))
+            return apiInspectioData().get(ApiInspectionData).loadSqlWithParams(sql, params, domain)
         else
             throw new XError("Unknown model [${model}]")
     }
