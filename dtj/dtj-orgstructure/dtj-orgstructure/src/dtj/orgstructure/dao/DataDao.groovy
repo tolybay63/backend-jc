@@ -270,15 +270,15 @@ class DataDao extends BaseMdbUtils {
     }
 
     private void saveObjectTypeMulti(long own, List<Map<String, Object>> objLst) {
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_ObjectType", "")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_ObjectTypeMulti", "")
         if (map.isEmpty())
-            throw new XError("NotFoundCod@Prop_ObjectType")
+            throw new XError("NotFoundCod@Prop_ObjectTypeMulti")
         map.put("own", own)
         Store stOld = mdb.loadQuery("""
             select v.id, v.obj
             from DataProp d
                 left join DataPropVal v on d.id=v.dataprop
-            where d.isObj=1 and d.objOrRelObj=:obj and d.prop=:Prop_DocumentLinkToDepartment --1080            
+            where d.isObj=1 and d.objOrRelObj=:own and d.prop=:Prop_ObjectTypeMulti          
         """, map)
         Set<Long> idsOld = stOld.getUniqueValues("obj") as Set<Long>
         Set<Long> idsNew = new HashSet<>()
@@ -446,7 +446,7 @@ class DataDao extends BaseMdbUtils {
             throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
         }
         //
-        if (objMulti) {
+        if (objMulti != null) {
             saveObjectTypeMulti(own, objMulti)
         }
         //
