@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
+
 <!--
     <cfg>
 
         <dbsource name="default"
-                  dbdriver="postgresql"  
+                  dbdriver="postgresql"
                   host="192.168.1.39"
-                  database="dtj_plandata"
+                  database="dtj_nsidata"
                   username="pg"
                   password="1q2w3e4R"
         />
@@ -75,12 +76,12 @@
                   password="1q2w3e4R"
         />
 
-
     </cfg>
 
 
     <datadir>
         <path name="dbfilestorage" path="C:/dbfilestorage_dtj"/>
+
 -->
 
 <!--
@@ -93,8 +94,7 @@
         </minio>
 -->
 
-<!--
-    </datadir>
--->
+
+<!--    </datadir>-->
     
 </root>

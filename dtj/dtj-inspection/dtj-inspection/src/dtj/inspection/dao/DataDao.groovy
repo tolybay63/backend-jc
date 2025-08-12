@@ -335,11 +335,39 @@ class DataDao extends BaseMdbUtils {
                 r.set("fullNameObject", rObject.getString("fullName"))
 
         }
-
+        //
+        //idsObject = st.getUniqueValues("objObject")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Section", "")
+        stObject = loadSqlService("""
+            select o.id, v.obj            
+            from Obj o
+                left join DataProp d on d.objorrelobj=o.id and prop=${map.get("Prop_Section")}
+                left join DataPropVal v on d.id=v.dataProp            
+            where o.id in (0${idsObject.join(",")})
+        """, "", "objectdata")
+        indObject = stObject.getIndex("id")
+        for (StoreRecord r : st) {
+            StoreRecord rObj = indObject.get(r.getLong("objObject"))
+            if (rObj != null)
+                r.set("objSection", rObj.getLong("obj"))
+        }
+        //
+        Set<Object> idsSection = st.getUniqueValues("objSection")
+        Store stSection = loadSqlService("""
+            select o.id, v.name
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1
+        """, "", "nsidata")
+        StoreIndex indSection = stSection.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord rSec = indSection.get(r.getLong("objSection"))
+            if (rSec != null)
+                r.set("namesection", rSec.getString("name"))
+        }
         //
         return st
     }
-
 
     @DaoMethod
     Store saveInspection(String mode, Map<String, Object> params) {
@@ -672,6 +700,13 @@ class DataDao extends BaseMdbUtils {
             Set<Object> idsPV = stPV.getUniqueValues("id")
             if (stPV.size() > 0) {
                 Store stData = loadSqlService("""
+                    select id from DataPropVal
+                    where propval in (${idsPV.join(",")}) and obj=${owner}
+                """, "", "inspectiondata")
+                if (stData.size() > 0)
+                    lstService.add("inspectiondata")
+                //
+                stData = loadSqlService("""
                     select id from DataPropVal
                     where propval in (${idsPV.join(",")}) and obj=${owner}
                 """, "", "nsidata")

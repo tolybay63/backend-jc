@@ -63,6 +63,11 @@
                   class="tofi.api.dta.impl.ApiOrgStructureDataImpl"/>
         </api>
 
+        <api name="inspectiondata" invoker="model" model="inspectiondata">
+            <item name="tofi.api.dta.ApiInspectionData"
+                  class="tofi.api.dta.impl.ApiInspectionDataImpl"/>
+        </api>
+
     </apinator>
 
 

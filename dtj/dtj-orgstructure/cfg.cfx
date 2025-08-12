@@ -47,21 +47,30 @@
         <dbsource name="objectdata"
                   dbdriver="postgresql"  
                   host="localhost"
-                  database="dtj_object"
+                  database="dtj_objectdata"
                   username="pg"
                   password="1q2w3e4R"
         />
         <dbsource name="plandata"
                   dbdriver="postgresql"  
                   host="localhost"
-                  database="dtj_plan"
+                  database="dtj_plandata"
                   username="pg"
                   password="1q2w3e4R"
         />
+
         <dbsource name="orgstructuredata"
                   dbdriver="postgresql"  
                   host="localhost"
-                  database="dtj_orgstructure"
+                  database="dtj_orgstructuredata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="inspectiondata"
+                  dbdriver="postgresql"  
+                  host="localhost"
+                  database="dtj_inspectiondata"
                   username="pg"
                   password="1q2w3e4R"
         />
@@ -71,7 +80,7 @@
 -->
 
     <datadir>
-        <path name="dbfilestorage" path="C:/dbfilestorage"/>
+        <path name="dbfilestorage" path="C:/dbfilestorage_dtj"/>
 
 
 <!--

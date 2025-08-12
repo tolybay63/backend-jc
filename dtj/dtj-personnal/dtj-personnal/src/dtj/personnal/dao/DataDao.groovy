@@ -15,6 +15,7 @@ import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
 import tofi.api.adm.ApiAdm
+import tofi.api.dta.ApiInspectionData
 import tofi.api.dta.ApiNSIData
 import tofi.api.dta.ApiObjectData
 import tofi.api.dta.ApiOrgStructureData
@@ -38,35 +39,30 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiAdm() {
         return app.bean(ApinatorService).getApi("adm")
     }
-
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
     }
-
     ApinatorApi apiUserData() {
         return app.bean(ApinatorService).getApi("userdata")
     }
-
     ApinatorApi apiNSIData() {
         return app.bean(ApinatorService).getApi("nsidata")
     }
-
     ApinatorApi apiObjectData() {
         return app.bean(ApinatorService).getApi("objectdata")
     }
-
     ApinatorApi apiPlanData() {
         return app.bean(ApinatorService).getApi("plandata")
     }
-
     ApinatorApi apiPersonnalData() {
         return app.bean(ApinatorService).getApi("personnaldata")
     }
-
     ApinatorApi apiOrgStructureData() {
         return app.bean(ApinatorService).getApi("orgstructuredata")
     }
-
+    ApinatorApi apiInspectionData() {
+        return app.bean(ApinatorService).getApi("incpectiondata")
+    }
     /* =================================================================== */
 
     @DaoMethod
@@ -303,6 +299,14 @@ class DataDao extends BaseMdbUtils {
                 """, "", "plandata")
                 if (stData.size() > 0)
                     lstService.add("plandata")
+                //
+                stData = loadSqlService("""
+                    select id from DataPropVal
+                    where propval in (${idsPV.join(",")}) and obj=${owner}
+                """, "", "inspectiondata")
+                if (stData.size() > 0)
+                    lstService.add("inspectiondata")
+                //
                 if (lstService.size()>0) {
                     throw new XError("${name} используется в ["+ lstService.join(", ") + "]")
                 }
@@ -719,6 +723,8 @@ class DataDao extends BaseMdbUtils {
             return apiPlanData().get(ApiPlanData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("personnaldata"))
             return apiPersonnalData().get(ApiPersonnalData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("inspectiondata"))
+            return apiInspectionData().get(ApiInspectionData).loadSql(sql, domain)
         else
             throw new XError("Unknown model [${model}]")
     }
