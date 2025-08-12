@@ -53,7 +53,7 @@ class Obj_Test extends Apx_Test {
     @Test
     void delectLocation() {
         DataDao dao = mdb.createDao(DataDao.class)
-        dao.deleteObjWithProperties(1003)
+        dao.deleteObjWithProperties(1094)
     }
 
 }
