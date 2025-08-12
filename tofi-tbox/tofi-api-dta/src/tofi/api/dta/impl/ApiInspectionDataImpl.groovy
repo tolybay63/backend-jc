@@ -3,11 +3,11 @@ package tofi.api.dta.impl
 import jandcode.commons.error.XError
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
-import tofi.api.dta.ApiPlanData
+import tofi.api.dta.ApiInspectionData
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
 
-class ApiInspectionDataImpl extends BaseMdbUtils implements ApiPlanData {
+class ApiInspectionDataImpl extends BaseMdbUtils implements ApiInspectionData {
 
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
