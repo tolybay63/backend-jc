@@ -952,6 +952,14 @@ class DataDao extends BaseMdbUtils {
             throw new XError("Not Found")
     }
 
+    @DaoMethod
+    Store loadPeriodType() {
+        return loadSqlMeta("""
+            select id, text
+            from FD_PeriodType
+            where vis=1
+        """, "")
+    }
 
     //-------------------------
     private Store loadSqlMeta(String sql, String domain) {
