@@ -531,7 +531,7 @@ class DataDao extends BaseMdbUtils {
             if (map.isEmpty())
                 throw new XError("NotFoundCod@${codClsOrTyp}")
             sql = """
-                select o.id, o.cls, v.name, null as pv 
+                select o.id, o.cls, v.name, v.fullname, null as pv 
                 from Obj o, ObjVer v
                 where o.id=v.ownerVer and v.lastVer=1 and o.cls=${map.get(codClsOrTyp)}
             """
