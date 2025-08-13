@@ -545,7 +545,7 @@ class DataDao extends BaseMdbUtils {
             Set<Object> idsCls = stTmp.getUniqueValues("id")
 
             sql = """
-                select o.id, o.cls, v.name, v.fulname, null as pv 
+                select o.id, o.cls, v.name, v.fullname, null as pv 
                 from Obj o, ObjVer v
                 where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
             """
