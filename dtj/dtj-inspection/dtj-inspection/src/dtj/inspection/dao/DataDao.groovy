@@ -159,6 +159,56 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store loadObjInspection(long obj) {
+        Store stTmp = loadSqlService("""
+            select cls from Obj where id=${obj}
+        """, "", "orgstructuredata")
+        if (stTmp.size()==0)
+            throw new XError("Не найден объект из [OrgStructure]")
+        long clsOrgStruct = stTmp.get(0).getLong("cls")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_LocationSection", "")
+        Store st
+        if (clsOrgStruct== map.get("Cls_LocationSection")) {
+            st = loadSqlService("""
+               WITH RECURSIVE r AS (
+                   SELECT o.id, v.objParent as parent, o.cls, v.name, v.fullname, null as pv
+                   FROM Obj o, ObjVer v
+                   WHERE o.id=v.ownerver and v.lastver=1 and v.objParent=${obj}
+                   UNION ALL
+                   SELECT t.*
+                   FROM ( SELECT o.id, v.objParent as parent, o.cls, v.name, v.fullname, null as pv
+                          FROM Obj o, ObjVer v
+                          WHERE o.id=v.ownerver and v.lastver=1
+                        ) t
+                      JOIN r
+                          ON t.parent = r.id
+               ),
+               o as (
+               SELECT o.id, v.objParent as parent, o.cls, v.name, v.fullname, null as pv
+               FROM Obj o, ObjVer v
+               WHERE o.id=v.ownerver and v.lastver=1 and o.id=${obj}
+               )
+               SELECT * FROM o
+               UNION ALL
+               SELECT * FROM r
+               where 0=0
+            """, "", "orgstructuredata")
+        } else {
+            st = loadSqlService("""
+               SELECT o.id, v.objParent as parent, o.cls, v.name, v.fullname, null as pv
+               FROM Obj o, ObjVer v
+               WHERE o.id=v.ownerver and v.lastver=1 and o.cls=${map.get("Cls_LocationSection")}
+            """, "", "orgstructuredata")
+        }
+
+        long pv = apiMeta().get(ApiMeta).idPV("cls", st.get(0).getLong("cls"), "Prop_LocationClsSection")
+        for (StoreRecord r in st) {
+            r.set("pv", pv)
+        }
+        return st
+    }
+
+    @DaoMethod
     Store loadInspection(Map<String, Object> params) {
         Store st = mdb.createStore("Obj.inspection")
 
@@ -463,6 +513,7 @@ class DataDao extends BaseMdbUtils {
 
         } else if (mode.equalsIgnoreCase("upd")) {
             own = pms.getLong("id")
+            par.put("fullName", par.get("name"))
             eu.updateEntity(par)
             //
             pms.put("own", own)

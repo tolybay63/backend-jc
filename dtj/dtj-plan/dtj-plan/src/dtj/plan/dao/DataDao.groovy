@@ -440,6 +440,7 @@ class DataDao extends BaseMdbUtils {
                 fillProperties(true, "Prop_UpdatedAt", pms)
         } else if (mode.equalsIgnoreCase("upd")) {
             own = pms.getLong("id")
+            par.put("fullName", par.get("name"))
             Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_WorkPlan", "")
             Store stInsp = loadSqlService("""
                 select v.id

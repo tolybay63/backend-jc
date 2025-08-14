@@ -367,6 +367,7 @@ class DataDao extends BaseMdbUtils {
                 fillProperties(true, "Prop_Description", pms)
         } else if (mode.equalsIgnoreCase("upd")) {
             own = pms.getLong("id")
+            par.put("fullName", par.get("name"))
             eu.updateEntity(par)
             //
             pms.put("own", own)

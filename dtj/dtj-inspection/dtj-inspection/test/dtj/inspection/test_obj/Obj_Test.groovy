@@ -65,6 +65,12 @@ class Obj_Test extends Apx_Test {
         mdb.outTable(st)
     }
 
+    @Test
+    void testLoadObjInspection() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadObjInspection(1073)
+        mdb.outTable(st)
+    }
 
     @Test
     void testLoadInspection() {
@@ -80,7 +86,7 @@ class Obj_Test extends Apx_Test {
     @Test
     void deleteInspection() {
         DataDao dao = mdb.createDao(DataDao.class)
-        dao.deleteObjWithProperties(1001)
+        dao.deleteObjWithProperties(102)
     }
 
     @Test
