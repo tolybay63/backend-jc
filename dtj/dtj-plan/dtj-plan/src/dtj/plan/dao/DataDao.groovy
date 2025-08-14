@@ -444,7 +444,7 @@ class DataDao extends BaseMdbUtils {
             Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_WorkPlan", "")
             Store stInsp = loadSqlService("""
                 select v.id
-                DataProp d, DataPropVa v
+                from DataProp d, DataPropVal v
                 where d.id=v.dataprop and d.prop=${map.get("Prop_WorkPlan")} and v.obj=${own}
             """, "", "inspectiondata")
 

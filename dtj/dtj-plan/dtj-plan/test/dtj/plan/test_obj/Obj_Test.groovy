@@ -48,6 +48,15 @@ class Obj_Test extends Apx_Test {
     }
 
     @Test
+    void testPlanSave() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.savePlan("upd", Map.of(
+                "id", 1007
+        ))
+        mdb.outTable(st)
+    }
+
+    @Test
     void loadWorkForSelect() {
         DataDao dao = mdb.createDao(DataDao.class)
         Store st = dao.loadWorkForSelect(1011)
