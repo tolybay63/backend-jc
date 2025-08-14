@@ -37,24 +37,31 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
     }
+
     ApinatorApi apiUserData() {
         return app.bean(ApinatorService).getApi("userdata")
     }
+
     ApinatorApi apiNSIData() {
         return app.bean(ApinatorService).getApi("nsidata")
     }
+
     ApinatorApi apiPersonnalData() {
         return app.bean(ApinatorService).getApi("personnaldata")
     }
+
     ApinatorApi apiOrgStructureData() {
         return app.bean(ApinatorService).getApi("orgstructuredata")
     }
+
     ApinatorApi apiObjectData() {
         return app.bean(ApinatorService).getApi("objectdata")
     }
+
     ApinatorApi apiPlanData() {
         return app.bean(ApinatorService).getApi("plandata")
     }
+
     ApinatorApi apiInspectionData() {
         return app.bean(ApinatorService).getApi("incpectiondata")
     }
@@ -68,7 +75,7 @@ class DataDao extends BaseMdbUtils {
             from DataProp d, DataPropval v
             where d.id=v.dataProp and d.objorrelobj=${objWork} and d.prop=${map.get("Prop_Collections")}
         """, "", "nsidata")
-        if (stObj.size()==0)
+        if (stObj.size() == 0)
             throw new XError("objWork not found")
         long objCollection = stObj.get(0).getLong("obj")
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_LocationMulti", "")
@@ -77,7 +84,7 @@ class DataDao extends BaseMdbUtils {
             from DataProp d, DataPropval v
             where d.id=v.dataProp and d.objorrelobj=${objCollection} and d.prop=${map.get("Prop_LocationMulti")}
         """, "", "nsidata")
-        if (stObj.size()==0)
+        if (stObj.size() == 0)
             throw new XError("objCollection not found")
         Set<Object> objLocation = stObj.getUniqueValues("obj")
 
@@ -113,7 +120,7 @@ class DataDao extends BaseMdbUtils {
 
         long idPV = apiMeta().get(ApiMeta).idPV("cls", st.get(0).getLong("cls"), "Prop_LocationClsSection")
         for (StoreRecord r in st) {
-            r.set("pv", idPV )
+            r.set("pv", idPV)
         }
         return st
     }
@@ -128,7 +135,7 @@ class DataDao extends BaseMdbUtils {
             left join DataPropVal v on d.id=v.dataProp and v.strVal='${userId}'
         """, "", "personnaldata")
 
-        if (st.size()==0)
+        if (st.size() == 0)
             throw new XError("Not found")
         long own = st.get(0).getLong("id")
         return apiPersonnalData().get(ApiPersonnalData).loadPersonnal(own)
@@ -180,7 +187,7 @@ class DataDao extends BaseMdbUtils {
         String wheV1 = ""
         String wheV7 = ""
         if (params.containsKey("id"))
-                whe = "o.id=${UtCnv.toLong(params.get("id"))}"
+            whe = "o.id=${UtCnv.toLong(params.get("id"))}"
         else {
             whe = "o.cls in (${idsCls.join(",")})"
             //
@@ -201,7 +208,6 @@ class DataDao extends BaseMdbUtils {
         }
 
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
-
 
 
         mdb.loadQuery(st, """
@@ -371,7 +377,6 @@ class DataDao extends BaseMdbUtils {
             else {
                 throw new XError("Не найден класс сответствующий классу {0}", linkCls)
             }
-
             par.put("cls", cls)
             par.put("fullName", par.get("name"))
             own = eu.insertEntity(par)
@@ -435,6 +440,17 @@ class DataDao extends BaseMdbUtils {
                 fillProperties(true, "Prop_UpdatedAt", pms)
         } else if (mode.equalsIgnoreCase("upd")) {
             own = pms.getLong("id")
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_WorkPlan", "")
+            Store stInsp = loadSqlService("""
+                select v.id
+                DataProp d, DataPropVa v
+                where d.id=v.dataprop and d.prop=${map.get("Prop_WorkPlan")} and v.obj=${own}
+            """, "", "inspectiondata")
+
+            if (stInsp.size() > 0)
+                throw new XError("Существует запись в 'Журнале осмотров и проверок' по данной плановой работе")
+
+
             eu.updateEntity(par)
             //
             pms.put("own", own)
@@ -703,8 +719,8 @@ class DataDao extends BaseMdbUtils {
                     lstService.add("inspectiondata")
                 //
 
-                if (lstService.size()>0) {
-                    throw new XError("${name} используется в ["+ lstService.join(", ") + "]")
+                if (lstService.size() > 0) {
+                    throw new XError("${name} используется в [" + lstService.join(", ") + "]")
                 }
             }
         }
@@ -714,8 +730,8 @@ class DataDao extends BaseMdbUtils {
     private void fillProperties(boolean isObj, String cod, Map<String, Object> params) {
         long own = UtCnv.toLong(params.get("own"))
         String keyValue = cod.split("_")[1]
-        def objRef = UtCnv.toLong(params.get("obj"+keyValue))
-        def propVal = UtCnv.toLong(params.get("pv"+keyValue))
+        def objRef = UtCnv.toLong(params.get("obj" + keyValue))
+        def propVal = UtCnv.toLong(params.get("pv" + keyValue))
 
         Store stProp = apiMeta().get(ApiMeta).getPropInfo(cod)
         //
@@ -775,7 +791,7 @@ class DataDao extends BaseMdbUtils {
         recDPV.set("dataProp", idDP)
         // Attrib
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
-            if ( cod.equalsIgnoreCase("Prop_TabNumber") ||
+            if (cod.equalsIgnoreCase("Prop_TabNumber") ||
                     cod.equalsIgnoreCase("Prop_UserSecondName") ||
                     cod.equalsIgnoreCase("Prop_UserFirstName") ||
                     cod.equalsIgnoreCase("Prop_UserMiddleName") ||
@@ -791,7 +807,7 @@ class DataDao extends BaseMdbUtils {
         }
         //
         if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
-            if ( cod.equalsIgnoreCase("Prop_Description")) {
+            if (cod.equalsIgnoreCase("Prop_Description")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("multiStrVal", UtCnv.toString(params.get(keyValue)))
                 }
@@ -813,7 +829,7 @@ class DataDao extends BaseMdbUtils {
 
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
-            if ( cod.equalsIgnoreCase("Prop_UserSex")) {    //template
+            if (cod.equalsIgnoreCase("Prop_UserSex")) {    //template
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
                 }
@@ -824,7 +840,7 @@ class DataDao extends BaseMdbUtils {
 
         // For Measure
         if ([FD_PropType_consts.measure].contains(propType)) {
-            if ( cod.equalsIgnoreCase("Prop_ParamsMeasure")) {
+            if (cod.equalsIgnoreCase("Prop_ParamsMeasure")) {
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
                 }
@@ -927,7 +943,7 @@ class DataDao extends BaseMdbUtils {
         }
 
         if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
-            if ( cod.equalsIgnoreCase("Prop_Description")) {
+            if (cod.equalsIgnoreCase("Prop_Description")) {
                 if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
                     sql = """
                         delete from DataPropVal where id=${idVal};
@@ -967,7 +983,7 @@ class DataDao extends BaseMdbUtils {
 
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
-            if ( cod.equalsIgnoreCase("Prop_UserSex")) {    //template
+            if (cod.equalsIgnoreCase("Prop_UserSex")) {    //template
                 if (propVal > 0)
                     sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
                 else {
@@ -987,7 +1003,7 @@ class DataDao extends BaseMdbUtils {
 
         // For Measure
         if ([FD_PropType_consts.measure].contains(propType)) {
-            if ( cod.equalsIgnoreCase("Prop_ParamsMeasure") ) {
+            if (cod.equalsIgnoreCase("Prop_ParamsMeasure")) {
                 if (propVal > 0)
                     sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
                 else {
