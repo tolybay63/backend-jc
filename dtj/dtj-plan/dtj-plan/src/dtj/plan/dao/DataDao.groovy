@@ -63,7 +63,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     ApinatorApi apiInspectionData() {
-        return app.bean(ApinatorService).getApi("incpectiondata")
+        return app.bean(ApinatorService).getApi("inspectiondata")
     }
 
     @DaoMethod
