@@ -68,7 +68,7 @@ class Obj_Test extends Apx_Test {
     @Test
     void testLoadObjInspection() {
         DataDao dao = mdb.createDao(DataDao.class)
-        Store st = dao.loadObjInspection(1073)
+        Store st = dao.loadObjLocationSectionForSelect(1073)
         mdb.outTable(st)
     }
 

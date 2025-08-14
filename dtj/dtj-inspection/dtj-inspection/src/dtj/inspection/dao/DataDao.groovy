@@ -159,7 +159,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadObjInspection(long obj) {
+    Store loadObjLocationSectionForSelect(long obj) {
         Store stTmp = loadSqlService("""
             select cls from Obj where id=${obj}
         """, "", "orgstructuredata")
