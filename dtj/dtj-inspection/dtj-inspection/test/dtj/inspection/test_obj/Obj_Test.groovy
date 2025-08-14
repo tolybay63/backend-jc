@@ -73,6 +73,14 @@ class Obj_Test extends Apx_Test {
     }
 
     @Test
+    void testLoadDateWorkPlanInspection() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Set<String>  plDate= dao.loadDateWorkPlanInspection(["id": 1076, "pv": 1241])
+        println(plDate.join(", "))
+    }
+
+
+    @Test
     void testLoadInspection() {
         DataDao dao = mdb.createDao(DataDao.class)
         Store st = dao.loadInspection(Map.of(

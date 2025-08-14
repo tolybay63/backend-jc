@@ -209,6 +209,42 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Set<String> loadDateWorkPlanInspection(Map<String, Object> params) {
+        long obj = UtCnv.toLong(params.get("id"))
+        long pv = UtCnv.toLong(params.get("pv"))
+        Store stTmp = loadSqlService("""
+            select d.objorrelobj as own
+            from DataProp d, DataPropVal v
+            where d.id=v.dataProp and v.propVal=${pv} and v.obj=${obj}    
+        """, "", "plandata")
+        Set<Object> idsOwn = stTmp.getUniqueValues("own")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_____DateEnd")
+        stTmp = loadSqlService("""
+            select d.objorrelobj as own
+            from DataProp d
+                left join DataPropVal v on d.id=v.dataProp 
+            where d.objorrelobj in (0${idsOwn.join(",")}) and d.prop=${map.get("Prop_PlanDateEnd")}
+            and v.dateTimeVal is not null
+            except
+            select d.objorrelobj as own
+            from DataProp d
+                left join DataPropVal v on d.id=v.dataProp 
+            where d.objorrelobj in (0${idsOwn.join(",")}) and d.prop=${map.get("Prop_FactDateEnd")}
+                and v.dateTimeVal is not null
+        """, "", "plandata")
+        idsOwn = stTmp.getUniqueValues("own")
+        stTmp = loadSqlService("""
+            select v.dateTimeVal as plDate
+            from DataProp d, DataPropVal v
+            where d.id=v.dataProp and d.objorrelobj in (0${idsOwn.join(",")})
+                and d.prop=${map.get("Prop_PlanDateEnd")}
+        """, "", "plandata")
+
+        return stTmp.getUniqueValues("plDate") as Set<String>
+    }
+
+
+    @DaoMethod
     Store loadInspection(Map<String, Object> params) {
         Store st = mdb.createStore("Obj.inspection")
 
