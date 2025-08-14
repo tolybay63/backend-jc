@@ -79,6 +79,17 @@ class Obj_Test extends Apx_Test {
         println(plDate.join(", "))
     }
 
+    @Test
+    void testLoadObjClsWorkPlanInspectionUnfinishedByDate() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadObjClsWorkPlanInspectionUnfinishedByDate(Map.of(
+                "date", "2025-08-01",
+                "id", 1077,
+                "pv", 1241
+        ))
+        mdb.outTable(st)
+    }
+
 
     @Test
     void testLoadInspection() {

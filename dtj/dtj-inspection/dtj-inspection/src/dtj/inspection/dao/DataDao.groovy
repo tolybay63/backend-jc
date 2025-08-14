@@ -243,6 +243,130 @@ class DataDao extends BaseMdbUtils {
         return stTmp.getUniqueValues("plDate") as Set<String>
     }
 
+    @DaoMethod
+    Store loadObjClsWorkPlanInspectionUnfinishedByDate(Map<String, Object> params) {
+        long obj = UtCnv.toLong(params.get("id"))
+        long pvObj = UtCnv.toLong(params.get("pv"))
+        String dte = UtCnv.toString(params.get("date"))
+        Store stTmp = loadSqlService("""
+            select d.objorrelobj as own
+            from DataProp d, DataPropVal v
+            where d.id=v.dataProp and v.propVal=${pvObj} and v.obj=${obj}    
+        """, "", "plandata")
+        Set<Object> idsOwn = stTmp.getUniqueValues("own")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_____DateEnd")
+        stTmp = loadSqlService("""
+            select d.objorrelobj as own
+            from DataProp d
+                left join DataPropVal v on d.id=v.dataProp 
+            where d.objorrelobj in (0${idsOwn.join(",")}) and d.prop=${map.get("Prop_PlanDateEnd")}
+            and v.dateTimeVal::date='${dte}'
+            except
+            select d.objorrelobj as own
+            from DataProp d
+                left join DataPropVal v on d.id=v.dataProp 
+            where d.objorrelobj in (0${idsOwn.join(",")}) and d.prop=${map.get("Prop_FactDateEnd")}
+                and v.dateTimeVal is not null
+        """, "", "plandata")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        idsOwn = stTmp.getUniqueValues("own")
+        Store st = loadSqlService("""
+            select o.id, o.cls, null as objSection, null as nameSection,
+                v1.id as idWork, v1.propVal as pvWork, v1.obj as objWork, null as fullNameWork,
+                v2.id as idObject, v2.propVal as pvObject, v2.obj as objObject, 
+                    null as nameClsObject, null as fullNameObject,
+                v3.id as idStartKm, v3.numberVal as StartKm,
+                v4.id as idFinishKm, v4.numberVal as FinishKm,
+                v5.id as idStartPicket, v5.numberVal as StartPicket,
+                v6.id as idFinishPicket, v6.numberVal as FinishPicket
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Work")}
+                left join DataPropVal v1 on d1.id=v1.dataprop             
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_Object")}
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_StartKm")}
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_FinishKm")}
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_StartPicket")}
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=${map.get("Prop_FinishPicket")}
+                left join DataPropVal v6 on d6.id=v6.dataprop
+            where o.id in (${idsOwn.join(",")})
+        """, "Obj.UnfinishedByDate", "plandata")
+
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Object", "")
+        Store stCls = loadSqlMeta("""
+            select c.id, v.name from Cls c, ClsVer v where c.id=v.ownerVer and v.lastVer=1 and typ=${map.get("Typ_Object")}
+        """, "")
+        StoreIndex indCls = stCls.getIndex("id")
+        Set<Object> idsCls = stCls.getUniqueValues("id")
+        Store stObject = loadSqlService("""
+            select o.id, o.cls, v.fullName, null as nameClsObject
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
+        """, "", "objectdata")
+
+        for (StoreRecord r in stObject) {
+            StoreRecord rec = indCls.get(r.getLong("cls"))
+            if (rec != null)
+                r.set("nameClsObject", rec.getString("name"))
+        }
+        StoreIndex indObject = stObject.getIndex("id")
+        //
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_WorkInspection", "")
+        Store stWork = loadSqlService("""
+            select o.id, o.cls, v.fullName
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.cls=${map.get("Cls_WorkInspection")}
+        """, "", "nsidata")
+        StoreIndex indWork = stWork.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord rWork = indWork.get(r.getLong("objWork"))
+            if (rWork != null) {
+                r.set("fullNameWork", rWork.getString("fullName"))
+            }
+            StoreRecord rObject = indObject.get(r.getLong("objObject"))
+            if (rObject != null) {
+                r.set("fullNameObject", rObject.getString("fullName"))
+                r.set("nameClsObject", rObject.getString("nameClsObject"))
+            }
+        }
+        Set<Object> idsObject = st.getUniqueValues("objObject")
+        //
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Section", "")
+        Store stSection = loadSqlService("""
+            select o.id, o.cls, v1.obj as objSection, null as nameSection
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Section")}
+                left join DataPropVal v1 on d1.id=v1.dataprop
+            where o.id in (0${idsObject.join(",")})
+        """, "", "objectdata")
+        Set<Object> idsSection = stSection.getUniqueValues("objSection")
+        Store stNSI = loadSqlService("""
+            select o.id, v.name
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsSection.join(',')})
+        """, "", "nsidata")
+        StoreIndex indNSI = stNSI.getIndex("id")
+
+        for (StoreRecord r in stSection) {
+            StoreRecord rec = indNSI.get(r.getLong("objSection"))
+            if (rec != null)
+                r.set("nameSection", rec.getString("name"))
+        }
+        StoreIndex inSection = stSection.getIndex("id")
+
+        //
+        for (StoreRecord r in st) {
+            StoreRecord rec = inSection.get(r.getLong("objObject"))
+            if (rec != null) {
+                r.set("nameSection", rec.getString("nameSection"))
+                r.set("objSection", rec.getString("objSection"))
+            }
+        }
+
+        return st
+    }
 
     @DaoMethod
     Store loadInspection(Map<String, Object> params) {
