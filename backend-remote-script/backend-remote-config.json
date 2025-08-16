@@ -1,0 +1,34 @@
+{
+  "DevServer": {
+    "Hostname": "scl-007.efk.local",
+    "IP": "192.168.1.215",
+    "RootPath": "C:\\jc-2\\backend-jc",
+    "Credentials": {
+      "Username": "efk\\username",
+      "Password": "password"
+    }
+  },
+  "ProdServer": {
+    "Hostname": "swl-001.efk.local",
+    "IP": "192.168.1.20",
+    "RootPath": "C:\\dtj\\server",
+    "Credentials": {
+      "Username": "efk\\username",
+      "Password": "password"
+    }
+  },
+  "DeploymentMethod": "SMB",
+  "BackendServices": [
+    { "Name": "admin", "DevPath": "tofi-adm", "ProdPath": "admin", "Port": 9172 },
+    { "Name": "nsi", "DevPath": "dtj\\dtj-nsi", "ProdPath": "nsi", "Port": 9173 },
+    { "Name": "orgstructure", "DevPath": "dtj\\dtj-orgstructure", "ProdPath": "orgstructure", "Port": 9174 },
+    { "Name": "personnel", "DevPath": "dtj\\dtj-personnel", "ProdPath": "personnel", "Port": 9175 },
+    { "Name": "reports", "DevPath": "dtj\\dtj-reports", "ProdPath": "reports", "Port": 9176 },
+    { "Name": "settings", "DevPath": "dtj\\dtj-settings", "ProdPath": "settings", "Port": 9177 },
+    { "Name": "tasks", "DevPath": "dtj\\dtj-tasks", "ProdPath": "tasks", "Port": 9178 },
+    { "Name": "workflow", "DevPath": "dtj\\dtj-workflow", "ProdPath": "workflow", "Port": 9179 },
+    { "Name": "documents", "DevPath": "dtj\\dtj-documents", "ProdPath": "documents", "Port": 9180 },
+    { "Name": "calendar", "DevPath": "dtj\\dtj-calendar", "ProdPath": "calendar", "Port": 9181 },
+    { "Name": "dashboard", "DevPath": "dtj\\dtj-dashboard", "ProdPath": "dashboard", "Port": 9182 }
+  ]
+}

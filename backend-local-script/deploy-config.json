@@ -1,0 +1,149 @@
+{
+    "JcBatPath": "Jc.bat",
+    "ProductPath": "product",
+    "DtjBasePath": "dtj",
+    "AppRunPath": "app-run.bat",
+    "StartPort": 9172,
+    "ServiceCount": 11,
+    "ServiceNames": ["admin", "meta", "account", "tofidata", "cube", "nsi", "object", "plan", "personnal", "orgstructure", "inspection"],
+    "WaitTimeAfterStop": 2,
+    "WaitTimeAfterStart": 3,
+    "Server": {
+        "Name": "dtj-server",
+        "IP": "192.168.0.19",
+        "Username": "admin",
+        "Password": "",
+        "BasePath": "C:\\dtj"
+    },
+    "DevServices": [
+        {
+            "Name": "admin",
+            "DevPath": "D:\\jc-projects\\backend-jc\\tofi-adm",
+            "BuildPath": "_jc\\product"
+        },
+        {
+            "Name": "meta", 
+            "DevPath": "D:\\jc-projects\\backend-jc\\tofi-mdl",
+            "BuildPath": "_jc\\product"
+        },
+        {
+            "Name": "account",
+            "DevPath": "D:\\jc-projects\\backend-jc\\tofi-userdata", 
+            "BuildPath": "_jc\\product"
+        },
+        {
+            "Name": "tofidata",
+            "DevPath": "D:\\jc-projects\\backend-jc\\tofi-data",
+            "BuildPath": "_jc\\product"
+        },
+        {
+            "Name": "cube",
+            "DevPath": "D:\\jc-projects\\backend-jc\\tofi-cube",
+            "BuildPath": "_jc\\product"
+        },
+        {
+            "Name": "nsi",
+            "DevPath": "D:\\jc-projects\\backend-jc\\dtj\\dtj-nsi",
+            "BuildPath": "_jc\\product"
+        },
+        {
+            "Name": "object",
+            "DevPath": "D:\\jc-projects\\backend-jc\\dtj\\dtj-object",
+            "BuildPath": "_jc\\product"
+        },
+        {
+            "Name": "plan",
+            "DevPath": "D:\\jc-projects\\backend-jc\\dtj\\dtj-plan",
+            "BuildPath": "_jc\\product"
+        },
+        {
+            "Name": "personnal",
+            "DevPath": "D:\\jc-projects\\backend-jc\\dtj\\dtj-personnal",
+            "BuildPath": "_jc\\product"
+        },
+        {
+            "Name": "orgstructure",
+            "DevPath": "D:\\jc-projects\\backend-jc\\dtj\\dtj-orjstructure",
+            "BuildPath": "_jc\\product"
+        },
+        {
+            "Name": "inspection",
+            "DevPath": "D:\\jc-projects\\backend-jc\\dtj\\dtj-inspection",
+            "BuildPath": "_jc\\product"
+        }
+    ],
+    "ProdServices": [
+        {
+            "Name": "admin",
+            "Port": 9172,
+            "RemotePath": "C:\\dtj\\server\\admin",
+            "SourceService": "admin"
+        },
+        {
+            "Name": "meta",
+            "Port": 9173,
+            "RemotePath": "C:\\dtj\\server\\meta",
+            "SourceService": "meta"
+        },
+        {
+            "Name": "account",
+            "Port": 9174,
+            "RemotePath": "C:\\dtj\\server\\account",
+            "SourceService": "account"
+        },
+        {
+            "Name": "tofidata",
+            "Port": 9175,
+            "RemotePath": "C:\\dtj\\server\\tofidata",
+            "SourceService": "tofidata"
+        },
+        {
+            "Name": "cube",
+            "Port": 9176,
+            "RemotePath": "C:\\dtj\\server\\cube",
+            "SourceService": "cube"
+        },
+        {
+            "Name": "nsi",
+            "Port": 9177,
+            "RemotePath": "C:\\dtj\\server\\nsi",
+            "SourceService": "nsi"
+        },
+        {
+            "Name": "object",
+            "Port": 9178,
+            "RemotePath": "C:\\dtj\\server\\object",
+            "SourceService": "object"
+        },
+        {
+            "Name": "plan",
+            "Port": 9179,
+            "RemotePath": "C:\\dtj\\server\\plan",
+            "SourceService": "plan"
+        },
+        {
+            "Name": "personnal",
+            "Port": 9180,
+            "RemotePath": "C:\\dtj\\server\\personnal",
+            "SourceService": "personnal"
+        },
+        {
+            "Name": "orgstructure",
+            "Port": 9181,
+            "RemotePath": "C:\\dtj\\server\\orgstructure",
+            "SourceService": "orgstructure"
+        },
+        {
+            "Name": "inspection",
+            "Port": 9182,
+            "RemotePath": "C:\\dtj\\server\\inspection",
+            "SourceService": "inspection"
+        }
+    ],
+    "NetworkSettings": {
+        "UseLocalCopy": true,
+        "CopyMethod": "Local",
+        "SSHKeyPath": "",
+        "Timeout": 30
+    }
+}
