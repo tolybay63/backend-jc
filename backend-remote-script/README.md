@@ -22,17 +22,16 @@
 
 | Сервис | Dev Path | Prod Path | Порт |
 |--------|----------|-----------|------|
-| admin | tofi-adm | admin | 9172 |
-| nsi | dtj\dtj-nsi | nsi | 9173 |
-| orgstructure | dtj\dtj-orgstructure | orgstructure | 9174 |
-| personnel | dtj\dtj-personnel | personnel | 9175 |
-| reports | dtj\dtj-reports | reports | 9176 |
-| settings | dtj\dtj-settings | settings | 9177 |
-| tasks | dtj\dtj-tasks | tasks | 9178 |
-| workflow | dtj\dtj-workflow | workflow | 9179 |
-| documents | dtj\dtj-documents | documents | 9180 |
-| calendar | dtj\dtj-calendar | calendar | 9181 |
-| dashboard | dtj\dtj-dashboard | dashboard | 9182 |
+| admin        | tofi-adm             | admin | 9172   |
+| meta         | dtj\dtj-meta         | nsi | 9173   |
+| account      | dtj\dtj-account      | nsi | 9174   |
+| tofidata     | dtj\dtj-tofidata     | nsi | 9175   |
+| cube         | dtj\dtj-cube         | nsi | 9176   |
+| nsi          | dtj\dtj-nsi          | nsi | 9177   |
+| object       | dtj\dtj-object      | reports | 9178   |
+| plan        | dtj\dtj-plan    | personnel | 9179   |
+| personnel    | dtj\dtj-personnel    | personnel | 9180   |
+| orgstructure | dtj\dtj-orgstructure | orgstructure | 9181 |
 
 ## Методы развертывания
 
