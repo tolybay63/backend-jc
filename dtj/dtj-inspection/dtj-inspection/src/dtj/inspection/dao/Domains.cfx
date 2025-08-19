@@ -65,6 +65,17 @@
 
     </domain>
 
+    <domain name="Obj.InspectionEntriesForWorkPlan" parent="base">
+        <field name="id" parent="long"/>
 
+        <field name="StartKm" parent="double"/>
+        <field name="FinishKm" parent="double"/>
+        <field name="StartPicket" parent="double"/>
+        <field name="FinishPicket" parent="double"/>
+        <field name="StartLink" parent="double"/>
+        <field name="FinishLink" parent="double"/>
+        <field name="FactDateEnd" parent="string"/>
+
+    </domain>
 </root>
 

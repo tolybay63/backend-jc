@@ -244,12 +244,40 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store loadComponentsByTypObjectForSelect(long id) {
+        // id : idObj from Object
+        //Prop_ObjectType RT_Components Typ_Components
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_ObjectType", "")
+        Store stTmp = loadSqlService("""
+            select v.obj as own
+            from DataProp d, DataPropVal v
+            where d.id=v.dataProp and prop=${map.get("Prop_ObjectType")} and d.objorrelobj=${id}
+        """, "", "objectdata")
+        Set<Object> ids = stTmp.getUniqueValues("own")
+
+        stTmp = loadSqlService("""
+            select obj from relobjmember
+            where obj not in (${ids.join(",")}) and relobj in (select relobj from relobjmember where obj in (${ids.join(",")}))
+        """, "", "nsidata")
+        Set<Object> idsOwn = stTmp.getUniqueValues("obj")
+
+        stTmp = loadSqlService("""
+            select o.id, v.name
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsOwn.join(",")})
+        """, "", "nsidata")
+        //
+        return stTmp
+    }
+
+    @DaoMethod
     Store loadObjClsWorkPlanInspectionUnfinishedByDate(Map<String, Object> params) {
         long obj = UtCnv.toLong(params.get("id"))
         long pvObj = UtCnv.toLong(params.get("pv"))
         String dte = UtCnv.toString(params.get("date"))
 
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_WorkPlanInspection", "")
+        long cls_WorkPlanInspection = map.get("Cls_WorkPlanInspection")
         Store stTmp = loadSqlService("""
             select id
             from Obj
@@ -280,9 +308,10 @@ class DataDao extends BaseMdbUtils {
                 and v.dateTimeVal is not null
         """, "", "plandata")
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        long prop_WorkPlan = map.get("Prop_WorkPlan")
         idsOwn = stTmp.getUniqueValues("own")
         Store st = loadSqlService("""
-            select o.id, o.cls, null as objSection, null as nameSection,
+            select o.id, o.cls, null as pv, null as objSection, null as nameSection,
                 v1.id as idWork, v1.propVal as pvWork, v1.obj as objWork, null as fullNameWork,
                 v2.id as idObject, v2.propVal as pvObject, v2.obj as objObject, 
                     null as nameClsObject, null as fullNameObject,
@@ -305,7 +334,19 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v6 on d6.id=v6.dataprop
             where o.id in (${idsOwn.join(",")})
         """, "Obj.UnfinishedByDate", "plandata")
-
+        // find pv...
+        Store stPV = loadSqlMeta("""
+            select id, prop, cls
+            from PropVal
+            where prop=${prop_WorkPlan} and cls=${cls_WorkPlanInspection}
+        """, "")
+        long pv = 0
+        if (stPV.size() > 0) {
+            pv = stPV.get(0).getLong("id")
+        } else {
+            throw new XError("Не найден pvWorkPlan")
+        }
+        //
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Object", "")
         Store stCls = loadSqlMeta("""
             select c.id, v.name from Cls c, ClsVer v where c.id=v.ownerVer and v.lastVer=1 and typ=${map.get("Typ_Object")}
@@ -332,6 +373,7 @@ class DataDao extends BaseMdbUtils {
         StoreIndex indWork = stWork.getIndex("id")
         //
         for (StoreRecord r in st) {
+            r.set("pv", pv)
             StoreRecord rWork = indWork.get(r.getLong("objWork"))
             if (rWork != null) {
                 r.set("fullNameWork", rWork.getString("fullName"))
@@ -376,6 +418,47 @@ class DataDao extends BaseMdbUtils {
             }
         }
 
+        return st
+    }
+
+    @DaoMethod
+    Store loadInspectionEntriesForWorkPlan(Map<String, Object> params) {
+        long obj = UtCnv.toLong(params.get("id"))
+        long pv = UtCnv.toLong(params.get("pv"))
+        Store stOwn = mdb.loadQuery("""
+            select d.objorrelobj as own
+            from DataProp d, DataPropVal v
+            where d.id=v.dataProp and v.propVal=:pv and v.obj=:o
+        """, [pv: pv, o: obj])
+        Set<Object> idsOwn = stOwn.getUniqueValues("own")
+        Store st = mdb.createStore("Obj.InspectionEntriesForWorkPlan")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        mdb.loadQuery(st, """
+            select o.id,
+                v3.numberVal as StartKm,
+                v4.numberVal as FinishKm,
+                v5.numberVal as StartPicket,
+                v6.numberVal as FinishPicket,
+                v7.dateTimeVal as FactDateEnd,
+                v12.numberVal as StartLink,
+                v13.numberVal as FinishLink
+            from Obj o 
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartKm
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FinishKm
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_StartPicket
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_FinishPicket
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_FactDateEnd
+                inner join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_StartLink
+                left join DataPropVal v12 on d12.id=v12.dataprop
+                left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_FinishLink
+                left join DataPropVal v13 on d13.id=v13.dataprop
+            where o.id in (0${idsOwn.join(",")})
+        """, map)
         return st
     }
 
@@ -623,10 +706,12 @@ class DataDao extends BaseMdbUtils {
             else
                 throw new XError("[objUser] not specified")
             //4 Prop_DeviationDefect
+/*
             if (pms.getLong("fvDeviationDefect") > 0)
                 fillProperties(true, "Prop_DeviationDefect", pms)
             else
                 throw new XError("[fvDeviationDefect] not specified")
+*/
 
             //5 Prop_StartKm
             if (pms.getString("StartKm") != "")
@@ -696,7 +781,9 @@ class DataDao extends BaseMdbUtils {
             //3 Prop_User
             updateProperties("Prop_User", pms)
             //4 Prop_DeviationDefect
+/*
             updateProperties("Prop_DeviationDefect", pms)
+*/
             //5 Prop_StartKm
             updateProperties("Prop_StartKm", pms)
             //6 Prop_FinishKm

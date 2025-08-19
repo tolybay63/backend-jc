@@ -90,6 +90,23 @@ class Obj_Test extends Apx_Test {
         mdb.outTable(st)
     }
 
+    @Test
+    void testLoadInspectionEntriesForWorkPlan() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadInspectionEntriesForWorkPlan(Map.of(
+                "id", 1007,
+                "pv", 1286
+        ))
+        mdb.outTable(st)
+    }
+
+    @Test
+    void testLoadComponentsByTypObject() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadComponentsByTypObjectForSelect(1068)
+        mdb.outTable(st)
+    }
+
 
     @Test
     void testLoadInspection() {
