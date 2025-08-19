@@ -246,7 +246,6 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Store loadComponentsByTypObjectForSelect(long id) {
         // id : idObj from Object
-        //Prop_ObjectType RT_Components Typ_Components
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_ObjectType", "")
         Store stTmp = loadSqlService("""
             select v.obj as own
@@ -254,10 +253,20 @@ class DataDao extends BaseMdbUtils {
             where d.id=v.dataProp and prop=${map.get("Prop_ObjectType")} and d.objorrelobj=${id}
         """, "", "objectdata")
         Set<Object> ids = stTmp.getUniqueValues("own")
-
+        //
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelTyp", "RT_Components", "")
+        Store stMeta = loadSqlMeta("""
+            select id from relclsmember
+            where relcls in (
+                select id from RelCls where reltyp=${map.get("RT_Components")}
+            )
+        """, "")
+        Set<Object> idsRCM = stMeta.getUniqueValues("id")
+        //
         stTmp = loadSqlService("""
             select obj from relobjmember
             where obj not in (${ids.join(",")}) and relobj in (select relobj from relobjmember where obj in (${ids.join(",")}))
+                and relClsMember in (${idsRCM.join(",")})
         """, "", "nsidata")
         Set<Object> idsOwn = stTmp.getUniqueValues("obj")
 
@@ -266,6 +275,39 @@ class DataDao extends BaseMdbUtils {
             from Obj o, ObjVer v
             where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsOwn.join(",")})
         """, "", "nsidata")
+        //
+        return stTmp
+    }
+
+    /*
+"method": "loadDefectsByComponentForSelect",
+"params": [1068]
+
+Cls_Defects
+Prop_DefectsComponent
+    * */
+
+    @DaoMethod
+    Store loadDefectsByComponentForSelect(long id) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_DefectsComponent", "")
+        Store stTmp = loadSqlService("""
+            select d.objorrelobj as own
+            from DataProp d, DataPropVal v
+            where d.id=v.dataProp and d.prop=${map.get("Prop_DefectsComponent")} and v.obj=${id}
+        """, "", "nsidata")
+        Set<Object> idsOwn = stTmp.getUniqueValues("own")
+        stTmp = loadSqlService("""
+            select o.id, o.cls, v.name, null as pv
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsOwn.join(",")})
+        """, "", "nsidata")
+        //
+        long idPv = apiMeta().get(ApiMeta).idPV("cls", stTmp.get(0).getLong("cls"), "Prop_Defect")
+        for (StoreRecord r in stTmp) {
+            r.set("pv", idPv)
+        }
+
+
         //
         return stTmp
     }
