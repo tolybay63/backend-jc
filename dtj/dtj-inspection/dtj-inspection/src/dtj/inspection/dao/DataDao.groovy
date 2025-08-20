@@ -279,14 +279,6 @@ class DataDao extends BaseMdbUtils {
         return stTmp
     }
 
-    /*
-"method": "loadDefectsByComponentForSelect",
-"params": [1068]
-
-Cls_Defects
-Prop_DefectsComponent
-    * */
-
     @DaoMethod
     Store loadDefectsByComponentForSelect(long id) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_DefectsComponent", "")
@@ -306,11 +298,131 @@ Prop_DefectsComponent
         for (StoreRecord r in stTmp) {
             r.set("pv", idPv)
         }
-
-
         //
         return stTmp
     }
+
+    @DaoMethod
+    Store saveFault(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        //
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        Map<String, Object> par = new HashMap<>(pms)
+        if (mode.equalsIgnoreCase("ins")) {
+            //
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Fault", "")
+            if (map.isEmpty())
+                throw new XError("NotFoundCod@Cls_Fault")
+
+            par.put("cls", map.get("Cls_Fault"))
+            par.put("fullName", par.get("name"))
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+
+/*
+Prop_StartKm Prop_FinishKm Prop_StartPicket Prop_FinishPicket
+Prop_StartLink Prop_FinishLink Prop_CreationDateTime Prop_Description
+*/
+
+            //1 Prop_Defect
+            if (pms.getLong("objDefect") > 0)
+                fillProperties(true, "Prop_Defect", pms)
+            else
+                throw new XError("[objDefect] not specified")
+            //2 Prop_Inspection
+            if (pms.getLong("objInspection") > 0)
+                fillProperties(true, "Prop_Inspection", pms)
+            else
+                throw new XError("[objInspection] not specified")
+            //3 Prop_StartKm
+            if (pms.getString("StartKm") != "")
+                fillProperties(true, "Prop_StartKm", pms)
+            else
+                throw new XError("[StartKm] not specified")
+
+            //4 Prop_FinishKm
+            if (pms.getString("FinishKm") != "")
+                fillProperties(true, "Prop_FinishKm", pms)
+            else
+                throw new XError("[FinishKm] not specified")
+
+            //5 Prop_StartPicket
+            if (pms.getString("StartPicket") != "")
+                fillProperties(true, "Prop_StartPicket", pms)
+            else
+                throw new XError("[StartPicket] not specified")
+
+            //6 Prop_FinishPicket
+            if (pms.getString("FinishPicket") != "")
+                fillProperties(true, "Prop_FinishPicket", pms)
+            else
+                throw new XError("[FinishPicket] not specified")
+
+            //7 Prop_StartLink
+            if (pms.getString("StartLink") != "")
+                fillProperties(true, "Prop_StartLink", pms)
+            else
+                throw new XError("[StartLink] not specified")
+
+            //8 Prop_FinishLink
+            if (pms.getString("FinishLink") != "")
+                fillProperties(true, "Prop_FinishLink", pms)
+            else
+                throw new XError("[FinishLink] not specified")
+
+
+            //9 Prop_CreationDateTime
+            if (pms.getString("CreationDateTime") != "")
+                fillProperties(true, "Prop_CreationDateTime", pms)
+            else
+                throw new XError("[CreationDateTime] not specified")
+
+            //10 Prop_Description
+            if (pms.getString("Description") != "")
+                fillProperties(true, "Prop_Description", pms)
+
+        } else if (mode.equalsIgnoreCase("upd")) {
+            own = pms.getLong("id")
+            par.put("fullName", par.get("name"))
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+
+            //1 Prop_Defect
+            updateProperties("Prop_Defect", pms)
+            //2 Prop_Inspection
+            updateProperties("Prop_Inspection", pms)
+            //3 Prop_StartKm
+            updateProperties("Prop_StartKm", pms)
+            //4 Prop_FinishKm
+            updateProperties("Prop_FinishKm", pms)
+            //5Prop_StartPicket
+            updateProperties("Prop_StartPicket", pms)
+            //6 Prop_FinishPicket
+            updateProperties("Prop_FinishPicket", pms)
+            //7 Prop_StartLink
+            updateProperties("Prop_StartLink", pms)
+            //8 Prop_FinishLink
+            updateProperties("Prop_FinishLink", pms)
+            //9 Prop_CreationDateTime
+            updateProperties("Prop_CreationDateTime", pms)
+            //10 Prop_CreatedAt
+            if (pms.containsKey("idDescription"))
+                updateProperties("Prop_Description", pms)
+            else {
+                if (pms.getString("Description") != "")
+                    fillProperties(true, "Prop_Description", pms)
+            }
+        } else {
+            throw new XError("Нейзвестный режим сохранения ('ins', 'upd')")
+        }
+
+        Map<String, Object> mapRez = new HashMap<>()
+        mapRez.put("id", own)
+        return null
+    }
+
 
     @DaoMethod
     Store loadObjClsWorkPlanInspectionUnfinishedByDate(Map<String, Object> params) {
@@ -1174,7 +1286,8 @@ Prop_DefectsComponent
         }
         //
         if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
-            if ( cod.equalsIgnoreCase("Prop_ReasonDeviation")) {
+            if ( cod.equalsIgnoreCase("Prop_ReasonDeviation") ||
+                    cod.equalsIgnoreCase("Prop_Description")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("multiStrVal", UtCnv.toString(params.get(keyValue)))
                 }
@@ -1193,6 +1306,16 @@ Prop_DefectsComponent
             } else
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
         }
+
+        if ([FD_AttribValType_consts.dttm].contains(attribValType)) {
+            if ( cod.equalsIgnoreCase("Prop_CreationDateTime")) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
+                    recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+        }
+
 
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
@@ -1234,10 +1357,13 @@ Prop_DefectsComponent
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
             }
         }
+        // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_LocationClsSection") ||
                     cod.equalsIgnoreCase("Prop_WorkPlan") ||
-                    cod.equalsIgnoreCase("Prop_User")) {
+                    cod.equalsIgnoreCase("Prop_User") ||
+                        cod.equalsIgnoreCase("Prop_Defect") ||
+                        cod.equalsIgnoreCase("Prop_Inspection")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
@@ -1311,7 +1437,8 @@ Prop_DefectsComponent
         }
 
         if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
-            if ( cod.equalsIgnoreCase("Prop_ReasonDeviation")) {
+            if ( cod.equalsIgnoreCase("Prop_ReasonDeviation") ||
+                    cod.equalsIgnoreCase("Prop_Discreption")) {
                 if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
                     sql = """
                         delete from DataPropVal where id=${idVal};
@@ -1349,6 +1476,23 @@ Prop_DefectsComponent
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
         }
 
+        if ([FD_AttribValType_consts.dttm].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_CreationDateTime")) {
+                if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
+                    sql = """
+                        delete from DataPropVal where id=${idVal};
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        );
+                    """
+                } else {
+                    sql = "update DataPropval set dateTimeVal='${strValue}', timeStamp='${tmst}' where id=${idVal}"
+                }
+            } else
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+        }
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
             if ( cod.equalsIgnoreCase("Prop_DeviationDefect")) {
@@ -1419,7 +1563,9 @@ Prop_DefectsComponent
         if ([FD_PropType_consts.typ].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_LocationClsSection") ||
                     cod.equalsIgnoreCase("Prop_WorkPlan") ||
-                    cod.equalsIgnoreCase("Prop_User")) {
+                    cod.equalsIgnoreCase("Prop_User") ||
+                        cod.equalsIgnoreCase("Prop_Defect") ||
+                        cod.equalsIgnoreCase("Prop_Inspection")) {
                 if (objRef > 0)
                     sql = "update DataPropval set propVal=${propVal}, obj=${objRef}, timeStamp='${tmst}' where id=${idVal}"
                 else {

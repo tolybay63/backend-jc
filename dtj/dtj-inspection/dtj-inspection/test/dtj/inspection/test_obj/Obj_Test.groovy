@@ -8,6 +8,29 @@ import org.junit.jupiter.api.Test
 
 class Obj_Test extends Apx_Test {
 
+    @Test
+    void testSaveFault() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("name", "test01 for datetime")
+        map.put("objDefect", 2213)
+        map.put("pvDefect", 1309)
+        map.put("objInspection", 1002)
+        map.put("pvInspection", 1291)
+        map.put("StartKm", 1)
+        map.put("FinishKm", 2)
+        map.put("StartPicket", 3)
+        map.put("FinishPicket", 4)
+        map.put("StartLink", 5)
+        map.put("FinishLink", 6)
+        map.put("CreationDateTime",  "2025-07-25T10:20:30.000")
+        map.put("Description", "test02")
+
+
+        Store st = dao.saveFault("ins", map)
+        mdb.outTable(st)
+
+    }
 
     @Test
     void test_findLocationOfCoord() {
