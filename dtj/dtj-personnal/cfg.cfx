@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
 
-<!--
     <cfg>
 
         <dbsource name="default"
                   dbdriver="postgresql"
                   host="192.168.1.39"
-                  database="dtj_nsidata"
+                  database="dtj_personnaldata"
                   username="pg"
                   password="1q2w3e4R"
         />
@@ -68,10 +67,19 @@
                   username="pg"
                   password="1q2w3e4R"
         />
+
         <dbsource name="orgstructuredata"
                   dbdriver="postgresql"
                   host="192.168.1.39"
                   database="dtj_orgstructuredata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="inspectiondata"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="dtj_inspectiondata"
                   username="pg"
                   password="1q2w3e4R"
         />
@@ -82,7 +90,7 @@
     <datadir>
         <path name="dbfilestorage" path="C:/dbfilestorage_dtj"/>
 
--->
+
 
 <!--
         <minio
@@ -95,6 +103,8 @@
 -->
 
 
-<!--    </datadir>-->
-    
+    </datadir>
+
+
+
 </root>

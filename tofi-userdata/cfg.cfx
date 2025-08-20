@@ -1,19 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-<!--
+
     <cfg>
+
         <dbsource name="default"
                   dbdriver="postgresql"
                   host="192.168.1.39"
-                  database="tt_userdata"
+                  database="dtj_userdata"
                   username="pg"
                   password="1q2w3e4R"
         />
 
         <dbsource name="meta"
+                  id="dtj"
                   dbdriver="postgresql"
                   host="192.168.1.39"
-                  database="tt_model"
+                  database="dtj_model"
                   username="pg"
                   password="1q2w3e4R"
         />
@@ -21,28 +23,88 @@
         <dbsource name="adm"
                   dbdriver="postgresql"
                   host="192.168.1.39"
-                  database="tt_admin"
-                  username="pg"
-                  password="1q2w3e4R"
-        />
-
-        <dbsource name="polldata"
-                  dbdriver="postgresql"
-                  host="192.168.1.39"
-                  database="tt_polls"
+                  database="dtj_admin"
                   username="pg"
                   password="1q2w3e4R"
         />
 
         <dbsource name="userdata"
                   dbdriver="postgresql"
-                  host="localhost"
-                  database="t_userdata"
+                  host="192.168.1.39"
+                  database="dtj_userdata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="nsidata"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="dtj_nsidata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="objectdata"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="dtj_objectdata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="plandata"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="dtj_plandata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="personnaldata"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="dtj_personnaldata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="orgstructuredata"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="dtj_orgstructuredata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="inspectiondata"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="dtj_inspectiondata"
                   username="pg"
                   password="1q2w3e4R"
         />
 
     </cfg>
+
+
+    <datadir>
+        <path name="dbfilestorage" path="C:/dbfilestorage_dtj"/>
+
+
+
+<!--
+        <minio
+                url="http://localhost:9000"
+                bucketName = "nsidata"
+                accessKey = "O9kIqOQfBobkdPZ7LOb1"
+                secretKey = "YoVr0eZNMnfpSP4SSBHQNtB67qUorZZEB0M2zqrB">
+
+        </minio>
 -->
-    
+
+
+    </datadir>
+
+
+
 </root>

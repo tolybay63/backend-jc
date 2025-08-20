@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-<!--
 
     <cfg>
 
@@ -86,7 +85,7 @@
         />
 
     </cfg>
--->
+
 
     <datadir>
         <path name="dbfilestorage" path="C:/dbfilestorage_dtj"/>

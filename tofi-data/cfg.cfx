@@ -1,75 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
 
-    <!--
-        <cfg>
-
-            <dbsource name="adm"
-                      dbdriver="postgresql"
-                      host="192.168.1.39"
-                      database="t_admin"
-                      username="pg"
-                      password="1q2w3e4R"
-            />
-
-            <dbsource name="meta"
-                      id="kpi"
-                      dbdriver="postgresql"
-                      host="192.168.1.39"
-                      database="t_model"
-                      username="pg"
-                      password="1q2w3e4R"
-            />
-
-            <dbsource name="userdata"
-                      dbdriver="postgresql"
-                      host="192.168.1.39"
-                      database="t_userdata"
-                      username="pg"
-                      password="1q2w3e4R"
-            />
-
-            <dbsource name="polldata"
-                      dbdriver="postgresql"
-                      host="192.168.1.39"
-                      database="t_polls"
-                      username="pg"
-                      password="1q2w3e4R"
-            />
-
-            <dbsource name="kpidata"
-                      dbdriver="postgresql"
-                      host="192.168.1.39"
-                      database="t_kpi"
-                      username="pg"
-                      password="1q2w3e4R"
-            />
-
-            <dbsource name="indicatordata"
-                      dbdriver="postgresql"
-                      host="192.168.1.39"
-                      database="t_monecoind"
-                      username="pg"
-                      password="1q2w3e4R"
-            />
-        </cfg>
-
-
     <cfg>
 
-        <dbsource name="adm"
+        <dbsource name="meta"
+                  id="dtj"
                   dbdriver="postgresql"
                   host="192.168.1.39"
-                  database="fish_admin"
+                  database="dtj_model"
                   username="pg"
                   password="1q2w3e4R"
         />
 
-        <dbsource name="meta"
-		  id="fish"
+        <dbsource name="adm"
                   dbdriver="postgresql"
                   host="192.168.1.39"
-                  database="fish_model"
+                  database="dtj_admin"
                   username="pg"
                   password="1q2w3e4R"
         />
@@ -77,24 +23,55 @@
         <dbsource name="userdata"
                   dbdriver="postgresql"
                   host="192.168.1.39"
-                  database="fish_userdata"
+                  database="dtj_userdata"
                   username="pg"
                   password="1q2w3e4R"
         />
-
 
         <dbsource name="nsidata"
                   dbdriver="postgresql"
                   host="192.168.1.39"
-                  database="fish_nsi"
+                  database="dtj_nsidata"
                   username="pg"
                   password="1q2w3e4R"
         />
 
-        <dbsource name="monitoringdata"
+        <dbsource name="objectdata"
                   dbdriver="postgresql"
                   host="192.168.1.39"
-                  database="fish_monitoring"
+                  database="dtj_objectdata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="plandata"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="dtj_plandata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="personnaldata"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="dtj_personnaldata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="orgstructuredata"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="dtj_orgstructuredata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="inspectiondata"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="dtj_inspectiondata"
                   username="pg"
                   password="1q2w3e4R"
         />
@@ -102,21 +79,24 @@
     </cfg>
 
 
+    <datadir>
+        <path name="dbfilestorage" path="C:/dbfilestorage_dtj"/>
 
 
 
-        <datadir>
-            <path name="dbfilestorage" path="c:/dbfilestorage"/>
+<!--
+        <minio
+                url="http://localhost:9000"
+                bucketName = "nsidata"
+                accessKey = "O9kIqOQfBobkdPZ7LOb1"
+                secretKey = "YoVr0eZNMnfpSP4SSBHQNtB67qUorZZEB0M2zqrB">
 
-            <minio
-                    url="http://127.0.0.1:9000"
-                    bucketName = "ksi_factor_tofi_test"
-                    accessKey = "qd5tXs2vcea7DeFzWYaz"
-                    secretKey = "WYLjNiLmdHPwfdKCBUN7O2E9iEovEGLRe2l4p5ND">
-            </minio>
+        </minio>
+-->
 
-        </datadir>
 
-    -->
+    </datadir>
+
+
 
 </root>
