@@ -320,16 +320,18 @@ class DataDao extends BaseMdbUtils {
             own = eu.insertEntity(par)
             pms.put("own", own)
 
-/*
-Prop_StartKm Prop_FinishKm Prop_StartPicket Prop_FinishPicket
-Prop_StartLink Prop_FinishLink Prop_CreationDateTime Prop_Description
-*/
-
             //1 Prop_Defect
             if (pms.getLong("objDefect") > 0)
                 fillProperties(true, "Prop_Defect", pms)
             else
                 throw new XError("[objDefect] not specified")
+
+            //1.1 Prop_LocationClsSection
+            if (pms.getLong("objLocationClsSection") > 0)
+                fillProperties(true, "Prop_LocationClsSection", pms)
+            else
+                throw new XError("[objLocationClsSection] not specified")
+
             //2 Prop_Inspection
             if (pms.getLong("objInspection") > 0)
                 fillProperties(true, "Prop_Inspection", pms)
@@ -378,6 +380,12 @@ Prop_StartLink Prop_FinishLink Prop_CreationDateTime Prop_Description
             else
                 throw new XError("[CreationDateTime] not specified")
 
+            //9.1 Prop_FactDateEnd
+            if (pms.getString("FactDateEnd") != "")
+                fillProperties(true, "Prop_FactDateEnd", pms)
+            else
+                throw new XError("[FactDateEnd] not specified")
+
             //10 Prop_Description
             if (pms.getString("Description") != "")
                 fillProperties(true, "Prop_Description", pms)
@@ -391,6 +399,10 @@ Prop_StartLink Prop_FinishLink Prop_CreationDateTime Prop_Description
 
             //1 Prop_Defect
             updateProperties("Prop_Defect", pms)
+
+            //1.1 Prop_LocationClsSection
+            updateProperties("Prop_LocationClsSection", pms)
+
             //2 Prop_Inspection
             updateProperties("Prop_Inspection", pms)
             //3 Prop_StartKm
@@ -407,6 +419,8 @@ Prop_StartLink Prop_FinishLink Prop_CreationDateTime Prop_Description
             updateProperties("Prop_FinishLink", pms)
             //9 Prop_CreationDateTime
             updateProperties("Prop_CreationDateTime", pms)
+            //9.1 Prop_FactDateEnd
+            updateProperties("Prop_FactDateEnd", pms)
             //10 Prop_CreatedAt
             if (pms.containsKey("idDescription"))
                 updateProperties("Prop_Description", pms)

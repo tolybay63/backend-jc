@@ -78,7 +78,6 @@
 
     </domain>
 
-
     <domain name="Obj.fault" parent="base">
         <field name="id" parent="long"/>
         <field name="cls" parent="long"/>
@@ -91,6 +90,10 @@
         <field name="idDefect" parent="long"/>
         <field name="pvDefect" parent="long"/>
         <field name="objDefect" parent="long"/>
+
+        <field name="idLocationClsSection" parent="long"/>
+        <field name="pvLocationClsSection" parent="long"/>
+        <field name="objLocationClsSection" parent="long"/>
 
         <field name="idStartKm" parent="long"/>
         <field name="StartKm" parent="double"/>
@@ -114,7 +117,10 @@
         <field name="FinishLink" parent="double"/>
 
         <field name="idCreationDateTime" parent="long"/>
-        <field name="CreationDateTime" parent="datetime"/>
+        <field name="CreationDateTime" parent="string"/>
+
+        <field name="idFactDateEnd" parent="long"/>
+        <field name="FactDateEnd" parent="string"/>
 
         <field name="idDescription" parent="long"/>
         <field name="Description" parent="string"/>
