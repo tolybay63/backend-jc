@@ -74,23 +74,23 @@ class ApiAdmImpl extends BaseMdbUtils implements ApiAdm {
 
     @Override
     long regUser(Map<String, Object> rec) {
-        String psw = UtString.md5Str(UtCnv.toString(rec.get("passwd")));
-        String login = UtString.toString(rec.get("login")).trim();
+        String psw = UtString.md5Str(UtCnv.toString(rec.get("passwd")))
+        String login = UtString.toString(rec.get("login")).trim()
         Store st = mdb.loadQuery("""
                     select id from AuthUser where login like :l
-                """, Map.of("l", login));
+                """, Map.of("l", login))
         if (st.size() > 0) {
-            throw new XError("loginExists");
+            throw new XError("loginExists")
         }
 
-        rec.put("passwd", psw);
+        rec.put("passwd", psw)
 
         //
-        st = mdb.createStore("AuthUser");
-        StoreRecord r = st.add(rec);
-        r.set("authUserGr", 2);
-        r.set("locked", 0);
-        return mdb.insertRec("AuthUser", r, true);
+        st = mdb.createStore("AuthUser")
+        StoreRecord r = st.add(rec)
+        r.set("authUserGr", 2)
+        r.set("locked", 0)
+        return mdb.insertRec("AuthUser", r, true)
     }
 
     @Override
