@@ -43,6 +43,7 @@ import tofi.apinator.ApinatorService
 
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.util.stream.Stream
 
 @CompileStatic
 class DataDao extends BaseMdbUtils {
@@ -1454,6 +1455,156 @@ class DataDao extends BaseMdbUtils {
 
         return st
     }
+
+    @DaoMethod
+    void saveRelObj(Map<String, Object> params) {
+        String codRelTyp = UtCnv.toString(params.get("codRelTyp"))
+        long uch1 = UtCnv.toLong(params.get("uch1"))
+        long cls1 = UtCnv.toLong(params.get("cls1"))
+        long uch2 = UtCnv.toLong(params.get("uch2"))
+        long cls2 = UtCnv.toLong(params.get("cls2"))
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelTyp", codRelTyp, "")
+        Store stTmp = loadSqlMeta("""
+            select relcls from relclsmember
+            where relcls in (
+                select id from RelCls where reltyp=${map.get(codRelTyp)}
+            )
+            and cls=${cls1}
+            and relcls in (
+                select relcls from relclsmember
+                where relcls in (
+                    select id from RelCls where reltyp=${map.get(codRelTyp)}
+                )
+                and cls=${cls2}
+            )
+        """, "")
+
+        long relcls = stTmp.get(0).getLong("relcls")
+
+        Store stRCM = loadSqlMeta("""
+            select id 
+            from RelClsMember
+            where relcls=${relcls}
+            order by id           
+        """, "")
+        long rcm1 = stRCM.get(0).getLong("id")
+        long rcm2 = stRCM.get(1).getLong("id")
+
+        String name = UtCnv.toString(params.get("name"))
+
+        Map<String, Object> rec = new HashMap<>()
+        rec.put("relcls", relcls)
+        rec.put("name", name)
+        rec.put("fullName", name)
+        EntityMdbUtils ue = new EntityMdbUtils(mdb, "RelObj")
+        long idRelObj = ue.insertEntity(rec)
+        //
+        rec = new HashMap<>()
+        rec.put("relobj", idRelObj)
+        rec.put("relclsmember", rcm1)
+        rec.put("cls", cls1)
+        rec.put("obj", uch1)
+        mdb.insertRec("RelObjMember", rec, true)
+        //
+        rec = new HashMap<>()
+        rec.put("relobj", idRelObj)
+        rec.put("relclsmember", rcm2)
+        rec.put("cls", cls2)
+        rec.put("obj", uch2)
+        mdb.insertRec("RelObjMember", rec, true)
+    }
+
+    @DaoMethod
+    Store loadObjFromTyp(String codTyp) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", codTyp, "")
+        Store stTmp = loadSqlMeta("""
+            select id from Cls where typ = ${map.get(codTyp)}
+        """, "")
+        Set<Object> idsCls = stTmp.getUniqueValues("id")
+        Store st = mdb.loadQuery("""
+            select o.id, o.cls, v.name, v.fullname
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
+        """)
+        return st
+    }
+
+    @DaoMethod
+    Store loadUch2(String codRelTyp, long idUch1, String codTyp2) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelTyp", codRelTyp, "")
+
+        Store stTmp = loadSqlMeta("""
+            select id from RelCls where reltyp=${map.get(codRelTyp)}
+        """, "")
+        String idsRelCls = stTmp.getUniqueValues("id").join(",")
+
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", codTyp2, "")
+
+        stTmp = loadSqlMeta("""
+            select id from Cls where typ=${map.get(codTyp2)}
+        """, "")
+        String idsCls2 = stTmp.getUniqueValues("id").join(",")
+
+        Store stRelObj = mdb.loadQuery("""
+            select r2.obj
+            from RelObj o
+                inner join RelObjMember r1 on o.id=r1.relobj and r1.obj=(${idUch1})
+                left join RelObjMember r2 on o.id=r2.relobj and r2.cls in (${idsCls2})
+                left join ObjVer v1 on r1.obj=v1.ownerver and v1.lastver=1
+                left join ObjVer v2 on r2.obj=v2.ownerver and v2.lastver=1
+            where o.relcls in (${idsRelCls})
+        """)
+        //
+        Set<Object> idsUch2 = stRelObj.getUniqueValues("obj")
+
+        stTmp = loadSqlMeta("""
+            select id from Cls where typ = ${map.get(codTyp2)}
+        """, "")
+        Set<Object> idsCls = stTmp.getUniqueValues("id")
+        Store st = mdb.loadQuery("""
+            select o.id, o.cls, v.name, v.fullname
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
+                and o.id not in (${idsUch2.join(",")})
+        """)
+        return st
+    }
+
+
+    @DaoMethod
+    Store loadComponentsObject2(String codRelTyp, String codTyp1, String codTyp2) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelTyp", codRelTyp, "")
+
+        Store stTmp = loadSqlMeta("""
+            select id from RelCls where reltyp=${map.get(codRelTyp)}
+        """, "")
+        String idsRelCls = stTmp.getUniqueValues("id").join(",")
+//Typ_ObjectTyp 1002 Typ_Components 1006
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "", "Typ_%")
+        stTmp = loadSqlMeta("""
+            select id from Cls where typ=${map.get(codTyp1)}
+        """, "")
+        String idsCls1 = stTmp.getUniqueValues("id").join(",")
+
+        stTmp = loadSqlMeta("""
+            select id from Cls where typ=${map.get(codTyp2)}
+        """, "")
+        String idsCls2 = stTmp.getUniqueValues("id").join(",")
+
+        Store stRelObj = mdb.loadQuery("""
+            select o.id as idRO, r1.obj as idROM1, r1.cls as clsROM1, v1.fullname as nameROM1, 
+                r2.obj as idROM2, r2.cls as clsROM2, v2.name as nameROM2
+            from RelObj o
+                left join RelObjMember r1 on o.id=r1.relobj and r1.cls in (${idsCls1})
+                left join RelObjMember r2 on o.id=r2.relobj and r2.cls in (${idsCls2})
+                left join ObjVer v1 on r1.obj=v1.ownerver and v1.lastver=1
+                left join ObjVer v2 on r2.obj=v2.ownerver and v2.lastver=1
+            where o.relcls in (${idsRelCls})
+        """)
+        return stRelObj
+    }
+
+
 
     @DaoMethod
     Store loadRelObjMember(long relobj) {
