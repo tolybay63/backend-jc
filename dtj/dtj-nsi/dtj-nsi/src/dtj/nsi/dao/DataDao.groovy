@@ -1479,6 +1479,9 @@ class DataDao extends BaseMdbUtils {
             )
         """, "")
 
+        if (stTmp.size()==0)
+            throw new XError("Отношение классов не найден")
+
         long relcls = stTmp.get(0).getLong("relcls")
 
         Store stRCM = loadSqlMeta("""
@@ -1565,7 +1568,7 @@ class DataDao extends BaseMdbUtils {
             select o.id, o.cls, v.name, v.fullname
             from Obj o, ObjVer v
             where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
-                and o.id not in (${idsUch2.join(",")})
+                and o.id not in (0${idsUch2.join(",")})
         """)
         return st
     }
