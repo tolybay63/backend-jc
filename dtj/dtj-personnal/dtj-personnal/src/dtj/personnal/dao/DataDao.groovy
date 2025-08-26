@@ -8,6 +8,7 @@ import jandcode.commons.datetime.XDateTimeFormatter
 import jandcode.commons.error.XError
 import jandcode.commons.variant.VariantMap
 import jandcode.core.auth.AuthService
+import jandcode.core.auth.AuthUser
 import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.std.CfgService
@@ -728,6 +729,17 @@ class DataDao extends BaseMdbUtils {
         else
             throw new XError("Unknown model [${model}]")
     }
+
+    @DaoMethod
+    Map<String, Object> getCurUserInfo() {
+        AuthService authSvc = mdb.getApp().bean(AuthService.class)
+        AuthUser au = authSvc.getCurrentUser()
+        if (au == null) {
+            throw new XError("NotLogined")
+        }
+        return au.getAttrs()
+    }
+
 
     private long getUser() throws Exception {
         AuthService authSvc = mdb.getApp().bean(AuthService.class)
