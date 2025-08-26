@@ -17,7 +17,7 @@ public class TofiAuthProcessor extends BaseComp implements AuthProcessor {
 
         var admApi = getApp().bean(ApinatorService.class).getApi("adm");
         var z = admApi.get(ApiAdm.class);
-        var attrs = z.getUserInfo(token.getUsername(), token.getPasswd(), "nsi");
+        var attrs = z.getUserInfo(token.getUsername(), token.getPasswd(), "dtj");
 
 
         if (attrs.isEmpty()) {

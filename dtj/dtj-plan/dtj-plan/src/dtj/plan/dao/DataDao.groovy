@@ -127,12 +127,12 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store getPersonnalInfo(long userId) {
-
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_UserId", "")
         Store st = loadSqlService("""
-            select o.id
-            from Obj o
-            left join DataProp d on d.isObj=1 and d.prop=:Prop_UserId
-            left join DataPropVal v on d.id=v.dataProp and v.strVal='${userId}'
+            select d.objorrelobj as id
+            from DataPropVal v 
+            inner join DataProp d on d.id=v.dataProp and d.isObj=1 and d.prop=${map.get("Prop_UserId")}
+            where v.strVal='${userId}'
         """, "", "personnaldata")
 
         if (st.size() == 0)
