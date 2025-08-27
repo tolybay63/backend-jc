@@ -45,4 +45,34 @@ public interface ApiObjectData {
      * @param isObj 1=>Obj, 0=>RelObj
      */
     boolean checkExistOwners(long clsORrelcls, boolean isObj);
+
+    /**
+     *
+     * @param tableName name of table
+     * @param params params
+     * @return id of table
+     */
+    long insertRecToTable(String tableName, Map<String, Object> params, boolean generateId);
+
+    /**
+     *
+     * @param tableName name of table
+     * @param params params Map
+     */
+    void updateTable(String tableName, Map<String, Object> params);
+
+    /**
+     *
+     * @param sql text sql
+     */
+    void execSql(String sql);
+
+    /**
+     * create Owner
+     * @param params params
+     */
+    long createOwner(Map<String, Object> params);
+
+    void deleteOwnerWithProperties(long id, int isObj);
+
 }
