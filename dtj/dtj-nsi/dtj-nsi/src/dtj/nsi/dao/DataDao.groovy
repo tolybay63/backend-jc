@@ -1748,7 +1748,6 @@ class DataDao extends BaseMdbUtils {
     }
 
 //todo Delete!
-/*
 
     @DaoMethod
     Store loadFvCategory(String codFactor) {
@@ -1770,7 +1769,9 @@ class DataDao extends BaseMdbUtils {
         return loadFvForSelect(codFactor)
     }
 
-*/
+    Store loadFvForSelect(String codFactor) {
+        return apiMeta().get(ApiMeta).loadFactorVals(codFactor)
+    }
 
     @DaoMethod
     long getCls(long obj) {
