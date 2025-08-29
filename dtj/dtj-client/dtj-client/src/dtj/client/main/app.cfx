@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <app
+            title="DtjClient"
+            mainmodule="dtj.client"
+    />
+
+    <x-depends module="dtj.client"/>
+
+</root>

@@ -5,25 +5,26 @@
         <mount-module/>
 
         <action name="root"
-                class = "dtj.plan.action.RootAction"
+                class = "dtj.client.action.RootAction"
         />
 
         <action name="auth"
                 class="jandcode.core.apx.auth.AuthAction"/>
+
         <action name="download"
-                class = "dtj.plan.action.DownloadAction"
+                class = "dtj.client.action.DownloadAction"
         />
 
         <action name="deletefile"
-                class = "dtj.plan.action.DeletefileAction"
+                class = "dtj.client.action.DeletefileAction"
         />
 
         <action name="upload"
-                class = "dtj.plan.action.UploadAction"
+                class = "dtj.client.action.UploadAction"
         />
-        <type name="dtj.plan.action.DownFile"
+        <type name="dtj.client.action.DownFile"
               render="downfile"/>
-        <render name="downfile" class="tdtj.plan.action.DownFileRender"/>
+        <render name="downfile" class="tdtj.client.action.DownFileRender"/>
 
 
     </web>
@@ -33,7 +34,7 @@
 
         <!-- AuthProcessor. По умолчанию - заглушка для admin/111, user1/111 -->
         <auth-processor name="default"
-                        class="dtj.plan.auth.TofiAuthProcessor"/>
+                        class="dtj.client.auth.TofiAuthProcessor"/>
 
     </bean>
 
