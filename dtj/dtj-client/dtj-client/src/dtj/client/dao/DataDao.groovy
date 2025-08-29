@@ -105,6 +105,8 @@ class DataDao extends BaseMdbUtils {
         //
         long own
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        if (UtCnv.toString(params.get("name")).trim().isEmpty())
+            throw new XError("[name] не указан")
         Map<String, Object> par = new HashMap<>(pms)
         if (mode.equalsIgnoreCase("ins")) {
             Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Client", "")
