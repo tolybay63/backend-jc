@@ -11,8 +11,8 @@ import jandcode.core.auth.AuthService
 import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
-import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
+import tofi.api.dta.ApiClientData
 import tofi.api.dta.ApiInspectionData
 import tofi.api.dta.ApiNSIData
 import tofi.api.dta.ApiObjectData
@@ -29,6 +29,8 @@ import tofi.api.mdl.model.consts.FD_PropType_consts
 import tofi.api.mdl.utils.UtPeriod
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
+
+import java.sql.ClientInfoStatus
 
 
 @CompileStatic
@@ -57,6 +59,9 @@ class DataDao extends BaseMdbUtils {
     }
     ApinatorApi apiInspectionData() {
         return app.bean(ApinatorService).getApi("inspectiondata")
+    }
+    ApinatorApi apiClientData() {
+        return app.bean(ApinatorService).getApi("clientdata")
     }
 
     @DaoMethod
@@ -102,6 +107,8 @@ class DataDao extends BaseMdbUtils {
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
         Map<String, Object> par = new HashMap<>(pms)
         if (mode.equalsIgnoreCase("ins")) {
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Client", "")
+            par.put("cls", map.get("Cls_Client"))
             par.put("fullName", par.get("name"))
             own = eu.insertEntity(par)
             pms.put("own", own)
@@ -109,7 +116,7 @@ class DataDao extends BaseMdbUtils {
             if (!pms.getString("BIN") || pms.getString("BIN") == "")
                 throw new XError("[BIN] не указан")
             else
-                fillProperties(true, "Prop_Address", pms)
+                fillProperties(true, "Prop_BIN", pms)
             //2 Prop_ContactPerson
             if (!pms.getString("ContactPerson") || pms.getString("ContactPerson") == "")
                 throw new XError("[ContactPerson] не указан")
@@ -154,8 +161,101 @@ class DataDao extends BaseMdbUtils {
         return loadClient(own)
     }
 
+    /**
+     *
+     * @param id Id Obj
+     * Delete object with properties
+     */
+    @DaoMethod
+    void deleteObjWithProperties(long id) {
+        validateForDeleteOwner(id)
+        //
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        mdb.execQueryNative("""
+            delete from DataPropVal
+            where dataProp in (select id from DataProp where isobj=1 and objorrelobj=${id});
+            delete from DataProp where id in (
+                select id from dataprop
+                except
+                select dataProp as id from DataPropVal
+            );
+        """)
+        //
+        eu.deleteEntity(id)
+    }
 
+    private void validateForDeleteOwner(long owner) {
+        //---< check data in other DB
+        Store stObj = mdb.loadQuery("""
+            select o.cls, v.name from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id=${owner}
+        """)
+        if (stObj.size() > 0) {
+            //
+            List<String> lstService = new ArrayList<>()
+            long cls = stObj.get(0).getLong("cls")
+            String name = stObj.get(0).getString("name")
+            Store stPV = loadSqlMeta("""
+                select id from PropVal where cls=${cls}
+            """, "")
+            Set<Object> idsPV = stPV.getUniqueValues("id")
+            if (stPV.size() > 0) {
+                Store stData = loadSqlService("""
+                    select id from DataPropVal
+                    where propval in (${idsPV.join(",")}) and obj=${owner}
+                """, "", "nsidata")
+                if (stData.size() > 0)
+                    lstService.add("nsidata")
+                //
+                stData = loadSqlService("""
+                    select id from DataPropVal
+                    where propval in (${idsPV.join(",")}) and obj=${owner}
+                """, "", "objectdata")
+                if (stData.size() > 0)
+                    lstService.add("objectdata")
+                //
+                stData = loadSqlService("""
+                    select id from DataPropVal
+                    where propval in (${idsPV.join(",")}) and obj=${owner}
+                """, "", "orgstructuredata")
+                if (stData.size() > 0)
+                    lstService.add("orgstructuredata")
+                //
+                stData = loadSqlService("""
+                    select id from DataPropVal
+                    where propval in (${idsPV.join(",")}) and obj=${owner}
+                """, "", "personnaldata")
+                if (stData.size() > 0)
+                    lstService.add("personnaldata")
+                //
+                stData = loadSqlService("""
+                    select id from DataPropVal
+                    where propval in (${idsPV.join(",")}) and obj=${owner}
+                """, "", "plandata")
+                if (stData.size() > 0)
+                    lstService.add("plandata")
+                //
+                stData = loadSqlService("""
+                    select id from DataPropVal
+                    where propval in (${idsPV.join(",")}) and obj=${owner}
+                """, "", "inspectiondata")
+                if (stData.size() > 0)
+                    lstService.add("inspectiondata")
+                //
+                stData = loadSqlService("""
+                    select id from DataPropVal
+                    where propval in (${idsPV.join(",")}) and obj=${owner}
+                """, "", "clientdata")
+                if (stData.size() > 0)
+                    lstService.add("clientndata")
+                //
 
+                if (lstService.size()>0) {
+                    throw new XError("${name} используется в ["+ lstService.join(", ") + "]")
+                }
+
+            }
+        }
+    }
 
 
 
@@ -224,13 +324,9 @@ class DataDao extends BaseMdbUtils {
         recDPV.set("dataProp", idDP)
         // Attrib
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_TabNumber") ||
-                    cod.equalsIgnoreCase("Prop_UserSecondName") ||
-                    cod.equalsIgnoreCase("Prop_UserFirstName") ||
-                    cod.equalsIgnoreCase("Prop_UserMiddleName") ||
-                    cod.equalsIgnoreCase("Prop_UserEmail") ||
-                    cod.equalsIgnoreCase("Prop_UserPhone") ||
-                    cod.equalsIgnoreCase("Prop_UserId")) {
+            if (cod.equalsIgnoreCase("Prop_BIN") ||
+                    cod.equalsIgnoreCase("Prop_ContactPerson") ||
+                    cod.equalsIgnoreCase("Prop_ContactDetails")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
                 }
@@ -250,9 +346,7 @@ class DataDao extends BaseMdbUtils {
         }
 
         if ([FD_AttribValType_consts.dt].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_CreatedAt") ||
-                    cod.equalsIgnoreCase("Prop_UpdatedAt") ||
-                    cod.equalsIgnoreCase("Prop_PlanDateEnd")) {
+            if (cod.equalsIgnoreCase("Prop_CreatedAt")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
                 }
@@ -284,10 +378,7 @@ class DataDao extends BaseMdbUtils {
 
         // For Meter
         if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_StartKm") ||
-                    cod.equalsIgnoreCase("Prop_FinishKm") ||
-                    cod.equalsIgnoreCase("Prop_StartPicket") ||
-                    cod.equalsIgnoreCase("Prop_FinishPicket")) {
+            if (cod.equalsIgnoreCase("Prop_StartKm")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     double v = UtCnv.toDouble(params.get(keyValue))
                     v = v / koef
@@ -299,10 +390,7 @@ class DataDao extends BaseMdbUtils {
             }
         }
         if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_LocationClsSection") ||
-                    cod.equalsIgnoreCase("Prop_Work") ||
-                    cod.equalsIgnoreCase("Prop_Object") ||
-                    cod.equalsIgnoreCase("Prop_User")) {
+            if (cod.equalsIgnoreCase("Prop_LocationClsSection")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
@@ -523,6 +611,8 @@ class DataDao extends BaseMdbUtils {
             return apiPlanData().get(ApiPlanData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("inspectiondata"))
             return apiInspectionData().get(ApiInspectionData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("clientdata"))
+            return apiClientData().get(ApiClientData).loadSql(sql, domain)
         else
             throw new XError("Unknown model [${model}]")
     }
@@ -542,6 +632,8 @@ class DataDao extends BaseMdbUtils {
             return apiOrgStructureData().get(ApiOrgStructureData).loadSqlWithParams(sql, params, domain)
         else if (model.equalsIgnoreCase("inspectiondata"))
             return apiInspectionData().get(ApiInspectionData).loadSqlWithParams(sql, params, domain)
+        else if (model.equalsIgnoreCase("clientdata"))
+            return apiClientData().get(ApiClientData).loadSqlWithParams(sql, params, domain)
         else
             throw new XError("Unknown model [${model}]")
     }

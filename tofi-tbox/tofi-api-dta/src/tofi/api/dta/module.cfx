@@ -68,6 +68,11 @@
                   class="tofi.api.dta.impl.ApiInspectionDataImpl"/>
         </api>
 
+        <api name="clientdata" invoker="model" model="clientdata">
+            <item name="tofi.api.dta.ApiClientData"
+                  class="tofi.api.dta.impl.ApiClientDataImpl"/>
+        </api>
+
     </apinator>
 
 

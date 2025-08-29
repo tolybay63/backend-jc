@@ -1,4 +1,4 @@
-package dtj.clinent.auth;
+package dtj.client.auth;
 
 import jandcode.core.BaseComp;
 import jandcode.core.auth.*;
