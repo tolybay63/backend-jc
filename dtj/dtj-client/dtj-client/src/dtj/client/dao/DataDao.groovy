@@ -1,4 +1,4 @@
-package dtj.clinent.dao
+package dtj.client.dao
 
 import groovy.transform.CompileStatic
 import jandcode.commons.UtCnv
@@ -37,34 +37,126 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
     }
-
     ApinatorApi apiUserData() {
         return app.bean(ApinatorService).getApi("userdata")
     }
-
     ApinatorApi apiNSIData() {
         return app.bean(ApinatorService).getApi("nsidata")
     }
-
     ApinatorApi apiPersonnalData() {
         return app.bean(ApinatorService).getApi("personnaldata")
     }
-
     ApinatorApi apiOrgStructureData() {
         return app.bean(ApinatorService).getApi("orgstructuredata")
     }
-
     ApinatorApi apiObjectData() {
         return app.bean(ApinatorService).getApi("objectdata")
     }
-
     ApinatorApi apiPlanData() {
         return app.bean(ApinatorService).getApi("plandata")
     }
-
     ApinatorApi apiInspectionData() {
         return app.bean(ApinatorService).getApi("inspectiondata")
     }
+
+    @DaoMethod
+    Store loadClient(long id) {
+
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Client", "")
+        Store st = mdb.createStore("Obj.Client")
+
+
+        String whe = "o.id=${id}"
+        if (id==0)
+            whe = "o.cls=${map.get("Cls_Client")}"
+
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+
+        mdb.loadQuery(st, """
+            select o.id, o.cls, v.name,
+                v1.id as idBIN, v1.strVal as BIN,
+                v2.id as idContactPerson, v2.strVal as ContactPerson,
+                v3.id as idContactDetails, v3.strVal as ContactDetails,
+                v4.id as idDescription, v4.multiStrVal as Description
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_BIN
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_ContactPerson
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_ContactDetails
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Description
+                left join DataPropVal v4 on d4.id=v4.dataprop
+            where ${whe}
+        """, map)
+        //
+        return st
+    }
+
+    @DaoMethod
+    Store saveClient(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        //
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        Map<String, Object> par = new HashMap<>(pms)
+        if (mode.equalsIgnoreCase("ins")) {
+            par.put("fullName", par.get("name"))
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+            //1 Prop_BIN
+            if (!pms.getString("BIN") || pms.getString("BIN") == "")
+                throw new XError("[BIN] не указан")
+            else
+                fillProperties(true, "Prop_Address", pms)
+            //2 Prop_ContactPerson
+            if (!pms.getString("ContactPerson") || pms.getString("ContactPerson") == "")
+                throw new XError("[ContactPerson] не указан")
+            else
+                fillProperties(true, "Prop_ContactPerson", pms)
+            //3 Prop_ContactDetails
+            if (!pms.getString("ContactDetails") || pms.getString("ContactDetails") == "")
+                throw new XError("[ContactDetails] не указан")
+            else
+                fillProperties(true, "Prop_ContactDetails", pms)
+            //4 Prop_Description
+            if (pms.getString("Description") != "")
+                fillProperties(true, "Prop_Description", pms)
+
+        } else if (mode.equalsIgnoreCase("upd")) {
+            own = pms.getLong("id")
+            par.put("fullName", par.get("name"))
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+
+            //1 Prop_BIN
+            if (pms.containsKey("idBIN"))
+                updateProperties("Prop_BIN", pms)
+            //2 Prop_ContactPerson
+            if (pms.containsKey("idContactPerson"))
+                updateProperties("Prop_ContactPerson", pms)
+            //3 Prop_ContactDetails
+            if (pms.containsKey("idContactDetails"))
+                updateProperties("Prop_ContactDetails", pms)
+            //4 Prop_Description
+            if (pms.containsKey("idDescription"))
+                updateProperties("Prop_Description", pms)
+            else {
+                if (!pms.getString("Description").isEmpty())
+                    fillProperties(true, "Prop_Description", pms)
+            }
+        } else {
+            throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
+        }
+        //
+        return loadClient(own)
+    }
+
+
+
+
 
 
     //-------------------------
