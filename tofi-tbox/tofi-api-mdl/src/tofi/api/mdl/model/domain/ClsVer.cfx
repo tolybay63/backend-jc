@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="ClsVer" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1"
+            title="Версионная часть класса">
+        <!--@
+            В этой таблице хранится значения части свойств типа в определенный
+            период dbeg-dend. Каждый тип имеет как минимум одну запись ClsVer
+        -->
+
+        <field name="ownerVer" parent="Cls/ref">
+            <!--@
+                Ссылка на класс объектов.
+            -->
+        </field>
+
+        <include name="VerTable"/>
+
+
+    </domain>
+
+</root>

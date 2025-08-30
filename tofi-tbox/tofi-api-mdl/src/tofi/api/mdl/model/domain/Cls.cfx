@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="Cls" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Классы">
+
+        <field name="accessLevel" parent="long"/>
+        <field name="typ" parent="long"/>
+        <field name="cod" parent="f.cod"/>
+
+        <field name="isOpenness" parent="boolean"
+               title="Открытость класса" req="true">
+            <!--@
+                Открытость типа объектов.
+            -->
+        </field>
+
+        <field name="dataBase" parent="long" req="true"/>
+
+        <field name="cmt" parent="f.cmt"/>
+        <field name="ord" parent="f.ord"/>
+
+    </domain>
+
+    <domain name="Cls.full" parent="Cls">
+        <include name="VerTable"/>
+
+    </domain>
+
+</root>

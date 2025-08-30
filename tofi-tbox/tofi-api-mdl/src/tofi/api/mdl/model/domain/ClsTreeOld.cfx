@@ -1,8 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
+<!--
+
+    <domain name="Cls" parent="id" >
+
+        <field name="accessLevel" parent="ref"/>
+        <field name="typ" parent="ref"/>
+        <field name="cod" parent="string"/>
+
+        <field name="isOpenness" parent="boolean"
+               title="Открытость класса" req="true">
+            &lt;!&ndash;@
+                Открытость типа объектов.
+            &ndash;&gt;
+        </field>
+
+        <field name="dataBase" parent="ref"/>
+
+        <field name="cmt" parent="memo"/>
+        <field name="ord" parent="long"/>
+
+    </domain>
 
     <domain name="ClsTree" parent="Cls">
-        <!-- Дерево классов -->
+        &lt;!&ndash; Дерево классов &ndash;&gt;
         <field name="id" parent="string"/>
         <field name="parent" parent="string"/>
         <field name="name" parent="string"/>
@@ -12,7 +33,6 @@
         <field name="isOwn" parent="int"/>
         <field name="typParent" parent="long"/>
     </domain>
-
 
     <domain name="ClsTemp" parent="id">
         <field name="id" parent="string"/>
@@ -27,5 +47,8 @@
     <domain name="ClsFV.factorVal" parent="id">
         <field name="factorVal" parent="long"/>
     </domain>
+
+-->
+
 
 </root>

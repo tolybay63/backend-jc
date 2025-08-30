@@ -1,6 +1,7 @@
 package tofi.api.mdl.impl
 
 import jandcode.commons.UtCnv
+import jandcode.commons.UtString
 import jandcode.commons.datetime.XDate
 import jandcode.commons.datetime.XDateTimeFormatter
 import jandcode.commons.error.XError
@@ -8,10 +9,14 @@ import jandcode.core.auth.AuthService
 import jandcode.core.dbm.dict.DictService
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
+import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
 import tofi.api.mdl.ApiMeta
+import tofi.api.mdl.model.consts.FD_MemberType_consts
 import tofi.api.mdl.model.consts.FD_PropType_consts
+import tofi.api.mdl.utils.CartesianProduct
 import tofi.api.mdl.utils.ClsTreeUtils
+import tofi.api.mdl.utils.EntityMdbUtils
 import tofi.api.mdl.utils.UtPeriod
 import tofi.api.mdl.utils.dbfilestorage.DbFileStorageService
 
@@ -287,7 +292,6 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
         return st
     }
 
-
     @Override
     long idPV(String entity, long idEntity, String codProp) {
         Store st = mdb.loadQuery("""
@@ -398,6 +402,28 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
         }
         return st
     }
+
+    @Override
+    Store loadFactorValsWithPV(String codFactor) {
+        Store st = mdb.loadQuery("""
+            select fv.id, fv.name, 0 as pv
+            from Factor fv
+                inner join Factor f on fv.parent=f.id
+            where f.cod like '${codFactor}'
+            order by fv.ord
+        """)
+
+        if (st.size()==0)
+            throw new XError("NotFoundCod@${codFactor}")
+
+        Map<Long, Long> map = mapEntityIdFromPV("factorVal", false)
+
+        for (StoreRecord rec in st) {
+            rec.set("pv", map.get(rec.getLong("id")))
+        }
+        return st
+    }
+
 
     @Override
     Map<String, Store> infoFlatTable(String ft_cod) {
@@ -583,4 +609,250 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
         return cu.ListClsParents(typ, cls)
     }
 
+    @Override
+    long createFactorVal(long factor, String nameFV) {
+        EntityMdbUtils ut = new EntityMdbUtils(mdb, "Factor")
+        Map<String, Object> map = new HashMap<>()
+        map.put("parent", factor)
+        map.put("name", nameFV)
+        map.put("fullName", nameFV)
+        return ut.insertEntity(map)
+    }
+
+    @Override
+    long createCls(long typ, String nameCls) {
+        EntityMdbUtils ut = new EntityMdbUtils(mdb, "Cls")
+        Store stTmp = mdb.loadQuery("select id from DataBase where modelname='nsidata'")
+        if (stTmp.size()==0)
+            throw new XError("В таблице [DataBase] не указан сервис [nsidata]")
+        long db = stTmp.get(0).getLong("id")
+
+        Map<String, Object> map = new HashMap<>()
+        map.put("typ", typ)
+        map.put("name", nameCls)
+        map.put("fullName", nameCls)
+        map.put("isOpenness", 1)
+        map.put("dataBase", db)
+        return ut.insertEntity(map)
+    }
+
+    @Override
+    void createClsFactorVal(long cls, long fv) {
+        StoreRecord r = mdb.createStoreRecord("ClsFactorVal")
+        r.set("cls", cls)
+        r.set("factorVal", fv)
+        mdb.insertRec("ClsFactorVal", r, true)
+    }
+
+    private List<List<Object>> combAll(long relTyp) throws Exception {
+
+        Store stRelCls = mdb.loadQuery("select id from RelCls where reltyp=:rt order by ord", Map.of("rt", relTyp))
+
+        List<List<Object>> lists = new ArrayList<>()
+
+        for (StoreRecord r : stRelCls) {
+            Store stMembCls = mdb.loadQuery("select * from relclsmember where relcls=:c", Map.of("c", r.getLong("id")))
+
+            List<Object> lst = new ArrayList<>()
+            for (StoreRecord rr : stMembCls ) {
+                if (rr.getLong("membertype")== FD_MemberType_consts.cls) {
+                    lst.add(rr.getLong("cls"));
+                } else {
+                    lst.add(rr.getLong("relclsmemb"));
+                }
+            }
+            lists.add(lst);
+        }
+
+        return lists;
+
+    }
+
+    @Override
+    void createGroupRelCls(long relTyp, long cls1, long typ1, long cls2, long typ2, long db) {
+        List<List<Map<String, Object>>> lists = new ArrayList<>()
+        List<Map<String, Object>> lst1 = new ArrayList<>()
+
+        if (cls1 > 0) {
+            Map<String, Object> map1 = new HashMap<>()
+            map1.put("card", 0)
+            map1.put("ent", cls1)
+            map1.put("memType", 3)
+            lst1.add(map1)
+        } else {
+            Store stTmp = mdb.loadQuery("select id from Cls where typ=${typ1}")
+            for (StoreRecord r in stTmp) {
+                Map<String, Object> map1 = new HashMap<>()
+                map1.put("card", 0)
+                map1.put("ent", r.getLong("id"))
+                map1.put("memType", 3)
+                lst1.add(map1)
+            }
+        }
+        lists.add(lst1)
+        //
+        List<Map<String, Object>> lst2 = new ArrayList<>()
+        if (cls2 > 0) {
+            Map<String, Object> map2 = new HashMap<>()
+            map2.put("card", 0)
+            map2.put("ent", cls2)
+            map2.put("memType", 3)
+            lst2.add(map2)
+        } else {
+            Store stTmp = mdb.loadQuery("select id from Cls where typ=${typ2}")
+            for (StoreRecord r in stTmp) {
+                Map<String, Object> map2 = new HashMap<>()
+                map2.put("card", 0)
+                map2.put("ent", r.getLong("id"))
+                map2.put("memType", 3)
+                lst2.add(map2)
+            }
+        }
+        lists.add(lst2)
+        //
+        List<List<Object>> lstlstAll = combAll(relTyp);
+        List<List<Map<String, Object>>> listsNew = new ArrayList<>();
+        Set<Object> setCls = new HashSet<>();
+        Set<Object> setRel = new HashSet<>();
+
+        for (List<Map<String, Object>> lst : lists) {
+            List<Map<String, Object>> lstNew = new ArrayList<>();
+
+            lst.forEach((Map<String, Object> l) -> {
+                System.out.println(l);
+                int memType = UtCnv.toInt(l.get("memType"));
+                long cls = UtCnv.toLong(l.get("ent"));
+                if (!setCls.contains(cls)) {
+
+                    lstNew.add(l);
+
+                    if (memType == FD_MemberType_consts.cls)
+                        setCls.add(UtCnv.toLong(cls));
+                    else if (memType == FD_MemberType_consts.relcls)
+                        setRel.add(UtCnv.toLong(cls));
+                    else
+                        throw new XError("Unknown memberTyp: " + memType);
+                }
+            });
+            listsNew.add(lstNew);
+        }
+
+        String wheIds = UtString.join(setCls, ",");
+        wheIds = wheIds.isEmpty() ? "(0)" : "(" + wheIds + ")";
+        String wheIdsRel = UtString.join(setRel, ",");
+        wheIdsRel = wheIdsRel.isEmpty() ? "(0)" : "(" + wheIdsRel + ")";
+        //
+
+        Store stCls = mdb.createStore("Cls.full");
+        mdb.loadQuery(stCls, """
+                    select c.id, name,fullName, dataBase from Cls c, ClsVer v where c.id=v.ownerVer and v.lastVer=1
+                    and c.id in
+                """ + wheIds);
+        StoreIndex indCls = stCls.getIndex("id");
+        //
+        Store stRelCls = mdb.createStore("Cls.full");
+        mdb.loadQuery(stRelCls, """
+                    select c.id, name,fullName, dataBase from RelCls c, RelClsVer v where c.id=v.ownerVer and v.lastVer=1
+                    and c.id in
+                """ + wheIdsRel);
+        StoreIndex indRelCls = stRelCls.getIndex("id");
+        //
+
+        List<List<Map<String, Object>>> lstlstUch = CartesianProduct.result(listsNew);
+
+        Map<String, Object> mapRelClsMem = new HashMap<>();
+        lstlstUch.forEach((List<Map<String, Object>> lstUch) -> {
+            List<Object> sNm = new ArrayList<>();
+            List<Object> sFn = new ArrayList<>();
+            Store stMemcls = mdb.createStore("RelClsMember");
+            lstUch.forEach((Map<String, Object> u) -> {
+                int memType = UtCnv.toInt(u.get("memType"));
+                int card = UtCnv.toInt(u.get("card"));
+                long cls = UtCnv.toLong(u.get("ent"));
+                StoreRecord r;
+                if (memType == FD_MemberType_consts.cls) {
+                    r = indCls.get(cls);
+                    mapRelClsMem.put("cls", cls);
+                    mapRelClsMem.put("relClsMemb", null);
+                } else if (memType == FD_MemberType_consts.relcls) {
+                    r = indRelCls.get(cls);
+                    mapRelClsMem.put("cls", null);
+                    mapRelClsMem.put("relClsMemb", cls);
+                } else {
+                    throw new XError("Unknown memberTyp: " + memType);
+                }
+                if (r != null) {
+                    sNm.add(r.getString("name"));
+                    sFn.add(r.getString("fullName"));
+                    mapRelClsMem.put("name", r.getString("name"));
+                    mapRelClsMem.put("fullName", r.getString("fullName"));
+                    mapRelClsMem.put("memberType", memType);
+                    mapRelClsMem.put("card", card);
+                }
+                stMemcls.add(mapRelClsMem);
+            });
+            String nm = UtString.join(sNm, " <=> ");
+            String fn = UtString.join(sFn, " <=> ");
+            long idRelCls = 0;
+            Map<String, Object> map = new HashMap<>();
+            map.put("relTyp", relTyp);
+            map.put("name", nm);
+            map.put("fullName", fn);
+            try {
+                StoreRecord recRelTyp = mdb.loadQueryRecord("""
+                            select accessLevel, isOpenness from RelTyp where id=:id
+                        """, Map.of("id", relTyp));
+                map.put("accessLevel", recRelTyp.getLong("accesslevel"));
+                map.put("isOpenness", recRelTyp.getLong("isopenness"));
+                //
+                map.put("dataBase", db);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            List<Object> setUch = new ArrayList<>();
+            for (StoreRecord r : stMemcls) {
+                if (r.getLong("cls") > 0) {
+                    setUch.add(r.getLong("cls"));
+                } else {
+                    setUch.add(r.getLong("relClsMemb"));
+                }
+            }
+
+            if (!lstlstAll.contains(setUch)) {
+                try {
+                    //RelClsMdbUtils ut = new RelClsMdbUtils(mdb, "RelCls");
+                    EntityMdbUtils ut = new EntityMdbUtils(mdb, "RelCls")
+                    idRelCls = ut.insertEntity(map);
+                    // add to PropVal
+                    Store rProp = mdb.loadQuery("select id, allItem from Prop where reltyp=:rt and proptype=:pt",
+                            Map.of("rt", relTyp, "pt", FD_PropType_consts.reltyp));
+                    if (rProp.size() > 0) {
+                        if (rProp.get(0).getBoolean("allItem")) {
+                            long prop = rProp.get(0).getLong("id");
+                            mdb.insertRec("PropVal", Map.of("prop", prop, "relCls", idRelCls), true);
+                        }
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                for (StoreRecord r : stMemcls) {
+                    r.set("relCls", idRelCls);
+                    try {
+                        mdb.insertRec("RelClsMember", r, true);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        })
+
+    }
+
+    @Override
+    void execSql(String sql) {
+        mdb.execQuery(sql)
+    }
 }

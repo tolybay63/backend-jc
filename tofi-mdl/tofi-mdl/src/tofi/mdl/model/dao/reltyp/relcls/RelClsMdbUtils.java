@@ -264,7 +264,7 @@ public class RelClsMdbUtils extends EntityMdbUtils {
         return stRes;
     }
 
-    protected List<List<Object>> combAll(long relTyp) throws Exception {
+    private List<List<Object>> combAll(long relTyp) throws Exception {
 
         Store stRelCls = mdb.loadQuery
                 ("select id from RelCls where reltyp=:rt order by ord", Map.of("rt", relTyp));
@@ -302,8 +302,6 @@ public class RelClsMdbUtils extends EntityMdbUtils {
 
         for (List<Map<String, Object>> lst : lists) {
             List<Map<String, Object>> lstNew = new ArrayList<>();
-            //setCls.clear();
-            //setRel.clear();
 
             lst.forEach((Map<String, Object> l) -> {
                 System.out.println(l);

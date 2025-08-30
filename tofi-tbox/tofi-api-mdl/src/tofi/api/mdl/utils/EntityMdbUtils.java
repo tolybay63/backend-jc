@@ -203,8 +203,13 @@ public class EntityMdbUtils {
     }
 
     public long insertEntity(Map<String, Object> rec) throws Exception {
+        DomainService domainSvc = mdb.getModel().bean(DomainService.class);
+        Domain dm = domainSvc.getDomain(tableName);
+
         Store st = mdb.createStore(tableName);
-        rec.putIfAbsent("accessLevel", 1L);
+        if (dm.findField("accessLevel") != null)
+            rec.putIfAbsent("accessLevel", 1L);
+
         rec.putIfAbsent("dbeg", "1800-01-01");
         rec.putIfAbsent("dend", "3333-12-31");
         StoreRecord r = st.add(rec);
@@ -213,8 +218,6 @@ public class EntityMdbUtils {
         long id = mdb.getNextId(tableName);
         r.set("id", id);
         //
-        DomainService domainSvc = mdb.getModel().bean(DomainService.class);
-        Domain dm = domainSvc.getDomain(tableName);
         if (dm.findField("ord") != null) {
             r.set("ord", id);
         }

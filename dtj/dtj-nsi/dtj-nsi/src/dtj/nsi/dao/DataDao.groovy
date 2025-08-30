@@ -17,6 +17,7 @@ import jandcode.core.std.DataDirService
 import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
+import tofi.api.dta.ApiClientData
 import tofi.api.dta.ApiInspectionData
 import tofi.api.dta.ApiNSIData
 import tofi.api.dta.ApiObjectData
@@ -82,6 +83,10 @@ class DataDao extends BaseMdbUtils {
         return app.bean(ApinatorService).getApi("inspectiondata")
     }
 
+    ApinatorApi apiClientData() {
+        return app.bean(ApinatorService).getApi("clientdata")
+    }
+
 
     //-------------------------
 
@@ -142,7 +147,13 @@ class DataDao extends BaseMdbUtils {
                     """, "", "inspectiondata")
                     if (stData.size() > 0)
                         lstService.add("inspectiondata")
-
+                    //
+                    stData = loadSqlService("""
+                        select id from DataPropVal
+                        where propval in (${idsPV.join(",")}) and obj=${owner}
+                    """, "", "clientdata")
+                    if (stData.size() > 0)
+                        lstService.add("clientdata")
                     //
                     if (lstService.size() > 0) {
                         throw new XError("${name} используется в [" + lstService.join(", ") + "]")
@@ -428,7 +439,6 @@ class DataDao extends BaseMdbUtils {
         return st
     }
 
-
     @DaoMethod
     Store loadParameters(long obj) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Params", "")
@@ -463,7 +473,6 @@ class DataDao extends BaseMdbUtils {
         }
         return st
     }
-
 
     @DaoMethod
     Store loadSourceCollections(long obj) {
@@ -693,19 +702,28 @@ class DataDao extends BaseMdbUtils {
         """, map)
         Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
 
+        Store stCls = loadSqlMeta("""
+            select c.id, v.name
+            from Cls c, ClsVer v
+            where c.id=v.ownerVer and v.lastVer=1 and c.id in (${idsCls.join(",")})
+        """, "")
+        StoreIndex indCls = stCls.getIndex("id")
+
+        long ind = 1
         for (StoreRecord record in st) {
+            record.set("number", ind++)
             record.set("fvShape", mapPV.get(record.getLong("pvShape")))
+            StoreRecord r = indCls.get(record.getLong("cls"))
+            if (r!=null)
+                record.set("nameCls", r.getString("name"))
+        }
+        if (obj > 0) {
+            Store stTmp = mdb.loadQuery("""
+                select count(*) as cnt from Obj where cls in (${idsCls.join(",")})
+            """)
+            st.get(0).set("number", stTmp.get(0).getLong("cnt"))
         }
 
-        DataTreeNode dtn = UtData.createTreeIdParent(st, "id", "parent")
-        long ind = 1
-        UtData.scanTree(dtn, false, new ITreeNodeVisitor() {
-            @Override
-            void visitNode(DataTreeNode node) {
-                node.record.set("number", ind++)
-            }
-        } as ITreeNodeVisitor)
-        //mdb.outTable(st)
         return st
     }
 
@@ -1083,6 +1101,102 @@ class DataDao extends BaseMdbUtils {
         return loadSourceCollections(own)
     }
 
+    @DaoMethod
+    void deleteTypesObjects(long id) {
+        validateForDeleteOwner(id, 1)
+        //
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "", "Typ_Object%")
+        Store stObj = mdb.loadQuery("""
+            select o.cls, v.name from Obj o, ObjVer v 
+            where o.id=v.ownerVer and v.lastVer=1 and o.id=${id}
+        """)
+        String name = stObj.get(0).getString("name")
+        long cls = stObj.get(0).getLong("cls")
+        //
+        Store stCls = loadSqlMeta("""
+            select c.id from Cls c, ClsVer v
+            where c.id=v.ownerVer and v.lastVer=1 and c.typ in (${map.get("Typ_ObjectTyp")},${map.get("Typ_Object")})
+                and v.name='${name}'             
+        """, "")
+        Set<Object> idsCls = stCls.getUniqueValues("id")
+
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "Factor_ObjectType", "")
+
+        apiMeta().get(ApiMeta).execSql("""
+            delete from relclsmember where relcls in (
+                select relcls
+                from relclsmember where cls=${cls}
+            );
+            delete from relclsver
+            where ownerVer in (
+                select id from relcls
+                except
+                select distinct relcls as id
+                from relclsmember
+            );
+            delete from relcls
+            where id in (
+                select id from relcls
+                except
+                select ownerver as id
+                from relclsver
+            );
+            delete from clsfactorval where cls in (${idsCls.join(",")});
+            delete from Factor where parent=${map.get("Factor_ObjectType")} and name='${name}';
+            delete from clsver where ownerVer in (${idsCls.join(",")});
+            delete from cls where id in (${idsCls.join(",")});
+        """)
+
+        //
+        mdb.execQueryNative("""
+            delete from DataPropVal
+            where dataProp in (select id from DataProp where isobj=1 and objorrelobj=${id});
+            delete from DataProp where id in (
+                select id from dataprop
+                except
+                select dataProp as id from DataPropVal
+            );
+        """)
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        eu.deleteEntity(id)
+    }
+
+    private long createFactorValAndCls(VariantMap params) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "Factor_ObjectType", "")
+        String nm = params.getString("name").trim()
+        Store st = loadSqlMeta("""
+            select name from Factor where parent=${map.get("Factor_ObjectType")} and name='${nm}'
+        """, "")
+        if (st.size()>0)
+            throw new XError("Значение фактора [${nm}] уже существует")
+        //
+        long idFV = apiMeta().get(ApiMeta).createFactorVal(map.get("Factor_ObjectType"), nm)
+        //
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "", "Typ_Object%")
+
+        long clsObjectType = apiMeta().get(ApiMeta).createCls(map.get("Typ_ObjectTyp"), nm)
+        apiMeta().get(ApiMeta).createClsFactorVal(clsObjectType, idFV)
+        apiMeta().get(ApiMeta).createClsFactorVal(clsObjectType, 1001)  //todo Создать код
+        //
+        long clsObject = apiMeta().get(ApiMeta).createCls(map.get("Typ_Object"), nm)
+        apiMeta().get(ApiMeta).createClsFactorVal(clsObject, idFV)
+        apiMeta().get(ApiMeta).createClsFactorVal(clsObject, 1001)  //todo Создать код
+        //
+        // Возвращает id класса clsObjectType
+        return clsObjectType
+    }
+
+    private void createGroupRelCls(long clsObjectTyp) {
+        Store stTmp = loadSqlMeta("select id from DataBase where modelname='nsidata'", "")
+        if (stTmp.size()==0)
+            throw new XError("В таблице [DataBase] не указан сервис [nsidata]")
+        long db = stTmp.get(0).getLong("id")
+        //
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelTyp", "", "RT_%")
+        Map<String, Long> map1 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "", "Typ_%")
+        apiMeta().get(ApiMeta).createGroupRelCls(map.get("RT_Components"), clsObjectTyp, 0, 0, map1.get("Typ_Components"), db)
+        apiMeta().get(ApiMeta).createGroupRelCls(map.get("RT_Works"), 0, map1.get("Typ_Work"), clsObjectTyp, 0, db)
+    }
 
     @DaoMethod
     Store saveTypesObjects(String mode, Map<String, Object> params) {
@@ -1092,26 +1206,23 @@ class DataDao extends BaseMdbUtils {
         Map<String, Object> par = new HashMap<>(pms)
         par.put("fullName", pms.get("name"))
         if (mode.equalsIgnoreCase("ins")) {
+            long clsObjectType = createFactorValAndCls(pms)
+            //
+            createGroupRelCls(clsObjectType)
+            //
+            par.put("cls", clsObjectType)
             own = eu.insertEntity(par)
             pms.put("own", own)
-            //1 Prop_NumberOt
-            if (pms.getString("NumberOt") && pms.getString("NumberOt") != "")
-                fillProperties(true, "Prop_NumberOt", pms)
-            //2 Prop_Shape
+            //1 Prop_Shape
             if (pms.getLong("fvShape") > 0)
                 fillProperties(true, "Prop_Shape", pms)
 
         } else {
             own = pms.getLong("id")
-            eu.updateEntity(par)
+            //eu.updateEntity(par)
             //
             pms.put("own", own)
-            //1 Prop_NumberOt
-            if (params.containsKey("idNumberOt"))
-                updateProperties("Prop_NumberOt", pms)
-            else
-                fillProperties(true, "Prop_NumberOt", pms)
-            //2 Prop_Shape
+            //1 Prop_Shape
             if (params.containsKey("idShape"))
                 updateProperties("Prop_Shape", pms)
             else
@@ -1183,7 +1294,7 @@ class DataDao extends BaseMdbUtils {
         return st.get(0).getLong("id")
     }
 
-    protected List<List<Object>> combAll(long relTyp) throws Exception {
+    private List<List<Object>> combAll(long relTyp) throws Exception {
         Store stRelCls = loadSqlMeta("""
             select id from RelCls where reltyp=${relTyp} order by ord
         """, "")
@@ -1742,12 +1853,12 @@ class DataDao extends BaseMdbUtils {
         return apiNSIData().get(ApiNSIData).loadObjTreeForSelect(codCls, codProp)
     }
 
-
     private Store loadObjForSelect(String codCls, String codProp) {
         return apiNSIData().get(ApiNSIData).loadObjForSelect(codCls, codProp)
     }
 
 //todo Delete!
+/*
 
     @DaoMethod
     Store loadFvCategory(String codFactor) {
@@ -1769,8 +1880,11 @@ class DataDao extends BaseMdbUtils {
         return loadFvForSelect(codFactor)
     }
 
+*/
+
+    @DaoMethod
     Store loadFvForSelect(String codFactor) {
-        return apiMeta().get(ApiMeta).loadFactorVals(codFactor)
+        return apiMeta().get(ApiMeta).loadFactorValsWithPV(codFactor)
     }
 
     @DaoMethod
@@ -2618,6 +2732,8 @@ class DataDao extends BaseMdbUtils {
             return apiOrgStructureData().get(ApiOrgStructureData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("inspectiondata"))
             return apiInspectionData().get(ApiInspectionData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("clientdata"))
+            return apiClientData().get(ApiClientData).loadSql(sql, domain)
         else
             throw new XError("Unknown model [${model}]")
     }

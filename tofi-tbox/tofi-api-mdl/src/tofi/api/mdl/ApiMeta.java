@@ -161,6 +161,8 @@ public interface ApiMeta {
 
     Store loadFactorVals(String codFactor);
 
+    Store loadFactorValsWithPV(String codFactor);
+
     /**
      *
      * @param ft_cod cod Flat Table
@@ -229,5 +231,18 @@ public interface ApiMeta {
     double getKfromBase(long propId);
 
     String ListClsParents(long typ, long cls);
+
+    long createFactorVal(long factor, String nameFV);
+
+    long createCls(long typ, String nameCls);
+
+    void createClsFactorVal(long cls, long fv);
+
+    void createGroupRelCls(long reltyp, long cls1, long typ1, long cls2, long typ2, long db);
+
+    /**
+     * @param sql text sql
+     */
+    void execSql(String sql);
 
 }

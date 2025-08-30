@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="ClsFactorVal" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Значения факторов, из которых образован класс">
+
+        <field name="cls" parent="Cls/ref"/>
+        <field name="factorVal" parent="Factor/ref"/>
+
+    </domain>
+
+    <domain name="ClsFactorVal.full" parent="ClsFactorVal">
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+    </domain>
+
+</root>
