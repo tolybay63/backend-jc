@@ -76,6 +76,15 @@
                   password="1q2w3e4R"
         />
 
+        <dbsource name="clientdata"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="dtj_clientdata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+
     </cfg>
 
 
