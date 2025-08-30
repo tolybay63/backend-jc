@@ -9,6 +9,11 @@
         <field name="ord" parent="f.ord" />
     </domain>
 
+<!--
+alter table Permis add constraint fk_Permis_parent
+foreign key(parent) references Permis(id)
+-->
+
     <domain name="Permis.full" parent="Permis">
         <field name="accessLevel" parent="long"/>
         <field name="idInTable" parent="long"/>

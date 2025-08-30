@@ -1,6 +1,7 @@
 package tofi.adm.model.dao.permis;
 
 import jandcode.commons.UtCnv;
+import jandcode.commons.error.XError;
 import jandcode.core.dbm.mdb.Mdb;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreIndex;
@@ -26,7 +27,31 @@ public class PermisMdbUtils {
         return st;
     }
 
+    private void validateRec(String id) throws Exception {
+        Store stTmp = mdb.loadQuery("""
+                select r.name
+                from AuthRolePermis p
+                	left join authrole r on p.authrole=r.id
+                where p.permis=:id
+        """, Map.of("id", id));
+        if (stTmp.size() > 0) {
+            throw new XError("Используется в роли [{0}]", stTmp.get(0).getString("name"));
+        }
+
+        stTmp = mdb.loadQuery("""
+            select r.fullname
+            from AuthUserPermis p
+            left join authuser r on p.authuser=r.id
+            where p.permis =:id
+        """, Map.of("id", id));
+        if (stTmp.size() > 0) {
+            throw new XError("Используется в привилегии пользователя [{0}]", stTmp.get(0).getString("fullname"));
+        }
+    }
+
     public void delete(Map<String, Object> rec) throws Exception {
+        validateRec(UtCnv.toString(rec.get("id")));
+
         String sql = """
             delete from Permis where id=:id;
         """;
