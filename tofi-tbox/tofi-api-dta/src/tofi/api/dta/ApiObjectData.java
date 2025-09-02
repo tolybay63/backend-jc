@@ -75,4 +75,6 @@ public interface ApiObjectData {
 
     void deleteOwnerWithProperties(long id, int isObj);
 
+    Store loadObjList(String codClsOrTyp, String codProp, String model);
+
 }

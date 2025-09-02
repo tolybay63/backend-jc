@@ -625,6 +625,64 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store loadSection(long obj) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Section", "")
+        if (map.isEmpty())
+            throw new XError("NotFoundCod@Cls_Section")
+        String whe = "o.id=${obj}"
+        if (obj == 0)
+            whe = "o.cls=${map.get("Cls_Section")}"
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        Store st = loadSqlService("""
+            select o.id, o.cls, v.name,
+                v1.id as idStartKm, v1.numberVal as StartKm,
+                v2.id as idStartPicket, v2.numberVal as StartPicket,
+                v3.id as idFinishKm, v3.numberVal as FinishKm,
+                v4.id as idFinishPicket, v4.numberVal as FinishPicket,
+                v5.id as idStageLength, v5.numberVal as StageLength,
+                v6.id as idClient, v6.propVal as pvClient, v6.obj as objClient, null as nameClient
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_StartKm")} --1007
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_StartPicket")}   --1009
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_FinishKm")} --1008
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_FinishPicket")}   --1010
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_StageLength")}   --1011
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=${map.get("Prop_Client")}
+                left join DataPropVal v6 on d6.id=v6.dataprop                
+                left join ObjVer ov6 on ov6.ownerVer=v6.obj and ov6.lastVer=1
+            where ${whe}
+        """, "Obj.Section", "objectdata")
+
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Client", "")
+        Store stTmp = loadSqlService("""
+            select o.id, v.name
+            from Obj o, ObjVer v
+            where o.id=v.ownerver and v.lastver=1 and o.cls=(${map.get("Cls_Client")})
+        """, "","clientdata")
+
+        StoreIndex indTmp = stTmp.getIndex("id")
+
+        for (StoreRecord r in st) {
+            StoreRecord rec = indTmp.get(r.getLong("objClient"))
+            if (rec != null)
+                r.set("nameClient", rec.getString("name"))
+        }
+
+        return st
+    }
+
+    @DaoMethod
+    Store loadObjList(String codClsOrTyp, String codProp, String model) {
+        return apiObjectData().get(ApiObjectData).loadObjList(codClsOrTyp, codProp, model)
+    }
+
+    @DaoMethod
     Store loadStage(long obj) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Stage", "")
         if (map.isEmpty())
@@ -976,6 +1034,81 @@ class DataDao extends BaseMdbUtils {
         }
         return loadStation(own)
     }
+
+    @DaoMethod
+    Store saveSection(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Section", "")
+        Map<String, Object> par = new HashMap<>(pms)
+        par.put("cls", map.get("Cls_Section"))
+        par.put("fullName", pms.get("name"))
+        if (mode.equalsIgnoreCase("ins")) {
+            par.put("isObj", true)
+            par.put("mode", "ins")
+            own = apiObjectData().get(ApiObjectData).createOwner(par)
+            pms.put("own", own)
+            //1 Prop_StartKm
+            if (pms.getString("StartKm") && pms.getString("StartKm") != "")
+                fillPropertiesToObject(true, "Prop_StartKm", pms)
+            //2 StartPicket
+            if (pms.getString("StartPicket") && pms.getString("StartPicket") != "")
+                fillPropertiesToObject(true, "Prop_StartPicket", pms)
+            //3 FinishKm
+            if (pms.getString("FinishKm") && pms.getString("FinishKm") != "")
+                fillPropertiesToObject(true, "Prop_FinishKm", pms)
+            //4 FinishPicket
+            if (pms.getString("FinishPicket") && pms.getString("FinishPicket") != "")
+                fillPropertiesToObject(true, "Prop_FinishPicket", pms)
+            //5 StageLength
+            if (pms.getString("StageLength") && pms.getString("StageLength") != "")
+                fillPropertiesToObject(true, "Prop_StageLength", pms)
+            //6 Client
+            if (pms.getLong("objClient") > 0)
+                fillPropertiesToObject(true, "Prop_Client", pms)
+            else
+                throw new XError("Не указан [Клиент]")
+
+        } else {
+            par.put("mode", "upd")
+            par.put("isObj", true)
+            own = apiObjectData().get(ApiObjectData).createOwner(par)
+            //
+            pms.put("own", own)
+            //1 Prop_StartKm
+            if (params.containsKey("idStartKm"))
+                updatePropertiesFromObject("Prop_StartKm", pms)
+            else
+                fillPropertiesToObject(true, "Prop_StartKm", pms)
+            //2 Prop_StartPicket
+            if (params.containsKey("idStartPicket"))
+                updatePropertiesFromObject("Prop_StartPicket", pms)
+            else
+                fillPropertiesToObject(true, "Prop_StartPicket", pms)
+            //3 Prop_FinishKm
+            if (params.containsKey("idFinishKm"))
+                updatePropertiesFromObject("Prop_FinishKm", pms)
+            else
+                fillPropertiesToObject(true, "Prop_FinishKm", pms)
+            //4 Prop_FinishPicket
+            if (params.containsKey("idFinishPicket"))
+                updatePropertiesFromObject("Prop_FinishPicket", pms)
+            else
+                fillPropertiesToObject(true, "Prop_FinishPicket", pms)
+            //5 Prop_StageLength
+            if (params.containsKey("idStageLength"))
+                updatePropertiesFromObject("Prop_StageLength", pms)
+            else
+                fillPropertiesToObject(true, "Prop_StageLength", pms)
+
+            //6 Prop_Client
+            if (params.containsKey("idClient"))
+                updatePropertiesFromObject("Prop_Client", pms)
+
+        }
+        return loadSection(own)
+    }
+
 
     @DaoMethod
     Store saveStage(String mode, Map<String, Object> params) {
@@ -2314,9 +2447,7 @@ class DataDao extends BaseMdbUtils {
         }
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_DefectsComponent") ||
-                    cod.equalsIgnoreCase("Prop_Collections") ||
-                    cod.equalsIgnoreCase("Prop_LocationMulti")) {
+            if (cod.equalsIgnoreCase("Prop_Client")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
@@ -2501,9 +2632,7 @@ class DataDao extends BaseMdbUtils {
         }
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_DefectsComponent") ||
-                    cod.equalsIgnoreCase("Prop_Collections") ||
-                    cod.equalsIgnoreCase("Prop_LocationMulti")) {
+            if (cod.equalsIgnoreCase("Prop_Client")) {
                 if (objRef > 0)
                     sql = "update DataPropval set propVal=${propVal}, obj=${objRef}, timeStamp='${tmst}' where id=${idVal}"
                 else {

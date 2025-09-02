@@ -6,7 +6,9 @@ import jandcode.commons.datetime.XDateTimeFormatter
 import jandcode.commons.error.XError
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
+import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
+import tofi.api.dta.ApiClientData
 import tofi.api.dta.ApiInspectionData
 import tofi.api.dta.ApiNSIData
 import tofi.api.dta.ApiObjectData
@@ -53,6 +55,9 @@ class ApiObjectDataImpl extends BaseMdbUtils implements ApiObjectData {
         return app.bean(ApinatorService).getApi("inspectiondata")
     }
 
+    ApinatorApi apiClientData() {
+        return app.bean(ApinatorService).getApi("clientdata")
+    }
 
 
     @Override
@@ -223,6 +228,53 @@ class ApiObjectDataImpl extends BaseMdbUtils implements ApiObjectData {
             eu.deleteEntity(id)
     }
 
+    @Override
+    Store loadObjList(String codClsOrTyp, String codProp, String model) {
+        Map<String, Long> map
+        String sql
+        if (codClsOrTyp.startsWith("Cls_")) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codClsOrTyp, "")
+            if (map.isEmpty())
+                throw new XError("NotFoundCod@${codClsOrTyp}")
+            sql = """
+                select o.id, o.cls, v.name, v.fullname, null as pv 
+                from Obj o, ObjVer v
+                where o.id=v.ownerVer and v.lastVer=1 and o.cls=${map.get(codClsOrTyp)}
+            """
+        } else if (codClsOrTyp.startsWith("Typ_")) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", codClsOrTyp, "")
+            if (map.isEmpty())
+                throw new XError("NotFoundCod@${codClsOrTyp}")
+            Store stTmp = loadSqlMeta("""
+                select id from Cls where typ=${map.get(codClsOrTyp)}
+            """, "")
+            Set<Object> idsCls = stTmp.getUniqueValues("id")
+
+            sql = """
+                select o.id, o.cls, v.name, v.fullname, null as pv 
+                from Obj o, ObjVer v
+                where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
+            """
+        } else
+            throw new XError("Неисвезстная сущность")
+        Store st = loadSqlService(sql, "", model)
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", codProp, "")
+        if (map.isEmpty())
+            throw new XError("NotFoundCod@${codProp}")
+
+        Store stPV = loadSqlMeta("""
+            select id, cls  from propval p where prop=${map.get(codProp)}
+        """, "")
+        StoreIndex indPV = stPV.getIndex("cls")
+
+        for (StoreRecord r in st) {
+            StoreRecord rec = indPV.get(r.getLong("cls"))
+            if (rec != null)
+                r.set("pv", rec.getLong("id"))
+        }
+        return st
+    }
+
     void validateForDeleteOwner(long owner, int isObj) {
         //---< check data in other DB
         if (isObj==1) {
@@ -364,6 +416,8 @@ class ApiObjectDataImpl extends BaseMdbUtils implements ApiObjectData {
             return apiOrgStructureData().get(ApiOrgStructureData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("inspectiondata"))
             return apiInspectionData().get(ApiInspectionData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("clientdata"))
+            return apiClientData().get(ApiClientData).loadSql(sql, domain)
         else
             throw new XError("Unknown model [${model}]")
     }
