@@ -97,6 +97,15 @@ class DataDao extends BaseMdbUtils {
                 select o.cls, v.name from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id=${owner}
              """)
             if (stObj.size() > 0) {
+                Store stTemp = mdb.loadQuery("""
+                    select v.name
+                    from RelObjMember m
+                        left join RelObjVer v on v.ownerVer=m.relobj and v.lastVer=1
+                    where m.obj=${owner}
+                """)
+                String nm = stTemp.get(0).getString("name")
+                if (stTemp.size() > 0)
+                    throw new XError("Существуют отношения объектов [${nm}]")
                 //
                 List<String> lstService = new ArrayList<>()
                 long cls = stObj.get(0).getLong("cls")
