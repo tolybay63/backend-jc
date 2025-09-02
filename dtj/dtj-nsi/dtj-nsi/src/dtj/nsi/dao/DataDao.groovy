@@ -1116,10 +1116,35 @@ class DataDao extends BaseMdbUtils {
         Store stCls = loadSqlMeta("""
             select c.id from Cls c, ClsVer v
             where c.id=v.ownerVer and v.lastVer=1 and c.typ in (${map.get("Typ_ObjectTyp")},${map.get("Typ_Object")})
-                and v.name='${name}'             
+                and v.name='${name}'
         """, "")
         Set<Object> idsCls = stCls.getUniqueValues("id")
+        long clsObject = 0
+        idsCls.forEach {Object i ->
+            if (UtCnv.toLong(i) != cls)
+                clsObject = UtCnv.toLong(i)
+        }
 
+        Store stTemp = loadSqlService("""
+            select id from Obj where cls=${clsObject}
+        """, "", "objectdata")
+        if (stTemp.size() > 0)
+            throw new XError("Существуют объекты класса [Cls_Object]")
+
+        stTemp = loadSqlMeta("""
+            select relcls
+            from relclsmember where cls in (${idsCls.join(",")})
+        """, "")
+        Set<Object> idsRelCls = stTemp.getUniqueValues("relcls")
+        stTemp = mdb.loadQuery("""
+            select v.name
+            from RelObj o, RelObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.relcls in (${idsRelCls.join(",")})
+        """)
+        String nm = stTemp.get(0).getString("name")
+        if (stTemp.size() > 0)
+            throw new XError("Существуют отношения объектов [${nm}]")
+        //
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "Factor_ObjectType", "")
 
         apiMeta().get(ApiMeta).execSql("""

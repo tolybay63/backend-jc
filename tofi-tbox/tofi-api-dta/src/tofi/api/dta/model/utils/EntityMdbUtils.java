@@ -155,11 +155,11 @@ public class EntityMdbUtils extends BaseMdbUtils {
 
     protected void checkCod(String cod) throws Exception {
         if (cod.startsWith(EntityConst.genCodPref)) {
-            throw new XError(UtLang.t("Код не может начинаться с символа «_»"), "cod");
+            throw new XError(UtLang.t("Код {0} не может начинаться с символа «_»"), cod);
         }
         if (!EntityConst.isCodValid(cod)) {
             throw new XError(UtLang.t("Допустимыми символами для кода являются: " +
-                    "цифры, буквы на английском, «_», « - », « / », « . »"), "cod");
+                    "цифры, буквы на английском, «_», « - », « / », « . »"), cod);
         }
         checkCodUnique(cod);
     }
@@ -181,7 +181,7 @@ public class EntityMdbUtils extends BaseMdbUtils {
             String sql = "select name from " + tableName + " where id=:id";
             Store st = mdb.loadQuery(sql, Map.of("id", entityId));
             String inst = st.get(0).getString("name");
-            throw new XError(UtLang.t("Введенный код является кодом экземпляра {1} сущности {0}", UtLang.t(entityInfo.getText()), inst), "cod");
+            throw new XError(UtLang.t("Введенный код является кодом экземпляра {1} сущности {0}", UtLang.t(entityInfo.getText()), inst), cod);
         }
     }
 
