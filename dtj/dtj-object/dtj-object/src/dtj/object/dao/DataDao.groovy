@@ -417,7 +417,7 @@ class DataDao extends BaseMdbUtils {
                 v12.id as idCreatedAt, v12.dateTimeVal as CreatedAt,
                 v13.id as idUpdatedAt, v13.dateTimeVal as UpdatedAt,
                 v14.id as idDescription, v14.multiStrVal as Description,
-                v15.id as idSection, v15.propVal as pvSection, v15.obj as objSection, null as nameSection
+                v15.id as idSection, v15.propVal as pvSection, v15.obj as objSection, ov15.name as nameSection
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_ObjectType --1072
@@ -450,15 +450,22 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v14 on d14.id=v14.dataprop
                 left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_Section   --1075
                 left join DataPropVal v15 on d15.id=v15.dataprop
+                left join ObjVer ov15 on ov15.ownerVer=v15.obj and ov15.lastVer=1
             where ${whe}
         """, map)
 
         Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
 
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_ObjectTyp", "")
+        Store stTmp = loadSqlMeta("""
+            select id from Cls where typ=${map.get("Typ_ObjectTyp")}
+        """, "")
+        Set<Object> idsTmp = stTmp.getUniqueValues("id")
+
         Store stObj = loadSqlService("""
             select o.id, v.name
             from Obj o, ObjVer v
-            where o.id=v.ownerVer    
+            where o.id=v.ownerVer and o.cls in (${idsTmp.join(",")})    
         """, "", "nsidata")
         StoreIndex indObj = stObj.getIndex("id")
 
@@ -473,10 +480,6 @@ class DataDao extends BaseMdbUtils {
             StoreRecord rObj = indObj.get(record.get("objObjectType"))
             if (rObj != null) {
                 record.set("nameObjectType", rObj.getString("name"))
-            }
-            rObj = indObj.get(record.get("objSection"))
-            if (rObj != null) {
-                record.set("nameSection", rObj.getString("name"))
             }
             record.set("fvSide", mapPV.get(record.getLong("pvSide")))
             StoreRecord rFV = indFV.get(record.getLong("fvSide"))
@@ -873,14 +876,9 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store findStationOfCoord(Map<String, Object> params) {
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Section", "")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "", "Cls_Sta%")
 
-        Store stCls = loadSqlMeta("""
-            select id from Cls where typ=${map.get("Typ_Section")}
-        """, "")
-        Set<Object> idsCls = stCls.getUniqueValues("id")
-
-        String whe = "o.cls in (${idsCls.join(",")})"
+        String whe = "o.cls in (${map.get("Cls_Station")},${map.get("Cls_Stage")})"
 
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
 
@@ -903,7 +901,8 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v5 on d5.id=v5.dataprop
             where ${whe} and v2.numberVal * 1000 + v4.numberVal*100 <= ${beg} and v3.numberVal * 1000 + v5.numberVal *100 >= ${end}
         """
-        Store st = loadSqlServiceWithParams(sql, params, "", "nsidata")
+        //Store st = loadSqlServiceWithParams(sql, params, "", "nsidata")
+        Store st = mdb.loadQuery(sql)
         //mdb.outTable(st)
         if (st.size()==1) {
             long idPV = apiMeta().get(ApiMeta).idPV("cls", st.get(0).getLong("cls"), "Prop_Section")

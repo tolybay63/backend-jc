@@ -603,7 +603,7 @@ class DataDao extends BaseMdbUtils {
         stTmp = loadSqlService("""
             select o.id as objObject, o.cls as linkCls, v.fullName as nameObject, null as pvObject,
                 v1.obj as objObjectType, null as nameObjectType, 
-                v2.obj as objSection, null as nameSection,
+                v2.obj as objSection, ov2.name as nameSection,
                 v3.numberVal as StartKm,
                 v4.numberVal as FinishKm,
                 v5.numberVal as StartPicket,
@@ -614,6 +614,7 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v1 on d1.id=v1.dataProp
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_Section")}
                 left join DataPropVal v2 on d2.id=v2.dataProp
+                left join ObjVer ov2 on ov2.ownerVer=v2.obj and ov2.lastVer=1
                 left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_StartKm")}
                 left join DataPropVal v3 on d3.id=v3.dataProp
                 left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_FinishKm")}
@@ -626,7 +627,6 @@ class DataDao extends BaseMdbUtils {
         """, "Obj.objectServedForSelect", "objectdata")
 
         Set<Object> idsOT = stTmp.getUniqueValues("objObjectType")
-        Set<Object> idsSec = stTmp.getUniqueValues("objSection")
         Set<Object> idsCls = stTmp.getUniqueValues("linkCls")
 
         Store stObjOT = loadSqlService("""
@@ -636,13 +636,6 @@ class DataDao extends BaseMdbUtils {
                 and o.id in (0${idsOT.join(",")})
         """, "", "nsidata")
         StoreIndex indObjOT = stObjOT.getIndex("id")
-        Store stObjSec = loadSqlService("""
-            select o.id, v.name
-            from Obj o, ObjVer v
-            where o.id=v.ownerVer and v.lastVer=1
-                and o.id in (0${idsSec.join(",")})
-        """, "", "nsidata")
-        StoreIndex indObjSec = stObjSec.getIndex("id")
         //
         Store stPV = apiMeta().get(ApiMeta).getPvFromCls(idsCls, "Prop_Object")
         StoreIndex indPV = stPV.getIndex("cls")
@@ -654,9 +647,6 @@ class DataDao extends BaseMdbUtils {
             StoreRecord rec = indObjOT.get(r.getLong("objObjectType"))
             if (rec != null)
                 r.set("nameObjectType", rec.getString("name"))
-            rec = indObjSec.get(r.getLong("objSection"))
-            if (rec != null)
-                r.set("nameSection", rec.getString("name"))
         }
 
         return stTmp

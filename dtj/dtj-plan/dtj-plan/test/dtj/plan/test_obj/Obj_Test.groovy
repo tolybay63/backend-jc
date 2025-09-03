@@ -70,9 +70,6 @@ class Obj_Test extends Apx_Test {
         mdb.outTable(st)
     }
 
-
-
-
     @Test
     void jsonrpc1() throws Exception {
         Map<String, Object> map = apx.execJsonRpc("api", "data/getPersonnalId", [1013])
