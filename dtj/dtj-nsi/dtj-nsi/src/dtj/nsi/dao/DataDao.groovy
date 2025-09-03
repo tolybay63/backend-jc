@@ -727,7 +727,7 @@ class DataDao extends BaseMdbUtils {
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
         //Store st = mdb.createStore("Obj.Station")
         Store st = loadSqlService("""
-            select o.id, o.cls, v.name,
+            select o.id, o.cls, v.name, v.objParent as parent,
                 v1.id as idStartKm, v1.numberVal as StartKm,
                 v2.id as idStartPicket, v2.numberVal as StartPicket,
                 v3.id as idFinishKm, v3.numberVal as FinishKm,
