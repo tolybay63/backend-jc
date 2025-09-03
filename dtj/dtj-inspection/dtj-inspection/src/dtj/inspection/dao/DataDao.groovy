@@ -555,30 +555,18 @@ class DataDao extends BaseMdbUtils {
         //
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Section", "")
         Store stSection = loadSqlService("""
-            select o.id, o.cls, v1.obj as objSection, null as nameSection
+            select o.id, o.cls, v1.obj as objSection, ov1.name as nameSection
             from Obj o
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Section")}
                 left join DataPropVal v1 on d1.id=v1.dataprop
+                left join ObjVer ov1 on ov1.ownerVer=v1.obj and ov1.lastVer=1
             where o.id in (0${idsObject.join(",")})
         """, "", "objectdata")
-        Set<Object> idsSection = stSection.getUniqueValues("objSection")
-        Store stNSI = loadSqlService("""
-            select o.id, v.name
-            from Obj o, ObjVer v
-            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsSection.join(',')})
-        """, "", "nsidata")
-        StoreIndex indNSI = stNSI.getIndex("id")
 
-        for (StoreRecord r in stSection) {
-            StoreRecord rec = indNSI.get(r.getLong("objSection"))
-            if (rec != null)
-                r.set("nameSection", rec.getString("name"))
-        }
-        StoreIndex inSection = stSection.getIndex("id")
-
+        StoreIndex indSection = stSection.getIndex("id")
         //
         for (StoreRecord r in st) {
-            StoreRecord rec = inSection.get(r.getLong("objObject"))
+            StoreRecord rec = indSection.get(r.getLong("objObject"))
             if (rec != null) {
                 r.set("nameSection", rec.getString("nameSection"))
                 r.set("objSection", rec.getString("objSection"))
@@ -810,31 +798,20 @@ class DataDao extends BaseMdbUtils {
         //idsObject = st.getUniqueValues("objObject")
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Section", "")
         stObject = loadSqlService("""
-            select o.id, v.obj            
+            select o.id, v.obj, ov.name
             from Obj o
                 left join DataProp d on d.objorrelobj=o.id and prop=${map.get("Prop_Section")}
-                left join DataPropVal v on d.id=v.dataProp            
+                left join DataPropVal v on d.id=v.dataProp
+                left join ObjVer ov on v.obj=ov.ownerVer and ov.lastVer=1            
             where o.id in (0${idsObject.join(",")})
         """, "", "objectdata")
         indObject = stObject.getIndex("id")
         for (StoreRecord r : st) {
             StoreRecord rObj = indObject.get(r.getLong("objObject"))
-            if (rObj != null)
+            if (rObj != null) {
                 r.set("objSection", rObj.getLong("obj"))
-        }
-        //
-        Set<Object> idsSection = st.getUniqueValues("objSection")
-        Store stSection = loadSqlService("""
-            select o.id, v.name
-            from Obj o, ObjVer v
-            where o.id=v.ownerVer and v.lastVer=1
-        """, "", "nsidata")
-        StoreIndex indSection = stSection.getIndex("id")
-        //
-        for (StoreRecord r in st) {
-            StoreRecord rSec = indSection.get(r.getLong("objSection"))
-            if (rSec != null)
-                r.set("namesection", rSec.getString("name"))
+                r.set("nameSection", rObj.getString("name"))
+            }
         }
         //
         return st
