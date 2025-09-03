@@ -173,6 +173,7 @@
         <field name="parent" parent="long"/>
         <field name="cls" parent="long"/>
         <field name="name" parent="string"/>
+        <field name="nameParent" parent="string"/>
 
         <field name="idStartKm" parent="long"/>
         <field name="StartKm" parent="double"/>
@@ -192,6 +193,7 @@
         <field name="parent" parent="long"/>
         <field name="cls" parent="long"/>
         <field name="name" parent="string"/>
+        <field name="nameParent" parent="string"/>
 
         <field name="idStartKm" parent="long"/>
         <field name="StartKm" parent="double"/>

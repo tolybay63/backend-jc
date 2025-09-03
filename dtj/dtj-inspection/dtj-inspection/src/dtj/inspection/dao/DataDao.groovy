@@ -437,7 +437,6 @@ class DataDao extends BaseMdbUtils {
         return null
     }
 
-
     @DaoMethod
     Store loadObjClsWorkPlanInspectionUnfinishedByDate(Map<String, Object> params) {
         long obj = UtCnv.toLong(params.get("id"))

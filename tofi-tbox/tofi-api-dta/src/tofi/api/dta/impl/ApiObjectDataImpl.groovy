@@ -202,6 +202,14 @@ class ApiObjectDataImpl extends BaseMdbUtils implements ApiObjectData {
     @Override
     void deleteOwnerWithProperties(long id, int isObj) {
         //
+        Store stObj = mdb.loadQuery("""
+            select o.id
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and v.objParent=${id}
+        """)
+        if (stObj.size()>0)
+            throw new XError("Существуют дочерние элементы")
+
         validateForDeleteOwner(id, isObj)
         //
         String tableName = isObj==1 ? "Obj" : "RelObj"

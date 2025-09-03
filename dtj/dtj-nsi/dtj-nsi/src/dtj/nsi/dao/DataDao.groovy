@@ -683,6 +683,41 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store loadObjForSelectFromObject(String codClsOrTyp) {
+        Map<String, Long> map
+        String sql
+        if (codClsOrTyp.startsWith("Cls_")) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codClsOrTyp, "")
+            if (map.isEmpty())
+                throw new XError("NotFoundCod@${codClsOrTyp}")
+            sql = """
+                select o.id, o.cls, v.name, v.objParent as parent, null as pv 
+                from Obj o, ObjVer v
+                where o.id=v.ownerVer and v.lastVer=1 and o.cls=${map.get(codClsOrTyp)}
+            """
+        } else if (codClsOrTyp.startsWith("Typ_")) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", codClsOrTyp, "")
+            if (map.isEmpty())
+                throw new XError("NotFoundCod@${codClsOrTyp}")
+            Store stTmp = loadSqlMeta("""
+                select id from Cls where typ=${map.get(codClsOrTyp)}
+            """, "")
+            Set<Object> idsCls = stTmp.getUniqueValues("id")
+            sql = """
+                select o.id, o.cls, v.objParent as parent, v.name, null as pv 
+                from Obj o, ObjVer v
+                where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
+            """
+        } else
+            throw new XError("Неисвезстная сущность")
+
+
+        return loadSqlService(sql, "", "objectdata")
+    }
+
+
+
+    @DaoMethod
     Store loadStage(long obj) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Stage", "")
         if (map.isEmpty())
@@ -693,7 +728,7 @@ class DataDao extends BaseMdbUtils {
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
         //Store st = mdb.createStore("Obj.Stage")
         Store st = loadSqlService("""
-            select o.id, o.cls, v.name,
+            select o.id, o.cls, v.name, v.objParent as parent, ov.name as nameParent,
                 v1.id as idStartKm, v1.numberVal as StartKm,
                 v2.id as idStartPicket, v2.numberVal as StartPicket,
                 v3.id as idFinishKm, v3.numberVal as FinishKm,
@@ -701,6 +736,7 @@ class DataDao extends BaseMdbUtils {
                 v5.id as idStageLength, v5.numberVal as StageLength
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join ObjVer ov on ov.id=v.objParent and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_StartKm")} --1007
                 left join DataPropVal v1 on d1.id=v1.dataprop
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_StartPicket")}   --1009
@@ -727,13 +763,14 @@ class DataDao extends BaseMdbUtils {
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
         //Store st = mdb.createStore("Obj.Station")
         Store st = loadSqlService("""
-            select o.id, o.cls, v.name, v.objParent as parent,
+            select o.id, o.cls, v.name, v.objParent as parent, ov.name as nameParent,
                 v1.id as idStartKm, v1.numberVal as StartKm,
                 v2.id as idStartPicket, v2.numberVal as StartPicket,
                 v3.id as idFinishKm, v3.numberVal as FinishKm,
                 v4.id as idFinishPicket, v4.numberVal as FinishPicket
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join ObjVer ov on ov.id=v.objParent and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_StartKm")} --1007
                 left join DataPropVal v1 on d1.id=v1.dataprop
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_StartPicket")}   --1009

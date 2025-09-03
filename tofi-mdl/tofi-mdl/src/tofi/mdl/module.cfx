@@ -72,6 +72,8 @@
         <model name="orgstructuredata" instance="tofi.api.dta.model"/>
         <model name="personnaldata" instance="tofi.api.dta.model"/>
         <model name="plandata" instance="tofi.api.dta.model"/>
+        <model name="inspectiondata" instance="tofi.api.dta.model"/>
+        <model name="clientdata" instance="tofi.api.dta.model"/>
 
     </dbm>
 
