@@ -8,6 +8,38 @@ import org.junit.jupiter.api.Test
 
 class Obj_Test extends Apx_Test {
 
+    @Test
+    void mappingStAndPer() {
+        Map<String, Long> map = new HashMap<>()
+
+        map.put("2635",1876)
+        map.put("2636",1875)
+        map.put("2637",1874)
+        map.put("2638",1873)
+        map.put("2639",1872)
+        map.put("2640",1871)
+        map.put("2641",1870)
+        map.put("2643",1877)
+        map.put("2645",1863)
+        map.put("2646",1864)
+        map.put("2647",1865)
+        map.put("2648",1866)
+        map.put("2649",1867)
+        map.put("2650",1868)
+        map.put("2651",1869)
+
+
+        Store st = mdb.loadQuery("""
+            select * from DataPropVal where obj in (2635,2636,2637,2638,2639,2643,2645,2646,2647,2648,2649,2650,2651,2640,2641)
+        """)
+
+        mdb.outTable(st)
+        for (StoreRecord r in st) {
+            mdb.execQuery("""
+                update DataPropVal set obj=:obj where id=:id
+            """, Map.of("obj", map.get(r.getString("obj")), "id", r.getLong("id")))
+        }
+    }
 
     @Test
     void test_FV() {
