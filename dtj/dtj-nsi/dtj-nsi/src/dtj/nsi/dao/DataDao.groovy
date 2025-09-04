@@ -2842,7 +2842,8 @@ class DataDao extends BaseMdbUtils {
         }
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_DefectsComponent") ||
+            if (cod.equalsIgnoreCase("Prop_Client") ||
+                    cod.equalsIgnoreCase("Prop_DefectsComponent") ||
                     cod.equalsIgnoreCase("Prop_Collections") ||
                     cod.equalsIgnoreCase("Prop_LocationMulti")) {
                 if (objRef > 0)
