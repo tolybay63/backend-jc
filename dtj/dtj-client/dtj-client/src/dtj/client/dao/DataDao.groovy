@@ -75,7 +75,7 @@ class DataDao extends BaseMdbUtils {
         if (id==0)
             whe = "o.cls=${map.get("Cls_Client")}"
 
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
 
         mdb.loadQuery(st, """
             select o.id, o.cls, v.name,
