@@ -103,9 +103,11 @@ class DataDao extends BaseMdbUtils {
                         left join RelObjVer v on v.ownerVer=m.relobj and v.lastVer=1
                     where m.obj=${owner}
                 """)
-                String nm = stTemp.get(0).getString("name")
-                if (stTemp.size() > 0)
+
+                if (stTemp.size() > 0) {
+                    String nm = stTemp.get(0).getString("name")
                     throw new XError("Существуют отношения объектов [${nm}]")
+                }
                 //
                 List<String> lstService = new ArrayList<>()
                 long cls = stObj.get(0).getLong("cls")
@@ -2062,7 +2064,6 @@ class DataDao extends BaseMdbUtils {
     }
 
 //todo Delete!
-/*
 
     @DaoMethod
     Store loadFvCategory(String codFactor) {
@@ -2084,7 +2085,6 @@ class DataDao extends BaseMdbUtils {
         return loadFvForSelect(codFactor)
     }
 
-*/
 
     @DaoMethod
     Store loadFvForSelect(String codFactor) {
