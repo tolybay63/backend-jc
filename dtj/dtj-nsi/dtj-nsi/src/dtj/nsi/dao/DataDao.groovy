@@ -1322,9 +1322,11 @@ class DataDao extends BaseMdbUtils {
             from RelObj o, RelObjVer v
             where o.id=v.ownerVer and v.lastVer=1 and o.relcls in (${idsRelCls.join(",")})
         """)
-        String nm = stTemp.get(0).getString("name")
-        if (stTemp.size() > 0)
+
+        if (stTemp.size() > 0) {
+            String nm = stTemp.get(0).getString("name")
             throw new XError("Существуют отношения объектов [${nm}]")
+        }
         //
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "Factor_ObjectType", "")
 
@@ -2335,6 +2337,181 @@ class DataDao extends BaseMdbUtils {
         mdb.insertRec("DataPropVal", recDPV, false)
     }
 
+    private void updateProperties(String cod, Map<String, Object> params) {
+        VariantMap mapProp = new VariantMap(params)
+        String keyValue = cod.split("_")[1]
+        long idVal = mapProp.getLong("id" + keyValue)
+        long propVal = mapProp.getLong("pv" + keyValue)
+        long objRef = mapProp.getLong("obj" + keyValue)
+        Store stProp = apiMeta().get(ApiMeta).getPropInfo(cod)
+        //
+        long propType = stProp.get(0).getLong("propType")
+        long attribValType = stProp.get(0).getLong("attribValType")
+        Integer digit = null
+        double koef = stProp.get(0).getDouble("koef")
+        if (koef == 0) koef = 1
+        if (!stProp.get(0).isValueNull("digit"))
+            digit = stProp.get(0).getInt("digit")
+
+        String sql = ""
+        def tmst = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
+        def strValue = mapProp.getString(keyValue)
+        // For Attrib
+        if ([FD_AttribValType_consts.str].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_NumberSource") ||
+                    cod.equalsIgnoreCase("Prop_NumberOt") ||
+                    cod.equalsIgnoreCase("Prop_DefectsIndex") ||
+                    cod.equalsIgnoreCase("Prop_DefectsNote") ||
+                    cod.equalsIgnoreCase("Prop_DocumentNumber") ||
+                    cod.equalsIgnoreCase("Prop_DocumentAuthor") ||
+                    cod.equalsIgnoreCase("Prop_ParamsDescription")) {
+                if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
+                    sql = """
+                        delete from DataPropVal where id=${idVal};
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        );
+                    """
+                } else {
+                    sql = "update DataPropval set strVal='${strValue}', timeStamp='${tmst}' where id=${idVal}"
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
+        if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_Description")) {
+                if (params.get(keyValue) != null) {
+                    sql = "update DataPropval set multiStrVal='${strValue}', timeStamp='${tmst}' where id=${idVal}"
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
+        if ([FD_AttribValType_consts.dt].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_DocumentApprovalDate") ||
+                    cod.equalsIgnoreCase("Prop_DocumentStartDate") ||
+                    cod.equalsIgnoreCase("Prop_DocumentEndDate")) {
+                if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
+                    sql = """
+                        delete from DataPropVal where id=${idVal};
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        );
+                    """
+                } else {
+                    sql = "update DataPropval set dateTimeVal='${strValue}', timeStamp='${tmst}' where id=${idVal}"
+                }
+            } else
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+        }
+
+        // For FV
+        if ([FD_PropType_consts.factor].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_Source") ||
+                    cod.equalsIgnoreCase("Prop_PeriodType") ||
+                    cod.equalsIgnoreCase("Prop_Shape") ||
+                    cod.equalsIgnoreCase("Prop_DefectsCategory")) {
+                if (propVal > 0)
+                    sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
+                else {
+                    sql = """
+                        delete from DataPropVal where id=${idVal};
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        );
+                    """
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
+        // For Measure
+        if ([FD_PropType_consts.measure].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_ParamsMeasure")) {
+                if (propVal > 0)
+                    sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
+                else {
+                    sql = """
+                        delete from DataPropVal where id=${idVal};
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        );
+                    """
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
+
+        // For Meter
+        if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_StartKm") ||
+                    cod.equalsIgnoreCase("Prop_StartPicket") ||
+                    cod.equalsIgnoreCase("Prop_FinishKm") ||
+                    cod.equalsIgnoreCase("Prop_FinishPicket") ||
+                    cod.equalsIgnoreCase("Prop_StageLength") ||
+                    cod.equalsIgnoreCase("Prop_ParamsLimitMax") ||
+                    cod.equalsIgnoreCase("Prop_ParamsLimitMin") ||
+                    cod.equalsIgnoreCase("Prop_ParamsLimitNorm") ||
+                    cod.equalsIgnoreCase("Prop_Periodicity")) {
+                if (mapProp.keySet().contains(keyValue) && mapProp[keyValue] != 0) {
+                    def v = mapProp.getDouble(keyValue)
+                    v = v / koef
+                    if (digit) v = v.round(digit)
+                    sql = "update DataPropval set numberVal=${v}, timeStamp='${tmst}' where id=${idVal}"
+                } else {
+                    sql = """
+                        delete from DataPropVal where id=${idVal};
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        );
+                    """
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // For Typ
+        if ([FD_PropType_consts.typ].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_DefectsComponent") ||
+                    cod.equalsIgnoreCase("Prop_Collections") ||
+                    cod.equalsIgnoreCase("Prop_LocationMulti")) {
+                if (objRef > 0)
+                    sql = "update DataPropval set propVal=${propVal}, obj=${objRef}, timeStamp='${tmst}' where id=${idVal}"
+                else {
+                    sql = """
+                        delete from DataPropVal where id=${idVal};
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        );
+                    """
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
+        mdb.execQueryNative(sql)
+
+    }
+
     private void fillPropertiesToObject(boolean isObj, String cod, Map<String, Object> params) {
         long own = UtCnv.toLong(params.get("own"))
         String keyValue = cod.split("_")[1]
@@ -2518,179 +2695,6 @@ class DataDao extends BaseMdbUtils {
         //mdb.insertRec("DataPropVal", recDPV, false)
     }
 
-    private void updateProperties(String cod, Map<String, Object> params) {
-        VariantMap mapProp = new VariantMap(params)
-        String keyValue = cod.split("_")[1]
-        long idVal = mapProp.getLong("id" + keyValue)
-        long propVal = mapProp.getLong("pv" + keyValue)
-        long objRef = mapProp.getLong("obj" + keyValue)
-        Store stProp = apiMeta().get(ApiMeta).getPropInfo(cod)
-        //
-        long propType = stProp.get(0).getLong("propType")
-        long attribValType = stProp.get(0).getLong("attribValType")
-        Integer digit = null
-        double koef = stProp.get(0).getDouble("koef")
-        if (koef == 0) koef = 1
-        if (!stProp.get(0).isValueNull("digit"))
-            digit = stProp.get(0).getInt("digit")
-
-        String sql = ""
-        def tmst = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
-        def strValue = mapProp.getString(keyValue)
-        // For Attrib
-        if ([FD_AttribValType_consts.str].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_NumberSource") ||
-                    cod.equalsIgnoreCase("Prop_NumberOt") ||
-                    cod.equalsIgnoreCase("Prop_DefectsIndex") ||
-                    cod.equalsIgnoreCase("Prop_DefectsNote") ||
-                    cod.equalsIgnoreCase("Prop_DocumentNumber") ||
-                    cod.equalsIgnoreCase("Prop_DocumentAuthor") ||
-                    cod.equalsIgnoreCase("Prop_ParamsDescription")) {
-                if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
-                    sql = """
-                        delete from DataPropVal where id=${idVal};
-                        delete from DataProp where id in (
-                            select id from DataProp
-                            except
-                            select dataProp as id from DataPropVal
-                        );
-                    """
-                } else {
-                    sql = "update DataPropval set strVal='${strValue}', timeStamp='${tmst}' where id=${idVal}"
-                }
-            } else {
-                throw new XError("for dev: [${cod}] отсутствует в реализации")
-            }
-        }
-
-        if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_Description")) {
-                if (params.get(keyValue) != null) {
-                    sql = "update DataPropval set multiStrVal='${strValue}', timeStamp='${tmst}' where id=${idVal}"
-                }
-            } else {
-                throw new XError("for dev: [${cod}] отсутствует в реализации")
-            }
-        }
-
-        if ([FD_AttribValType_consts.dt].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_DocumentApprovalDate") ||
-                    cod.equalsIgnoreCase("Prop_DocumentStartDate") ||
-                    cod.equalsIgnoreCase("Prop_DocumentEndDate")) {
-                if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
-                    sql = """
-                        delete from DataPropVal where id=${idVal};
-                        delete from DataProp where id in (
-                            select id from DataProp
-                            except
-                            select dataProp as id from DataPropVal
-                        );
-                    """
-                } else {
-                    sql = "update DataPropval set dateTimeVal='${strValue}', timeStamp='${tmst}' where id=${idVal}"
-                }
-            } else
-                throw new XError("for dev: [${cod}] отсутствует в реализации")
-        }
-
-        // For FV
-        if ([FD_PropType_consts.factor].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_Source") ||
-                    cod.equalsIgnoreCase("Prop_PeriodType") ||
-                    cod.equalsIgnoreCase("Prop_Shape") ||
-                    cod.equalsIgnoreCase("Prop_DefectsCategory")) {
-                if (propVal > 0)
-                    sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
-                else {
-                    sql = """
-                        delete from DataPropVal where id=${idVal};
-                        delete from DataProp where id in (
-                            select id from DataProp
-                            except
-                            select dataProp as id from DataPropVal
-                        );
-                    """
-                }
-            } else {
-                throw new XError("for dev: [${cod}] отсутствует в реализации")
-            }
-        }
-
-        // For Measure
-        if ([FD_PropType_consts.measure].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_ParamsMeasure")) {
-                if (propVal > 0)
-                    sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
-                else {
-                    sql = """
-                        delete from DataPropVal where id=${idVal};
-                        delete from DataProp where id in (
-                            select id from DataProp
-                            except
-                            select dataProp as id from DataPropVal
-                        );
-                    """
-                }
-            } else {
-                throw new XError("for dev: [${cod}] отсутствует в реализации")
-            }
-        }
-
-
-        // For Meter
-        if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_StartKm") ||
-                    cod.equalsIgnoreCase("Prop_StartPicket") ||
-                    cod.equalsIgnoreCase("Prop_FinishKm") ||
-                    cod.equalsIgnoreCase("Prop_FinishPicket") ||
-                    cod.equalsIgnoreCase("Prop_StageLength") ||
-                    cod.equalsIgnoreCase("Prop_ParamsLimitMax") ||
-                    cod.equalsIgnoreCase("Prop_ParamsLimitMin") ||
-                    cod.equalsIgnoreCase("Prop_ParamsLimitNorm") ||
-                    cod.equalsIgnoreCase("Prop_Periodicity")) {
-                if (mapProp.keySet().contains(keyValue) && mapProp[keyValue] != 0) {
-                    def v = mapProp.getDouble(keyValue)
-                    v = v / koef
-                    if (digit) v = v.round(digit)
-                    sql = "update DataPropval set numberVal=${v}, timeStamp='${tmst}' where id=${idVal}"
-                } else {
-                    sql = """
-                        delete from DataPropVal where id=${idVal};
-                        delete from DataProp where id in (
-                            select id from DataProp
-                            except
-                            select dataProp as id from DataPropVal
-                        );
-                    """
-                }
-            } else {
-                throw new XError("for dev: [${cod}] отсутствует в реализации")
-            }
-        }
-        // For Typ
-        if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_Client")) {
-                if (objRef > 0)
-                    sql = "update DataPropval set propVal=${propVal}, obj=${objRef}, timeStamp='${tmst}' where id=${idVal}"
-                else {
-                    sql = """
-                        delete from DataPropVal where id=${idVal};
-                        delete from DataProp where id in (
-                            select id from DataProp
-                            except
-                            select dataProp as id from DataPropVal
-                        );
-                    """
-                }
-            } else {
-                throw new XError("for dev: [${cod}] отсутствует в реализации")
-            }
-        }
-
-        mdb.execQueryNative(sql)
-
-    }
-
     private void updatePropertiesFromObject(String cod, Map<String, Object> params) {
         VariantMap mapProp = new VariantMap(params)
         String keyValue = cod.split("_")[1]
@@ -2842,10 +2846,7 @@ class DataDao extends BaseMdbUtils {
         }
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_Client") ||
-                    cod.equalsIgnoreCase("Prop_DefectsComponent") ||
-                    cod.equalsIgnoreCase("Prop_Collections") ||
-                    cod.equalsIgnoreCase("Prop_LocationMulti")) {
+            if (cod.equalsIgnoreCase("Prop_Client")) {
                 if (objRef > 0)
                     sql = "update DataPropval set propVal=${propVal}, obj=${objRef}, timeStamp='${tmst}' where id=${idVal}"
                 else {
