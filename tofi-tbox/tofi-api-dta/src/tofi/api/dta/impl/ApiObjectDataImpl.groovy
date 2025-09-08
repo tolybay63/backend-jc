@@ -280,7 +280,13 @@ class ApiObjectDataImpl extends BaseMdbUtils implements ApiObjectData {
             if (rec != null)
                 r.set("pv", rec.getLong("id"))
         }
-        return st
+
+        Store res = mdb.createStore("Obj.ObjList")
+        for (StoreRecord r in st) {
+            if (r.getLong("pv") > 0)
+                res.add(r)
+        }
+        return res
     }
 
     void validateForDeleteOwner(long owner, int isObj) {

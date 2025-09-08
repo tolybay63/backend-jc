@@ -51,7 +51,7 @@ class Obj_Test extends Apx_Test {
     @Test
     void test_Obj() {
         DataDao dao = mdb.createDao(DataDao.class)
-        Store st = dao.loadObjList("Typ_Collections", "Prop_Collections",  'nsidata')
+        Store st = dao.loadObjList("Typ_Section", "Prop_Section",  'objectdata')
         mdb.outTable(st)
     }
 
