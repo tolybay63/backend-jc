@@ -447,7 +447,9 @@ class DataDao extends BaseMdbUtils {
         def strValue = mapProp.getString(keyValue)
         // For Attrib
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_TabNumber")) {   //For Template
+            if (cod.equalsIgnoreCase("Prop_BIN") ||
+                    cod.equalsIgnoreCase("Prop_ContactPerson") ||
+                    cod.equalsIgnoreCase("Prop_ContactDetails")) {   //For Template
                 if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
                     sql = """
                         delete from DataPropVal where id=${idVal};
@@ -485,9 +487,7 @@ class DataDao extends BaseMdbUtils {
         }
 
         if ([FD_AttribValType_consts.dt].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_CreatedAt") ||
-                    cod.equalsIgnoreCase("Prop_UpdatedAt") ||
-                    cod.equalsIgnoreCase("Prop_PlanDateEnd")) {
+            if (cod.equalsIgnoreCase("Prop_CreatedAt")) {
                 if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
                     sql = """
                         delete from DataPropVal where id=${idVal};
@@ -545,10 +545,7 @@ class DataDao extends BaseMdbUtils {
         }
 
         if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_StartKm") ||
-                    cod.equalsIgnoreCase("Prop_FinishKm") ||
-                    cod.equalsIgnoreCase("Prop_StartPicket") ||
-                    cod.equalsIgnoreCase("Prop_FinishPicket")) {
+            if (cod.equalsIgnoreCase("Prop_StartKm")) {
                 if (mapProp[keyValue] != "") {
                     def v = mapProp.getDouble(keyValue)
                     v = v / koef
@@ -570,10 +567,7 @@ class DataDao extends BaseMdbUtils {
         }
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_LocationClsSection") ||
-                    cod.equalsIgnoreCase("Prop_Work") ||
-                    cod.equalsIgnoreCase("Prop_Object") ||
-                    cod.equalsIgnoreCase("Prop_User")) {
+            if (cod.equalsIgnoreCase("Prop_User")) {
                 if (objRef > 0)
                     sql = "update DataPropval set propVal=${propVal}, obj=${objRef}, timeStamp='${tmst}' where id=${idVal}"
                 else {
