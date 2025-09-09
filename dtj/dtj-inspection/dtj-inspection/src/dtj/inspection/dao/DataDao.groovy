@@ -838,7 +838,52 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Store saveInspection(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
+        //StartLink
+        int beg = pms.getInt('StartKm') * 1000 + pms.getInt('StartPicket') * 100 + pms.getInt('StartLink') * 25
+        int end = pms.getInt('FinishKm') * 1000 + pms.getInt('FinishPicket') * 100 + pms.getInt('FinishLink') * 25
+        if (beg > end)
+            throw new XError("Координаты начала не могут быть больше координаты конца")
         //
+        long objWorkPlan = pms.getLong("objWorkPlan")
+        long pvWorkPlan = pms.getLong("pvWorkPlan")
+
+        Store stTmp = mdb.loadQuery("""
+            select d.objorrelobj 
+            from dataprop d, datapropval v
+            where d.id=v.dataprop and v.obj=${objWorkPlan} and v.propval=${pvWorkPlan}
+        """)
+        Set<Object> idsOwn = stTmp.getUniqueValues("objorrelobj")
+        if (!idsOwn.isEmpty()) {
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+
+            stTmp = mdb.loadQuery("""
+                select o.id,
+                    v3.numberVal * 1000 + v5.numberVal * 100 + v12.numberVal * 25 as beg,
+                    v4.numberVal * 1000 + v6.numberVal * 100 + v13.numberVal * 25 as end
+                from Obj o 
+                    left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                    left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartKm
+                    left join DataPropVal v3 on d3.id=v3.dataprop
+                    left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FinishKm
+                    left join DataPropVal v4 on d4.id=v4.dataprop
+                    left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_StartPicket
+                    left join DataPropVal v5 on d5.id=v5.dataprop
+                    left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_FinishPicket
+                    left join DataPropVal v6 on d6.id=v6.dataprop
+                    left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_StartLink
+                    left join DataPropVal v12 on d12.id=v12.dataprop
+                    left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_FinishLink
+                    left join DataPropVal v13 on d13.id=v13.dataprop
+                where o.id in (${idsOwn.join(",")})
+            """, map)
+            boolean bOk = true
+            for (StoreRecord r in stTmp) {
+                if (!(beg > r.getInt("end") || end < r.getInt("beg")))
+                    bOk = false
+            }
+            if (!bOk)
+                throw new XError("По данным координатам существует запись")
+        }        //
         long own
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
         Map<String, Object> par = new HashMap<>(pms)
