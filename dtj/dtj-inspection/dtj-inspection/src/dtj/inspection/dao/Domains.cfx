@@ -18,6 +18,7 @@
         <field name="fullNameWork" parent="string"/>
 
         <field name="PlanDateEnd" parent="string"/>
+        <field name="ActualDateEnd" parent="string"/>
 
         <field name="objObject" parent="long"/>
         <field name="fullNameObject" parent="string"/>

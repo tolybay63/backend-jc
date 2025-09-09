@@ -648,10 +648,7 @@ class DataDao extends BaseMdbUtils {
         }
 
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
-/*
-Factor_IsActive, FV_True, FV_False
-Prop_TrueDefect, Prop_TrueParameter
-* */
+
         mdb.loadQuery(st, """
             select o.id, o.cls, v.name, null as nameCls,
                 v1.id as idLocationClsSection, v1.propVal as pvLocationClsSection, 
@@ -720,14 +717,16 @@ Prop_TrueDefect, Prop_TrueParameter
         Set<Object> idsWorkPlan = st.getUniqueValues("objWorkPlan")
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
         Store stWPprops = loadSqlService("""
-            select o.id, v1.obj as objWork, v2.obj as objObject, v3.dateTimeVal as PlanDateEnd 
+            select o.id, v1.obj as objWork, v2.obj as objObject, v3.dateTimeVal as PlanDateEnd, v4.dateTimeVal as ActualDateEnd
             from Obj o
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Work")}
                 left join DataPropVal v1 on d1.id=v1.dataProp
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_Object")}
                 left join DataPropVal v2 on d2.id=v2.dataProp
                 left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_PlanDateEnd")}
-                left join DataPropVal v3 on d3.id=v3.dataProp            
+                left join DataPropVal v3 on d3.id=v3.dataProp
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_FactDateEnd")}
+                left join DataPropVal v4 on d4.id=v4.dataProp            
             where o.id in (0${idsWorkPlan.join(",")})
         """, "", "plandata")
 
@@ -768,6 +767,7 @@ Prop_TrueDefect, Prop_TrueParameter
                 r.set("objWork", rWPprops.getLong("objWork"))
                 r.set("objObject", rWPprops.getLong("objObject"))
                 r.set("PlanDateEnd", rWPprops.getString("PlanDateEnd"))
+                r.set("ActualDateEnd", rWPprops.getString("ActualDateEnd"))
             }
 
             StoreRecord rTrueDefect = indTrueDefect.get(r.getLong("pvTrueDefect"))
@@ -876,7 +876,7 @@ Prop_TrueDefect, Prop_TrueParameter
             pms.put("fvTrueDefect", idFV_False)
             pms.put("pvTrueDefect", pvTrueDefect)
             fillProperties(true, "Prop_TrueDefect", pms)
-            //4 Prop_TrueParameter
+            //4.1 Prop_TrueParameter
             pms.put("fvTrueParameter", idFV_False)
             pms.put("pvTrueParameter", pvTrueParameter)
             fillProperties(true, "Prop_TrueParameter", pms)
