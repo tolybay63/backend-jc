@@ -30,10 +30,15 @@
         <field name="objUser" parent="long"/>
         <field name="fullNameUser" parent="string"/>
 
-        <field name="idDeviationDefect" parent="long"/>
-        <field name="fvDeviationDefect" parent="long"/>
-        <field name="pvDeviationDefect" parent="long"/>
-        <field name="nameDeviationDefect" parent="string"/>
+        <field name="idTrueDefect" parent="long"/>
+        <field name="fvTrueDefect" parent="long"/>
+        <field name="pvTrueDefect" parent="long"/>
+        <field name="nameTrueDefect" parent="string"/>
+
+        <field name="idTrueParameter" parent="long"/>
+        <field name="fvTrueParameter" parent="long"/>
+        <field name="pvTrueParameter" parent="long"/>
+        <field name="nameTrueParameter" parent="string"/>
 
         <field name="idStartKm" parent="long"/>
         <field name="StartKm" parent="double"/>

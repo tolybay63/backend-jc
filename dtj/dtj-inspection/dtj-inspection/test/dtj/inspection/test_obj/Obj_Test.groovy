@@ -63,10 +63,10 @@ class Obj_Test extends Apx_Test {
     void testSaveInspection() {
         DataDao dao = mdb.createDao(DataDao.class)
         Map<String, Object> map = new HashMap<>()
-        map.put("name", "test01")
+        map.put("name", "test01 AND Defect&Parameter")
         map.put("objLocationClsSection", 1077)
         map.put("pvLocationClsSection", 1241)
-        map.put("objWorkPlan", 1007)
+        map.put("objWorkPlan", 1040)
         map.put("pvWorkPlan", 1286)
         map.put("objUser", 1003)
         map.put("pvUser", 1087)
@@ -80,9 +80,6 @@ class Obj_Test extends Apx_Test {
         map.put("CreatedAt", "2025-08-11")
         map.put("UpdatedAt", "2025-08-11")
         map.put("ReasonDeviation", "test02")
-        map.put("fvDeviationDefect", 1074)
-        map.put("pvDeviationDefect", 1289)
-
 
         Store st = dao.saveInspection("ins", map)
         mdb.outTable(st)

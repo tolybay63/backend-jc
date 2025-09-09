@@ -648,9 +648,10 @@ class DataDao extends BaseMdbUtils {
         }
 
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
-
-
-
+/*
+Factor_IsActive, FV_True, FV_False
+Prop_TrueDefect, Prop_TrueParameter
+* */
         mdb.loadQuery(st, """
             select o.id, o.cls, v.name, null as nameCls,
                 v1.id as idLocationClsSection, v1.propVal as pvLocationClsSection, 
@@ -664,11 +665,13 @@ class DataDao extends BaseMdbUtils {
                 v8.id as idUser, v8.propVal as pvUser, v8.obj as objUser, null as fullNameUser,
                 v9.id as idCreatedAt, v9.dateTimeVal as CreatedAt,
                 v10.id as idUpdatedAt, v10.dateTimeVal as UpdatedAt,
-                v11.id as idDeviationDefect, v11.propVal as pvDeviationDefect, null as fvDeviationDefect,
-                    null as nameDeviationDefect,
+                v11.id as idTrueDefect, v11.propVal as pvTrueDefect, null as fvTrueDefect,
+                    null as nameTrueDefect,
                 v12.id as idStartLink, v12.numberVal as StartLink,
                 v13.id as idFinishLink, v13.numberVal as FinishLink,
-                v14.id as idReasonDeviation, v14.multiStrVal as ReasonDeviation
+                v14.id as idReasonDeviation, v14.multiStrVal as ReasonDeviation,
+                v15.id as idTrueParameter, v15.propVal as pvTrueParameter, null as fvTrueParameter,
+                    null as nameTrueParameter
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
@@ -691,7 +694,7 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v9 on d9.id=v9.dataprop
                 left join DataProp d10 on d10.objorrelobj=o.id and d10.prop=:Prop_UpdatedAt
                 left join DataPropVal v10 on d10.id=v10.dataprop
-                left join DataProp d11 on d11.objorrelobj=o.id and d11.prop=:Prop_DeviationDefect
+                left join DataProp d11 on d11.objorrelobj=o.id and d11.prop=:Prop_TrueDefect
                 left join DataPropVal v11 on d11.id=v11.dataprop
                 left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_StartLink
                 left join DataPropVal v12 on d12.id=v12.dataprop
@@ -699,6 +702,8 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v13 on d13.id=v13.dataprop
                 left join DataProp d14 on d14.objorrelobj=o.id and d14.prop=:Prop_ReasonDeviation
                 left join DataPropVal v14 on d14.id=v14.dataprop
+                left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_TrueParameter
+                left join DataPropVal v15 on d15.id=v15.dataprop
             where ${whe}
         """, map)
         //mdb.outTable(st)
@@ -728,16 +733,23 @@ class DataDao extends BaseMdbUtils {
 
         StoreIndex indWPprops = stWPprops.getIndex("id")
         //
-        Set<Object> pvsDeviationDefect = st.getUniqueValues("pvDeviationDefect")
-        Store stDeviationDefect = loadSqlMeta("""
+        Set<Object> pvsTrueDefect = st.getUniqueValues("pvTrueDefect")
+        Store stTrueDefect = loadSqlMeta("""
             select pv.id, pv.factorval, f.name
             from PropVal pv
                 left join Factor f on pv.factorVal=f.id 
-            where pv.id in (0${pvsDeviationDefect.join(",")})
+            where pv.id in (0${pvsTrueDefect.join(",")})
         """, "")
-        StoreIndex indDeviationDefect = stDeviationDefect.getIndex("id")
+        StoreIndex indTrueDefect = stTrueDefect.getIndex("id")
 
-
+        Set<Object> pvsTrueParameter = st.getUniqueValues("pvTrueParameter")
+        Store stTrueParameter = loadSqlMeta("""
+            select pv.id, pv.factorval, f.name
+            from PropVal pv
+                left join Factor f on pv.factorVal=f.id 
+            where pv.id in (0${pvsTrueParameter.join(",")})
+        """, "")
+        StoreIndex indTrueParameter = stTrueParameter.getIndex("id")
         //
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Personnel", "")
         Store stUser = loadSqlService("""
@@ -758,11 +770,17 @@ class DataDao extends BaseMdbUtils {
                 r.set("PlanDateEnd", rWPprops.getString("PlanDateEnd"))
             }
 
-            StoreRecord rDeviationDefect = indDeviationDefect.get(r.getLong("pvDeviationDefect"))
-            if (rDeviationDefect != null) {
-                r.set("fvDeviationDefect", rDeviationDefect.getLong("factorval"))
-                r.set("nameDeviationDefect", rDeviationDefect.getString("name"))
+            StoreRecord rTrueDefect = indTrueDefect.get(r.getLong("pvTrueDefect"))
+            if (rTrueDefect != null) {
+                r.set("fvTrueDefect", rTrueDefect.getLong("factorval"))
+                r.set("nameTrueDefect", rTrueDefect.getString("name"))
             }
+            StoreRecord rTrueParameter = indTrueParameter.get(r.getLong("pvTrueParameter"))
+            if (rTrueParameter != null) {
+                r.set("fvTrueParameter", rTrueParameter.getLong("factorval"))
+                r.set("nameTrueParameter", rTrueParameter.getString("name"))
+            }
+
             StoreRecord rUser = indUser.get(r.getLong("objUser"))
             if (rUser != null)
                 r.set("fullNameUser", rUser.getString("fullName"))
@@ -829,11 +847,16 @@ class DataDao extends BaseMdbUtils {
             Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Inspection", "")
             if (map.isEmpty())
                 throw new XError("NotFoundCod@Cls_Inspection")
-
             par.put("cls", map.get("Cls_Inspection"))
             par.put("fullName", par.get("name"))
             own = eu.insertEntity(par)
             pms.put("own", own)
+
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_False", "")
+            long idFV_False = map.get("FV_False")
+            long pvTrueDefect = apiMeta().get(ApiMeta).idPV("factorVal", idFV_False, "Prop_TrueDefect")
+            long pvTrueParameter = apiMeta().get(ApiMeta).idPV("factorVal", idFV_False, "Prop_TrueParameter")
+
             //1 Prop_LocationClsSection
             if (pms.getLong("objLocationClsSection") > 0)
                 fillProperties(true, "Prop_LocationClsSection", pms)
@@ -849,13 +872,15 @@ class DataDao extends BaseMdbUtils {
                 fillProperties(true, "Prop_User", pms)
             else
                 throw new XError("[objUser] not specified")
-            //4 Prop_DeviationDefect
-/*
-            if (pms.getLong("fvDeviationDefect") > 0)
-                fillProperties(true, "Prop_DeviationDefect", pms)
-            else
-                throw new XError("[fvDeviationDefect] not specified")
-*/
+            //4 Prop_TrueDefect
+            pms.put("fvTrueDefect", idFV_False)
+            pms.put("pvTrueDefect", pvTrueDefect)
+            fillProperties(true, "Prop_TrueDefect", pms)
+            //4 Prop_TrueParameter
+            pms.put("fvTrueParameter", idFV_False)
+            pms.put("pvTrueParameter", pvTrueParameter)
+            fillProperties(true, "Prop_TrueParameter", pms)
+            //
 
             //5 Prop_StartKm
             if (pms.getString("StartKm") != "")
@@ -924,10 +949,7 @@ class DataDao extends BaseMdbUtils {
             updateProperties("Prop_WorkPlan", pms)
             //3 Prop_User
             updateProperties("Prop_User", pms)
-            //4 Prop_DeviationDefect
-/*
-            updateProperties("Prop_DeviationDefect", pms)
-*/
+
             //5 Prop_StartKm
             updateProperties("Prop_StartKm", pms)
             //6 Prop_FinishKm
@@ -1309,7 +1331,8 @@ class DataDao extends BaseMdbUtils {
 
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
-            if ( cod.equalsIgnoreCase("Prop_DeviationDefect")) {
+            if ( cod.equalsIgnoreCase("Prop_TrueDefect") ||
+                    cod.equalsIgnoreCase("Prop_TrueParameter")) {
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
                 }
