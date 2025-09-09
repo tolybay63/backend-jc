@@ -68,6 +68,11 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store findLocationOfCoord(Map<String, Object> params) {
+        int beg = UtCnv.toInt(params.get('StartKm')) * 1000 + UtCnv.toInt(params.get('StartPicket')) * 100
+        int end = UtCnv.toInt(params.get('FinishKm')) * 1000 + UtCnv.toInt(params.get('FinishPicket')) * 100
+        if (beg > end)
+            throw new XError("Координаты начала не могут быть больше координаты конца")
+
         long objWork = UtCnv.toLong(params.get("objWork"))
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Collections", "")
         Store stObj = loadSqlService("""
@@ -91,9 +96,6 @@ class DataDao extends BaseMdbUtils {
         String whe = "o.id in (${objLocation.join(",")})"
 
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
-
-        int beg = UtCnv.toInt(params.get('StartKm')) * 1000 + UtCnv.toInt(params.get('StartPicket')) * 100
-        int end = UtCnv.toInt(params.get('FinishKm')) * 1000 + UtCnv.toInt(params.get('FinishPicket')) * 100
 
         String sql = """
             select o.id, o.cls, v.name, null as pv,
