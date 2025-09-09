@@ -96,19 +96,33 @@
         <field name="idDefect" parent="long"/>
         <field name="pvDefect" parent="long"/>
         <field name="objDefect" parent="long"/>
+        <field name="nameDefect" parent="string"/>
+
+        <field name="objObject" parent="long"/>
+        <field name="nameObject" parent="string"/>
+
+        <field name="objSection" parent="long"/>
+        <field name="nameSection" parent="string"/>
+
+        <field name="objWorkPlan" parent="long"/>
+
+        <field name="objDefectsComponent" parent="long"/>
+        <field name="nameDefectsComponent" parent="string"/>
+
+        <field name="pvDefectsCategory" parent="long"/>
+        <field name="fvDefectsCategory" parent="long"/>
+        <field name="nameDefectsCategory" parent="string"/>
 
         <field name="idLocationClsSection" parent="long"/>
         <field name="pvLocationClsSection" parent="long"/>
         <field name="objLocationClsSection" parent="long"/>
+        <field name="nameLocationClsSection" parent="string"/>
 
         <field name="idStartKm" parent="long"/>
         <field name="StartKm" parent="double"/>
 
         <field name="idFinishKm" parent="long"/>
         <field name="FinishKm" parent="double"/>
-
-        <field name="idStartPicket" parent="long"/>
-        <field name="StartPicket" parent="double"/>
 
         <field name="idStartPicket" parent="long"/>
         <field name="StartPicket" parent="double"/>

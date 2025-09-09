@@ -9,14 +9,26 @@ import org.junit.jupiter.api.Test
 class Obj_Test extends Apx_Test {
 
     @Test
+    void testLoadFault() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("periodType", 11)
+        map.put("date", "2025-09-09")
+        map.put("objLocation", 1077)
+        Store st = dao.loadFault(map)
+        mdb.outTable(st)
+    }
+
+
+    @Test
     void testSaveFault() {
         DataDao dao = mdb.createDao(DataDao.class)
         Map<String, Object> map = new HashMap<>()
         map.put("name", "test01 for datetime")
         map.put("objDefect", 2213)
         map.put("pvDefect", 1309)
-        map.put("objInspection", 1002)
-        map.put("pvInspection", 1291)
+        map.put("objInspection", 1017)
+        //map.put("pvInspection", 1291)
         map.put("StartKm", 1)
         map.put("FinishKm", 2)
         map.put("StartPicket", 3)
@@ -25,6 +37,9 @@ class Obj_Test extends Apx_Test {
         map.put("FinishLink", 6)
         map.put("CreationDateTime",  "2025-07-25T10:20:30.000")
         map.put("Description", "test02")
+        map.put("pvLocationClsSection", 1241)
+        map.put("objLocationClsSection", 1077)
+        map.put("FactDateEnd", "2025-09-09")
 
 
         Store st = dao.saveFault("ins", map)
