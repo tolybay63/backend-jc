@@ -431,7 +431,7 @@ class DataDao extends BaseMdbUtils {
         Store stObject = loadSqlService("""
             select d.objorrelobj as objWorkPlan, v.obj as objObject
             from DataProp d, DataPropVal v
-            where d.id=v.dataProp and d.prop=${map.get("Prop_Object")} and d.objorrelobj in (${idsWP.join(",")})
+            where d.id=v.dataProp and d.prop=${map.get("Prop_Object")} and d.objorrelobj in (0${idsWP.join(",")})
         """, "", "plandata")
         StoreIndex indObject = stObject.getIndex("objWorkPlan")
         //
@@ -513,9 +513,28 @@ class DataDao extends BaseMdbUtils {
             map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Inspection", "")
             long pvInspection = apiMeta().get(ApiMeta).idPV("cls", map.get("Cls_Inspection"), "Prop_Inspection")
             pms.put("pvInspection", pvInspection)
-            if (pms.getLong("objInspection") > 0)
+            if (pms.getLong("objInspection") > 0) {
                 fillProperties(true, "Prop_Inspection", pms)
-            else
+                //
+                map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_FlagDefect", "")
+                Store stTmp = mdb.loadQuery("""
+                    select v.id, v.propVal
+                    from DataProp d, DataPropVal v
+                    where d.id=v.dataProp and d.objorrelobj=${pms.getLong("objInspection")} 
+                        and d.prop=${map.get("Prop_FlagDefect")}
+                """)
+                if (stTmp.size() > 0) {
+                    map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_True", "")
+                    long idFV_True = map.get("FV_True")
+                    long pvFlagDefect = apiMeta().get(ApiMeta).idPV("factorVal", idFV_True, "Prop_FlagDefect")
+                    if (stTmp.get(0).getLong("propVal") != pvFlagDefect) {
+                        mdb.execQuery("""
+                            update from DataPropVal set propVal=${pvFlagDefect}
+                            where id=${stTmp.get(0).getLong("id")}
+                        """)
+                    }
+                }
+            } else
                 throw new XError("[objInspection] not specified")
             //3 Prop_StartKm
             if (pms.getString("StartKm") != "")
@@ -569,6 +588,9 @@ class DataDao extends BaseMdbUtils {
             //10 Prop_Description
             if (pms.getString("Description") != "")
                 fillProperties(true, "Prop_Description", pms)
+            //
+
+
 
         } else if (mode.equalsIgnoreCase("upd")) {
             own = pms.getLong("id")
@@ -579,10 +601,8 @@ class DataDao extends BaseMdbUtils {
 
             //1 Prop_Defect
             updateProperties("Prop_Defect", pms)
-
             //1.1 Prop_LocationClsSection
             updateProperties("Prop_LocationClsSection", pms)
-
             //2 Prop_Inspection
             updateProperties("Prop_Inspection", pms)
             //3 Prop_StartKm
@@ -902,13 +922,13 @@ class DataDao extends BaseMdbUtils {
                 v8.id as idUser, v8.propVal as pvUser, v8.obj as objUser, null as fullNameUser,
                 v9.id as idCreatedAt, v9.dateTimeVal as CreatedAt,
                 v10.id as idUpdatedAt, v10.dateTimeVal as UpdatedAt,
-                v11.id as idTrueDefect, v11.propVal as pvTrueDefect, null as fvTrueDefect,
-                    null as nameTrueDefect,
+                v11.id as idFlagDefect, v11.propVal as pvFlagDefect, null as fvFlagDefect,
+                    null as nameFlagDefect,
                 v12.id as idStartLink, v12.numberVal as StartLink,
                 v13.id as idFinishLink, v13.numberVal as FinishLink,
                 v14.id as idReasonDeviation, v14.multiStrVal as ReasonDeviation,
-                v15.id as idTrueParameter, v15.propVal as pvTrueParameter, null as fvTrueParameter,
-                    null as nameTrueParameter
+                v15.id as idFlagParameter, v15.propVal as pvFlagParameter, null as fvFlagParameter,
+                    null as nameFlagParameter
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
@@ -931,7 +951,7 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v9 on d9.id=v9.dataprop
                 left join DataProp d10 on d10.objorrelobj=o.id and d10.prop=:Prop_UpdatedAt
                 left join DataPropVal v10 on d10.id=v10.dataprop
-                left join DataProp d11 on d11.objorrelobj=o.id and d11.prop=:Prop_TrueDefect
+                left join DataProp d11 on d11.objorrelobj=o.id and d11.prop=:Prop_FlagDefect
                 left join DataPropVal v11 on d11.id=v11.dataprop
                 left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_StartLink
                 left join DataPropVal v12 on d12.id=v12.dataprop
@@ -939,7 +959,7 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v13 on d13.id=v13.dataprop
                 left join DataProp d14 on d14.objorrelobj=o.id and d14.prop=:Prop_ReasonDeviation
                 left join DataPropVal v14 on d14.id=v14.dataprop
-                left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_TrueParameter
+                left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_FlagParameter
                 left join DataPropVal v15 on d15.id=v15.dataprop
             where ${whe}
         """, map)
@@ -972,23 +992,23 @@ class DataDao extends BaseMdbUtils {
 
         StoreIndex indWPprops = stWPprops.getIndex("id")
         //
-        Set<Object> pvsTrueDefect = st.getUniqueValues("pvTrueDefect")
-        Store stTrueDefect = loadSqlMeta("""
+        Set<Object> pvsFlagDefect = st.getUniqueValues("pvFlagDefect")
+        Store stFlagDefect = loadSqlMeta("""
             select pv.id, pv.factorval, f.name
             from PropVal pv
                 left join Factor f on pv.factorVal=f.id 
-            where pv.id in (0${pvsTrueDefect.join(",")})
+            where pv.id in (0${pvsFlagDefect.join(",")})
         """, "")
-        StoreIndex indTrueDefect = stTrueDefect.getIndex("id")
+        StoreIndex indFlagDefect = stFlagDefect.getIndex("id")
 
-        Set<Object> pvsTrueParameter = st.getUniqueValues("pvTrueParameter")
-        Store stTrueParameter = loadSqlMeta("""
+        Set<Object> pvsFlagParameter = st.getUniqueValues("pvFlagParameter")
+        Store stFlagParameter = loadSqlMeta("""
             select pv.id, pv.factorval, f.name
             from PropVal pv
                 left join Factor f on pv.factorVal=f.id 
-            where pv.id in (0${pvsTrueParameter.join(",")})
+            where pv.id in (0${pvsFlagParameter.join(",")})
         """, "")
-        StoreIndex indTrueParameter = stTrueParameter.getIndex("id")
+        StoreIndex indFlagParameter = stFlagParameter.getIndex("id")
         //
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Personnel", "")
         Store stUser = loadSqlService("""
@@ -1010,15 +1030,15 @@ class DataDao extends BaseMdbUtils {
                 r.set("ActualDateEnd", rWPprops.getString("ActualDateEnd"))
             }
 
-            StoreRecord rTrueDefect = indTrueDefect.get(r.getLong("pvTrueDefect"))
-            if (rTrueDefect != null) {
-                r.set("fvTrueDefect", rTrueDefect.getLong("factorval"))
-                r.set("nameTrueDefect", rTrueDefect.getString("name"))
+            StoreRecord rFlagDefect = indFlagDefect.get(r.getLong("pvFlagDefect"))
+            if (rFlagDefect != null) {
+                r.set("fvFlagDefect", rFlagDefect.getLong("factorval"))
+                r.set("nameFlagDefect", rFlagDefect.getString("name"))
             }
-            StoreRecord rTrueParameter = indTrueParameter.get(r.getLong("pvTrueParameter"))
-            if (rTrueParameter != null) {
-                r.set("fvTrueParameter", rTrueParameter.getLong("factorval"))
-                r.set("nameTrueParameter", rTrueParameter.getString("name"))
+            StoreRecord rFlagParameter = indFlagParameter.get(r.getLong("pvFlagParameter"))
+            if (rFlagParameter != null) {
+                r.set("fvFlagParameter", rFlagParameter.getLong("factorval"))
+                r.set("nameFlagParameter", rFlagParameter.getString("name"))
             }
 
             StoreRecord rUser = indUser.get(r.getLong("objUser"))
@@ -1139,8 +1159,8 @@ class DataDao extends BaseMdbUtils {
 
             map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_False", "")
             long idFV_False = map.get("FV_False")
-            long pvTrueDefect = apiMeta().get(ApiMeta).idPV("factorVal", idFV_False, "Prop_TrueDefect")
-            long pvTrueParameter = apiMeta().get(ApiMeta).idPV("factorVal", idFV_False, "Prop_TrueParameter")
+            long pvFlagDefect = apiMeta().get(ApiMeta).idPV("factorVal", idFV_False, "Prop_FlagDefect")
+            long pvFlagParameter = apiMeta().get(ApiMeta).idPV("factorVal", idFV_False, "Prop_FlagParameter")
 
             //1 Prop_LocationClsSection
             if (pms.getLong("objLocationClsSection") > 0)
@@ -1157,14 +1177,14 @@ class DataDao extends BaseMdbUtils {
                 fillProperties(true, "Prop_User", pms)
             else
                 throw new XError("[objUser] not specified")
-            //4 Prop_TrueDefect
-            pms.put("fvTrueDefect", idFV_False)
-            pms.put("pvTrueDefect", pvTrueDefect)
-            fillProperties(true, "Prop_TrueDefect", pms)
-            //4.1 Prop_TrueParameter
-            pms.put("fvTrueParameter", idFV_False)
-            pms.put("pvTrueParameter", pvTrueParameter)
-            fillProperties(true, "Prop_TrueParameter", pms)
+            //4 Prop_FlagDefect
+            pms.put("fvFlagDefect", idFV_False)
+            pms.put("pvFlagDefect", pvFlagDefect)
+            fillProperties(true, "Prop_FlagDefect", pms)
+            //4.1 Prop_FlagParameter
+            pms.put("fvFlagParameter", idFV_False)
+            pms.put("pvFlagParameter", pvFlagParameter)
+            fillProperties(true, "Prop_FlagParameter", pms)
             //
 
             //5 Prop_StartKm
@@ -1616,8 +1636,8 @@ class DataDao extends BaseMdbUtils {
 
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
-            if ( cod.equalsIgnoreCase("Prop_TrueDefect") ||
-                    cod.equalsIgnoreCase("Prop_TrueParameter")) {
+            if ( cod.equalsIgnoreCase("Prop_FlagDefect") ||
+                    cod.equalsIgnoreCase("Prop_FlagParameter")) {
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
                 }
