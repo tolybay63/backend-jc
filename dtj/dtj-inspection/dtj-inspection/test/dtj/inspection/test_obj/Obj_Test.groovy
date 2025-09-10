@@ -8,6 +8,15 @@ import org.junit.jupiter.api.Test
 
 class Obj_Test extends Apx_Test {
 
+
+    @Test
+    void testLoadFaultEntriesForInspection() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadFaultEntriesForInspection(1)
+        mdb.outTable(st)
+    }
+
+
     @Test
     void testLoadFault() {
         DataDao dao = mdb.createDao(DataDao.class)
