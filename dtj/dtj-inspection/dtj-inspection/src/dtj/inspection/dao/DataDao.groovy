@@ -303,6 +303,235 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store loadParameterLog(Map<String, Object> params) {
+        Store st = mdb.createStore("Obj.ParameterLog")
+
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ParameterLog", "")
+
+        String whe
+        String wheV1 = ""
+        String wheV7 = ""
+        if (params.containsKey("id"))
+            whe = "o.id=${UtCnv.toLong(params.get("id"))}"
+        else {
+            whe = "o.cls = ${map.get("Cls_ParameterLog")}"
+            //
+            Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_LocationSection", "")
+            Store stClsLocation = loadSqlService("""
+                select cls from Obj where id=${UtCnv.toLong(params.get("objLocation"))}
+            """, "", "orgstructuredata")
+            if (stClsLocation.size()==0)
+                throw new XError("Не найден [objLocation={0}]", params.get("objLocation"))
+
+            long clsLocation = stClsLocation.get(0).getLong("cls")
+
+            if (clsLocation == mapCls.get("Cls_LocationSection")) {
+                Set<Object> idsObjLocation = getIdsObjLocation(UtCnv.toLong(params.get("objLocation")))
+                wheV1 = "and v1.obj in (${idsObjLocation.join(",")})"
+            }
+            long pt = UtCnv.toLong(params.get("periodType"))
+            String dte = UtCnv.toString(params.get("date"))
+            UtPeriod utPeriod = new UtPeriod()
+            XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(dte), pt, 0)
+            XDate d2 = utPeriod.calcDend(UtCnv.toDate(dte), pt, 0)
+            wheV7 = "and v7.dateTimeVal between '${d1}' and '${d2}'"
+        }
+
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+
+        mdb.loadQuery(st, """
+            select o.id, o.cls, v.name,
+                v1.id as idLocationClsSection, v1.propVal as pvLocationClsSection, 
+                    v1.obj as objLocationClsSection, null as nameLocationClsSection,
+                v2.id as idInspection, v2.propVal as pvInspection, v2.obj as objInspection, 
+                v3.id as idStartKm, v3.numberVal as StartKm,
+                v4.id as idFinishKm, v4.numberVal as FinishKm,
+                v5.id as idStartPicket, v5.numberVal as StartPicket,
+                v6.id as idFinishPicket, v6.numberVal as FinishPicket,
+                v7.id as idCreationDateTime, v7.dateTimeVal as CreationDateTime,
+                v8.id as idComponentParams, v8.propVal as pvComponentParams, v8.relobj as relobjComponentParams, null as nameComponentParams,
+                        null as objComponent, null as nameComponent,
+                v10.id as idOutOfNorm, v10.propVal as pvOutOfNorm, null as fvOutOfNorm, null as nameOutOfNorm,
+                v12.id as idStartLink, v12.numberVal as StartLink,
+                v13.id as idFinishLink, v13.numberVal as FinishLink,
+                v14.id as idDescription, v14.multiStrVal as Description,
+                v15.id as idParamsLimit, v15.numberVal as ParamsLimit,
+                v16.id as idParamsLimitMax, v16.numberVal as ParamsLimitMax,
+                v17.id as idParamsLimitMin, v17.numberVal as ParamsLimitMin
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
+                inner join DataPropVal v1 on d1.id=v1.dataprop ${wheV1}
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Inspection
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartKm
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FinishKm
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_StartPicket
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_FinishPicket
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_CreationDateTime
+                inner join DataPropVal v7 on d7.id=v7.dataprop ${wheV7}
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_ComponentParams
+                left join DataPropVal v8 on d8.id=v8.dataprop
+                left join DataProp d10 on d10.objorrelobj=o.id and d10.prop=:Prop_OutOfNorm
+                left join DataPropVal v10 on d10.id=v10.dataprop
+                left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_StartLink
+                left join DataPropVal v12 on d12.id=v12.dataprop
+                left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_FinishLink
+                left join DataPropVal v13 on d13.id=v13.dataprop
+                left join DataProp d14 on d14.objorrelobj=o.id and d14.prop=:Prop_Description
+                left join DataPropVal v14 on d14.id=v14.dataprop
+                left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_ParamsLimit
+                left join DataPropVal v15 on d15.id=v15.dataprop
+                left join DataProp d16 on d16.objorrelobj=o.id and d16.prop=:Prop_ParamsLimitMax
+                left join DataPropVal v16 on d16.id=v16.dataprop
+                left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=:Prop_ParamsLimitMin
+                left join DataPropVal v17 on d17.id=v17.dataprop
+            where ${whe}
+        """, map)
+        //... Пересечение
+        long propWP = map.get("Prop_WorkPlan")
+        Set<Object> idsObjLocation = st.getUniqueValues("objLocationClsSection")
+        Store stObjLocation = loadSqlService("""
+            select o.id, v.name
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsObjLocation.join(",")})
+        """, "", "orgstructuredata")
+        StoreIndex indLocation = stObjLocation.getIndex("id")
+        //
+        Set<Object> idsRelObjComponentParams = st.getUniqueValues("relobjComponentParams")
+        Map<Long, Map<String, Object>> mapParams = new HashMap<>()
+
+/*
+        for (Object o in idsRelObjComponentParams) {
+            long rel = UtCnv.toLong(o)
+            Store stParams = loadSqlService("""
+                select o.id, u1.obj as obj1, u1.name as name1, u2.obj as obj2, u2.name as name2
+                from Relobj o
+                    left join (
+                        select r.relobj, r.obj, v.name 
+                        from relobjmember r
+                            left join ObjVer v on v.ownerver=r.obj and v.lastVer=1
+                        where r.relobj=${rel}
+                        order by r.id
+                        limit 1
+                    ) u1 on o.id=u1.relobj
+                    left join (
+                        select r.relobj, r.obj, v.name 
+                        from relobjmember r
+                            left join ObjVer v on v.ownerver=r.obj and v.lastVer=1
+                        where r.relobj=${rel}
+                        order by r.id desc
+                        limit 1
+                    ) u2 on o.id=u2.relobj
+                where o.id=${rel}
+            """, "", "nsidata")
+
+            mapParams.put(rel, st.get(0).getValues())
+        }
+*/
+
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelTyp", "RT_ParamsComponent", "")
+        Store stMemb = loadSqlMeta("""
+            select id from relclsmember 
+            where relcls in (select id from Relcls where reltyp=${map.get("RT_ParamsComponent")})
+            order by id
+        """, "")
+        Store stRO = loadSqlService("""
+            select o.id, r1.obj as obj1, ov1.name as name1, r2.obj as obj2, ov2.name as name2
+            from Relobj o
+                left join relobjmember r1 on o.id = r1.relobj and r1.relclsmember=${stMemb.get(0).getLong("id")}
+                left join objver ov1 on ov1.ownerVer=r1.obj and ov1.lastVer=1
+                left join relobjmember r2 on o.id = r2.relobj and r2.relclsmember=${stMemb.get(1).getLong("id")}
+                left join objver ov2 on ov2.ownerVer=r2.obj and ov2.lastVer=1
+            where o.id in (0${idsRelObjComponentParams.join(",")})
+        """, "", "nsidata")
+
+        for (StoreRecord r in stRO) {
+            mapParams.put(r.getLong("id"), r.getValues())
+        }
+        //
+        Set<Object> idsObjInspection = st.getUniqueValues("objInspection")
+        Store stWP = mdb.loadQuery("""
+            select d.objorrelobj as objInspection, v.obj as objWorkPlan
+            from DataProp d, DataPropval v
+            where d.id=v.dataProp and d.prop=${propWP} and d.objorrelobj in (0${idsObjInspection.join(",")})
+        """, map)
+        StoreIndex indWP = stWP.getIndex("objInspection")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord recLocation = indLocation.get(r.getLong("objLocationClsSection"))
+            if (recLocation != null)
+                r.set("nameLocationClsSection", recLocation.getString("name"))
+
+            r.set("nameComponentParams", mapParams.get(r.getLong("relobjComponentParams")).get("name1"))
+            r.set("nameComponent", mapParams.get(r.getLong("relobjComponentParams")).get("name2"))
+            r.set("objComponent", mapParams.get(r.getLong("relobjComponentParams")).get("obj2"))
+
+            StoreRecord recWP = indWP.get(r.getLong("objInspection"))
+            if (recWP != null)
+                r.set("objWorkPlan", recWP.getLong("objWorkPlan"))
+        }
+        //
+        Set<Object> idsWP = stWP.getUniqueValues("objWorkPlan")
+        Store stObject = loadSqlService("""
+            select d.objorrelobj as objWorkPlan, v.obj as objObject
+            from DataProp d, DataPropVal v
+            where d.id=v.dataProp and d.prop=${map.get("Prop_Object")} and d.objorrelobj in (0${idsWP.join(",")})
+        """, "", "plandata")
+        StoreIndex indObject = stObject.getIndex("objWorkPlan")
+        //
+
+        Set<Object> pvsOutOfNorm = st.getUniqueValues("pvOutOfNorm")
+        Store stOutOfNorm = loadSqlMeta("""
+            select p.id, p.factorVal, f.name
+            from PropVal p
+                left join Factor f on p.factorVal=f.id 
+            where p.id in (0${pvsOutOfNorm.join(",")})   
+        """, "")
+        StoreIndex indOutOfNorm = stOutOfNorm.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord recObject = indObject.get(r.getLong("objWorkPlan"))
+            if (recObject != null)
+                r.set("objObject", recObject.getLong("objObject"))
+
+            StoreRecord recOutOfNorm = indOutOfNorm.get(r.getLong("pvOutOfNorm"))
+            if (recOutOfNorm != null) {
+                r.set("fvOutOfNorm", recOutOfNorm.getLong("factorVal"))
+                r.set("nameOutOfNorm", recOutOfNorm.getString("name"))
+            }
+        }
+
+        //
+        Set<Object> idsObject = st.getUniqueValues("objObject")
+        Store stObjectName = loadSqlService("""
+            select o.id, v.fullName as nameObject, v1.obj as objSection, ov1.name as nameSection 
+            from Obj o
+                left join ObjVer v on o.id=v.ownerVer and v.lastVer=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Section")}
+                left join DataPropVal v1 on d1.id=v1.dataProp
+                left join ObjVer ov1 on ov1.ownerVer=v1.obj and ov1.lastVer=1 
+            where o.id in (0${idsObject.join(",")})
+        """, "", "objectdata")
+        StoreIndex indObjectName = stObjectName.getIndex("id")
+
+        for (StoreRecord r in st) {
+            StoreRecord recObject = indObjectName.get(r.getLong("objObject"))
+            if (recObject != null) {
+                r.set("nameObject", recObject.getString("nameObject"))
+                r.set("objSection", recObject.getLong("objSection"))
+                r.set("nameSection", recObject.getString("nameSection"))
+            }
+        }
+        return st
+    }
+
+
+    @DaoMethod
     Store loadFault(Map<String, Object> params) {
         Store st = mdb.createStore("Obj.fault")
 

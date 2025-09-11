@@ -163,5 +163,71 @@
     </domain>
 
 
+    <domain name="Obj.ParameterLog" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idLocationClsSection" parent="long"/>
+        <field name="pvLocationClsSection" parent="long"/>
+        <field name="objLocationClsSection" parent="long"/>
+        <field name="nameLocationClsSection" parent="string"/>
+
+        <field name="idInspection" parent="long"/>
+        <field name="pvInspection" parent="long"/>
+        <field name="objInspection" parent="long"/>
+
+        <field name="idStartKm" parent="long"/>
+        <field name="StartKm" parent="double"/>
+
+        <field name="idFinishKm" parent="long"/>
+        <field name="FinishKm" parent="double"/>
+
+        <field name="idStartPicket" parent="long"/>
+        <field name="StartPicket" parent="double"/>
+
+        <field name="idFinishPicket" parent="long"/>
+        <field name="FinishPicket" parent="double"/>
+
+        <field name="idStartLink" parent="long"/>
+        <field name="StartLink" parent="double"/>
+
+        <field name="idFinishLink" parent="long"/>
+        <field name="FinishLink" parent="double"/>
+
+        <field name="idCreationDateTime" parent="long"/>
+        <field name="CreationDateTime" parent="string"/>
+
+        <field name="idComponentParams" parent="long"/>
+        <field name="pvComponentParams" parent="long"/>
+        <field name="relobjComponentParams" parent="long"/>
+        <field name="nameComponentParams" parent="string"/>
+
+        <field name="objComponent" parent="long"/>
+        <field name="nameComponent" parent="string"/>
+
+        <field name="objObject" parent="long"/>
+        <field name="nameObject" parent="string"/>
+
+        <field name="idOutOfNorm" parent="long"/>
+        <field name="pvOutOfNorm" parent="long"/>
+        <field name="fvOutOfNorm" parent="long"/>
+        <field name="nameOutOfNorm" parent="string"/>
+
+        <field name="idParamsLimit" parent="long"/>
+        <field name="ParamsLimit" parent="double"/>
+
+        <field name="idParamsLimitMax" parent="long"/>
+        <field name="ParamsLimitMax" parent="double"/>
+
+        <field name="idParamsLimitMin" parent="long"/>
+        <field name="ParamsLimitMin" parent="double"/>
+
+        <field name="idDescription" parent="long"/>
+        <field name="Description" parent="string"/>
+
+    </domain>
+
+
 </root>
 

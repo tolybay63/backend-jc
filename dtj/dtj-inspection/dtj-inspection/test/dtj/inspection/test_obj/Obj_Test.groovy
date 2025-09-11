@@ -16,6 +16,16 @@ class Obj_Test extends Apx_Test {
         mdb.outTable(st)
     }
 
+    @Test
+    void testLoadParameterLog() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("periodType", 11)
+        map.put("date", "2025-09-09")
+        map.put("objLocation", 1011)
+        Store st = dao.loadParameterLog(map)
+        mdb.outTable(st)
+    }
 
     @Test
     void testLoadFault() {
