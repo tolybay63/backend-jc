@@ -67,6 +67,28 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    void completeThePlanWork(Map<String, Object> params) {
+        long own = UtCnv.toLong(params.get("id"))
+        String FactDateEnd = UtCnv.toString(params.get("date"))
+        if (own <= 0)
+            throw new XError("Не указан параметр [id]")
+        if (FactDateEnd.isEmpty())
+            throw new XError("Не указан параметр [date]")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_FactDateEnd", "")
+        Store st = mdb.loadQuery("""
+            select v.dateTimeVal
+            from DataProp d, DataPropVal v
+            where d.id=v.dataProp and d.objorrelobj=${own} and d.prop=${map.get("Prop_FactDateEnd")}
+        """)
+        if (st.size() > 0)
+            throw new XError("Фактическая дата завершения [{0}] уже существует", st.get(0).getString("dateTimeVal"))
+        Map<String, Object> par = new HashMap<>()
+        par.put("own", own)
+        par.put("FactDateEnd", FactDateEnd)
+        fillProperties(true, "Prop_FactDateEnd", par)
+    }
+
+    @DaoMethod
     Store findLocationOfCoord(Map<String, Object> params) {
         int beg = UtCnv.toInt(params.get('StartKm')) * 1000 + UtCnv.toInt(params.get('StartPicket')) * 100
         int end = UtCnv.toInt(params.get('FinishKm')) * 1000 + UtCnv.toInt(params.get('FinishPicket')) * 100
@@ -812,7 +834,8 @@ class DataDao extends BaseMdbUtils {
         if ([FD_AttribValType_consts.dt].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_CreatedAt") ||
                     cod.equalsIgnoreCase("Prop_UpdatedAt") ||
-                    cod.equalsIgnoreCase("Prop_PlanDateEnd")) {
+                    cod.equalsIgnoreCase("Prop_PlanDateEnd") ||
+                        cod.equalsIgnoreCase("Prop_FactDateEnd")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
                 }

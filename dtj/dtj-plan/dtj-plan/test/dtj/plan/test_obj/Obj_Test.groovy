@@ -48,6 +48,14 @@ class Obj_Test extends Apx_Test {
     }
 
     @Test
+    void testCompleteThePlanWork() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.completeThePlanWork(Map.of(
+                "id", 1064, "date", "2025-09-12"
+        ))
+    }
+
+    @Test
     void testPlanSave() {
         DataDao dao = mdb.createDao(DataDao.class)
         Store st = dao.savePlan("upd", Map.of(
