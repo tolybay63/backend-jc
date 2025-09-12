@@ -283,6 +283,39 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store loadComponentParametersForSelect(long uch1) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelTyp", "RT_ParamsComponent", "")
+
+        Store stMemb = loadSqlMeta("""
+            select id from relclsmember 
+            where relcls in (select id from Relcls where reltyp=${map.get("RT_ParamsComponent")})
+            order by id
+        """, "")
+        Store stRO = loadSqlService("""
+            select o.id, o.relcls, ov1.name as name, null as pv
+            from Relobj o
+                left join relobjmember r1 on o.id = r1.relobj and r1.relclsmember=${stMemb.get(0).getLong("id")}
+                left join objver ov1 on ov1.ownerVer=r1.obj and ov1.lastVer=1
+                left join relobjmember r2 on o.id = r2.relobj and r2.relclsmember=${stMemb.get(1).getLong("id")}
+            where r2.obj=${uch1}
+        """, "", "nsidata")
+
+        Set<Object> idsRC = stRO.getUniqueValues("relcls")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_ComponentParams", "")
+        Store stPV = loadSqlMeta("""
+            select id, relcls from PropVal where prop=${map.get("Prop_ComponentParams")}
+                and relcls in (0${idsRC.join(",")})
+        """, "")
+        StoreIndex indPV = stPV.getIndex("relcls")
+        for (StoreRecord r in stRO) {
+            StoreRecord rec = indPV.get(r.getLong("relcls"))
+            if (rec != null)
+                r.set("pv", rec.getLong("id"))
+        }
+        return stRO
+    }
+
+    @DaoMethod
     Store loadDefectsByComponentForSelect(long id) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_DefectsComponent", "")
         Store stTmp = loadSqlService("""
@@ -340,6 +373,9 @@ class DataDao extends BaseMdbUtils {
             wheV7 = "and v7.dateTimeVal between '${d1}' and '${d2}'"
         }
 
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelTyp", "RT_ParamsComponent", "")
+        long reltypParamsComponent = map.get("RT_ParamsComponent")
+
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
 
         mdb.loadQuery(st, """
@@ -396,7 +432,6 @@ class DataDao extends BaseMdbUtils {
             where ${whe}
         """, map)
         //... Пересечение
-        long propWP = map.get("Prop_WorkPlan")
         Set<Object> idsObjLocation = st.getUniqueValues("objLocationClsSection")
         Store stObjLocation = loadSqlService("""
             select o.id, v.name
@@ -408,39 +443,9 @@ class DataDao extends BaseMdbUtils {
         Set<Object> idsRelObjComponentParams = st.getUniqueValues("relobjComponentParams")
         Map<Long, Map<String, Object>> mapParams = new HashMap<>()
 
-/*
-        for (Object o in idsRelObjComponentParams) {
-            long rel = UtCnv.toLong(o)
-            Store stParams = loadSqlService("""
-                select o.id, u1.obj as obj1, u1.name as name1, u2.obj as obj2, u2.name as name2
-                from Relobj o
-                    left join (
-                        select r.relobj, r.obj, v.name 
-                        from relobjmember r
-                            left join ObjVer v on v.ownerver=r.obj and v.lastVer=1
-                        where r.relobj=${rel}
-                        order by r.id
-                        limit 1
-                    ) u1 on o.id=u1.relobj
-                    left join (
-                        select r.relobj, r.obj, v.name 
-                        from relobjmember r
-                            left join ObjVer v on v.ownerver=r.obj and v.lastVer=1
-                        where r.relobj=${rel}
-                        order by r.id desc
-                        limit 1
-                    ) u2 on o.id=u2.relobj
-                where o.id=${rel}
-            """, "", "nsidata")
-
-            mapParams.put(rel, st.get(0).getValues())
-        }
-*/
-
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelTyp", "RT_ParamsComponent", "")
         Store stMemb = loadSqlMeta("""
             select id from relclsmember 
-            where relcls in (select id from Relcls where reltyp=${map.get("RT_ParamsComponent")})
+            where relcls in (select id from Relcls where reltyp=${reltypParamsComponent})
             order by id
         """, "")
         Store stRO = loadSqlService("""
@@ -459,10 +464,14 @@ class DataDao extends BaseMdbUtils {
         //
         Set<Object> idsObjInspection = st.getUniqueValues("objInspection")
         Store stWP = mdb.loadQuery("""
-            select d.objorrelobj as objInspection, v.obj as objWorkPlan
-            from DataProp d, DataPropval v
-            where d.id=v.dataProp and d.prop=${propWP} and d.objorrelobj in (0${idsObjInspection.join(",")})
-        """, map)
+            select o.id as objInspection, v1.obj as objWorkPlan, v2.dateTimeVal as FactDateEnd
+            from Obj o 
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_WorkPlan")}
+                left join DataPropval v1 on d1.id=v1.dataProp 
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_FactDateEnd")}
+                left join DataPropval v2 on d2.id=v2.dataProp
+            where o.id in (0${idsObjInspection.join(",")})
+        """)
         StoreIndex indWP = stWP.getIndex("objInspection")
         //
         for (StoreRecord r in st) {
@@ -475,8 +484,10 @@ class DataDao extends BaseMdbUtils {
             r.set("objComponent", mapParams.get(r.getLong("relobjComponentParams")).get("obj2"))
 
             StoreRecord recWP = indWP.get(r.getLong("objInspection"))
-            if (recWP != null)
+            if (recWP != null) {
                 r.set("objWorkPlan", recWP.getLong("objWorkPlan"))
+                r.set("FactDateEnd", recWP.getString("FactDateEnd"))
+            }
         }
         //
         Set<Object> idsWP = stWP.getUniqueValues("objWorkPlan")
@@ -533,7 +544,6 @@ class DataDao extends BaseMdbUtils {
         return st
     }
 
-
     @DaoMethod
     Store loadFault(Map<String, Object> params) {
         Store st = mdb.createStore("Obj.fault")
@@ -575,9 +585,8 @@ class DataDao extends BaseMdbUtils {
                 v4.id as idFinishKm, v4.numberVal as FinishKm,
                 v5.id as idStartPicket, v5.numberVal as StartPicket,
                 v6.id as idFinishPicket, v6.numberVal as FinishPicket,
-                v7.id as idFactDateEnd, v7.dateTimeVal as FactDateEnd,
+                v7.id as idCreationDateTime, v7.dateTimeVal as CreationDateTime,
                 v8.id as idDefect, v8.propVal as pvDefect, v8.obj as objDefect, null as nameDefect,
-                v9.id as idCreationDateTime, v9.dateTimeVal as CreationDateTime,
                 v12.id as idStartLink, v12.numberVal as StartLink,
                 v13.id as idFinishLink, v13.numberVal as FinishLink,
                 v14.id as idDescription, v14.multiStrVal as Description
@@ -595,12 +604,10 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v5 on d5.id=v5.dataprop
                 left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_FinishPicket
                 left join DataPropVal v6 on d6.id=v6.dataprop
-                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_FactDateEnd
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_CreationDateTime
                 inner join DataPropVal v7 on d7.id=v7.dataprop ${wheV7}
                 left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_Defect
                 left join DataPropVal v8 on d8.id=v8.dataprop
-                left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=:Prop_CreationDateTime
-                left join DataPropVal v9 on d9.id=v9.dataprop
                 left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_StartLink
                 left join DataPropVal v12 on d12.id=v12.dataprop
                 left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_FinishLink
@@ -636,10 +643,14 @@ class DataDao extends BaseMdbUtils {
         //
         Set<Object> idsObjInspection = st.getUniqueValues("objInspection")
         Store stWP = mdb.loadQuery("""
-            select d.objorrelobj as objInspection, v.obj as objWorkPlan
-            from DataProp d, DataPropval v
-            where d.id=v.dataProp and d.prop=:Prop_WorkPlan and d.objorrelobj in (${idsObjInspection.join(",")})
-        """, map)
+            select o.id as objInspection, v1.obj as objWorkPlan, v2.dateTimeVal as FactDateEnd
+            from Obj o 
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_WorkPlan")}
+                left join DataPropval v1 on d1.id=v1.dataProp 
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_FactDateEnd")}
+                left join DataPropval v2 on d2.id=v2.dataProp
+            where o.id in (0${idsObjInspection.join(",")})
+        """)
         StoreIndex indWP = stWP.getIndex("objInspection")
         //
         for (StoreRecord r in st) {
@@ -655,8 +666,10 @@ class DataDao extends BaseMdbUtils {
                 r.set("pvDefectsCategory", recDefect.getString("pvDefectsCategory"))
             }
             StoreRecord recWP = indWP.get(r.getLong("objInspection"))
-            if (recWP != null)
+            if (recWP != null) {
                 r.set("objWorkPlan", recWP.getLong("objWorkPlan"))
+                r.set("FactDateEnd", recWP.getString("FactDateEnd"))
+            }
         }
         //
         Set<Object> idsWP = stWP.getUniqueValues("objWorkPlan")
@@ -712,6 +725,190 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store saveParameterLog(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        //
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        Map<String, Object> par = new HashMap<>(pms)
+        if (mode.equalsIgnoreCase("ins")) {
+            //
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ParameterLog", "")
+            if (map.isEmpty())
+                throw new XError("NotFoundCod@Cls_ParameterLog")
+
+            par.put("cls", map.get("Cls_ParameterLog"))
+            par.put("fullName", par.get("name"))
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_False", "")
+            long idFV_False = map.get("FV_False")
+            long pvOutOfNorm = apiMeta().get(ApiMeta).idPV("factorVal", idFV_False, "Prop_OutOfNorm")
+
+            //1 Prop_Defect
+            if (pms.getLong("relobjComponentParams") > 0)
+                fillProperties(false, "Prop_ComponentParams", pms)
+            else
+                throw new XError("[relobjComponentParams] not specified")
+
+            //1.1 Prop_LocationClsSection
+            if (pms.getLong("objLocationClsSection") > 0)
+                fillProperties(true, "Prop_LocationClsSection", pms)
+            else
+                throw new XError("[objLocationClsSection] not specified")
+
+            //2 Prop_Inspection
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Inspection", "")
+            long pvInspection = apiMeta().get(ApiMeta).idPV("cls", map.get("Cls_Inspection"), "Prop_Inspection")
+            pms.put("pvInspection", pvInspection)
+            if (pms.getLong("objInspection") > 0) {
+                fillProperties(true, "Prop_Inspection", pms)
+                //
+                map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_FlagParameter", "")
+                Store stTmp = mdb.loadQuery("""
+                    select v.id, v.propVal
+                    from DataProp d, DataPropVal v
+                    where d.id=v.dataProp and d.objorrelobj=${pms.getLong("objInspection")} 
+                        and d.prop=${map.get("Prop_FlagParameter")}
+                """)
+                if (stTmp.size() > 0) {
+                    map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_True", "")
+                    long idFV_True = map.get("FV_True")
+                    long pvFlag = apiMeta().get(ApiMeta).idPV("factorVal", idFV_True, "Prop_FlagParameter")
+                    if (stTmp.get(0).getLong("propVal") != pvFlag) {
+                        long id = stTmp.get(0).getLong("id")
+                        mdb.execQuery("""
+                            update DataPropVal set propVal=${pvFlag}
+                            where id=${id}
+                        """)
+                    }
+                }
+            } else
+                throw new XError("[objInspection] not specified")
+            //3 Prop_StartKm
+            if (pms.getString("StartKm") != "")
+                fillProperties(true, "Prop_StartKm", pms)
+            else
+                throw new XError("[StartKm] not specified")
+
+            //4 Prop_FinishKm
+            if (pms.getString("FinishKm") != "")
+                fillProperties(true, "Prop_FinishKm", pms)
+            else
+                throw new XError("[FinishKm] not specified")
+
+            //5 Prop_StartPicket
+            if (pms.getString("StartPicket") != "")
+                fillProperties(true, "Prop_StartPicket", pms)
+            else
+                throw new XError("[StartPicket] not specified")
+
+            //6 Prop_FinishPicket
+            if (pms.getString("FinishPicket") != "")
+                fillProperties(true, "Prop_FinishPicket", pms)
+            else
+                throw new XError("[FinishPicket] not specified")
+
+            //7 Prop_StartLink
+            if (pms.getString("StartLink") != "")
+                fillProperties(true, "Prop_StartLink", pms)
+            else
+                throw new XError("[StartLink] not specified")
+
+            //8 Prop_FinishLink
+            if (pms.getString("FinishLink") != "")
+                fillProperties(true, "Prop_FinishLink", pms)
+            else
+                throw new XError("[FinishLink] not specified")
+
+            //9 Prop_ParamsLimit
+            if (pms.getString("ParamsLimit") != "")
+                fillProperties(true, "Prop_ParamsLimit", pms)
+            else
+                throw new XError("[ParamsLimit] not specified")
+
+            //10 Prop_ParamsLimitMax
+            if (pms.getString("ParamsLimitMax") != "")
+                fillProperties(true, "Prop_ParamsLimitMax", pms)
+            else
+                throw new XError("[ParamsLimitMax] not specified")
+
+            //11 Prop_ParamsLimitMin
+            if (pms.getString("") != "ParamsLimitMin")
+                fillProperties(true, "Prop_ParamsLimitMin", pms)
+            else
+                throw new XError("[ParamsLimitMin] not specified")
+
+            //12 Prop_OutOfNorm
+            pms.put("fvOutOfNorm", idFV_False)
+            pms.put("pvOutOfNorm", pvOutOfNorm)
+            fillProperties(true, "Prop_OutOfNorm", pms)
+
+            //13 Prop_CreationDateTime
+            if (pms.getString("CreationDateTime") != "")
+                fillProperties(true, "Prop_CreationDateTime", pms)
+            else
+                throw new XError("[CreationDateTime] not specified")
+
+            //14 Prop_Description
+            if (pms.getString("Description") != "")
+                fillProperties(true, "Prop_Description", pms)
+            //
+        } else if (mode.equalsIgnoreCase("upd")) {
+            throw new XError("Режим [update] отключен")
+
+            own = pms.getLong("id")
+            par.put("fullName", par.get("name"))
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+
+            //1 Prop_ComponentParams
+            updateProperties("Prop_ComponentParams", pms)
+            //1.1 Prop_LocationClsSection
+            updateProperties("Prop_LocationClsSection", pms)
+            //2 Prop_Inspection
+            updateProperties("Prop_Inspection", pms)
+            //3 Prop_StartKm
+            updateProperties("Prop_StartKm", pms)
+            //4 Prop_FinishKm
+            updateProperties("Prop_FinishKm", pms)
+            //5Prop_StartPicket
+            updateProperties("Prop_StartPicket", pms)
+            //6 Prop_FinishPicket
+            updateProperties("Prop_FinishPicket", pms)
+            //7 Prop_StartLink
+            updateProperties("Prop_StartLink", pms)
+            //8 Prop_FinishLink
+            updateProperties("Prop_FinishLink", pms)
+            //9 Prop_CreationDateTime
+            updateProperties("Prop_CreationDateTime", pms)
+            //10 Prop_ParamsLimit
+            updateProperties("Prop_ParamsLimit", pms)
+            //11 Prop_ParamsLimitMax
+            updateProperties("Prop_ParamsLimitMax", pms)
+            //12 Prop_ParamsLimitMin
+            updateProperties("Prop_ParamsLimitMin", pms)
+            //13 Prop_OutOfNorm
+            updateProperties("Prop_OutOfNorm", pms)
+            //14 Prop_Description
+            if (pms.containsKey("idDescription"))
+                updateProperties("Prop_Description", pms)
+            else {
+                if (pms.getString("Description") != "")
+                    fillProperties(true, "Prop_Description", pms)
+            }
+        } else {
+            throw new XError("Нейзвестный режим сохранения ('ins', 'upd')")
+        }
+
+        Map<String, Object> mapRez = new HashMap<>()
+        mapRez.put("id", own)
+        return loadParameterLog(mapRez)
+    }
+
+    @DaoMethod
     Store saveFault(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         //
@@ -761,7 +958,7 @@ class DataDao extends BaseMdbUtils {
                     long pvFlagDefect = apiMeta().get(ApiMeta).idPV("factorVal", idFV_True, "Prop_FlagDefect")
                     if (stTmp.get(0).getLong("propVal") != pvFlagDefect) {
                         mdb.execQuery("""
-                            update from DataPropVal set propVal=${pvFlagDefect}
+                            update DataPropVal set propVal=${pvFlagDefect}
                             where id=${stTmp.get(0).getLong("id")}
                         """)
                     }
@@ -804,27 +1001,19 @@ class DataDao extends BaseMdbUtils {
             else
                 throw new XError("[FinishLink] not specified")
 
-
             //9 Prop_CreationDateTime
             if (pms.getString("CreationDateTime") != "")
                 fillProperties(true, "Prop_CreationDateTime", pms)
             else
                 throw new XError("[CreationDateTime] not specified")
 
-            //9.1 Prop_FactDateEnd
-            if (pms.getString("FactDateEnd") != "")
-                fillProperties(true, "Prop_FactDateEnd", pms)
-            else
-                throw new XError("[FactDateEnd] not specified")
-
             //10 Prop_Description
             if (pms.getString("Description") != "")
                 fillProperties(true, "Prop_Description", pms)
-            //
-
-
 
         } else if (mode.equalsIgnoreCase("upd")) {
+            throw new XError("Режим [update] отключен")
+
             own = pms.getLong("id")
             par.put("fullName", par.get("name"))
             eu.updateEntity(par)
@@ -851,8 +1040,6 @@ class DataDao extends BaseMdbUtils {
             updateProperties("Prop_FinishLink", pms)
             //9 Prop_CreationDateTime
             updateProperties("Prop_CreationDateTime", pms)
-            //9.1 Prop_FactDateEnd
-            updateProperties("Prop_FactDateEnd", pms)
             //10 Prop_CreatedAt
             if (pms.containsKey("idDescription"))
                 updateProperties("Prop_Description", pms)
@@ -1050,14 +1237,100 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store loadParameterEntriesForInspection(long id) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Inspection", "")
+        long pv = apiMeta().get(ApiMeta).idPV("cls", map.get("Cls_Inspection"), "Prop_Inspection")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ParameterLog", "")
+
+        Store stOwn = mdb.loadQuery("""
+            select o.id as own
+            from Obj o, DataProp d, DataPropVal v
+            where o.id=d.objorrelobj and o.cls=${map.get("Cls_ParameterLog")} and d.id=v.dataProp and v.propVal=:pv and v.obj=:o
+        """, [pv: pv, o: id])
+        Set<Object> idsOwn = stOwn.getUniqueValues("own")
+        Store st = mdb.createStore("Obj.ParameterEntriesForInspection")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelTyp", "RT_ParamsComponent", "")
+        long reltypParamsComponent = map.get("RT_ParamsComponent")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        mdb.loadQuery(st, """
+            select o.id,
+                v1.relobj as relobjComponentParams, null as nameComponentParams,
+                v3.numberVal as StartKm,
+                v4.numberVal as FinishKm,
+                v5.numberVal as StartPicket,
+                v6.numberVal as FinishPicket,
+                v7.dateTimeVal as CreationDateTime,
+                v12.numberVal as StartLink,
+                v13.numberVal as FinishLink,
+                v15.numberVal as ParamsLimit,
+                v16.numberVal as ParamsLimitMax,
+                v17.numberVal as ParamsLimitMin
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_ComponentParams
+                left join DataPropVal v1 on d1.id=v1.dataprop 
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartKm
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FinishKm
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_StartPicket
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_FinishPicket
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_CreationDateTime 
+                inner join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_StartLink
+                left join DataPropVal v12 on d12.id=v12.dataprop
+                left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_FinishLink
+                left join DataPropVal v13 on d13.id=v13.dataprop
+                left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_ParamsLimit
+                left join DataPropVal v15 on d15.id=v15.dataprop
+                left join DataProp d16 on d16.objorrelobj=o.id and d16.prop=:Prop_ParamsLimitMax
+                left join DataPropVal v16 on d16.id=v16.dataprop
+                left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=:Prop_ParamsLimitMin
+                left join DataPropVal v17 on d17.id=v17.dataprop
+            where o.id in (0${idsOwn.join(",")})
+        """, map)
+
+        //
+        Set<Object> idsRelObjComponentParams = st.getUniqueValues("relobjComponentParams")
+        Map<Long, Map<String, Object>> mapParams = new HashMap<>()
+
+        Store stMemb = loadSqlMeta("""
+            select id from relclsmember 
+            where relcls in (select id from Relcls where reltyp=${reltypParamsComponent})
+            order by id
+        """, "")
+        Store stRO = loadSqlService("""
+            select o.id, r1.obj as obj1, ov1.name as name1, r2.obj as obj2, ov2.name as name2
+            from Relobj o
+                left join relobjmember r1 on o.id = r1.relobj and r1.relclsmember=${stMemb.get(0).getLong("id")}
+                left join objver ov1 on ov1.ownerVer=r1.obj and ov1.lastVer=1
+                left join relobjmember r2 on o.id = r2.relobj and r2.relclsmember=${stMemb.get(1).getLong("id")}
+                left join objver ov2 on ov2.ownerVer=r2.obj and ov2.lastVer=1
+            where o.id in (0${idsRelObjComponentParams.join(",")})
+        """, "", "nsidata")
+
+        for (StoreRecord r in stRO) {
+            mapParams.put(r.getLong("id"), r.getValues())
+        }
+
+        for (StoreRecord r in st) {
+            r.set("nameComponentParams", mapParams.get(r.getLong("relobjComponentParams")).get("name1"))
+            r.set("nameComponent", mapParams.get(r.getLong("relobjComponentParams")).get("name2"))
+            r.set("objComponent", mapParams.get(r.getLong("relobjComponentParams")).get("obj2"))
+        }
+        return st
+    }
+
+    @DaoMethod
     Store loadFaultEntriesForInspection(long id) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Inspection", "")
         long pv = apiMeta().get(ApiMeta).idPV("cls", map.get("Cls_Inspection"), "Prop_Inspection")
-
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Fault", "")
         Store stOwn = mdb.loadQuery("""
-            select d.objorrelobj as own
-            from DataProp d, DataPropVal v
-            where d.id=v.dataProp and v.propVal=:pv and v.obj=:o
+            select o.id as own
+            from Obj o, DataProp d, DataPropVal v
+            where o.id=d.objorrelobj and o.cls=${map.get("Cls_Fault")} and d.id=v.dataProp and v.propVal=:pv and v.obj=:o
         """, [pv: pv, o: id])
         Set<Object> idsOwn = stOwn.getUniqueValues("own")
         Store st = mdb.createStore("Obj.FaultEntriesForInspection")
@@ -1766,6 +2039,7 @@ class DataDao extends BaseMdbUtils {
         String keyValue = cod.split("_")[1]
         def objRef = UtCnv.toLong(params.get("obj"+keyValue))
         def propVal = UtCnv.toLong(params.get("pv"+keyValue))
+        def relRef = UtCnv.toLong(params.get("relobj"+keyValue))
 
         Store stProp = apiMeta().get(ApiMeta).getPropInfo(cod)
         //
@@ -1869,7 +2143,8 @@ class DataDao extends BaseMdbUtils {
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
             if ( cod.equalsIgnoreCase("Prop_FlagDefect") ||
-                    cod.equalsIgnoreCase("Prop_FlagParameter")) {
+                    cod.equalsIgnoreCase("Prop_FlagParameter") ||
+                        cod.equalsIgnoreCase("Prop_OutOfNorm")) {
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
                 }
@@ -1896,7 +2171,10 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_StartPicket") ||
                     cod.equalsIgnoreCase("Prop_FinishPicket") ||
                     cod.equalsIgnoreCase("Prop_StartLink") ||
-                    cod.equalsIgnoreCase("Prop_FinishLink")) {
+                    cod.equalsIgnoreCase("Prop_FinishLink") ||
+                    cod.equalsIgnoreCase("Prop_ParamsLimit") ||
+                    cod.equalsIgnoreCase("Prop_ParamsLimitMax") ||
+                    cod.equalsIgnoreCase("Prop_ParamsLimitMin")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     double v = UtCnv.toDouble(params.get(keyValue))
                     v = v / koef
@@ -1922,6 +2200,19 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
             }
         }
+        //
+        // For RelTyp
+        if ([FD_PropType_consts.reltyp].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_ComponentParams")) {
+                if (relRef > 0) {
+                    recDPV.set("propVal", propVal)
+                    recDPV.set("relobj", relRef)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
         //
         if (recDP.getLong("periodType") > 0) {
             if (!params.containsKey("dte"))
@@ -1988,7 +2279,7 @@ class DataDao extends BaseMdbUtils {
 
         if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
             if ( cod.equalsIgnoreCase("Prop_ReasonDeviation") ||
-                    cod.equalsIgnoreCase("Prop_Discreption")) {
+                    cod.equalsIgnoreCase("Prop_Descreption")) {
                 if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
                     sql = """
                         delete from DataPropVal where id=${idVal};
@@ -2045,7 +2336,9 @@ class DataDao extends BaseMdbUtils {
         }
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
-            if ( cod.equalsIgnoreCase("Prop_DeviationDefect")) {
+            if ( cod.equalsIgnoreCase("Prop_FlagDefect") ||
+                    cod.equalsIgnoreCase("Prop_FlagParameter") ||
+                        cod.equalsIgnoreCase("Prop_OutOfNorm")) {
                 if (propVal > 0)
                     sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
                 else {
@@ -2089,7 +2382,10 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_StartPicket") ||
                     cod.equalsIgnoreCase("Prop_FinishPicket") ||
                     cod.equalsIgnoreCase("Prop_StartLink") ||
-                    cod.equalsIgnoreCase("Prop_FinishLink")) {
+                    cod.equalsIgnoreCase("Prop_FinishLink") ||
+                    cod.equalsIgnoreCase("Prop_ParamsLimit") ||
+                    cod.equalsIgnoreCase("Prop_ParamsLimitMax") ||
+                    cod.equalsIgnoreCase("Prop_ParamsLimitMin")) {
                 if (mapProp[keyValue] != "") {
                     def v = mapProp.getDouble(keyValue)
                     v = v / koef

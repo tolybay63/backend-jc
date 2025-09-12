@@ -10,9 +10,23 @@ class Obj_Test extends Apx_Test {
 
 
     @Test
+    void testLoadParameterEntriesForInspection() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadParameterEntriesForInspection(1017)
+        mdb.outTable(st)
+    }
+
+    @Test
+    void testLoadComponentParametersForSelect() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadComponentParametersForSelect(1043)
+        mdb.outTable(st)
+    }
+
+    @Test
     void testLoadFaultEntriesForInspection() {
         DataDao dao = mdb.createDao(DataDao.class)
-        Store st = dao.loadFaultEntriesForInspection(1)
+        Store st = dao.loadFaultEntriesForInspection(1002)
         mdb.outTable(st)
     }
 
@@ -22,7 +36,7 @@ class Obj_Test extends Apx_Test {
         Map<String, Object> map = new HashMap<>()
         map.put("periodType", 11)
         map.put("date", "2025-09-09")
-        map.put("objLocation", 1011)
+        map.put("objLocation", 1071)
         Store st = dao.loadParameterLog(map)
         mdb.outTable(st)
     }
@@ -38,6 +52,34 @@ class Obj_Test extends Apx_Test {
         mdb.outTable(st)
     }
 
+    @Test
+    void testSaveParameterLog() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("name", "test01")
+        map.put("relobjComponentParams", 1700)
+        map.put("pvComponentParams", 1292)
+        map.put("objInspection", 1017)
+        map.put("pvLocationClsSection", 1241)
+        map.put("objLocationClsSection", 1077)
+        map.put("StartKm", 1)
+        map.put("FinishKm", 2)
+        map.put("StartPicket", 3)
+        map.put("FinishPicket", 4)
+        map.put("StartLink", 5)
+        map.put("FinishLink", 6)
+        map.put("ParamsLimit", 7)
+        map.put("ParamsLimitMax", 8)
+        map.put("ParamsLimitMin", 9)
+        map.put("fvOutOfNorm", 1074)
+        map.put("pvOutOfNorm", 1299)
+        map.put("CreationDateTime",  "2025-07-25T10:20:30.000")
+        map.put("Description", "test02")
+
+        Store st = dao.saveParameterLog("ins", map)
+        mdb.outTable(st)
+
+    }
 
     @Test
     void testSaveFault() {
@@ -47,7 +89,6 @@ class Obj_Test extends Apx_Test {
         map.put("objDefect", 2213)
         map.put("pvDefect", 1309)
         map.put("objInspection", 1017)
-        //map.put("pvInspection", 1291)
         map.put("StartKm", 1)
         map.put("FinishKm", 2)
         map.put("StartPicket", 3)
@@ -58,8 +99,6 @@ class Obj_Test extends Apx_Test {
         map.put("Description", "test02")
         map.put("pvLocationClsSection", 1241)
         map.put("objLocationClsSection", 1077)
-        map.put("FactDateEnd", "2025-09-09")
-
 
         Store st = dao.saveFault("ins", map)
         mdb.outTable(st)

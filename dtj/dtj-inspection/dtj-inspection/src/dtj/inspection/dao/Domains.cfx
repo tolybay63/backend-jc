@@ -139,11 +139,32 @@
         <field name="idCreationDateTime" parent="long"/>
         <field name="CreationDateTime" parent="string"/>
 
-        <field name="idFactDateEnd" parent="long"/>
         <field name="FactDateEnd" parent="string"/>
 
         <field name="idDescription" parent="long"/>
         <field name="Description" parent="string"/>
+
+    </domain>
+
+    <domain name="Obj.ParameterEntriesForInspection" parent="base">
+        <field name="id" parent="long"/>
+
+        <field name="relobjComponentParams" parent="long"/>
+        <field name="nameComponentParams" parent="string"/>
+
+        <field name="objComponent" parent="long"/>
+        <field name="nameComponent" parent="string"/>
+
+        <field name="StartKm" parent="double"/>
+        <field name="FinishKm" parent="double"/>
+        <field name="StartPicket" parent="double"/>
+        <field name="FinishPicket" parent="double"/>
+        <field name="StartLink" parent="double"/>
+        <field name="FinishLink" parent="double"/>
+        <field name="ParamsLimit" parent="double"/>
+        <field name="ParamsLimitMax" parent="double"/>
+        <field name="ParamsLimitMin" parent="double"/>
+        <field name="CreationDateTime" parent="string"/>
 
     </domain>
 
@@ -198,6 +219,10 @@
         <field name="idCreationDateTime" parent="long"/>
         <field name="CreationDateTime" parent="string"/>
 
+        <field name="FactDateEnd" parent="string"/>
+
+        <field name="objWorkPlan" parent="long"/>
+
         <field name="idComponentParams" parent="long"/>
         <field name="pvComponentParams" parent="long"/>
         <field name="relobjComponentParams" parent="long"/>
@@ -208,6 +233,9 @@
 
         <field name="objObject" parent="long"/>
         <field name="nameObject" parent="string"/>
+
+        <field name="objSection" parent="long"/>
+        <field name="nameSection" parent="string"/>
 
         <field name="idOutOfNorm" parent="long"/>
         <field name="pvOutOfNorm" parent="long"/>
