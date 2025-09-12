@@ -212,13 +212,16 @@ class DataDao extends BaseMdbUtils {
     Set<String> loadDateWorkPlanInspection(Map<String, Object> params) {
         long obj = UtCnv.toLong(params.get("id"))
         long pv = UtCnv.toLong(params.get("pv"))
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_WorkPlanInspection", "")
+
         Store stTmp = loadSqlService("""
             select d.objorrelobj as own
-            from DataProp d, DataPropVal v
-            where d.id=v.dataProp and v.propVal=${pv} and v.obj=${obj}    
+            from DataProp d, DataPropVal v, Obj o
+            where d.id=v.dataProp and d.objorrelobj=o.id and 
+                o.cls=${map.get("Cls_WorkPlanInspection")} and v.propVal=${pv} and v.obj=${obj}    
         """, "", "plandata")
         Set<Object> idsOwn = stTmp.getUniqueValues("own")
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_____DateEnd")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_____DateEnd")
         stTmp = loadSqlService("""
             select d.objorrelobj as own
             from DataProp d
