@@ -159,6 +159,21 @@ class Obj_Test extends Apx_Test {
     }
 
     @Test
+    void testSaveInspectionUpd() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("id", 1030)
+//        map.put("idFinishLink", 1299)
+//        map.put("FinishLink", "")
+        map.put("idStartLink", 1298)
+        map.put("StartLink", null)
+
+
+        Store st = dao.saveInspectionTest(map)
+        mdb.outTable(st)
+    }
+
+    @Test
     void testLoadObjInspection() {
         DataDao dao = mdb.createDao(DataDao.class)
         Store st = dao.loadObjLocationSectionForSelect(1073)

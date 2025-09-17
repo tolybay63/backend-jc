@@ -1636,6 +1636,23 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store saveInspectionTest(Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        //
+        pms.put("own", pms.getLong("id"))
+
+        //10 Prop_FinishLink
+        if (pms.containsKey("idStartLink"))
+            updateProperties("Prop_StartLink", pms)
+        else {
+            if (pms.getInt("StartLink") > 0)
+                fillProperties(true, "Prop_StartLink", pms)
+        }
+        return null
+    }
+
+
+        @DaoMethod
     Store saveInspection(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         //StartLink
@@ -1823,6 +1840,7 @@ class DataDao extends BaseMdbUtils {
                     fillProperties(true, "Prop_FinishLink", pms)
             }
 
+
             //11 Prop_FactDateEnd
             updateProperties("Prop_FactDateEnd", pms)
             //12 Prop_CreatedAt
@@ -1846,6 +1864,7 @@ class DataDao extends BaseMdbUtils {
                 if (pms.getString("ReasonDeviation") != "")
                     fillProperties(true, "Prop_ReasonDeviation", pms)
             }
+
         } else {
             throw new XError("Нейзвестный режим сохранения ('ins', 'upd')")
         }
@@ -2437,7 +2456,7 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_ParamsLimit") ||
                     cod.equalsIgnoreCase("Prop_ParamsLimitMax") ||
                     cod.equalsIgnoreCase("Prop_ParamsLimitMin")) {
-                if (mapProp[keyValue] != "") {
+                if (!(mapProp[keyValue] == null || mapProp[keyValue] == "")) {
                     def v = mapProp.getDouble(keyValue)
                     v = v / koef
                     if (digit) v = v.round(digit)
