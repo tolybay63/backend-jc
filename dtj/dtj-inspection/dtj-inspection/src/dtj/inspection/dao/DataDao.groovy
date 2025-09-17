@@ -799,28 +799,21 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("[FinishKm] not specified")
 
             //5 Prop_StartPicket
-            if (pms.getString("StartPicket") != "")
+            if (pms.getInt("StartPicket") > 0)
                 fillProperties(true, "Prop_StartPicket", pms)
-            else
-                throw new XError("[StartPicket] not specified")
 
             //6 Prop_FinishPicket
-            if (pms.getString("FinishPicket") != "")
+            if (pms.getInt("FinishPicket") > 0)
                 fillProperties(true, "Prop_FinishPicket", pms)
-            else
-                throw new XError("[FinishPicket] not specified")
 
             //7 Prop_StartLink
-            if (pms.getString("StartLink") != "")
+
+            if (pms.getInt("StartLink") > 0)
                 fillProperties(true, "Prop_StartLink", pms)
-            else
-                throw new XError("[StartLink] not specified")
 
             //8 Prop_FinishLink
-            if (pms.getString("FinishLink") != "")
+            if (pms.getInt("FinishLink") > 0)
                 fillProperties(true, "Prop_FinishLink", pms)
-            else
-                throw new XError("[FinishLink] not specified")
 
             //9 Prop_ParamsLimit
             if (pms.getString("ParamsLimit") != "")
@@ -874,14 +867,39 @@ class DataDao extends BaseMdbUtils {
             updateProperties("Prop_StartKm", pms)
             //4 Prop_FinishKm
             updateProperties("Prop_FinishKm", pms)
-            //5Prop_StartPicket
-            updateProperties("Prop_StartPicket", pms)
+
+            //5 Prop_StartPicket
+            if (pms.containsKey("idStartPicket"))
+                updateProperties("Prop_StartPicket", pms)
+            else {
+                if (pms.getInt("StartPicket") > 0)
+                    fillProperties(true, "Prop_StartPicket", pms)
+            }
+
             //6 Prop_FinishPicket
-            updateProperties("Prop_FinishPicket", pms)
+            if (pms.containsKey("idFinishPicket"))
+                updateProperties("Prop_FinishPicket", pms)
+            else {
+                if (pms.getInt("FinishPicket") > 0)
+                    fillProperties(true, "Prop_FinishPicket", pms)
+            }
+
             //7 Prop_StartLink
-            updateProperties("Prop_StartLink", pms)
+            if (pms.containsKey("idStartLink"))
+                updateProperties("Prop_StartLink", pms)
+            else {
+                if (pms.getInt("StartLink") > 0)
+                    fillProperties(true, "Prop_StartLink", pms)
+            }
+
             //8 Prop_FinishLink
-            updateProperties("Prop_FinishLink", pms)
+            if (pms.containsKey("idFinishLink"))
+                updateProperties("Prop_FinishLink", pms)
+            else {
+                if (pms.getInt("FinishLink") > 0)
+                    fillProperties(true, "Prop_FinishLink", pms)
+            }
+
             //9 Prop_CreationDateTime
             updateProperties("Prop_CreationDateTime", pms)
             //10 Prop_ParamsLimit
@@ -978,28 +996,20 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("[FinishKm] not specified")
 
             //5 Prop_StartPicket
-            if (pms.getString("StartPicket") != "")
+            if (pms.getInt("StartPicket") > 0)
                 fillProperties(true, "Prop_StartPicket", pms)
-            else
-                throw new XError("[StartPicket] not specified")
 
             //6 Prop_FinishPicket
-            if (pms.getString("FinishPicket") != "")
+            if (pms.getInt("FinishPicket") > 0)
                 fillProperties(true, "Prop_FinishPicket", pms)
-            else
-                throw new XError("[FinishPicket] not specified")
 
             //7 Prop_StartLink
-            if (pms.getString("StartLink") != "")
+            if (pms.getInt("StartLink") > 0)
                 fillProperties(true, "Prop_StartLink", pms)
-            else
-                throw new XError("[StartLink] not specified")
 
             //8 Prop_FinishLink
-            if (pms.getString("FinishLink") != "")
+            if (pms.getInt("FinishLink") > 0)
                 fillProperties(true, "Prop_FinishLink", pms)
-            else
-                throw new XError("[FinishLink] not specified")
 
             //9 Prop_CreationDateTime
             if (pms.getString("CreationDateTime") != "")
@@ -1030,14 +1040,39 @@ class DataDao extends BaseMdbUtils {
             updateProperties("Prop_StartKm", pms)
             //4 Prop_FinishKm
             updateProperties("Prop_FinishKm", pms)
-            //5Prop_StartPicket
-            updateProperties("Prop_StartPicket", pms)
+
+            //5 Prop_StartPicket
+            if (pms.containsKey("idStartPicket"))
+                updateProperties("Prop_StartPicket", pms)
+            else {
+                if (pms.getInt("StartPicket") > 0)
+                    fillProperties(true, "Prop_StartPicket", pms)
+            }
+
             //6 Prop_FinishPicket
-            updateProperties("Prop_FinishPicket", pms)
+            if (pms.containsKey("idFinishPicket"))
+                updateProperties("Prop_FinishPicket", pms)
+            else {
+                if (pms.getInt("FinishPicket") > 0)
+                    fillProperties(true, "Prop_FinishPicket", pms)
+            }
+
             //7 Prop_StartLink
-            updateProperties("Prop_StartLink", pms)
+            if (pms.containsKey("idStartLink"))
+                updateProperties("Prop_StartLink", pms)
+            else {
+                if (pms.getInt("StartLink") > 0)
+                    fillProperties(true, "Prop_StartLink", pms)
+            }
+
             //8 Prop_FinishLink
-            updateProperties("Prop_FinishLink", pms)
+            if (pms.containsKey("idFinishLink"))
+                updateProperties("Prop_FinishLink", pms)
+            else {
+                if (pms.getInt("FinishLink") > 0)
+                    fillProperties(true, "Prop_FinishLink", pms)
+            }
+
             //9 Prop_CreationDateTime
             updateProperties("Prop_CreationDateTime", pms)
             //10 Prop_CreatedAt
@@ -1705,29 +1740,20 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("[FinishKm] not specified")
 
             //7 Prop_StartPicket
-            if (pms.getString("StartPicket") != "")
+            if (pms.getInt("StartPicket") > 0)
                 fillProperties(true, "Prop_StartPicket", pms)
-            else
-                throw new XError("[StartPicket] not specified")
 
             //8 Prop_FinishPicket
-            if (pms.getString("FinishPicket") != "")
+            if (pms.getInt("FinishPicket") > 0)
                 fillProperties(true, "Prop_FinishPicket", pms)
-            else
-                throw new XError("[FinishPicket] not specified")
 
             //9 Prop_StartLink
-            if (pms.getString("StartLink") != "")
+            if (pms.getInt("StartLink") > 0)
                 fillProperties(true, "Prop_StartLink", pms)
-            else
-                throw new XError("[StartLink] not specified")
 
             //10 Prop_FinishLink
-            if (pms.getString("FinishLink") != "")
+            if (pms.getInt("FinishLink") > 0)
                 fillProperties(true, "Prop_FinishLink", pms)
-            else
-                throw new XError("[FinishLink] not specified")
-
 
             //11 Prop_FactDateEnd
             if (pms.getString("FactDateEnd") != "")
@@ -1764,14 +1790,39 @@ class DataDao extends BaseMdbUtils {
             updateProperties("Prop_StartKm", pms)
             //6 Prop_FinishKm
             updateProperties("Prop_FinishKm", pms)
+
             //7 Prop_StartPicket
-            updateProperties("Prop_StartPicket", pms)
+            if (pms.containsKey("idStartPicket"))
+                updateProperties("Prop_StartPicket", pms)
+            else {
+                if (pms.getInt("StartPicket") > 0)
+                    fillProperties(true, "Prop_StartPicket", pms)
+            }
+
             //8 Prop_FinishPicket
-            updateProperties("Prop_FinishPicket", pms)
+            if (pms.containsKey("idFinishPicket"))
+                updateProperties("Prop_FinishPicket", pms)
+            else {
+                if (pms.getInt("FinishPicket") > 0)
+                    fillProperties(true, "Prop_FinishPicket", pms)
+            }
+
+
             //9 Prop_StartLink
-            updateProperties("Prop_StartLink", pms)
+            if (pms.containsKey("idStartLink"))
+                updateProperties("Prop_StartLink", pms)
+            else {
+                if (pms.getInt("StartLink") > 0)
+                    fillProperties(true, "Prop_StartLink", pms)
+            }
             //10 Prop_FinishLink
-            updateProperties("Prop_FinishLink", pms)
+            if (pms.containsKey("idFinishLink"))
+                updateProperties("Prop_FinishLink", pms)
+            else {
+                if (pms.getInt("FinishLink") > 0)
+                    fillProperties(true, "Prop_FinishLink", pms)
+            }
+
             //11 Prop_FactDateEnd
             updateProperties("Prop_FactDateEnd", pms)
             //12 Prop_CreatedAt
