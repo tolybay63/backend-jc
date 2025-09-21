@@ -5,7 +5,7 @@
     "RootPath": "C:\\jc-2\\backend-jc",
     "Credentials": {
       "Username": "efk\\Tolybay.Kuanov",
-      "Password": "Qwerty7"
+      "Password": "Qaz@123"
     }
   },
   "ProdServer": {
@@ -14,7 +14,7 @@
     "RootPath": "C:\\dtj\\server",
     "Credentials": {
       "Username": "efk\\Tolybay.Kuanov",
-      "Password": "Querty7"
+      "Password": "Qaz@123"
     }
   },
   "DeploymentMethod": "SMB",
