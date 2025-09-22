@@ -216,9 +216,13 @@ class DataDao extends BaseMdbUtils {
             whe = "o.cls in (${idsCls.join(",")})"
             //
             Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_LocationSection", "")
-            long clsLocation = loadSqlService("""
+
+            Store stTmp = loadSqlService("""
                 select cls from Obj where id=${UtCnv.toLong(params.get("objLocation"))}
-            """, "", "orgstructuredata").get(0).getLong("cls")
+            """, "", "orgstructuredata")//.get(0).getLong("cls")
+
+            long clsLocation = stTmp.size()>0 ? stTmp.get(0).getLong("cls") : 0
+
             if (clsLocation == mapCls.get("Cls_LocationSection")) {
                 Set<Object> idsObjLocation = getIdsObjLocation(UtCnv.toLong(params.get("objLocation")))
                 wheV1 = "and v1.obj in (${idsObjLocation.join(",")})"

@@ -42,7 +42,7 @@ class Obj_Test extends Apx_Test {
         Store st = dao.loadPlan(Map.of(
                 "date", "2025-07-29",
                 "periodType", 11,
-                "objLocation", 1010
+                "objLocation", 1077
         ))
         mdb.outTable(st)
     }
