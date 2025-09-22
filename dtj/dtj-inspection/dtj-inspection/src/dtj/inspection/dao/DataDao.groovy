@@ -291,17 +291,22 @@ class DataDao extends BaseMdbUtils {
             where relcls in (select id from Relcls where reltyp=${map.get("RT_ParamsComponent")})
             order by id
         """, "")
+
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
         Store stRO = loadSqlService("""
-            select o.id, o.relcls, ov1.name as name, null as pv
+            select o.id, o.relcls, ov1.name as name, null as pv, v1.numberVal as ParamsLimitMax, v2.numberVal as ParamsLimitMin
             from Relobj o
                 left join relobjmember r1 on o.id = r1.relobj and r1.relclsmember=${stMemb.get(0).getLong("id")}
                 left join objver ov1 on ov1.ownerVer=r1.obj and ov1.lastVer=1
                 left join relobjmember r2 on o.id = r2.relobj and r2.relclsmember=${stMemb.get(1).getLong("id")}
+                left join DataProp d1 on d1.isObj=0 and d1.objorrelobj=o.id and d1.prop=${map.get("Prop_ParamsLimitMax")}
+                left join DataPropVal v1 on d1.id=v1.dataProp
+                left join DataProp d2 on d2.isObj=0 and d2.objorrelobj=o.id and d2.prop=${map.get("Prop_ParamsLimitMin")}
+                left join DataPropVal v2 on d2.id=v2.dataProp
             where r2.obj=${uch1}
         """, "", "nsidata")
 
         Set<Object> idsRC = stRO.getUniqueValues("relcls")
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_ComponentParams", "")
         Store stPV = loadSqlMeta("""
             select id, relcls from PropVal where prop=${map.get("Prop_ComponentParams")}
                 and relcls in (0${idsRC.join(",")})
@@ -1675,8 +1680,8 @@ class DataDao extends BaseMdbUtils {
 
             stTmp = mdb.loadQuery("""
                 select o.id,
-                    v3.numberVal * 1000 + v5.numberVal * 100 + v12.numberVal * 25 as beg,
-                    v4.numberVal * 1000 + v6.numberVal * 100 + v13.numberVal * 25 as end
+                    v3.numberVal * 1000 + coalesce(v5.numberVal,0) * 100 + coalesce(v12.numberVal,0) * 12.5 as beg,
+                    v4.numberVal * 1000 + coalesce(v6.numberVal,0) * 100 + coalesce(v13.numberVal,0) * 12.5 as end
                 from Obj o 
                     left join ObjVer v on o.id=v.ownerver and v.lastver=1
                     left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartKm
