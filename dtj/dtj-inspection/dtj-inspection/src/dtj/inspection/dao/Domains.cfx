@@ -172,6 +172,7 @@
         <field name="id" parent="long"/>
         <field name="objDefect" parent="long"/>
         <field name="nameDefect" parent="string"/>
+        <field name="nameDefectsComponent" parent="string"/>
 
         <field name="StartKm" parent="double"/>
         <field name="FinishKm" parent="double"/>

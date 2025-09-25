@@ -1378,6 +1378,7 @@ class DataDao extends BaseMdbUtils {
         mdb.loadQuery(st, """
             select o.id,
                 v1.obj as objDefect, null as nameDefect,
+                null as nameDefectsComponent,
                 v3.numberVal as StartKm,
                 v4.numberVal as FinishKm,
                 v5.numberVal as StartPicket,
@@ -1408,16 +1409,22 @@ class DataDao extends BaseMdbUtils {
         Set<Object> idsDefect = st.getUniqueValues("objDefect")
 
         Store stTmp = loadSqlService("""
-            select o.id, v.name
-            from Obj o, ObjVer v
-            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsDefect.join(",")})
+            select o.id, v.name, ov1.name as nameDefectsComponent
+            from Obj o
+                left join ObjVer v on o.id=v.ownerVer and v.lastVer=1
+                left join DataProp d1 on d1.isObj=1 and d1.objorrelobj=o.id and d1.prop=${map.get("Prop_DefectsComponent")}
+                left join DataPropVal v1 on d1.id=v1.dataProp
+                left join ObjVer ov1 on ov1.ownerver=v1.obj and ov1.lastVer=1 
+            where o.id in (0${idsDefect.join(",")})
         """, "", "nsidata")
         StoreIndex indTmp = stTmp.getIndex("id")
 
         for (StoreRecord r in st) {
             StoreRecord rec = indTmp.get(r.getLong("objDefect"))
-            if (rec != null)
+            if (rec != null) {
                 r.set("nameDefect", rec.getString("name"))
+                r.set("nameDefectsComponent", rec.getString("nameDefectsComponent"))
+            }
         }
         return st
     }
