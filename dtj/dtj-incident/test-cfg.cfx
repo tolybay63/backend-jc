@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <!-- конфигурация для подключения в unittest -->
+
+    <x-include path="cfg.cfx" required="false"/>
+    <x-include path="_cfg.cfx" required="false"/>
+
+</root>
