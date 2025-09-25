@@ -717,8 +717,6 @@ class DataDao extends BaseMdbUtils {
         return loadSqlService(sql, "", "objectdata")
     }
 
-
-
     @DaoMethod
     Store loadStage(long obj) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Stage", "")
