@@ -155,6 +155,285 @@ class DataDao extends BaseMdbUtils {
         return loadEvent(own)
     }
 
+    @DaoMethod
+    Store loadIncident(Map<String, Object> params) {
+        Store st = mdb.createStore("Obj.Incident")
+
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_IncidentContactCenter", "")
+
+        String whe
+        String wheV1 = ""
+        String wheV17 = ""
+        if (params.containsKey("id"))
+            whe = "o.id=${UtCnv.toLong(params.get("id"))}"
+        else {
+            whe = "o.cls = ${map.get("Cls_IncidentContactCenter")}"
+            //
+//            Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_LocationSection", "")
+//            Store stClsLocation = loadSqlService("""
+//                select cls from Obj where id=${UtCnv.toLong(params.get("objLocation"))}
+//            """, "", "orgstructuredata")
+//            if (stClsLocation.size()==0)
+//                throw new XError("Не найден [objLocation={0}]", params.get("objLocation"))
+//
+//            long clsLocation = stClsLocation.get(0).getLong("cls")
+//
+//            if (clsLocation == mapCls.get("Cls_LocationSection")) {
+//                Set<Object> idsObjLocation = getIdsObjLocation(UtCnv.toLong(params.get("objLocation")))
+//                wheV1 = "and v1.obj in (${idsObjLocation.join(",")})"
+//            }
+            long pt = UtCnv.toLong(params.get("periodType"))
+            String dte = UtCnv.toString(params.get("date"))
+            tofi.api.mdl.utils.UtPeriod utPeriod = new tofi.api.mdl.utils.UtPeriod()
+            XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(dte), pt, 0)
+            XDate d2 = utPeriod.calcDend(UtCnv.toDate(dte), pt, 0)
+            wheV17 = "and v17.dateTimeVal between '${d1}' and '${d2}'"
+        }
+
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+
+        String sql = """
+            select o.id, o.cls, v.name,
+                v1.id as idEvent, v1.propVal as pvEvent, v1.obj as objEvent, null as nameEvent,
+                v2.id as idObject, v2.propVal as pvObject, v2.obj as objObject, null as nameObject,
+                v3.id as idUser, v3.propVal as pvUser, v3.obj as objUser, null as nameUser,
+                v4.id as idParameterLog, v4.propVal as pvParameterLog, v4.obj as objParameterLog, null as nameParameterLog,
+                v5.id as idFault, v5.propVal as pvFault, v5.obj as objFault, null as nameFault,
+                v6.id as idStatus, v6.propVal as pvStatus, null as fvStatus, null as nameStatus,
+                v7.id as idCriticality, v7.propVal as pvCriticality, null as fvCriticality, null as nameCriticality,
+                v8.id as idStartKm, v8.numberVal as StartKm,
+                v9.id as idFinishKm, v9.numberVal as FinishKm,
+                v10.id as idStartPicket, v10.numberVal as StartPicket,
+                v11.id as idFinishPicket, v11.numberVal as FinishPicket,
+                v12.id as idStartLink, v12.numberVal as StartLink,
+                v13.id as idFinishLink, v13.numberVal as FinishLink,
+                v14.id as idDescription, v14.multiStrVal as Description,
+                v15.id as idCreatedAt, v15.dateTimeVal as CreatedAt,
+                v16.id as idUpdatedAt, v16.dateTimeVal as UpdatedAt,
+                v17.id as idRegistrationDateTime, v17.dateTimeVal as RegistrationDateTime
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Event")}
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_Object")}
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_User")}
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_ParameterLog")}
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_Fault")}
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=${map.get("Prop_Status")}
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=${map.get("Prop_Criticality")}
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=${map.get("Prop_StartKm")}
+                left join DataPropVal v8 on d8.id=v8.dataprop
+                left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=${map.get("Prop_FinishKm")}
+                left join DataPropVal v9 on d9.id=v9.dataprop
+                left join DataProp d10 on d10.objorrelobj=o.id and d10.prop=${map.get("Prop_StartPicket")}
+                left join DataPropVal v10 on d10.id=v10.dataprop
+                left join DataProp d11 on d11.objorrelobj=o.id and d11.prop=${map.get("Prop_FinishPicket")}
+                left join DataPropVal v11 on d11.id=v11.dataprop
+                left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=${map.get("Prop_StartLink")}
+                left join DataPropVal v12 on d12.id=v12.dataprop
+                left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=${map.get("Prop_FinishLink")}
+                left join DataPropVal v13 on d13.id=v13.dataprop
+                left join DataProp d14 on d14.objorrelobj=o.id and d14.prop=${map.get("Prop_Description")}
+                left join DataPropVal v14 on d14.id=v14.dataprop
+                left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=${map.get("Prop_CreatedAt")}
+                left join DataPropVal v15 on d15.id=v15.dataprop
+                left join DataProp d16 on d16.objorrelobj=o.id and d16.prop=${map.get("Prop_UpdatedAt")}
+                left join DataPropVal v16 on d16.id=v16.dataprop
+                left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=${map.get("Prop_RegistrationDateTime")}
+                inner join DataPropVal v17 on d17.id=v17.dataprop ${wheV17}
+            where ${whe}
+        """
+
+        mdb.loadQuery(st, sql, map)
+        //... Пересечение
+
+        return st
+    }
+
+    @DaoMethod
+    Store saveIncident(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        //
+        String codCls = pms.getString("codCls")
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        Map<String, Object> par = new HashMap<>(pms)
+        if (mode.equalsIgnoreCase("ins")) {
+            //
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codCls, "")
+            if (map.isEmpty())
+                throw new XError("NotFoundCod@${codCls}")
+
+            par.put("cls", map.get(codCls))
+            par.put("fullName", par.get("name"))
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_StatusRegistered", "")
+            long idFV_StatusRegistered = map.get("FV_StatusRegistered")
+            long pvStatus = apiMeta().get(ApiMeta).idPV("factorVal", idFV_StatusRegistered, "Prop_Status")
+
+            //1 Prop_Status
+            pms.put("fvStatus", idFV_StatusRegistered)
+            pms.put("pvStatus", pvStatus)
+            fillProperties(true, "Prop_Status", pms)
+
+            //2 Prop_Criticality
+            if (pms.getLong("fvCriticality") > 0)
+                fillProperties(false, "Prop_Criticality", pms)
+
+            //3 Prop_Event
+            if (pms.getLong("objEvent") > 0)
+                fillProperties(true, "Prop_Event", pms)
+
+            //4 Prop_Object
+            if (pms.getLong("objObject") > 0)
+                fillProperties(true, "Prop_Object", pms)
+
+            //5 Prop_User
+            if (pms.getLong("objUser") > 0)
+                fillProperties(true, "Prop_User", pms)
+
+            //6 Prop_ParameterLog
+            if (pms.getLong("objParameterLog") > 0)
+                fillProperties(true, "Prop_ParameterLog", pms)
+
+            //7 Prop_Fault
+            if (pms.getLong("objFault") > 0)
+                fillProperties(true, "Prop_Fault", pms)
+
+            //8 Prop_StartKm
+            if (pms.getInt("StartKm") > 0)
+                fillProperties(true, "Prop_StartKm", pms)
+
+            //9 Prop_FinishKm
+            if (pms.getInt("FinishKm") > 0)
+                fillProperties(true, "Prop_FinishKm", pms)
+
+            //10 Prop_StartPicket
+            if (pms.getInt("StartPicket") > 0)
+                fillProperties(true, "Prop_StartPicket", pms)
+
+            //11 Prop_FinishPicket
+            if (pms.getInt("FinishPicket") > 0)
+                fillProperties(true, "Prop_FinishPicket", pms)
+
+            //12 Prop_StartLink
+            if (pms.getInt("StartLink") > 0)
+                fillProperties(true, "Prop_StartLink", pms)
+
+            //13 Prop_FinishLink
+            if (pms.getInt("FinishLink") > 0)
+                fillProperties(true, "Prop_FinishLink", pms)
+
+            //14 Prop_CreatedAt
+            if (pms.getString("CreatedAt") != "")
+                fillProperties(true, "Prop_CreatedAt", pms)
+            else
+                throw new XError("[CreatedAt] not specified")
+
+            //15 Prop_UpdatedAt
+            if (pms.getString("UpdatedAt") != "")
+                fillProperties(true, "Prop_UpdatedAt", pms)
+            else
+                throw new XError("[UpdatedAt] not specified")
+
+            //16 Prop_RegistrationDateTime
+            if (pms.getString("RegistrationDateTime") != "")
+                fillProperties(true, "Prop_RegistrationDateTime", pms)
+            else
+                throw new XError("[RegistrationDateTime] not specified")
+
+            //17 Prop_Description
+            if (pms.getString("Description") != "")
+                fillProperties(true, "Prop_Description", pms)
+            else
+                throw new XError("[Description] not specified")
+            //
+        } else if (mode.equalsIgnoreCase("upd")) {
+            throw new XError("Режим [update] отключен")
+
+            own = pms.getLong("id")
+            par.put("fullName", par.get("name"))
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+
+            //1 Prop_ComponentParams
+            updateProperties("Prop_ComponentParams", pms)
+            //1.1 Prop_LocationClsSection
+            updateProperties("Prop_LocationClsSection", pms)
+            //2 Prop_Inspection
+            updateProperties("Prop_Inspection", pms)
+            //3 Prop_StartKm
+            updateProperties("Prop_StartKm", pms)
+            //4 Prop_FinishKm
+            updateProperties("Prop_FinishKm", pms)
+
+            //5 Prop_StartPicket
+            if (pms.containsKey("idStartPicket"))
+                updateProperties("Prop_StartPicket", pms)
+            else {
+                if (pms.getInt("StartPicket") > 0)
+                    fillProperties(true, "Prop_StartPicket", pms)
+            }
+
+            //6 Prop_FinishPicket
+            if (pms.containsKey("idFinishPicket"))
+                updateProperties("Prop_FinishPicket", pms)
+            else {
+                if (pms.getInt("FinishPicket") > 0)
+                    fillProperties(true, "Prop_FinishPicket", pms)
+            }
+
+            //7 Prop_StartLink
+            if (pms.containsKey("idStartLink"))
+                updateProperties("Prop_StartLink", pms)
+            else {
+                if (pms.getInt("StartLink") > 0)
+                    fillProperties(true, "Prop_StartLink", pms)
+            }
+
+            //8 Prop_FinishLink
+            if (pms.containsKey("idFinishLink"))
+                updateProperties("Prop_FinishLink", pms)
+            else {
+                if (pms.getInt("FinishLink") > 0)
+                    fillProperties(true, "Prop_FinishLink", pms)
+            }
+
+            //9 Prop_CreationDateTime
+            updateProperties("Prop_CreationDateTime", pms)
+            //10 Prop_ParamsLimit
+            updateProperties("Prop_ParamsLimit", pms)
+            //11 Prop_ParamsLimitMax
+            updateProperties("Prop_ParamsLimitMax", pms)
+            //12 Prop_ParamsLimitMin
+            updateProperties("Prop_ParamsLimitMin", pms)
+            //13 Prop_OutOfNorm
+            updateProperties("Prop_OutOfNorm", pms)
+            //14 Prop_Description
+            if (pms.containsKey("idDescription"))
+                updateProperties("Prop_Description", pms)
+            else {
+                if (pms.getString("Description") != "")
+                    fillProperties(true, "Prop_Description", pms)
+            }
+        } else {
+            throw new XError("Нейзвестный режим сохранения ('ins', 'upd')")
+        }
+
+        Map<String, Object> mapRez = new HashMap<>()
+        mapRez.put("id", own)
+        return loadIncident(mapRez)
+    }
+
     private void validateForDeleteOwner(long owner) {
         //---< check data in other DB
         Store stObj = mdb.loadQuery("""
@@ -321,8 +600,18 @@ class DataDao extends BaseMdbUtils {
         }
         // Attrib str dt
         if ([FD_AttribValType_consts.dt].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_DocumentApprovalDate")) {
+            if (cod.equalsIgnoreCase("Prop_CreatedAt") ||
+                    cod.equalsIgnoreCase("Prop_UpdatedAt")) {
                 if (params.get(keyValue) != null) {
+                    recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+        }
+
+        if ([FD_AttribValType_consts.dttm].contains(attribValType)) {
+            if ( cod.equalsIgnoreCase("Prop_RegistrationDateTime")) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
                 }
             } else
@@ -331,7 +620,8 @@ class DataDao extends BaseMdbUtils {
 
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_Criticality")) {
+            if (cod.equalsIgnoreCase("Prop_Criticality") ||
+                    cod.equalsIgnoreCase("Prop_Status")) {
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
                 }
@@ -353,7 +643,12 @@ class DataDao extends BaseMdbUtils {
 
         // For Meter
         if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_StartKm")) {
+            if (cod.equalsIgnoreCase("Prop_StartKm") ||
+                    cod.equalsIgnoreCase("Prop_FinishKm") ||
+                    cod.equalsIgnoreCase("Prop_StartPicket") ||
+                    cod.equalsIgnoreCase("Prop_FinishPicket") ||
+                    cod.equalsIgnoreCase("Prop_StartLink") ||
+                    cod.equalsIgnoreCase("Prop_FinishLink")) {
                 if (params.get(keyValue) != null) {
                     double v = UtCnv.toDouble(params.get(keyValue))
                     v = v / koef
@@ -366,7 +661,11 @@ class DataDao extends BaseMdbUtils {
         }
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_DefectsComponent")) {
+            if (cod.equalsIgnoreCase("Prop_Event") ||
+                    cod.equalsIgnoreCase("Prop_Object") ||
+                    cod.equalsIgnoreCase("Prop_User") ||
+                    cod.equalsIgnoreCase("Prop_ParameterLog") ||
+                    cod.equalsIgnoreCase("Prop_Fault")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)

@@ -30,7 +30,50 @@ class Obj_Test extends Apx_Test {
     @Test
     void delete_test() {
         DataDao dao = mdb.createDao(DataDao.class)
-        dao.deleteObjWithProperties(1000)
+        dao.deleteObjWithProperties(1004)
+    }
+
+    @Test
+    void test_loadIncident() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("periodType", 11)
+        map.put("date", "2025-09-09")
+        map.put("objLocation", 1071)
+        Store st = dao.loadIncident(map)
+        mdb.outTable(st)
+    }
+
+    @Test
+    void test_saveIncident() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("name", "test02 for datetime")
+        map.put("codCls", "Cls_IncidentContactCenter")
+        map.put("objEvent", 1001)
+        map.put("pvEvent", 1434)
+        map.put("objObject", 1068)
+        map.put("pvObject", 1075)
+        map.put("objUser", 1003)
+        map.put("pvUser", 1087)
+//        map.put("objParameterLog", )
+//        map.put("pvParameterLog", )
+//        map.put("objFault", )
+//        map.put("pvFault", )
+        map.put("StartKm", 1)
+        map.put("FinishKm", 2)
+        map.put("StartPicket", 3)
+        map.put("FinishPicket", 4)
+        map.put("StartLink", 5)
+        map.put("FinishLink", 6)
+        map.put("CreatedAt",  "2025-09-26")
+        map.put("UpdatedAt",  "2025-09-26")
+        map.put("RegistrationDateTime",  "2025-09-26T10:20:30.000")
+        map.put("Description", "test02")
+
+        Store st = dao.saveIncident("ins", map)
+        mdb.outTable(st)
+
     }
 
 
