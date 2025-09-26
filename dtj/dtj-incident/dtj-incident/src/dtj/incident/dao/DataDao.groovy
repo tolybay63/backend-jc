@@ -14,16 +14,7 @@ import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
-import tofi.api.dta.ApiClientData
-import tofi.api.dta.ApiIncidentData
-import tofi.api.dta.ApiInspectionData
-import tofi.api.dta.ApiNSIData
-import tofi.api.dta.ApiObjectData
-import tofi.api.dta.ApiOrgStructureData
-import tofi.api.dta.ApiPersonnalData
-import tofi.api.dta.ApiPlanData
-import tofi.api.dta.ApiUserData
-import tofi.api.dta.impl.ApiIncidentDataImpl
+import tofi.api.dta.*
 import tofi.api.dta.model.utils.EntityMdbUtils
 import tofi.api.dta.model.utils.UtPeriod
 import tofi.api.mdl.ApiMeta
@@ -89,6 +80,79 @@ class DataDao extends BaseMdbUtils {
         """)
         //
         eu.deleteEntity(id)
+    }
+
+    @DaoMethod
+    Store loadEvent(long obj) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Event", "")
+        if (map.isEmpty())
+            throw new XError("NotFoundCod@Cls_Event")
+        String whe = "o.id=${obj}"
+        if (obj == 0)
+            whe = "o.cls=${map.get("Cls_Event")}"
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Criticality", "")
+        Store st = mdb.createStore("Obj.Event")
+        mdb.loadQuery(st, """
+            select o.id, o.cls, v.name,
+                v1.id as idCriticality, v1.propVal as pvCriticality,  null as fvCriticality, null as nameCriticality
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Criticality
+                left join DataPropVal v1 on d1.id=v1.dataprop
+            where ${whe}
+        """, map)
+
+        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
+
+        for (StoreRecord record in st) {
+            record.set("fvCriticality", mapPV.get(record.getLong("pvCriticality")))
+        }
+        Set<Object> fvs = st.getUniqueValues("fvCriticality")
+
+        Store stFV = loadSqlMeta("""
+            select id, name from Factor where id in (0${fvs.join(",")})
+        """, "")
+
+        StoreIndex indFV = stFV.getIndex("id")
+        for (StoreRecord record in st) {
+            StoreRecord rec = indFV.get(record.getLong("fvCriticality"))
+            if (rec != null)
+                record.set("nameCriticality", rec.getString ("name"))
+        }
+        //mdb.outTable(st)
+        return st
+    }
+
+    @DaoMethod
+    Store saveEvent(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Event", "")
+        Map<String, Object> par = new HashMap<>(pms)
+        par.put("cls", map.get("Cls_Event"))
+        par.putIfAbsent("fullName", pms.get("name"))
+        if (mode.equalsIgnoreCase("ins")) {
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+            //1 Prop_Criticality
+            if (pms.getLong("fvCriticality") > 0)
+                fillProperties(true, "Prop_Criticality", pms)
+            else
+                throw new XError("Не указан [Критичность]")
+        } else {
+            own = pms.getLong("id")
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+            //1 Prop_Criticality
+            if (pms.getLong("idCriticality") > 0)
+                updateProperties("Prop_Criticality", pms)
+            else
+                fillProperties(true, "Prop_Criticality", pms)
+        }
+        //
+        return loadEvent(own)
     }
 
     private void validateForDeleteOwner(long owner) {
@@ -169,80 +233,6 @@ class DataDao extends BaseMdbUtils {
 
             }
         }
-    }
-
-
-    @DaoMethod
-    Store loadEvent(long obj) {
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Event", "")
-        if (map.isEmpty())
-            throw new XError("NotFoundCod@Cls_Event")
-        String whe = "o.id=${obj}"
-        if (obj == 0)
-            whe = "o.cls=${map.get("Cls_Event")}"
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Criticality", "")
-        Store st = mdb.createStore("Obj.Event")
-        mdb.loadQuery(st, """
-            select o.id, o.cls, v.name,
-                v1.id as idCriticality, v1.propVal as pvCriticality,  null as fvCriticality, null as nameCriticality
-            from Obj o 
-                left join ObjVer v on o.id=v.ownerver and v.lastver=1
-                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Criticality
-                left join DataPropVal v1 on d1.id=v1.dataprop
-            where ${whe}
-        """, map)
-
-        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
-
-        for (StoreRecord record in st) {
-            record.set("fvCriticality", mapPV.get(record.getLong("pvCriticality")))
-        }
-        Set<Object> fvs = st.getUniqueValues("fvCriticality")
-
-        Store stFV = loadSqlMeta("""
-            select id, name from Factor where id in (0${fvs.join(",")})
-        """, "")
-
-        StoreIndex indFV = stFV.getIndex("id")
-        for (StoreRecord record in st) {
-            StoreRecord rec = indFV.get(record.getLong("fvCriticality"))
-            if (rec != null)
-                record.set("nameCriticality", rec.getString ("name"))
-        }
-        //mdb.outTable(st)
-        return st
-    }
-
-    @DaoMethod
-    Store saveEvent(String mode, Map<String, Object> params) {
-        VariantMap pms = new VariantMap(params)
-        long own
-        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Event", "")
-        Map<String, Object> par = new HashMap<>(pms)
-        par.put("cls", map.get("Cls_Event"))
-        par.putIfAbsent("fullName", pms.get("name"))
-        if (mode.equalsIgnoreCase("ins")) {
-            own = eu.insertEntity(par)
-            pms.put("own", own)
-            //1 Prop_Criticality
-            if (pms.getLong("fvCriticality") > 0)
-                fillProperties(true, "Prop_Criticality", pms)
-            else
-                throw new XError("Не указан [Критичность]")
-        } else {
-            own = pms.getLong("id")
-            eu.updateEntity(par)
-            //
-            pms.put("own", own)
-            //1 Prop_Criticality
-            if (pms.getLong("idCriticality") > 0)
-                updateProperties("Prop_Criticality", pms)
-            else
-                fillProperties(true, "Prop_Criticality", pms)
-        }
-        //
-        return loadEvent(own)
     }
 
     //********************************************************************
@@ -586,17 +576,6 @@ class DataDao extends BaseMdbUtils {
             return apiIncidentData().get(ApiIncidentData).loadSql(sql, domain)
         else
             throw new XError("Unknown model [${model}]")
-    }
-
-
-    @DaoMethod
-    Map<String, Object> getCurUserInfo() {
-        AuthService authSvc = mdb.getApp().bean(AuthService.class)
-        AuthUser au = authSvc.getCurrentUser()
-        if (au == null) {
-            throw new XError("NotLogined")
-        }
-        return au.getAttrs()
     }
 
     private long getUser() throws Exception {
