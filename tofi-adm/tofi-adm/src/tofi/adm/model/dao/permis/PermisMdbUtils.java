@@ -97,7 +97,7 @@ public class PermisMdbUtils {
 
         StoreRecord record = stInd.get(id);
         while (true) {
-            if (record != null && record.get("parent") != null) {
+            if (record != null) {
                 leaf.add(record.getString("id"));
                 record = stInd.get(record.getString("parent"));
             } else {
