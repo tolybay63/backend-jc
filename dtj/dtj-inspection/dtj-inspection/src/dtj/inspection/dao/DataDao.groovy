@@ -435,6 +435,7 @@ class DataDao extends BaseMdbUtils {
                 left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=:Prop_ParamsLimitMin
                 left join DataPropVal v17 on d17.id=v17.dataprop
             where ${whe}
+            order by o.id
         """, map)
         //... Пересечение
         Set<Object> idsObjLocation = st.getUniqueValues("objLocationClsSection")
@@ -620,6 +621,7 @@ class DataDao extends BaseMdbUtils {
                 left join DataProp d14 on d14.objorrelobj=o.id and d14.prop=:Prop_Description
                 left join DataPropVal v14 on d14.id=v14.dataprop
             where ${whe}
+            order by o.id
         """, map)
         //... Пересечение
         Set<Object> idsObjLocation = st.getUniqueValues("objLocationClsSection")
