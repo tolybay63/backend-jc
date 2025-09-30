@@ -140,7 +140,6 @@ public class ClsMdbUtils extends EntityMdbUtils {
         testForDubleCls(fvs, cnt, 0, typ, "ins");
 
         //add Cls
-        //long cls = insertEntityWithVer(rec);
         long cls = insertEntity(rec);
         //add to PropVal
         Store rTmp = mdb.loadQuery("select id, allItem from Prop where typ=:typ and proptype=:pt",
@@ -151,7 +150,6 @@ public class ClsMdbUtils extends EntityMdbUtils {
                 mdb.insertRec("PropVal", Map.of("prop", prop, "cls", cls), true);
             }
         }
-
 
         //add ClsFactorVal
         for (String sfv : lstFvs) {
