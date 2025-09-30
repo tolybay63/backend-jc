@@ -255,6 +255,9 @@ class DataDao extends BaseMdbUtils {
             //14 Prop_Description
             if (pms.getString("Description") != "")
                 fillProperties(true, "Prop_Description", pms)
+            //15 Prop_User
+            if (pms.getLong("objUser") > 0)
+                fillProperties(true, "Prop_User", pms)
         } else if (mode.equalsIgnoreCase("upd")) {
             own = pms.getLong("id")
             eu.updateEntity(par)
@@ -671,7 +674,8 @@ class DataDao extends BaseMdbUtils {
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_ObjectType") ||
-                    cod.equalsIgnoreCase("Prop_Section")) {
+                    cod.equalsIgnoreCase("Prop_Section") ||
+                    cod.equalsIgnoreCase("Prop_User")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
@@ -854,7 +858,8 @@ class DataDao extends BaseMdbUtils {
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_ObjectType") ||
-                    cod.equalsIgnoreCase("Prop_Section")) {
+                    cod.equalsIgnoreCase("Prop_Section") ||
+                    cod.equalsIgnoreCase("Prop_User")) {
                 if (objRef > 0)
                     sql = "update DataPropval set propVal=${propVal}, obj=${objRef}, timeStamp='${tmst}' where id=${idVal}"
                 else {

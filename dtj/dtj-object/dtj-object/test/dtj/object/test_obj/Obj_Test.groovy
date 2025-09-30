@@ -51,7 +51,7 @@ class Obj_Test extends Apx_Test {
     @Test
     void test_Obj() {
         DataDao dao = mdb.createDao(DataDao.class)
-        Store st = dao.loadObjList("Typ_Section", "Prop_Section",  'objectdata')
+        Store st = dao.loadObjList("Typ_ObjectTyp", "Prop_ObjectType",  'nsidata')
         mdb.outTable(st)
     }
 
@@ -85,6 +85,10 @@ class Obj_Test extends Apx_Test {
         map.put("CreatedAt", "2025-07-07")
         map.put("UpdatedAt", "2025-07-07")
         map.put("Description", "Железобетонный мост 1")
+        map.put("objUser", 1003)
+        map.put("pvUser", 1087)
+        map.put("objSection", 1870)
+        map.put("pvSection", 1243)
         //
         DataDao dao = mdb.createDao(DataDao.class)
         Store st = dao.saveObjectServed("ins", map)
