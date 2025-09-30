@@ -375,6 +375,7 @@ class DataDao extends BaseMdbUtils {
             UtPeriod utPeriod = new UtPeriod()
             XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(dte), pt, 0)
             XDate d2 = utPeriod.calcDend(UtCnv.toDate(dte), pt, 0)
+            d2 =  d2.addDays(1)
             wheV7 = "and v7.dateTimeVal between '${d1}' and '${d2}'"
         }
 
@@ -577,6 +578,7 @@ class DataDao extends BaseMdbUtils {
             UtPeriod utPeriod = new UtPeriod()
             XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(dte), pt, 0)
             XDate d2 = utPeriod.calcDend(UtCnv.toDate(dte), pt, 0)
+            d2 =  d2.addDays(1)
             wheV7 = "and v7.dateTimeVal between '${d1}' and '${d2}'"
         }
 

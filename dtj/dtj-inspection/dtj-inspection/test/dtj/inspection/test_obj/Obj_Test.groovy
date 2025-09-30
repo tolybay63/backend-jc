@@ -34,7 +34,7 @@ class Obj_Test extends Apx_Test {
     void testLoadParameterLog() {
         DataDao dao = mdb.createDao(DataDao.class)
         Map<String, Object> map = new HashMap<>()
-        map.put("periodType", 11)
+        map.put("periodType", 41)
         map.put("date", "2025-09-09")
         map.put("objLocation", 1071)
         Store st = dao.loadParameterLog(map)
@@ -45,9 +45,9 @@ class Obj_Test extends Apx_Test {
     void testLoadFault() {
         DataDao dao = mdb.createDao(DataDao.class)
         Map<String, Object> map = new HashMap<>()
-        map.put("periodType", 11)
-        map.put("date", "2025-09-09")
-        map.put("objLocation", 1077)
+        map.put("periodType", 41)
+        map.put("date", "2025-09-30")
+        map.put("objLocation", 1071)
         Store st = dao.loadFault(map)
         mdb.outTable(st)
     }
