@@ -852,6 +852,11 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
     }
 
     @Override
+    void insertPropVal(long prop, long cls) {
+        mdb.insertRec("PropVal", Map.of("prop", prop, "cls", cls), true)
+    }
+
+    @Override
     void execSql(String sql) {
         mdb.execQuery(sql)
     }

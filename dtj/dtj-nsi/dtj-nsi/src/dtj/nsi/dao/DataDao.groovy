@@ -246,6 +246,7 @@ class DataDao extends BaseMdbUtils {
     /*
         delete Owner with properties
     */
+
     @DaoMethod
     void deleteOwnerWithProperties(long id, int isObj) {
         //
@@ -279,6 +280,7 @@ class DataDao extends BaseMdbUtils {
     /*
     delete Owner with properties from Objectdata
 */
+
     @DaoMethod
     void deleteOwnerWithPropertiesFromObject(long id, int isObj) {
         apiObjectData().get(ApiObjectData).deleteOwnerWithProperties(id, isObj)
@@ -666,7 +668,7 @@ class DataDao extends BaseMdbUtils {
             select o.id, v.name
             from Obj o, ObjVer v
             where o.id=v.ownerver and v.lastver=1 and o.cls=(${map.get("Cls_Client")})
-        """, "","clientdata")
+        """, "", "clientdata")
 
         StoreIndex indTmp = stTmp.getIndex("id")
 
@@ -818,7 +820,7 @@ class DataDao extends BaseMdbUtils {
             record.set("number", ind++)
             record.set("fvShape", mapPV.get(record.getLong("pvShape")))
             StoreRecord r = indCls.get(record.getLong("cls"))
-            if (r!=null)
+            if (r != null)
                 record.set("nameCls", r.getString("name"))
         }
         if (obj > 0) {
@@ -1299,7 +1301,7 @@ class DataDao extends BaseMdbUtils {
         """, "")
         Set<Object> idsCls = stCls.getUniqueValues("id")
         long clsObject = 0
-        idsCls.forEach {Object i ->
+        idsCls.forEach { Object i ->
             if (UtCnv.toLong(i) != cls)
                 clsObject = UtCnv.toLong(i)
         }
@@ -1373,7 +1375,7 @@ class DataDao extends BaseMdbUtils {
         Store st = loadSqlMeta("""
             select name from Factor where parent=${map.get("Factor_ObjectType")} and name='${nm}'
         """, "")
-        if (st.size()>0)
+        if (st.size() > 0)
             throw new XError("Значение фактора [${nm}] уже существует")
         //
         long idFV = apiMeta().get(ApiMeta).createFactorVal(map.get("Factor_ObjectType"), nm)
@@ -1383,10 +1385,30 @@ class DataDao extends BaseMdbUtils {
         long clsObjectType = apiMeta().get(ApiMeta).createCls(map.get("Typ_ObjectTyp"), nm)
         apiMeta().get(ApiMeta).createClsFactorVal(clsObjectType, idFV)
         apiMeta().get(ApiMeta).createClsFactorVal(clsObjectType, 1001)  //todo Создать код
+        // add to PropVal
+        Store rTmp = loadSqlMeta("""
+            select id, allItem from Prop where typ=${map.get("Typ_ObjectTyp")} and proptype=${FD_PropType_consts.typ}
+        """, "")
+        for (StoreRecord rec in rTmp) {
+            if (rec.getBoolean("allItem")) {
+                long prop = rec.getLong("id")
+                apiMeta().get(ApiMeta).insertPropVal(prop, clsObjectType)
+            }
+        }
         //
         long clsObject = apiMeta().get(ApiMeta).createCls(map.get("Typ_Object"), nm)
         apiMeta().get(ApiMeta).createClsFactorVal(clsObject, idFV)
         apiMeta().get(ApiMeta).createClsFactorVal(clsObject, 1001)  //todo Создать код
+        // add to PropVal
+        rTmp = loadSqlMeta("""
+            select id, allItem from Prop where typ=${map.get("Typ_Object")} and proptype=${FD_PropType_consts.typ}
+        """, "")
+        for (StoreRecord rec in rTmp) {
+            if (rec.getBoolean("allItem")) {
+                long prop = rec.getLong("id")
+                apiMeta().get(ApiMeta).insertPropVal(prop, clsObject)
+            }
+        }
         //
         // Возвращает id класса clsObjectType
         return clsObjectType
@@ -1394,7 +1416,7 @@ class DataDao extends BaseMdbUtils {
 
     private void createGroupRelCls(long clsObjectTyp) {
         Store stTmp = loadSqlMeta("select id from DataBase where modelname='nsidata'", "")
-        if (stTmp.size()==0)
+        if (stTmp.size() == 0)
             throw new XError("В таблице [DataBase] не указан сервис [nsidata]")
         long db = stTmp.get(0).getLong("id")
         //
@@ -1698,7 +1720,6 @@ class DataDao extends BaseMdbUtils {
             delete from SysCod where entityType=2 and entityId in (${idsRelObj});
         """)
     }
-
 
     @DaoMethod
     Store loadParamsComponent(long relTyp) {

@@ -240,6 +240,8 @@ public interface ApiMeta {
 
     void createGroupRelCls(long reltyp, long cls1, long typ1, long cls2, long typ2, long db);
 
+    void insertPropVal(long prop, long cls);
+
     /**
      * @param sql text sql
      */

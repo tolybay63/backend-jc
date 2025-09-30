@@ -163,7 +163,7 @@ public class ClsMdbUtils extends EntityMdbUtils {
         mdb.loadQuery(st, """
                     select * from Cls c, ClsVer v where c.id=v.ownerVer and v.lastver=1 and c.id=:id
                 """, Map.of("id", cls));
-        mdb.resolveDicts(st);
+        //mdb.resolveDicts(st);
         //
         return st;
     }
