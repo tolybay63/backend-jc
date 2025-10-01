@@ -171,6 +171,7 @@ class DataDao extends BaseMdbUtils {
             tofi.api.mdl.utils.UtPeriod utPeriod = new tofi.api.mdl.utils.UtPeriod()
             XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(dte), pt, 0)
             XDate d2 = utPeriod.calcDend(UtCnv.toDate(dte), pt, 0)
+            d2 = d2.addDays(1)
             wheV17 = "and v17.dateTimeVal between '${d1}' and '${d2}'"
         }
 
