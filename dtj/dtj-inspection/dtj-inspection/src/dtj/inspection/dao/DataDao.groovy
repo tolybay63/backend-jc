@@ -750,10 +750,17 @@ class DataDao extends BaseMdbUtils {
             par.put("fullName", par.get("name"))
             own = eu.insertEntity(par)
             pms.put("own", own)
+            long idFV_Flag
+            if (pms.getDouble("ParamsLimit") >= pms.getDouble("ParamsLimitMin") &&
+                    pms.getDouble("ParamsLimit") <= pms.getDouble("ParamsLimitMax")) {
+                map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_False", "")
+                idFV_Flag = map.get("FV_False")
+            } else {
+                map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_True", "")
+                idFV_Flag = map.get("FV_True")
+            }
 
-            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_False", "")
-            long idFV_False = map.get("FV_False")
-            long pvOutOfNorm = apiMeta().get(ApiMeta).idPV("factorVal", idFV_False, "Prop_OutOfNorm")
+            long pvOutOfNorm = apiMeta().get(ApiMeta).idPV("factorVal", idFV_Flag, "Prop_OutOfNorm")
 
             //1 Prop_Defect
             if (pms.getLong("relobjComponentParams") > 0)
@@ -843,7 +850,7 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("[ParamsLimitMin] not specified")
 
             //12 Prop_OutOfNorm
-            pms.put("fvOutOfNorm", idFV_False)
+            pms.put("fvOutOfNorm", idFV_Flag)
             pms.put("pvOutOfNorm", pvOutOfNorm)
             fillProperties(true, "Prop_OutOfNorm", pms)
 
