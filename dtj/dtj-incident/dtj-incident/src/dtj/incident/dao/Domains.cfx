@@ -21,27 +21,31 @@
         <field name="pvEvent" parent="long"/>
         <field name="objEvent" parent="long"/>
         <field name="nameEvent" parent="string"/>
+
         <field name="idObject" parent="long"/>
         <field name="pvObject" parent="long"/>
         <field name="objObject" parent="long"/>
         <field name="nameObject" parent="string"/>
+
         <field name="idUser" parent="long"/>
         <field name="pvUser" parent="long"/>
         <field name="objUser" parent="long"/>
         <field name="nameUser" parent="string"/>
+
         <field name="idParameterLog" parent="long"/>
         <field name="pvParameterLog" parent="long"/>
         <field name="objParameterLog" parent="long"/>
-        <field name="nameParameterLog" parent="string"/>
+
         <field name="idFault" parent="long"/>
         <field name="pvFault" parent="long"/>
         <field name="objFault" parent="long"/>
-        <field name="nameFault" parent="string"/>
+
 
         <field name="idStatus" parent="long"/>
         <field name="pvStatus" parent="long"/>
         <field name="fvStatus" parent="long"/>
         <field name="nameStatus" parent="string"/>
+
         <field name="idCriticality" parent="long"/>
         <field name="pvCriticality" parent="long"/>
         <field name="fvCriticality" parent="long"/>

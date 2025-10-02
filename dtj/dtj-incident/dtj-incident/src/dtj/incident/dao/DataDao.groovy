@@ -158,35 +158,20 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Store loadIncident(Map<String, Object> params) {
         Store st = mdb.createStore("Obj.Incident")
-
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_IncidentContactCenter", "")
-
         String whe
-        String wheV1 = ""
         String wheV17 = ""
         if (params.containsKey("id"))
             whe = "o.id=${UtCnv.toLong(params.get("id"))}"
         else {
             whe = "o.cls = ${map.get("Cls_IncidentContactCenter")}"
             //
-//            Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_LocationSection", "")
-//            Store stClsLocation = loadSqlService("""
-//                select cls from Obj where id=${UtCnv.toLong(params.get("objLocation"))}
-//            """, "", "orgstructuredata")
-//            if (stClsLocation.size()==0)
-//                throw new XError("Не найден [objLocation={0}]", params.get("objLocation"))
-//
-//            long clsLocation = stClsLocation.get(0).getLong("cls")
-//
-//            if (clsLocation == mapCls.get("Cls_LocationSection")) {
-//                Set<Object> idsObjLocation = getIdsObjLocation(UtCnv.toLong(params.get("objLocation")))
-//                wheV1 = "and v1.obj in (${idsObjLocation.join(",")})"
-//            }
             long pt = UtCnv.toLong(params.get("periodType"))
             String dte = UtCnv.toString(params.get("date"))
             tofi.api.mdl.utils.UtPeriod utPeriod = new tofi.api.mdl.utils.UtPeriod()
             XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(dte), pt, 0)
             XDate d2 = utPeriod.calcDend(UtCnv.toDate(dte), pt, 0)
+            d2 = d2.addDays(1)
             wheV17 = "and v17.dateTimeVal between '${d1}' and '${d2}'"
         }
 
@@ -194,11 +179,11 @@ class DataDao extends BaseMdbUtils {
 
         String sql = """
             select o.id, o.cls, v.name,
-                v1.id as idEvent, v1.propVal as pvEvent, v1.obj as objEvent, null as nameEvent,
+                v1.id as idEvent, v1.propVal as pvEvent, v1.obj as objEvent, ov1.name as nameEvent,
                 v2.id as idObject, v2.propVal as pvObject, v2.obj as objObject, null as nameObject,
                 v3.id as idUser, v3.propVal as pvUser, v3.obj as objUser, null as nameUser,
-                v4.id as idParameterLog, v4.propVal as pvParameterLog, v4.obj as objParameterLog, null as nameParameterLog,
-                v5.id as idFault, v5.propVal as pvFault, v5.obj as objFault, null as nameFault,
+                v4.id as idParameterLog, v4.propVal as pvParameterLog, v4.obj as objParameterLog,
+                v5.id as idFault, v5.propVal as pvFault, v5.obj as objFault,
                 v6.id as idStatus, v6.propVal as pvStatus, null as fvStatus, null as nameStatus,
                 v7.id as idCriticality, v7.propVal as pvCriticality, null as fvCriticality, null as nameCriticality,
                 v8.id as idStartKm, v8.numberVal as StartKm,
@@ -215,6 +200,7 @@ class DataDao extends BaseMdbUtils {
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Event")}
                 left join DataPropVal v1 on d1.id=v1.dataprop
+                left join ObjVer ov1 on ov1.ownerVer=v1.obj and ov1.lastVer=1
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_Object")}
                 left join DataPropVal v2 on d2.id=v2.dataprop
                 left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_User")}
@@ -249,10 +235,57 @@ class DataDao extends BaseMdbUtils {
                 inner join DataPropVal v17 on d17.id=v17.dataprop ${wheV17}
             where ${whe}
         """
-
         mdb.loadQuery(st, sql, map)
         //... Пересечение
-
+        Set<Object> idsObject = st.getUniqueValues("objObject")
+        Store stObject = loadSqlService("""
+            select o.id, v.fullName from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsObject.join(",")})
+        """, "", "objectdata")
+        StoreIndex indObject = stObject.getIndex("id")
+        //
+        Set<Object> idsUser = st.getUniqueValues("objUser")
+        Store stUser = loadSqlService("""
+            select o.id, v.fullName from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsUser.join(",")})
+        """, "", "personnaldata")
+        StoreIndex indUser = stUser.getIndex("id")
+        //
+        Set<Object> pvsStatus = st.getUniqueValues("pvStatus")
+        Store stPV = loadSqlMeta("""
+            select p.id, p.factorVal, f.name
+            from Propval p, Factor f
+            where p.id in (0${pvsStatus.join(",")}) and p.factorVal=f.id            
+        """, "")
+        StoreIndex indStatus = stPV.getIndex("id")
+        //
+        Set<Object> pvsCriticality = st.getUniqueValues("pvCriticality")
+        stPV = loadSqlMeta("""
+            select p.id, p.factorVal, f.name
+            from Propval p, Factor f
+            where p.id in (0${pvsCriticality.join(",")}) and p.factorVal=f.id            
+        """, "")
+        StoreIndex indCriticality = stPV.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord recObject = indObject.get(r.getLong("objObject"))
+            if (recObject != null)
+                r.set("nameObject", recObject.getString("fullName"))
+            //
+            StoreRecord recUser = indUser.get(r.getLong("objUser"))
+            if (recUser != null)
+                r.set("nameUser", recUser.getString("fullName"))
+            //
+            StoreRecord recStatus = indStatus.get(r.getLong("pvStatus"))
+            if (recStatus != null) {
+                r.set("fvStatus", recStatus.getLong("factorVal"))
+                r.set("nameStatus", recStatus.getString("name"))
+            }
+            StoreRecord recCriticality = indCriticality.get(r.getLong("pvCriticality"))
+            if (recCriticality != null) {
+                r.set("fvCriticality", recCriticality.getLong("factorVal"))
+                r.set("nameCriticality", recCriticality.getString("name"))
+            }
+        }
+        //
         return st
     }
 
