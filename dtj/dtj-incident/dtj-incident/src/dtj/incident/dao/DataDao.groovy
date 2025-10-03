@@ -140,17 +140,20 @@ class DataDao extends BaseMdbUtils {
                 fillProperties(true, "Prop_Criticality", pms)
             else
                 throw new XError("Не указан [Критичность]")
-        } else {
+        } else if (mode.equalsIgnoreCase("upd")) {
             own = pms.getLong("id")
             eu.updateEntity(par)
             //
             pms.put("own", own)
             //1 Prop_Criticality
-            if (pms.getLong("idCriticality") > 0)
-                updateProperties("Prop_Criticality", pms)
-            else
-                fillProperties(true, "Prop_Criticality", pms)
-        }
+            if (pms.getLong("idCriticality") > 0) {
+                if (pms.getLong("fvCriticality") > 0)
+                    updateProperties("Prop_Criticality", pms)
+                else
+                    throw new XError("Не указан [Критичность]")
+            }
+        } else
+            throw new XError("Не известный режим записи (mode = ins | upd) в БД")
         //
         return loadEvent(own)
     }
