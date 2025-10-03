@@ -9,6 +9,7 @@ import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
 import tofi.api.dta.ApiClientData
+import tofi.api.dta.ApiIncidentData
 import tofi.api.dta.ApiInspectionData
 import tofi.api.dta.ApiNSIData
 import tofi.api.dta.ApiObjectData
@@ -26,37 +27,32 @@ class ApiObjectDataImpl extends BaseMdbUtils implements ApiObjectData {
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
     }
-
     ApinatorApi apiUserData() {
         return app.bean(ApinatorService).getApi("userdata")
     }
-
     ApinatorApi apiNSIData() {
         return app.bean(ApinatorService).getApi("nsidata")
     }
-
     ApinatorApi apiObjectData() {
         return app.bean(ApinatorService).getApi("objectdata")
     }
-
     ApinatorApi apiPlanData() {
         return app.bean(ApinatorService).getApi("plandata")
     }
-
     ApinatorApi apiPersonnalData() {
         return app.bean(ApinatorService).getApi("personnaldata")
     }
-
     ApinatorApi apiOrgStructureData() {
         return app.bean(ApinatorService).getApi("orgstructuredata")
     }
-
     ApinatorApi apiInspectionData() {
         return app.bean(ApinatorService).getApi("inspectiondata")
     }
-
     ApinatorApi apiClientData() {
         return app.bean(ApinatorService).getApi("clientdata")
+    }
+    ApinatorApi apiIncidentData() {
+        return app.bean(ApinatorService).getApi("incidentdata")
     }
 
 
@@ -432,6 +428,8 @@ class ApiObjectDataImpl extends BaseMdbUtils implements ApiObjectData {
             return apiInspectionData().get(ApiInspectionData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("clientdata"))
             return apiClientData().get(ApiClientData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("incidentdata"))
+            return apiIncidentData().get(ApiIncidentData).loadSql(sql, domain)
         else
             throw new XError("Unknown model [${model}]")
     }
