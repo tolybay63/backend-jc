@@ -582,53 +582,69 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store loadObjectServedForSelect(long id) {
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelTyp", "RT_Works", "")
-        Store stTyp = loadSqlMeta("""
-            select typ from reltypmember
-            where reltyp=${map.get("RT_Works")}
-            order by ord
-        """, "")
-        long typ1 = stTyp.get(0).getLong("typ")
-        long typ2 = stTyp.get(1).getLong("typ")
+        Set<Object> owners
 
-        Store stRCM1 = loadSqlMeta("""
-            select distinct cls 
-            from relclsmember
-            where cls in (
-                select id from Cls where typ=${typ1}
-            )
-        """, "")
+        if (id > 0) {
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelTyp", "RT_Works", "")
+            Store stTyp = loadSqlMeta("""
+                select typ from reltypmember
+                where reltyp=${map.get("RT_Works")}
+                order by ord
+            """, "")
+            long typ1 = stTyp.get(0).getLong("typ")
+            long typ2 = stTyp.get(1).getLong("typ")
 
-        Set<Object> idsCls1 = stRCM1.getUniqueValues("cls")
-        Store stRCM2 = loadSqlMeta("""
-            select distinct cls 
-            from relclsmember
-            where cls in (
-                select id from Cls where typ=${typ2}
-            )
-        """, "")
-        Set<Object> idsCls2 = stRCM2.getUniqueValues("cls")
-
-        Store stTmp = loadSqlService("""
-            select obj from relobjmember
-            where cls in (${idsCls2.join(",")})
-                and relobj in (
-                    select relobj from relobjmember
-                    where cls in (${idsCls1.join(",")}) and obj=${id}
+            Store stRCM1 = loadSqlMeta("""
+                select distinct cls 
+                from relclsmember
+                where cls in (
+                    select id from Cls where typ=${typ1}
                 )
-        """, "", "nsidata")
+            """, "")
 
-        Set<Object> idsObj = stTmp.getUniqueValues("obj")
+            Set<Object> idsCls1 = stRCM1.getUniqueValues("cls")
+            Store stRCM2 = loadSqlMeta("""
+                select distinct cls 
+                from relclsmember
+                where cls in (
+                    select id from Cls where typ=${typ2}
+                )
+            """, "")
+            Set<Object> idsCls2 = stRCM2.getUniqueValues("cls")
 
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_ObjectType", "")
-        stTmp = loadSqlService("""
-            select d.objOrRelObj as owner
-            from DataProp d, DataPropval v
-            where d.id=v.dataProp and d.prop=${map.get("Prop_ObjectType")} and v.obj in (0${idsObj.join(",")})
-        """, "", "objectdata")
-        Set<Object> owners = stTmp.getUniqueValues("owner")
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
-        stTmp = loadSqlService("""
+            Store stTmp = loadSqlService("""
+                select obj from relobjmember
+                where cls in (${idsCls2.join(",")})
+                    and relobj in (
+                        select relobj from relobjmember
+                        where cls in (${idsCls1.join(",")}) and obj=${id}
+                    )
+            """, "", "nsidata")
+
+            Set<Object> idsObj = stTmp.getUniqueValues("obj")
+
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_ObjectType", "")
+            stTmp = loadSqlService("""
+                select d.objOrRelObj as owner
+                from DataProp d, DataPropval v
+                where d.id=v.dataProp and d.prop=${map.get("Prop_ObjectType")} and v.obj in (0${idsObj.join(",")})
+            """, "", "objectdata")
+            owners = stTmp.getUniqueValues("owner")
+        } else {
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Object", "")
+            Store stTmp = loadSqlMeta("""
+                select id from Cls where typ=${map.get("Typ_Object")}
+            """, "")
+            Set<Object> idsCls = stTmp.getUniqueValues("id")
+            stTmp = loadSqlService("""
+                select id
+                from Obj
+                where cls in (0${idsCls.join(",")})
+            """, "", "objectdata")
+            owners = stTmp.getUniqueValues("id")
+        }
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        Store stTmp = loadSqlService("""
             select o.id as objObject, o.cls as linkCls, v.fullName as nameObject, null as pvObject,
                 v1.obj as objObjectType, null as nameObjectType, 
                 v2.obj as objSection, ov2.name as nameSection,

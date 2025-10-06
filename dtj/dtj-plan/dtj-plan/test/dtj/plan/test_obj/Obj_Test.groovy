@@ -74,7 +74,7 @@ class Obj_Test extends Apx_Test {
     @Test
     void loadObjectServedForSelect() {
         DataDao dao = mdb.createDao(DataDao.class)
-        Store st = dao.loadObjectServedForSelect(2477)
+        Store st = dao.loadObjectServedForSelect(0/*2477*/)
         mdb.outTable(st)
     }
 
