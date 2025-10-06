@@ -23,6 +23,7 @@ import tofi.api.dta.ApiPlanData
 import tofi.api.dta.ApiUserData
 import tofi.api.dta.model.utils.EntityMdbUtils
 import tofi.api.mdl.ApiMeta
+import tofi.api.mdl.ApiMetaData
 import tofi.api.mdl.model.consts.FD_AttribValType_consts
 import tofi.api.mdl.model.consts.FD_InputType_consts
 import tofi.api.mdl.model.consts.FD_PeriodType_consts
@@ -987,7 +988,39 @@ class DataDao extends BaseMdbUtils {
 
         Map<String, Object> mapRez = new HashMap<>()
         mapRez.put("id", own)
-        return loadFault(mapRez)
+        Store stTemp = loadFault(mapRez)
+        //**********************************************
+        Map<String, Object> mapIncident = stTemp.get(0).getValues()
+        //
+        long pvFault = apiMeta().get(ApiMeta).idPV("cls", UtCnv.toLong(mapIncident.get("cls")), "Prop_Fault")
+
+        Store stObject = loadSqlService("""
+            select cls 
+            from Obj
+            where id=${mapIncident.get("objObject")}
+        """, "", "objectdata")
+        long pvObject = apiMeta().get(ApiMeta).idPV("cls", stObject.get(0).getLong("cls"), "Prop_Object")
+        //
+        mapIncident.put("codCls", "Cls_IncidentFault")
+        mapIncident.put("Description", "Копонент - " + mapIncident.get("nameDefectsComponent") +
+                        " / Неисправность - " + mapIncident.get("nameDefect"))
+        mapIncident.put("", mapIncident.get("nameDefectsComponent"))
+        mapIncident.put("objFault", mapIncident.get("id"))
+        mapIncident.put("pvFault", pvFault)
+        mapIncident.put("pvObject", pvObject)
+        mapIncident.put("objUser", pms.getLong("objUser"))
+        mapIncident.put("pvUser", pms.getLong("pvUser"))
+        mapIncident.put("RegistrationDateTime", mapIncident.get("CreationDateTime"))
+        mapIncident.put("CreatedAt", UtCnv.toString(mapIncident.get("CreationDateTime")).substring(0,10))
+        mapIncident.put("UpdatedAt", UtCnv.toString(mapIncident.get("CreationDateTime")).substring(0,10))
+        mapIncident.put("InfoApplicant", ""+mapIncident.get("nameLocationClsSection") + ", " + pms.get("fullNameUser"))
+        mapIncident.remove("id")
+        mapIncident.remove("cls")
+
+        long  idIncident = apiIncidentData().get(ApiIncidentData).saveIncident("ins", mapIncident)
+
+        //******************************************************
+        return stTemp
     }
 
     @DaoMethod
@@ -1542,23 +1575,6 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store saveInspectionTest(Map<String, Object> params) {
-        VariantMap pms = new VariantMap(params)
-        //
-        pms.put("own", pms.getLong("id"))
-
-        //10 Prop_FinishLink
-        if (pms.containsKey("idStartLink"))
-            updateProperties("Prop_StartLink", pms)
-        else {
-            if (pms.getInt("StartLink") > 0)
-                fillProperties(true, "Prop_StartLink", pms)
-        }
-        return null
-    }
-
-
-        @DaoMethod
     Store saveInspection(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         //StartLink
@@ -1585,7 +1601,7 @@ class DataDao extends BaseMdbUtils {
                     v4.numberVal * 1000 + coalesce(v6.numberVal,0) * 100 + coalesce(v13.numberVal,0) * 12.5 as end
                 from Obj o 
                     left join ObjVer v on o.id=v.ownerver and v.lastver=1
-                    left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartKm
+                   left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartKm
                     left join DataPropVal v3 on d3.id=v3.dataprop
                     left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FinishKm
                     left join DataPropVal v4 on d4.id=v4.dataprop

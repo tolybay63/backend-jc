@@ -31,33 +31,43 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiAdm() {
         return app.bean(ApinatorService).getApi("adm")
     }
+
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
     }
+
     ApinatorApi apiUserData() {
         return app.bean(ApinatorService).getApi("userdata")
     }
+
     ApinatorApi apiNSIData() {
         return app.bean(ApinatorService).getApi("nsidata")
     }
+
     ApinatorApi apiObjectData() {
         return app.bean(ApinatorService).getApi("objectdata")
     }
+
     ApinatorApi apiPlanData() {
         return app.bean(ApinatorService).getApi("plandata")
     }
+
     ApinatorApi apiPersonnalData() {
         return app.bean(ApinatorService).getApi("personnaldata")
     }
+
     ApinatorApi apiOrgStructureData() {
         return app.bean(ApinatorService).getApi("orgstructuredata")
     }
+
     ApinatorApi apiInspectionData() {
         return app.bean(ApinatorService).getApi("inspectiondata")
     }
+
     ApinatorApi apiClientData() {
         return app.bean(ApinatorService).getApi("clientdata")
     }
+
     ApinatorApi apiIncidentData() {
         return app.bean(ApinatorService).getApi("incidentdata")
     }
@@ -119,7 +129,7 @@ class DataDao extends BaseMdbUtils {
         for (StoreRecord record in st) {
             StoreRecord rec = indFV.get(record.getLong("fvCriticality"))
             if (rec != null)
-                record.set("nameCriticality", rec.getString ("name"))
+                record.set("nameCriticality", rec.getString("name"))
         }
         //mdb.outTable(st)
         return st
@@ -297,109 +307,15 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Store saveIncident(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
-        //
-        String codCls = pms.getString("codCls")
+
         long own
-        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
-        Map<String, Object> par = new HashMap<>(pms)
         if (mode.equalsIgnoreCase("ins")) {
-            //
-            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codCls, "")
-            if (map.isEmpty())
-                throw new XError("NotFoundCod@${codCls}")
-
-            par.put("cls", map.get(codCls))
-            par.put("fullName", par.get("name"))
-            own = eu.insertEntity(par)
-            pms.put("own", own)
-
-            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_StatusRegistered", "")
-            long idFV_StatusRegistered = map.get("FV_StatusRegistered")
-            long pvStatus = apiMeta().get(ApiMeta).idPV("factorVal", idFV_StatusRegistered, "Prop_Status")
-
-            //1 Prop_Status
-            pms.put("fvStatus", idFV_StatusRegistered)
-            pms.put("pvStatus", pvStatus)
-            fillProperties(true, "Prop_Status", pms)
-
-            //2 Prop_Criticality
-            if (pms.getLong("fvCriticality") > 0)
-                fillProperties(false, "Prop_Criticality", pms)
-
-            //3 Prop_Event
-            if (pms.getLong("objEvent") > 0)
-                fillProperties(true, "Prop_Event", pms)
-
-            //4 Prop_Object
-            if (pms.getLong("objObject") > 0)
-                fillProperties(true, "Prop_Object", pms)
-
-            //5 Prop_User
-            if (pms.getLong("objUser") > 0)
-                fillProperties(true, "Prop_User", pms)
-
-            //6 Prop_ParameterLog
-            if (pms.getLong("objParameterLog") > 0)
-                fillProperties(true, "Prop_ParameterLog", pms)
-
-            //7 Prop_Fault
-            if (pms.getLong("objFault") > 0)
-                fillProperties(true, "Prop_Fault", pms)
-
-            //8 Prop_StartKm
-            if (pms.getInt("StartKm") > 0)
-                fillProperties(true, "Prop_StartKm", pms)
-
-            //9 Prop_FinishKm
-            if (pms.getInt("FinishKm") > 0)
-                fillProperties(true, "Prop_FinishKm", pms)
-
-            //10 Prop_StartPicket
-            if (pms.getInt("StartPicket") > 0)
-                fillProperties(true, "Prop_StartPicket", pms)
-
-            //11 Prop_FinishPicket
-            if (pms.getInt("FinishPicket") > 0)
-                fillProperties(true, "Prop_FinishPicket", pms)
-
-            //12 Prop_StartLink
-            if (pms.getInt("StartLink") > 0)
-                fillProperties(true, "Prop_StartLink", pms)
-
-            //13 Prop_FinishLink
-            if (pms.getInt("FinishLink") > 0)
-                fillProperties(true, "Prop_FinishLink", pms)
-
-            //14 Prop_CreatedAt
-            if (pms.getString("CreatedAt") != "")
-                fillProperties(true, "Prop_CreatedAt", pms)
-            else
-                throw new XError("[CreatedAt] not specified")
-
-            //15 Prop_UpdatedAt
-            if (pms.getString("UpdatedAt") != "")
-                fillProperties(true, "Prop_UpdatedAt", pms)
-            else
-                throw new XError("[UpdatedAt] not specified")
-
-            //16 Prop_RegistrationDateTime
-            if (pms.getString("RegistrationDateTime") != "")
-                fillProperties(true, "Prop_RegistrationDateTime", pms)
-            else
-                throw new XError("[RegistrationDateTime] not specified")
-
-            //17 Prop_Description
-            if (pms.getString("Description") != "")
-                fillProperties(true, "Prop_Description", pms)
-            else
-                throw new XError("[Description] not specified")
-            //
+            own = apiIncidentData().get(ApiIncidentData).saveIncident("ins", pms)
         } else if (mode.equalsIgnoreCase("upd")) {
             throw new XError("Режим [update] отключен")
         } else {
             throw new XError("Нейзвестный режим сохранения ('ins', 'upd')")
         }
-
         Map<String, Object> mapRez = new HashMap<>()
         mapRez.put("id", own)
         return loadIncident(mapRez)
@@ -477,8 +393,8 @@ class DataDao extends BaseMdbUtils {
                     lstService.add("incidentdata")
                 //
 
-                if (lstService.size()>0) {
-                    throw new XError("${name} используется в ["+ lstService.join(", ") + "]")
+                if (lstService.size() > 0) {
+                    throw new XError("${name} используется в [" + lstService.join(", ") + "]")
                 }
 
             }
@@ -581,7 +497,7 @@ class DataDao extends BaseMdbUtils {
         }
 
         if ([FD_AttribValType_consts.dttm].contains(attribValType)) {
-            if ( cod.equalsIgnoreCase("Prop_RegistrationDateTime")) {
+            if (cod.equalsIgnoreCase("Prop_RegistrationDateTime")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
                 }

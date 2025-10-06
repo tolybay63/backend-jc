@@ -48,7 +48,7 @@ class Obj_Test extends Apx_Test {
     void test_saveIncident() {
         DataDao dao = mdb.createDao(DataDao.class)
         Map<String, Object> map = new HashMap<>()
-        map.put("name", "test02 for datetime")
+        map.put("name", "test03 for datetime ********")
         map.put("codCls", "Cls_IncidentContactCenter")
         map.put("objEvent", 1001)
         map.put("pvEvent", 1434)
@@ -69,7 +69,7 @@ class Obj_Test extends Apx_Test {
         map.put("CreatedAt",  "2025-09-26")
         map.put("UpdatedAt",  "2025-09-26")
         map.put("RegistrationDateTime",  "2025-09-26T10:20:30.000")
-        map.put("Description", "test02")
+        map.put("Description", "test02 **********")
 
         Store st = dao.saveIncident("ins", map)
         mdb.outTable(st)
