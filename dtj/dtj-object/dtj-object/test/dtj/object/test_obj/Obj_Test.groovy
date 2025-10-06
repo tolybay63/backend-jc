@@ -49,9 +49,9 @@ class Obj_Test extends Apx_Test {
     }
 
     @Test
-    void test_Obj() {
+    void loadObjList_test() {
         DataDao dao = mdb.createDao(DataDao.class)
-        Store st = dao.loadObjList("Typ_ObjectTyp", "Prop_ObjectType",  'nsidata')
+        Store st = dao.loadObjList("Cls_Event", "Prop_Event",  'incidentdata')
         mdb.outTable(st)
     }
 

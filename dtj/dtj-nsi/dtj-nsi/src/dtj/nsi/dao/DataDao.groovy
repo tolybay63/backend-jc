@@ -17,18 +17,10 @@ import jandcode.core.std.DataDirService
 import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
-import tofi.api.dta.ApiClientData
-import tofi.api.dta.ApiInspectionData
-import tofi.api.dta.ApiNSIData
-import tofi.api.dta.ApiObjectData
-import tofi.api.dta.ApiOrgStructureData
-import tofi.api.dta.ApiPersonnalData
-import tofi.api.dta.ApiPlanData
-import tofi.api.dta.ApiUserData
+import tofi.api.dta.*
 import tofi.api.dta.model.utils.EntityMdbUtils
 import tofi.api.dta.model.utils.UtPeriod
 import tofi.api.mdl.ApiMeta
-import tofi.api.mdl.ApiMetaFish
 import tofi.api.mdl.model.consts.FD_AttribValType_consts
 import tofi.api.mdl.model.consts.FD_InputType_consts
 import tofi.api.mdl.model.consts.FD_PeriodType_consts
@@ -44,7 +36,6 @@ import tofi.apinator.ApinatorService
 
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.util.stream.Stream
 
 @CompileStatic
 class DataDao extends BaseMdbUtils {
@@ -52,37 +43,27 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
     }
-
     ApinatorApi apiUserData() {
         return app.bean(ApinatorService).getApi("userdata")
     }
-
     ApinatorApi apiNSIData() {
         return app.bean(ApinatorService).getApi("nsidata")
     }
-
-    //ApinatorApi apiMetaFish() { return app.bean(ApinatorService).getApi("meta") }
-
     ApinatorApi apiObjectData() {
         return app.bean(ApinatorService).getApi("objectdata")
     }
-
     ApinatorApi apiPlanData() {
         return app.bean(ApinatorService).getApi("plandata")
     }
-
     ApinatorApi apiPersonnalData() {
         return app.bean(ApinatorService).getApi("personnaldata")
     }
-
     ApinatorApi apiOrgStructureData() {
         return app.bean(ApinatorService).getApi("orgstructuredata")
     }
-
     ApinatorApi apiInspectionData() {
         return app.bean(ApinatorService).getApi("inspectiondata")
     }
-
     ApinatorApi apiClientData() {
         return app.bean(ApinatorService).getApi("clientdata")
     }
@@ -232,7 +213,6 @@ class DataDao extends BaseMdbUtils {
     /*
         delete Owner without properties
     */
-
     @DaoMethod
     void deleteOwner(long id, int isObj) {
         //
@@ -246,7 +226,6 @@ class DataDao extends BaseMdbUtils {
     /*
         delete Owner with properties
     */
-
     @DaoMethod
     void deleteOwnerWithProperties(long id, int isObj) {
         //
@@ -276,11 +255,9 @@ class DataDao extends BaseMdbUtils {
             eu.deleteEntity(id)
     }
 
-
     /*
     delete Owner with properties from Objectdata
-*/
-
+    */
     @DaoMethod
     void deleteOwnerWithPropertiesFromObject(long id, int isObj) {
         apiObjectData().get(ApiObjectData).deleteOwnerWithProperties(id, isObj)

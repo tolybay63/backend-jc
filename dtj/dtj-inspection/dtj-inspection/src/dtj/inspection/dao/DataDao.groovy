@@ -13,6 +13,8 @@ import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
+import tofi.api.dta.ApiIncidentData
+import tofi.api.dta.ApiInspectionData
 import tofi.api.dta.ApiNSIData
 import tofi.api.dta.ApiObjectData
 import tofi.api.dta.ApiOrgStructureData
@@ -54,6 +56,13 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiPlanData() {
         return app.bean(ApinatorService).getApi("plandata")
     }
+    ApinatorApi apiInspectionData() {
+        return app.bean(ApinatorService).getApi("inspectiondata")
+    }
+    ApinatorApi apiIncidentData() {
+        return app.bean(ApinatorService).getApi("incidentdata")
+    }
+
 
     //todo Temporary
     @DaoMethod
@@ -2542,6 +2551,10 @@ class DataDao extends BaseMdbUtils {
             return apiObjectData().get(ApiObjectData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("plandata"))
             return apiPlanData().get(ApiPlanData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("inspectiondata"))
+            return apiInspectionData().get(ApiInspectionData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("incidentdata"))
+            return apiIncidentData().get(ApiIncidentData).loadSql(sql, domain)
         else
             throw new XError("Unknown model [${model}]")
     }

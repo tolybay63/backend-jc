@@ -51,6 +51,7 @@
         <model name="plandata" instance="tofi.api.dta.model"/>
         <model name="inspectiondata" instance="tofi.api.dta.model"/>
         <model name="clientdata" instance="tofi.api.dta.model"/>
+        <model name="incidentdata" instance="tofi.api.dta.model"/>
 
     </dbm>
 
