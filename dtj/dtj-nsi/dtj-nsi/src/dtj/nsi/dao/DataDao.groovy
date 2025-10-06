@@ -1125,7 +1125,6 @@ class DataDao extends BaseMdbUtils {
         return loadSection(own)
     }
 
-
     @DaoMethod
     Store saveStage(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)

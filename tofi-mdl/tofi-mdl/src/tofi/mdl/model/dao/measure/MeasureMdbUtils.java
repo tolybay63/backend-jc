@@ -18,12 +18,6 @@ public class MeasureMdbUtils extends EntityMdbUtils {
         super(mdb, tableName);
         this.mdb = mdb;
         this.tableName = tableName;
-        //
-/*
-        if (!mdb.getApp().getEnv().isTest())
-            if (!UtCnv.toBoolean(mdb.createDao(AuthDao.class).isLogined().get("success")))
-                throw new XError("notLogined");
-*/
     }
 
     public Store load(Map<String, Object> params) throws Exception {
@@ -71,8 +65,8 @@ public class MeasureMdbUtils extends EntityMdbUtils {
     protected Store loadRec(long id) throws Exception {
         Store st = mdb.createStore("Measure");
         return mdb.loadQuery(st, """
-            select * from Measure where id=:id
-        """, Map.of("id", id));
+                    select * from Measure where id=:id
+                """, Map.of("id", id));
     }
 
     public Store insert(Map<String, Object> params) throws Exception {
@@ -81,18 +75,15 @@ public class MeasureMdbUtils extends EntityMdbUtils {
         long id = insertEntity(rec);
 
         //add to PropVal
-            Store rTmp = mdb.loadQuery("select id, allItem from Prop where measure=:m and proptype=:pt",
-                    Map.of("m", id, "pt", FD_PropType_consts.measure));
-            if (rTmp.size() > 0) {
-                if (rTmp.get(0).getBoolean("allItem")) {
-                    long prop = rTmp.get(0).getLong("id");
-                    mdb.insertRec("PropVal", Map.of("prop", prop, "measure", id), true);
-                }
+        Store rTmp = mdb.loadQuery("select id, allItem from Prop where measure=:m and proptype=:pt",
+                Map.of("m", id, "pt", FD_PropType_consts.measure));
+        if (rTmp.size() > 0) {
+            if (rTmp.get(0).getBoolean("allItem")) {
+                long prop = rTmp.get(0).getLong("id");
+                mdb.insertRec("PropVal", Map.of("prop", prop, "measure", id), true);
             }
-
-
+        }
         return loadRec(id);
-        //
     }
 
     public Store update(Map<String, Object> params) throws Exception {
