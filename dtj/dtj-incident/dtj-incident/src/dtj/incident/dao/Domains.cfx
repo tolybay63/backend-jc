@@ -5,7 +5,7 @@
         <field name="id" parent="long"/>
         <field name="cls" parent="long"/>
         <field name="name" parent="string"/>
-
+        <field name="pv" parent="long"/>
         <field name="idCriticality" parent="long"/>
         <field name="pvCriticality" parent="long"/>
         <field name="fvCriticality" parent="long"/>

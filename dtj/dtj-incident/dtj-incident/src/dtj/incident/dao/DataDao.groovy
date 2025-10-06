@@ -87,13 +87,14 @@ class DataDao extends BaseMdbUtils {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Event", "")
         if (map.isEmpty())
             throw new XError("NotFoundCod@Cls_Event")
+        long pv = apiMeta().get(ApiMeta).idPV("cls", map.get("Cls_Event"), "Prop_Event")
         String whe = "o.id=${obj}"
         if (obj == 0)
             whe = "o.cls=${map.get("Cls_Event")}"
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Criticality", "")
         Store st = mdb.createStore("Obj.Event")
         mdb.loadQuery(st, """
-            select o.id, o.cls, v.name,
+            select o.id, o.cls, v.name, null as pv,
                 v1.id as idCriticality, v1.propVal as pvCriticality,  null as fvCriticality, null as nameCriticality
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
@@ -105,6 +106,7 @@ class DataDao extends BaseMdbUtils {
         Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
 
         for (StoreRecord record in st) {
+            record.set("pv", pv)
             record.set("fvCriticality", mapPV.get(record.getLong("pvCriticality")))
         }
         Set<Object> fvs = st.getUniqueValues("fvCriticality")
