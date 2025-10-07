@@ -221,6 +221,16 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
         else
             throw new XError("[Description] not specified")
 
+        //18 Prop_InfoApplicant
+        if (pms.getString("InfoApplicant") != "")
+            fillProperties(true, "Prop_InfoApplicant", pms)
+        else
+            throw new XError("[InfoApplicant] not specified")
+
+        //19 Prop_LocationClsSection
+        if (pms.getLong("objLocationClsSection") > 0)
+            fillProperties(true, "Prop_LocationClsSection", pms)
+
         return own
     }
 
@@ -288,7 +298,7 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
         recDPV.set("dataProp", idDP)
         // Attrib str
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_NumberSource")) {
+            if (cod.equalsIgnoreCase("Prop_InfoApplicant")) {
                 if (params.get(keyValue) != null) {
                     recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
                 }
@@ -374,7 +384,8 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
                     cod.equalsIgnoreCase("Prop_Object") ||
                     cod.equalsIgnoreCase("Prop_User") ||
                     cod.equalsIgnoreCase("Prop_ParameterLog") ||
-                    cod.equalsIgnoreCase("Prop_Fault")) {
+                    cod.equalsIgnoreCase("Prop_Fault")||
+                    cod.equalsIgnoreCase("Prop_LocationClsSection")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)

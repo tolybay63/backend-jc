@@ -900,8 +900,8 @@ class DataDao extends BaseMdbUtils {
             //
             mapIncident.put("name", nameIncident)
             mapIncident.put("codCls", "Cls_IncidentParameter")
-            mapIncident.put("Description", "Копонент - " + mapIncident.get("nameComponent") +
-                    " / Параметр - " + mapIncident.get("nameComponentParams") +
+            mapIncident.put("Description", "" + mapIncident.get("nameComponent") +
+                    " / " + mapIncident.get("nameComponentParams") +
                     ": " + mapIncident.get("ParamsLimit") + " (min: " + mapIncident.get("ParamsLimitMin") +
                     ", max: " + mapIncident.get("ParamsLimitMax") + ")")
             mapIncident.put("", mapIncident.get("nameDefectsComponent"))
@@ -1043,8 +1043,8 @@ class DataDao extends BaseMdbUtils {
         //
         mapIncident.put("name", nameIncident)
         mapIncident.put("codCls", "Cls_IncidentFault")
-        mapIncident.put("Description", "Копонент - " + mapIncident.get("nameDefectsComponent") +
-                        " / Неисправность - " + mapIncident.get("nameDefect"))
+        mapIncident.put("Description", "" + mapIncident.get("nameDefectsComponent") +
+                        " / " + mapIncident.get("nameDefect"))
         mapIncident.put("", mapIncident.get("nameDefectsComponent"))
         mapIncident.put("objFault", mapIncident.get("id"))
         mapIncident.put("pvFault", pvFault)
@@ -1054,7 +1054,7 @@ class DataDao extends BaseMdbUtils {
         mapIncident.put("RegistrationDateTime", mapIncident.get("CreationDateTime"))
         mapIncident.put("CreatedAt", UtCnv.toString(mapIncident.get("CreationDateTime")).substring(0,10))
         mapIncident.put("UpdatedAt", UtCnv.toString(mapIncident.get("CreationDateTime")).substring(0,10))
-        mapIncident.put("InfoApplicant", ""+mapIncident.get("nameLocationClsSection") + ", " + pms.get("fullNameUser"))
+        mapIncident.put("InfoApplicant", "" + mapIncident.get("nameLocationClsSection") + ", " + pms.get("fullNameUser"))
         mapIncident.remove("id")
         mapIncident.remove("cls")
 
