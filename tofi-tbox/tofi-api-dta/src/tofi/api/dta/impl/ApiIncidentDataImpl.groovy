@@ -234,6 +234,19 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
         return own
     }
 
+    @Override
+    long updateIncident(Map<String, Object> params) {
+        long own = UtCnv.toLong(params.get("id"))
+        params.put("own", own)
+        if (params.get("objWorkPlan") > 0)
+            fillProperties(true, "Prop_WorkPlan", params)
+
+        if (params.get("AssignDateTime") != "")
+            fillProperties(true, "Prop_AssignDateTime", params)
+
+        return own
+    }
+
     private void fillProperties(boolean isObj, String cod, Map<String, Object> params) {
         long own = UtCnv.toLong(params.get("own"))
         String keyValue = cod.split("_")[1]
@@ -317,7 +330,7 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
             }
         }
-        // Attrib str dt
+
         if ([FD_AttribValType_consts.dt].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_CreatedAt") ||
                     cod.equalsIgnoreCase("Prop_UpdatedAt")) {
@@ -328,8 +341,10 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
         }
 
+        // Attrib str dttm
         if ([FD_AttribValType_consts.dttm].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_RegistrationDateTime")) {
+            if (cod.equalsIgnoreCase("Prop_RegistrationDateTime") ||
+                    cod.equalsIgnoreCase("Prop_AssignDateTime")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
                 }
@@ -385,7 +400,8 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
                     cod.equalsIgnoreCase("Prop_User") ||
                     cod.equalsIgnoreCase("Prop_ParameterLog") ||
                     cod.equalsIgnoreCase("Prop_Fault")||
-                    cod.equalsIgnoreCase("Prop_LocationClsSection")) {
+                    cod.equalsIgnoreCase("Prop_LocationClsSection") ||
+                    cod.equalsIgnoreCase("Prop_WorkPlan")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)

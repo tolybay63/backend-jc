@@ -13,6 +13,7 @@ import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
+import tofi.api.dta.ApiIncidentData
 import tofi.api.dta.ApiInspectionData
 import tofi.api.dta.ApiNSIData
 import tofi.api.dta.ApiObjectData
@@ -64,6 +65,9 @@ class DataDao extends BaseMdbUtils {
 
     ApinatorApi apiInspectionData() {
         return app.bean(ApinatorService).getApi("inspectiondata")
+    }
+    ApinatorApi apiIncidentData() {
+        return app.bean(ApinatorService).getApi("incidentdata")
     }
 
     @DaoMethod
@@ -365,7 +369,6 @@ class DataDao extends BaseMdbUtils {
         return st
     }
 
-
     @DaoMethod
     Store savePlan(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
@@ -523,6 +526,20 @@ class DataDao extends BaseMdbUtils {
         Map<String, Object> mapRez = new HashMap<>()
         mapRez.put("id", own)
         return loadPlan(mapRez)
+    }
+
+    @DaoMethod
+    long assignPlan(Map<String, Object> params) {
+        //Prop_WorkPlan
+        StoreRecord recWorkPlan = savePlan("ins", params).get(0)
+        long objWorkPlan = recWorkPlan.getLong("id")
+        long pvWorkPlan = apiMeta().get(ApiMeta).idPV("cls", recWorkPlan.getLong("cls"), "Prop_WorkPlan")
+        //
+        params.put("objWorkPlan", objWorkPlan)
+        params.put("pvWorkPlan", pvWorkPlan)
+        long own = apiIncidentData().get(ApiIncidentData).updateIncident(params)
+        //
+        return own
     }
 
     /**

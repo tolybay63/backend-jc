@@ -27,6 +27,14 @@
         <field name="objObject" parent="long"/>
         <field name="nameObject" parent="string"/>
 
+        <field name="idLocationClsSection" parent="long"/>
+        <field name="pvLocationClsSection" parent="long"/>
+        <field name="objLocationClsSection" parent="long"/>
+
+        <field name="idWorkPlan" parent="long"/>
+        <field name="pvWorkPlan" parent="long"/>
+        <field name="objWorkPlan" parent="long"/>
+
         <field name="idUser" parent="long"/>
         <field name="pvUser" parent="long"/>
         <field name="objUser" parent="long"/>
@@ -51,6 +59,9 @@
         <field name="fvCriticality" parent="long"/>
         <field name="nameCriticality" parent="string"/>
 
+        <field name="idInfoApplicant" parent="long"/>
+        <field name="InfoApplicant" parent="string"/>
+
         <field name="idStartKm" parent="long"/>
         <field name="StartKm" parent="double"/>
         <field name="idFinishKm" parent="long"/>
@@ -73,6 +84,8 @@
         <field name="UpdatedAt" parent="string"/>
         <field name="idRegistrationDateTime" parent="long"/>
         <field name="RegistrationDateTime" parent="string"/>
+        <field name="idAssignDateTime" parent="long"/>
+        <field name="AssignDateTime" parent="string"/>
 
     </domain>
 

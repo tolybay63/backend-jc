@@ -210,7 +210,11 @@ class DataDao extends BaseMdbUtils {
                 v14.id as idDescription, v14.multiStrVal as Description,
                 v15.id as idCreatedAt, v15.dateTimeVal as CreatedAt,
                 v16.id as idUpdatedAt, v16.dateTimeVal as UpdatedAt,
-                v17.id as idRegistrationDateTime, v17.dateTimeVal as RegistrationDateTime
+                v17.id as idRegistrationDateTime, v17.dateTimeVal as RegistrationDateTime,
+                v18.id as idInfoApplicant, v18.strVal as InfoApplicant,
+                v19.id as idLocationClsSection, v19.propVal as pvLocationClsSection, v19.obj as objLocationClsSection,
+                v20.id as idWorkPlan, v20.propVal as pvWorkPlan, v20.obj as objWorkPlan,
+                v21.id as idAssignDateTime, v21.dateTimeVal as AssignDateTime
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Event")}
@@ -248,6 +252,14 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v16 on d16.id=v16.dataprop
                 left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=${map.get("Prop_RegistrationDateTime")}
                 inner join DataPropVal v17 on d17.id=v17.dataprop ${wheV17}
+                left join DataProp d18 on d18.objorrelobj=o.id and d18.prop=${map.get("Prop_InfoApplicant")}
+                left join DataPropVal v18 on d18.id=v18.dataprop
+                left join DataProp d19 on d19.objorrelobj=o.id and d19.prop=${map.get("Prop_LocationClsSection")}
+                left join DataPropVal v19 on d19.id=v19.dataprop
+                left join DataProp d20 on d20.objorrelobj=o.id and d20.prop=${map.get("Prop_WorkPlan")}
+                left join DataPropVal v20 on d20.id=v20.dataprop
+                left join DataProp d21 on d21.objorrelobj=o.id and d21.prop=${map.get("Prop_AssignDateTime")}
+                left join DataPropVal v21 on d21.id=v21.dataprop
             where ${whe}
         """
         mdb.loadQuery(st, sql, map)
@@ -314,6 +326,7 @@ class DataDao extends BaseMdbUtils {
         } else if (mode.equalsIgnoreCase("upd")) {
             throw new XError("Режим [update] отключен")
         } else {
+
             throw new XError("Нейзвестный режим сохранения ('ins', 'upd')")
         }
         Map<String, Object> mapRez = new HashMap<>()

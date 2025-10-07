@@ -47,4 +47,6 @@ public interface ApiIncidentData {
     boolean checkExistOwners(long clsORrelcls, boolean isObj);
 
     long saveIncident(String mode, Map<String, Object> params);
+
+    long updateIncident(Map<String, Object> params);
 }
