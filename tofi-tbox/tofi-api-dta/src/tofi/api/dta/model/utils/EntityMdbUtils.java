@@ -25,6 +25,9 @@ public class EntityMdbUtils extends BaseMdbUtils {
             tableName = UtCnv.toString(rec.get("tableName"));
         //
         Store st = mdb.createStore(tableName);
+        if (UtCnv.toString(rec.get("name")).isEmpty()) {
+            throw new XError("Не указан [name]");
+        }
         rec.putIfAbsent("accessLevel", 1L);
         rec.putIfAbsent("dbeg", "1800-01-01");
         rec.putIfAbsent("dend", "3333-12-31");

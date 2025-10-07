@@ -886,6 +886,8 @@ class DataDao extends BaseMdbUtils {
         //**********************************************
         if (stTemp.get(0).getString("nameOutOfNorm") == "да") {
             Map<String, Object> mapIncident = stTemp.get(0).getValues()
+            Store stInspection = loadInspection(Map.of("id", mapIncident.get("objInspection")))
+            String nameIncident = stInspection.get(0).getString("fullNameWork")
             //
             long pvParameterLog = apiMeta().get(ApiMeta).idPV("cls", UtCnv.toLong(mapIncident.get("cls")), "Prop_ParameterLog")
 
@@ -896,6 +898,7 @@ class DataDao extends BaseMdbUtils {
             """, "", "objectdata")
             long pvObject = apiMeta().get(ApiMeta).idPV("cls", stObject.get(0).getLong("cls"), "Prop_Object")
             //
+            mapIncident.put("name", nameIncident)
             mapIncident.put("codCls", "Cls_IncidentParameter")
             mapIncident.put("Description", "Копонент - " + mapIncident.get("nameComponent") +
                     " / Параметр - " + mapIncident.get("nameComponentParams") +
@@ -1026,6 +1029,8 @@ class DataDao extends BaseMdbUtils {
         Store stTemp = loadFault(mapRez)
         //**********************************************
         Map<String, Object> mapIncident = stTemp.get(0).getValues()
+        Store stInspection = loadInspection(Map.of("id", mapIncident.get("objInspection")))
+        String nameIncident = stInspection.get(0).getString("fullNameWork")
         //
         long pvFault = apiMeta().get(ApiMeta).idPV("cls", UtCnv.toLong(mapIncident.get("cls")), "Prop_Fault")
 
@@ -1036,6 +1041,7 @@ class DataDao extends BaseMdbUtils {
         """, "", "objectdata")
         long pvObject = apiMeta().get(ApiMeta).idPV("cls", stObject.get(0).getLong("cls"), "Prop_Object")
         //
+        mapIncident.put("name", nameIncident)
         mapIncident.put("codCls", "Cls_IncidentFault")
         mapIncident.put("Description", "Копонент - " + mapIncident.get("nameDefectsComponent") +
                         " / Неисправность - " + mapIncident.get("nameDefect"))
