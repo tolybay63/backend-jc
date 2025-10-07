@@ -882,7 +882,42 @@ class DataDao extends BaseMdbUtils {
 
         Map<String, Object> mapRez = new HashMap<>()
         mapRez.put("id", own)
-        return loadParameterLog(mapRez)
+        Store stTemp = loadParameterLog(mapRez)
+        //**********************************************
+        if (stTemp.get(0).getString("nameOutOfNorm") == "да") {
+            Map<String, Object> mapIncident = stTemp.get(0).getValues()
+            //
+            long pvParameterLog = apiMeta().get(ApiMeta).idPV("cls", UtCnv.toLong(mapIncident.get("cls")), "Prop_ParameterLog")
+
+            Store stObject = loadSqlService("""
+                select cls 
+                from Obj
+                where id=${mapIncident.get("objObject")}
+            """, "", "objectdata")
+            long pvObject = apiMeta().get(ApiMeta).idPV("cls", stObject.get(0).getLong("cls"), "Prop_Object")
+            //
+            mapIncident.put("codCls", "Cls_IncidentParameter")
+            mapIncident.put("Description", "Копонент - " + mapIncident.get("nameComponent") +
+                    " / Параметр - " + mapIncident.get("nameComponentParams") +
+                    ": " + mapIncident.get("ParamsLimit") + " (min: " + mapIncident.get("ParamsLimitMin") +
+                    ", max: " + mapIncident.get("ParamsLimitMax") + ")")
+            mapIncident.put("", mapIncident.get("nameDefectsComponent"))
+            mapIncident.put("objParameterLog", mapIncident.get("id"))
+            mapIncident.put("pvParameterLog", pvParameterLog)
+            mapIncident.put("pvObject", pvObject)
+            mapIncident.put("objUser", pms.getLong("objUser"))
+            mapIncident.put("pvUser", pms.getLong("pvUser"))
+            mapIncident.put("RegistrationDateTime", mapIncident.get("CreationDateTime"))
+            mapIncident.put("CreatedAt", UtCnv.toString(mapIncident.get("CreationDateTime")).substring(0, 10))
+            mapIncident.put("UpdatedAt", UtCnv.toString(mapIncident.get("CreationDateTime")).substring(0, 10))
+            mapIncident.put("InfoApplicant", "" + mapIncident.get("nameLocationClsSection") + ", " + pms.get("fullNameUser"))
+            mapIncident.remove("id")
+            mapIncident.remove("cls")
+
+            apiIncidentData().get(ApiIncidentData).saveIncident("ins", mapIncident)
+        }
+        //******************************************************
+        return stTemp
     }
 
     @DaoMethod
@@ -1017,8 +1052,7 @@ class DataDao extends BaseMdbUtils {
         mapIncident.remove("id")
         mapIncident.remove("cls")
 
-        long  idIncident = apiIncidentData().get(ApiIncidentData).saveIncident("ins", mapIncident)
-
+        apiIncidentData().get(ApiIncidentData).saveIncident("ins", mapIncident)
         //******************************************************
         return stTemp
     }
