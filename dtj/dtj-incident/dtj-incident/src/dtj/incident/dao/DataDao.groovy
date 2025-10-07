@@ -173,13 +173,13 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Store loadIncident(Map<String, Object> params) {
         Store st = mdb.createStore("Obj.Incident")
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_IncidentContactCenter", "")
+        Store stCls = apiMeta().get(ApiMeta).loadCls("Typ_Incident")
         String whe
         String wheV17 = ""
         if (params.containsKey("id"))
             whe = "o.id=${UtCnv.toLong(params.get("id"))}"
         else {
-            whe = "o.cls = ${map.get("Cls_IncidentContactCenter")}"
+            whe = "o.cls in (0${stCls.getUniqueValues("id").join(",")})"
             //
             long pt = UtCnv.toLong(params.get("periodType"))
             String dte = UtCnv.toString(params.get("date"))
@@ -190,7 +190,7 @@ class DataDao extends BaseMdbUtils {
             wheV17 = "and v17.dateTimeVal between '${d1}' and '${d2}'"
         }
 
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
 
         String sql = """
             select o.id, o.cls, v.name,
