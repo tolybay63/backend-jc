@@ -238,6 +238,15 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
     long updateIncident(Map<String, Object> params) {
         long own = UtCnv.toLong(params.get("id"))
         params.put("own", own)
+        if (params.get("idStatus") > 0) {
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_StatusAtWork", "")
+            long fvStatus = map.get("FV_StatusAtWork")
+            long pvStatus = apiMeta().get(ApiMeta).idPV("factorVal", fvStatus, "Prop_Status")
+            params.put("pvStatus", pvStatus)
+            params.put("fvStatus", fvStatus)
+            updateProperties("Prop_Status", params)
+        }
+
         if (params.get("objWorkPlan") > 0)
             fillProperties(true, "Prop_WorkPlan", params)
 
@@ -432,5 +441,37 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
         recDPV.set("ord", idDPV)
         recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
         mdb.insertRec("DataPropVal", recDPV, false)
+    }
+
+    private void updateProperties(String cod, Map<String, Object> params) {
+        VariantMap mapProp = new VariantMap(params)
+        String keyValue = cod.split("_")[1]
+        long idVal = mapProp.getLong("id" + keyValue)
+        long propVal = mapProp.getLong("pv" + keyValue)
+        Store stProp = apiMeta().get(ApiMeta).getPropInfo(cod)
+        long propType = stProp.get(0).getLong("propType")
+        String sql = ""
+        def tmst = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
+        // For FV
+        if ([FD_PropType_consts.factor].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_Status")) {
+                if (propVal > 0)
+                    sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
+                else {
+                    sql = """
+                        delete from DataPropVal where id=${idVal};
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        );
+                    """
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
+        mdb.execQueryNative(sql)
     }
 }

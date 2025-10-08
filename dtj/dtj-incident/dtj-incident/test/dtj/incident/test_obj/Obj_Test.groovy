@@ -70,6 +70,7 @@ class Obj_Test extends Apx_Test {
         map.put("UpdatedAt",  "2025-09-26")
         map.put("RegistrationDateTime",  "2025-09-26T10:20:30.000")
         map.put("Description", "test02 **********")
+        map.put("InfoApplicant", "Kazybek **********")
 
         Store st = dao.saveIncident("ins", map)
         mdb.outTable(st)

@@ -83,7 +83,7 @@ class Obj_Test extends Apx_Test {
         DataDao dao = mdb.createDao(DataDao.class)
         Map<String, Object> map = new HashMap<>()
         map.put("", 11)
-        map.put("id", 1045)
+        map.put("id", 1047)
         map.put("cls", 1134)
         map.put("name", "осмотр 1-18 км [тк №1 - Обходчик обвал. уч. / 435]")
         map.put("idObject", 1338)
