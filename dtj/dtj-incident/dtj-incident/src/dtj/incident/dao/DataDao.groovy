@@ -378,7 +378,29 @@ class DataDao extends BaseMdbUtils {
         if (mode.equalsIgnoreCase("ins")) {
             own = apiIncidentData().get(ApiIncidentData).saveIncident("ins", pms)
         } else if (mode.equalsIgnoreCase("upd")) {
-            throw new XError("Режим [update] отключен")
+            own = pms.getLong("id")
+            pms.put("own", own)
+            //1 Prop_Criticality
+            if (pms.getLong("idCriticality") > 0) {
+                if (pms.getLong("fvCriticality") > 0)
+                    updateProperties("Prop_Criticality", pms)
+                else
+                    throw new XError("Не указан [Критичность]")
+            }
+            //2 Prop_InfoApplicant
+            if (pms.getLong("idInfoApplicant") > 0) {
+                if (pms.getString("InfoApplicant") != "")
+                    updateProperties("Prop_InfoApplicant", pms)
+                else
+                    throw new XError("Не указан [Информация о заявителе]")
+            }
+            //2 Prop_Description
+            if (pms.getLong("idDescription") > 0) {
+                if (pms.getString("Description") != "")
+                    updateProperties("Prop_Description", pms)
+                else
+                    throw new XError("Не указан [Описание]")
+            }
         } else {
 
             throw new XError("Нейзвестный режим сохранения ('ins', 'upd')")
