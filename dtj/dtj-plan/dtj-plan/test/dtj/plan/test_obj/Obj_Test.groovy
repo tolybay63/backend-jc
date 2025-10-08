@@ -21,7 +21,7 @@ class Obj_Test extends Apx_Test {
         }
  */
 
-        Map<String, Object> map = Map.of("objWork", 2425, "StartKm", 7,
+        Map<String, Object> map = Map.of("objWork", 0, "StartKm", 7,
         "FinishKm", 10, "StartPicket", 7, "FinishPicket", 7) //new HashMap<>()
         DataDao dao = mdb.createDao(DataDao.class)
         Store st = dao.findLocationOfCoord(map)

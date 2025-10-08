@@ -99,30 +99,36 @@ class DataDao extends BaseMdbUtils {
         if (beg > end)
             throw new XError("Координаты начала не могут быть больше координаты конца")
 
+        Set<Object> objLocation
+        String whe
+
         long objWork = UtCnv.toLong(params.get("objWork"))
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Collections", "")
-        Store stObj = loadSqlService("""
-            select v.obj
-            from DataProp d, DataPropval v
-            where d.id=v.dataProp and d.objorrelobj=${objWork} and d.prop=${map.get("Prop_Collections")}
-        """, "", "nsidata")
-        if (stObj.size() == 0)
-            throw new XError("objWork not found")
-        long objCollection = stObj.get(0).getLong("obj")
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_LocationMulti", "")
-        stObj = loadSqlService("""
-            select v.obj
-            from DataProp d, DataPropval v
-            where d.id=v.dataProp and d.objorrelobj=${objCollection} and d.prop=${map.get("Prop_LocationMulti")}
-        """, "", "nsidata")
-        if (stObj.size() == 0)
-            throw new XError("objCollection not found")
-        Set<Object> objLocation = stObj.getUniqueValues("obj")
+        if (objWork > 0) {
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Collections", "")
+            Store stObj = loadSqlService("""
+                select v.obj
+                from DataProp d, DataPropval v
+                where d.id=v.dataProp and d.objorrelobj=${objWork} and d.prop=${map.get("Prop_Collections")}
+            """, "", "nsidata")
+            if (stObj.size() == 0)
+                throw new XError("objWork not found")
+            long objCollection = stObj.get(0).getLong("obj")
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_LocationMulti", "")
+            stObj = loadSqlService("""
+                select v.obj
+                from DataProp d, DataPropval v
+                where d.id=v.dataProp and d.objorrelobj=${objCollection} and d.prop=${map.get("Prop_LocationMulti")}
+            """, "", "nsidata")
+            if (stObj.size() == 0)
+                throw new XError("objCollection not found")
+            objLocation = stObj.getUniqueValues("obj")
+            whe = "o.id in (${objLocation.join(",")})"
+        } else {
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_LocationSection", "")
+            whe = "o.cls=${map.get("Cls_LocationSection")}"
+        }
 
-        String whe = "o.id in (${objLocation.join(",")})"
-
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
-
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
         String sql = """
             select o.id, o.cls, v.name, null as pv,
                 v2.numberVal * 1000 /*+ v4.numberVal * 100*/ as beg,
