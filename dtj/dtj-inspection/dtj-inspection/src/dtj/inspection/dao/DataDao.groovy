@@ -345,9 +345,12 @@ class DataDao extends BaseMdbUtils {
             where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsOwn.join(",")})
         """, "", "nsidata")
         //
-        long idPv = apiMeta().get(ApiMeta).idPV("cls", stTmp.get(0).getLong("cls"), "Prop_Defect")
-        for (StoreRecord r in stTmp) {
-            r.set("pv", idPv)
+
+        if (stTmp.size() > 0) {
+            long idPv = apiMeta().get(ApiMeta).idPV("cls", stTmp.get(0).getLong("cls"), "Prop_Defect")
+            for (StoreRecord r in stTmp) {
+                r.set("pv", idPv)
+            }
         }
         //
         return stTmp

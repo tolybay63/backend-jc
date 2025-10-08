@@ -224,7 +224,7 @@ class Obj_Test extends Apx_Test {
     @Test
     void testLoadDefectsByComponentForSelect() {
         DataDao dao = mdb.createDao(DataDao.class)
-        Store st = dao.loadDefectsByComponentForSelect(1074)
+        Store st = dao.loadDefectsByComponentForSelect(1055)
         mdb.outTable(st)
     }
 
