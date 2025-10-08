@@ -226,31 +226,6 @@ class DataDao extends BaseMdbUtils {
             if (!flag)
                 break
         }
-
-
-/*
-
-        DataTreeNode dtn = UtData.createTreeIdParent(stObj, "id", "parent")
-        long ind = 1
-        scanTree(dtn, false, new ITreeNodeVisitor() {
-            @Override
-            void visitNode(DataTreeNode nd) {
-                if (nd.record.getLong("id")==obj) {
-                    DataTreeNode nd2 = nd
-
-                    long prt = nd.parent.record.getLong("parent")
-                    long prt2 = prt
-                    while (prt2) {
-                        DataTreeNode nd2 = nd.parent
-                        prt2 = nd2.record.getLong("id")
-                    }
-                }
-
-            }
-        } as ITreeNodeVisitor)
-
-*/
-
         return id
     }
 
