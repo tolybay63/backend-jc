@@ -51,31 +51,6 @@ public class EntityMdbUtils {
         mdb.deleteRec(tableName, id);
     }
 
-    public void deleteEntityVer(Map<String, Object> rec) throws Exception {
-        long id = UtCnv.toLong(rec.get("id"));
-        long ownerVer = UtCnv.toLong(rec.get("ownerVer"));
-
-        Store vers = mdb.createStore(tableName + "Ver");
-        mdb.loadQuery(vers, "select * from " + tableName + "Ver where ownerver=:ow order by dend desc", Map.of("ow", ownerVer));
-        if (vers.size() == 1) {
-            throw new XError(UtLang.t("Нельзя удалить единственную версию"));
-        }
-        //
-        int k = 0;
-        for (int i = 0; i < vers.size(); i++) {
-            if (vers.get(i).getLong("id") == id) {
-                k = i;
-                break;
-            }
-        }
-        mdb.deleteRec(tableName + "Ver", id);
-        if (k == 0) {
-            mdb.execQuery("update " + tableName + "Ver set lastVer=1 where id=" + vers.get(1).getLong("id"));
-        }
-        //
-
-    }
-
     public void updateEntity(Map<String, Object> rec) throws Exception {
         Store st = mdb.createStore(tableName);
         if (tableName.equalsIgnoreCase("DimMultiPropItem")) {
@@ -151,57 +126,6 @@ public class EntityMdbUtils {
         }
     }
 
-    public void updateEntityVer(Map<String, Object> rec) throws Exception {
-        long idVer = UtCnv.toLong(rec.get("id"));
-        long ownerVer = UtCnv.toLong(rec.get("ownerVer"));
-        //
-        Store st = mdb.createStore(tableName + "Ver");
-        StoreRecord r = st.add(rec);
-        if (r.getString("dbeg").equals("0000-01-01"))
-            r.set("dbeg", "1800-01-01");
-        if (r.getString("dend").equals("0000-01-01"))
-            r.set("dend", "3333-12-31");
-        //dbeg <= dend
-        if (r.getDate("dbeg").toJavaLocalDate().isAfter(r.getDate("dend").toJavaLocalDate())) {
-            throw new XError(UtLang.t("Дата начала интервала жизни версии не может быть больше даты конца"));
-        }
-        //
-        Store vers = mdb.createStore(tableName + "Ver");
-        mdb.loadQuery(vers, "select * from " + tableName + "Ver where ownerver=:ow order by dend desc",
-                Map.of("ow", ownerVer));
-        int k = 0, lastVer = 0;
-        for (int i = 0; i < vers.size(); i++) {
-            if (vers.get(i).getLong("id") == idVer) {
-                k = i;
-                lastVer = vers.get(i).getInt("lastVer");
-                break;
-            }
-        }
-        if (k == 0) { //first rec
-            if (vers.size() > 1) {
-                if (!r.getDate("dbeg").toJavaLocalDate().isAfter(vers.get(k + 1).getDate("dend").toJavaLocalDate())) {
-                    throw new XError(UtLang.t("Дата начала интервала жизни версии должна быть больше даты конца интервала жизни предыдущей версии"));
-                }
-            }
-        } else if (k == vers.size() - 1) { //last rec
-            if (!r.getDate("dend").toJavaLocalDate().isBefore(vers.get(k - 1).getDate("dbeg").toJavaLocalDate())) {
-                throw new XError(UtLang.t("Дата конца интервала жизни версии должна быть меньше даты начало интервала жизни следующей версии"));
-            }
-
-        } else {
-            if (!r.getDate("dbeg").toJavaLocalDate().isAfter(vers.get(k + 1).getDate("dend").toJavaLocalDate())) {
-                throw new XError(UtLang.t("Дата начала интервала жизни версии должна быть больше даты конца интервала жизни предыдущей версии"));
-            }
-            if (!r.getDate("dend").toJavaLocalDate().isBefore(vers.get(k - 1).getDate("dbeg").toJavaLocalDate())) {
-                throw new XError(UtLang.t("Дата конца интервала жизни версии должна быть меньше даты начало интервала жизни следующей версии"));
-            }
-        }
-        r.set("id", idVer);
-        r.set("lastVer", lastVer);
-        mdb.updateRec(tableName + "Ver", r);
-        //
-    }
-
     public long insertEntity(Map<String, Object> rec) throws Exception {
         DomainService domainSvc = mdb.getModel().bean(DomainService.class);
         Domain dm = domainSvc.getDomain(tableName);
@@ -262,53 +186,6 @@ public class EntityMdbUtils {
         return id;
     }
 
-    //todo Delete!!!
-    public long insertEntityWithVer(Map<String, Object> rec) throws Exception {
-        Store st = mdb.createStore(tableName);
-        StoreRecord r = st.add(rec);
-        String cod = r.getString("cod");
-        checkCod(cod);
-        long id = mdb.getNextId(tableName);
-        r.set("id", id);
-        //
-        DomainService domainSvc = mdb.getModel().bean(DomainService.class);
-        Domain dm = domainSvc.getDomain(tableName);
-        if (dm.findField("ord") != null) {
-            r.set("ord", id);
-        }
-        //
-        long ent = EntityConst.getNumConst(tableName);
-        if (cod.isEmpty()) {
-            cod = EntityConst.generateCod(ent, id);
-            r.set("cod", cod);
-        }
-        //
-        mdb.insertRec(tableName, r, false);
-        // добавляем код
-        mdb.insertRec("SysCod", Map.of("cod", cod, "linkType", ent, "linkId", id));
-        //
-        st = mdb.createStore(tableName + "Ver");
-        StoreRecord rV = st.add(rec);
-
-        long idVer = mdb.getNextId(tableName + "Ver");
-        rV.set("id", idVer);
-        rV.set("ownerVer", id);
-        rV.set("lastVer", 1);
-        if (rV.getString("dbeg").equals("0000-01-01"))
-            rV.set("dbeg", "1800-01-01");
-        if (rV.getString("dend").equals("0000-01-01"))
-            rV.set("dend", "3333-12-31");
-
-        if (tableName.equalsIgnoreCase("obj")) {
-            long parent = UtCnv.toLong(rec.get("parent"));
-            if (parent > 0)
-                rV.set("objParent", parent);
-        }
-        mdb.insertRec(tableName + "Ver", rV, false);
-        //
-        return id;
-    }
-
     public long insertEntityVer(Map<String, Object> rec) throws Exception {
         Store st = mdb.createStore(tableName + "Ver");
         StoreRecord r = st.add(rec);
@@ -339,6 +216,82 @@ public class EntityMdbUtils {
         mdb.insertRec(tableName + "Ver", r, false);
         //
         return id;
+    }
+
+    public void updateEntityVer(Map<String, Object> rec) throws Exception {
+        long idVer = UtCnv.toLong(rec.get("id"));
+        long ownerVer = UtCnv.toLong(rec.get("ownerVer"));
+        //
+        Store st = mdb.createStore(tableName + "Ver");
+        StoreRecord r = st.add(rec);
+        if (r.getString("dbeg").equals("0000-01-01"))
+            r.set("dbeg", "1800-01-01");
+        if (r.getString("dend").equals("0000-01-01"))
+            r.set("dend", "3333-12-31");
+        //dbeg <= dend
+        if (r.getDate("dbeg").toJavaLocalDate().isAfter(r.getDate("dend").toJavaLocalDate())) {
+            throw new XError(UtLang.t("Дата начала интервала жизни версии не может быть больше даты конца"));
+        }
+        //
+        Store vers = mdb.createStore(tableName + "Ver");
+        mdb.loadQuery(vers, "select * from " + tableName + "Ver where ownerver=:ow order by dend desc",
+                Map.of("ow", ownerVer));
+        int k = 0, lastVer = 0;
+        for (int i = 0; i < vers.size(); i++) {
+            if (vers.get(i).getLong("id") == idVer) {
+                k = i;
+                lastVer = vers.get(i).getInt("lastVer");
+                break;
+            }
+        }
+        if (k == 0) { //first rec
+            if (vers.size() > 1) {
+                if (!r.getDate("dbeg").toJavaLocalDate().isAfter(vers.get(k + 1).getDate("dend").toJavaLocalDate())) {
+                    throw new XError(UtLang.t("Дата начала интервала жизни версии должна быть больше даты конца интервала жизни предыдущей версии"));
+                }
+            }
+        } else if (k == vers.size() - 1) { //last rec
+            if (!r.getDate("dend").toJavaLocalDate().isBefore(vers.get(k - 1).getDate("dbeg").toJavaLocalDate())) {
+                throw new XError(UtLang.t("Дата конца интервала жизни версии должна быть меньше даты начало интервала жизни следующей версии"));
+            }
+
+        } else {
+            if (!r.getDate("dbeg").toJavaLocalDate().isAfter(vers.get(k + 1).getDate("dend").toJavaLocalDate())) {
+                throw new XError(UtLang.t("Дата начала интервала жизни версии должна быть больше даты конца интервала жизни предыдущей версии"));
+            }
+            if (!r.getDate("dend").toJavaLocalDate().isBefore(vers.get(k - 1).getDate("dbeg").toJavaLocalDate())) {
+                throw new XError(UtLang.t("Дата конца интервала жизни версии должна быть меньше даты начало интервала жизни следующей версии"));
+            }
+        }
+        r.set("id", idVer);
+        r.set("lastVer", lastVer);
+        mdb.updateRec(tableName + "Ver", r);
+        //
+    }
+
+    public void deleteEntityVer(Map<String, Object> rec) throws Exception {
+        long id = UtCnv.toLong(rec.get("id"));
+        long ownerVer = UtCnv.toLong(rec.get("ownerVer"));
+
+        Store vers = mdb.createStore(tableName + "Ver");
+        mdb.loadQuery(vers, "select * from " + tableName + "Ver where ownerver=:ow order by dend desc", Map.of("ow", ownerVer));
+        if (vers.size() == 1) {
+            throw new XError(UtLang.t("Нельзя удалить единственную версию"));
+        }
+        //
+        int k = 0;
+        for (int i = 0; i < vers.size(); i++) {
+            if (vers.get(i).getLong("id") == id) {
+                k = i;
+                break;
+            }
+        }
+        mdb.deleteRec(tableName + "Ver", id);
+        if (k == 0) {
+            mdb.execQuery("update " + tableName + "Ver set lastVer=1 where id=" + vers.get(1).getLong("id"));
+        }
+        //
+
     }
 
     public void checkCod(String cod) throws Exception {
