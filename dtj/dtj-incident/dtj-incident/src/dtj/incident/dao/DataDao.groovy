@@ -394,13 +394,21 @@ class DataDao extends BaseMdbUtils {
                 else
                     throw new XError("Не указан [Информация о заявителе]")
             }
-            //2 Prop_Description
+            //3 Prop_Description
             if (pms.getLong("idDescription") > 0) {
                 if (pms.getString("Description") != "")
                     updateProperties("Prop_Description", pms)
                 else
                     throw new XError("Не указан [Описание]")
             }
+            //4 Prop_UpdatedAt
+            if (pms.getLong("idUpdatedAt") > 0) {
+                if (pms.getString("UpdatedAt") != "")
+                    updateProperties("Prop_UpdatedAt", pms)
+                else
+                    throw new XError("Не указан [Описание]")
+            }
+
         } else {
 
             throw new XError("Нейзвестный режим сохранения ('ins', 'upd')")
@@ -695,7 +703,8 @@ class DataDao extends BaseMdbUtils {
         def strValue = mapProp.getString(keyValue)
         // For Attrib
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_NumberSource")) {
+
+            if (cod.equalsIgnoreCase("Prop_InfoApplicant")) {
                 if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
                     sql = """
                         delete from DataPropVal where id=${idVal};
@@ -724,7 +733,7 @@ class DataDao extends BaseMdbUtils {
         }
 
         if ([FD_AttribValType_consts.dt].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_DocumentApprovalDate")) {
+            if (cod.equalsIgnoreCase("Prop_UpdatedAt")) {
                 if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
                     sql = """
                         delete from DataPropVal where id=${idVal};

@@ -45,7 +45,7 @@ class Obj_Test extends Apx_Test {
     }
 
     @Test
-    void test_saveIncident() {
+    void test_saveIncident_ins() {
         DataDao dao = mdb.createDao(DataDao.class)
         Map<String, Object> map = new HashMap<>()
         map.put("name", "test03 for datetime ********")
@@ -73,6 +73,26 @@ class Obj_Test extends Apx_Test {
         map.put("InfoApplicant", "Kazybek **********")
 
         Store st = dao.saveIncident("ins", map)
+        mdb.outTable(st)
+
+    }
+
+    @Test
+    void test_saveIncident_upd() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("id", 1049)
+        map.put("idCriticality", 1606)
+        map.put("pvCriticality", 1319)
+        map.put("fvCriticality", 1178)
+        map.put("idInfoApplicant", 1618)
+        map.put("idDescription", 1617)
+        map.put("idUpdatedAt", 1615)
+        map.put("UpdatedAt",  "2025-10-26")
+        map.put("Description", "test02 **********")
+        map.put("InfoApplicant", "Kazybek **********")
+
+        Store st = dao.saveIncident("upd", map)
         mdb.outTable(st)
 
     }
