@@ -193,7 +193,7 @@ class DataDao extends BaseMdbUtils {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
 
         String sql = """
-            select o.id, o.cls, v.name,
+            select o.id, o.cls, v.name, null as nameCls,
                 v1.id as idEvent, v1.propVal as pvEvent, v1.obj as objEvent, ov1.name as nameEvent,
                 v2.id as idObject, v2.propVal as pvObject, v2.obj as objObject, null as nameObject,
                 v3.id as idUser, v3.propVal as pvUser, v3.obj as objUser, null as nameUser,
@@ -264,6 +264,13 @@ class DataDao extends BaseMdbUtils {
         """
         mdb.loadQuery(st, sql, map)
         //... Пересечение
+        Set<Object> idsCls = st.getUniqueValues("cls")
+        stCls = loadSqlMeta("""
+            select c.id, v.name from Cls c, ClsVer v
+            where c.id=v.ownerVer and v.lastVer=1 and c.id in (0${idsCls.join(",")})
+        """, "")
+        StoreIndex indCls = stCls.getIndex("id")
+        //
         Set<Object> idsObject = st.getUniqueValues("objObject")
         Store stObject = loadSqlService("""
             select o.id, v.fullName from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsObject.join(",")})
@@ -292,7 +299,28 @@ class DataDao extends BaseMdbUtils {
         """, "")
         StoreIndex indCriticality = stPV.getIndex("id")
         //
+        Set<Object> idsWorkPlan = st.getUniqueValues("objWorkPlan")
+        Store stWorkPlan = loadSqlService("""
+            select o.id, 
+                v1.id as idWork, v1.obj as objWork, v1.propVal as pvWork,
+                v2.id as idPlanDateEnd, v2.dateTimeVal as PlanDateEnd,
+                v3.id as idFactDateEnd, v3.dateTimeVal as FactDateEnd
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Work")}
+                left join DataPropVal v1 on d1.id=v1.dataProp
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_PlanDateEnd")}
+                left join DataPropVal v2 on d2.id=v2.dataProp
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_FactDateEnd")}
+                left join DataPropVal v3 on d3.id=v3.dataProp
+            where o.id in (0${idsWorkPlan.join(",")})                
+        """, "", "plandata")
+        StoreIndex indWorkPlan = stWorkPlan.getIndex("id")
+        //
         for (StoreRecord r in st) {
+            StoreRecord recCls = indCls.get(r.getLong("cls"))
+            if (recCls != null)
+                r.set("nameCls", recCls.getString("name"))
+            //
             StoreRecord recObject = indObject.get(r.getLong("objObject"))
             if (recObject != null)
                 r.set("nameObject", recObject.getString("fullName"))
@@ -306,13 +334,39 @@ class DataDao extends BaseMdbUtils {
                 r.set("fvStatus", recStatus.getLong("factorVal"))
                 r.set("nameStatus", recStatus.getString("name"))
             }
+            //
             StoreRecord recCriticality = indCriticality.get(r.getLong("pvCriticality"))
             if (recCriticality != null) {
                 r.set("fvCriticality", recCriticality.getLong("factorVal"))
                 r.set("nameCriticality", recCriticality.getString("name"))
             }
+            //
+            StoreRecord recWorkPlan = indWorkPlan.get(r.getLong("objWorkPlan"))
+            if (recWorkPlan != null) {
+                r.set("idWork", recWorkPlan.getLong("idWork"))
+                r.set("objWork", recWorkPlan.getLong("objWork"))
+                r.set("pvWork", recWorkPlan.getLong("pvWork"))
+                r.set("idPlanDateEnd", recWorkPlan.getLong("idPlanDateEnd"))
+                r.set("PlanDateEnd", recWorkPlan.getString("PlanDateEnd"))
+                r.set("idFactDateEnd", recWorkPlan.getLong("idFactDateEnd"))
+                r.set("FactDateEnd", recWorkPlan.getString("FactDateEnd"))
+            }
         }
         //
+        Set<Object> idsWork = st.getUniqueValues("objWork")
+        Store stWork = loadSqlService("""
+            select o.id, v.fullName from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsWork.join(",")})
+        """, "", "nsidata")
+        //
+        StoreIndex indWork = stWork.getIndex("id")
+        for (StoreRecord r in st) {
+            StoreRecord recWork = indWork.get(r.getLong("objWork"))
+            if (recWork != null) {
+                r.set("fullNameWork", recWork.getString("fullName"))
+            }
+
+        }
+
         return st
     }
 
