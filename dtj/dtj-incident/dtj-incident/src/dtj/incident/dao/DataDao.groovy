@@ -22,8 +22,13 @@ import tofi.api.mdl.model.consts.FD_AttribValType_consts
 import tofi.api.mdl.model.consts.FD_InputType_consts
 import tofi.api.mdl.model.consts.FD_PeriodType_consts
 import tofi.api.mdl.model.consts.FD_PropType_consts
+import tofi.api.mdl.utils.UtData
+import tofi.api.mdl.utils.tree.DataTreeNode
+import tofi.api.mdl.utils.tree.ITreeNodeVisitor
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
+
+import static tofi.api.mdl.utils.UtData.scanTree
 
 @CompileStatic
 class DataDao extends BaseMdbUtils {
@@ -170,17 +175,113 @@ class DataDao extends BaseMdbUtils {
         return loadEvent(own)
     }
 
+    private Set<Object> getIdsObjWithChildren(long obj) {
+        Store st = loadSqlService("""
+           WITH RECURSIVE r AS (
+               SELECT o.id, v.objParent as parent
+               FROM Obj o, ObjVer v
+               WHERE o.id=v.ownerver and v.lastver=1 and v.objParent=${obj}
+               UNION ALL
+               SELECT t.*
+               FROM ( SELECT o.id, v.objParent as parent
+                      FROM Obj o, ObjVer v
+                      WHERE o.id=v.ownerver and v.lastver=1
+                    ) t
+                  JOIN r
+                      ON t.parent = r.id
+           ),
+           o as (
+           SELECT o.id, v.objParent as parent
+           FROM Obj o, ObjVer v
+           WHERE o.id=v.ownerver and v.lastver=1 and o.id=${obj}
+           )
+           SELECT * FROM o
+           UNION ALL
+           SELECT * FROM r
+           where 0=0
+        """, "", "orgstructuredata")
+
+        return st.getUniqueValues("id")
+    }
+
+    private long getFarParent(long obj, long cls, String model) {
+        Store stObj = loadSqlService("""
+            select o.id, v.objParent as parent
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.cls=${cls}
+        """, "", model)
+
+        long parent = obj
+        long id = obj
+        for (StoreRecord r in stObj) {
+            boolean flag = false
+            for (StoreRecord rr in stObj) {
+                if (rr.getLong("id") == parent) {
+                    id = parent
+                    parent = rr.getLong("parent")
+                    flag = true
+                    break
+                }
+            }
+            if (!flag)
+                break
+        }
+
+
+/*
+
+        DataTreeNode dtn = UtData.createTreeIdParent(stObj, "id", "parent")
+        long ind = 1
+        scanTree(dtn, false, new ITreeNodeVisitor() {
+            @Override
+            void visitNode(DataTreeNode nd) {
+                if (nd.record.getLong("id")==obj) {
+                    DataTreeNode nd2 = nd
+
+                    long prt = nd.parent.record.getLong("parent")
+                    long prt2 = prt
+                    while (prt2) {
+                        DataTreeNode nd2 = nd.parent
+                        prt2 = nd2.record.getLong("id")
+                    }
+                }
+
+            }
+        } as ITreeNodeVisitor)
+
+*/
+
+        return id
+    }
+
     @DaoMethod
     Store loadIncident(Map<String, Object> params) {
         Store st = mdb.createStore("Obj.Incident")
         Store stCls = apiMeta().get(ApiMeta).loadCls("Typ_Incident")
         String whe
         String wheV17 = ""
+        String wheV19 = ""
         if (params.containsKey("id"))
             whe = "o.id=${UtCnv.toLong(params.get("id"))}"
         else {
             whe = "o.cls in (0${stCls.getUniqueValues("id").join(",")})"
             //
+
+            Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_LocationSection", "")
+            long clsLocation = loadSqlService("""
+                select cls from Obj where id=${UtCnv.toLong(params.get("objLocation"))}
+            """, "", "orgstructuredata").get(0).getLong("cls")
+            if (clsLocation == mapCls.get("Cls_LocationSection")) {
+                long parentObjLocation = getFarParent(UtCnv.toLong(params.get("objLocation")), clsLocation, "orgstructuredata")
+
+
+                //
+                Set<Object> idsObjLocation = getIdsObjWithChildren(parentObjLocation)
+                wheV19 = "and v19.obj in (${idsObjLocation.join(",")})"
+            }
+
+
+
             long pt = UtCnv.toLong(params.get("periodType"))
             String dte = UtCnv.toString(params.get("date"))
             tofi.api.mdl.utils.UtPeriod utPeriod = new tofi.api.mdl.utils.UtPeriod()
@@ -255,7 +356,7 @@ class DataDao extends BaseMdbUtils {
                 left join DataProp d18 on d18.objorrelobj=o.id and d18.prop=${map.get("Prop_InfoApplicant")}
                 left join DataPropVal v18 on d18.id=v18.dataprop
                 left join DataProp d19 on d19.objorrelobj=o.id and d19.prop=${map.get("Prop_LocationClsSection")}
-                left join DataPropVal v19 on d19.id=v19.dataprop
+                inner join DataPropVal v19 on d19.id=v19.dataprop ${wheV19}
                 left join DataProp d20 on d20.objorrelobj=o.id and d20.prop=${map.get("Prop_WorkPlan")}
                 left join DataPropVal v20 on d20.id=v20.dataprop
                 left join DataProp d21 on d21.objorrelobj=o.id and d21.prop=${map.get("Prop_AssignDateTime")}

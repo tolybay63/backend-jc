@@ -139,7 +139,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     //todo Temporary
-    private Set<Object> getIdsObjLocation(long obj) {
+    private Set<Object> getIdsObjWithChildren(long obj) {
         Store st = loadSqlService("""
            WITH RECURSIVE r AS (
                SELECT o.id, v.objParent as parent
@@ -380,7 +380,7 @@ class DataDao extends BaseMdbUtils {
             long clsLocation = stClsLocation.get(0).getLong("cls")
 
             if (clsLocation == mapCls.get("Cls_LocationSection")) {
-                Set<Object> idsObjLocation = getIdsObjLocation(UtCnv.toLong(params.get("objLocation")))
+                Set<Object> idsObjLocation = getIdsObjWithChildren(UtCnv.toLong(params.get("objLocation")))
                 wheV1 = "and v1.obj in (${idsObjLocation.join(",")})"
             }
             long pt = UtCnv.toLong(params.get("periodType"))
@@ -583,7 +583,7 @@ class DataDao extends BaseMdbUtils {
                 select cls from Obj where id=${UtCnv.toLong(params.get("objLocation"))}
             """, "", "orgstructuredata").get(0).getLong("cls")
             if (clsLocation == mapCls.get("Cls_LocationSection")) {
-                Set<Object> idsObjLocation = getIdsObjLocation(UtCnv.toLong(params.get("objLocation")))
+                Set<Object> idsObjLocation = getIdsObjWithChildren(UtCnv.toLong(params.get("objLocation")))
                 wheV1 = "and v1.obj in (${idsObjLocation.join(",")})"
             }
             long pt = UtCnv.toLong(params.get("periodType"))
@@ -1418,7 +1418,7 @@ class DataDao extends BaseMdbUtils {
                 select cls from Obj where id=${UtCnv.toLong(params.get("objLocation"))}
             """, "", "orgstructuredata").get(0).getLong("cls")
             if (clsLocation == mapCls.get("Cls_LocationSection")) {
-                Set<Object> idsObjLocation = getIdsObjLocation(UtCnv.toLong(params.get("objLocation")))
+                Set<Object> idsObjLocation = getIdsObjWithChildren(UtCnv.toLong(params.get("objLocation")))
                 wheV1 = "and v1.obj in (${idsObjLocation.join(",")})"
             }
             long pt = UtCnv.toLong(params.get("periodType"))
