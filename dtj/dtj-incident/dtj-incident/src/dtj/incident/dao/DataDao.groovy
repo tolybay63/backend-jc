@@ -160,35 +160,6 @@ class DataDao extends BaseMdbUtils {
         return loadEvent(own)
     }
 
-    private Set<Object> getIdsObjWithChildren(long obj) {
-        Store st = loadSqlService("""
-           WITH RECURSIVE r AS (
-               SELECT o.id, v.objParent as parent
-               FROM Obj o, ObjVer v
-               WHERE o.id=v.ownerver and v.lastver=1 and v.objParent=${obj}
-               UNION ALL
-               SELECT t.*
-               FROM ( SELECT o.id, v.objParent as parent
-                      FROM Obj o, ObjVer v
-                      WHERE o.id=v.ownerver and v.lastver=1
-                    ) t
-                  JOIN r
-                      ON t.parent = r.id
-           ),
-           o as (
-           SELECT o.id, v.objParent as parent
-           FROM Obj o, ObjVer v
-           WHERE o.id=v.ownerver and v.lastver=1 and o.id=${obj}
-           )
-           SELECT * FROM o
-           UNION ALL
-           SELECT * FROM r
-           where 0=0
-        """, "", "orgstructuredata")
-
-        return st.getUniqueValues("id")
-    }
-
     @DaoMethod
     Store loadIncident(Map<String, Object> params) {
         Store st = mdb.createStore("Obj.Incident")
