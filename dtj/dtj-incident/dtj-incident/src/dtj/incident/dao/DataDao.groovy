@@ -204,59 +204,17 @@ class DataDao extends BaseMdbUtils {
         return st.getUniqueValues("id")
     }
 
-    private long getFarParent(long obj, long cls, String model) {
-        Store stObj = loadSqlService("""
-            select o.id, v.objParent as parent
-            from Obj o, ObjVer v
-            where o.id=v.ownerVer and v.lastVer=1 and o.cls=${cls}
-        """, "", model)
-
-        long parent = obj
-        long id = obj
-        for (StoreRecord r in stObj) {
-            boolean flag = false
-            for (StoreRecord rr in stObj) {
-                if (rr.getLong("id") == parent) {
-                    id = parent
-                    parent = rr.getLong("parent")
-                    flag = true
-                    break
-                }
-            }
-            if (!flag)
-                break
-        }
-        return id
-    }
-
     @DaoMethod
     Store loadIncident(Map<String, Object> params) {
         Store st = mdb.createStore("Obj.Incident")
         Store stCls = apiMeta().get(ApiMeta).loadCls("Typ_Incident")
         String whe
         String wheV17 = ""
-        String wheV19 = ""
         if (params.containsKey("id"))
             whe = "o.id=${UtCnv.toLong(params.get("id"))}"
         else {
             whe = "o.cls in (0${stCls.getUniqueValues("id").join(",")})"
             //
-
-            Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_LocationSection", "")
-            long clsLocation = loadSqlService("""
-                select cls from Obj where id=${UtCnv.toLong(params.get("objLocation"))}
-            """, "", "orgstructuredata").get(0).getLong("cls")
-            if (clsLocation == mapCls.get("Cls_LocationSection")) {
-                long parentObjLocation = getFarParent(UtCnv.toLong(params.get("objLocation")), clsLocation, "orgstructuredata")
-
-
-                //
-                Set<Object> idsObjLocation = getIdsObjWithChildren(parentObjLocation)
-                wheV19 = "and v19.obj in (${idsObjLocation.join(",")})"
-            }
-
-
-
             long pt = UtCnv.toLong(params.get("periodType"))
             String dte = UtCnv.toString(params.get("date"))
             tofi.api.mdl.utils.UtPeriod utPeriod = new tofi.api.mdl.utils.UtPeriod()
@@ -331,7 +289,7 @@ class DataDao extends BaseMdbUtils {
                 left join DataProp d18 on d18.objorrelobj=o.id and d18.prop=${map.get("Prop_InfoApplicant")}
                 left join DataPropVal v18 on d18.id=v18.dataprop
                 left join DataProp d19 on d19.objorrelobj=o.id and d19.prop=${map.get("Prop_LocationClsSection")}
-                inner join DataPropVal v19 on d19.id=v19.dataprop ${wheV19}
+                left join DataPropVal v19 on d19.id=v19.dataprop
                 left join DataProp d20 on d20.objorrelobj=o.id and d20.prop=${map.get("Prop_WorkPlan")}
                 left join DataPropVal v20 on d20.id=v20.dataprop
                 left join DataProp d21 on d21.objorrelobj=o.id and d21.prop=${map.get("Prop_AssignDateTime")}
@@ -456,28 +414,21 @@ class DataDao extends BaseMdbUtils {
         } else if (mode.equalsIgnoreCase("upd")) {
             own = pms.getLong("id")
             pms.put("own", own)
-            //1 Prop_Criticality
-            if (pms.getLong("idCriticality") > 0) {
-                if (pms.getLong("fvCriticality") > 0)
-                    updateProperties("Prop_Criticality", pms)
-                else
-                    throw new XError("Не указан [Критичность]")
-            }
-            //2 Prop_InfoApplicant
+            //1 Prop_InfoApplicant
             if (pms.getLong("idInfoApplicant") > 0) {
                 if (pms.getString("InfoApplicant") != "")
                     updateProperties("Prop_InfoApplicant", pms)
                 else
                     throw new XError("Не указан [Информация о заявителе]")
             }
-            //3 Prop_Description
+            //2 Prop_Description
             if (pms.getLong("idDescription") > 0) {
                 if (pms.getString("Description") != "")
                     updateProperties("Prop_Description", pms)
                 else
                     throw new XError("Не указан [Описание]")
             }
-            //4 Prop_UpdatedAt
+            //3 Prop_UpdatedAt
             if (pms.getLong("idUpdatedAt") > 0) {
                 if (pms.getString("UpdatedAt") != "")
                     updateProperties("Prop_UpdatedAt", pms)
@@ -725,7 +676,8 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_Object") ||
                     cod.equalsIgnoreCase("Prop_User") ||
                     cod.equalsIgnoreCase("Prop_ParameterLog") ||
-                    cod.equalsIgnoreCase("Prop_Fault")) {
+                    cod.equalsIgnoreCase("Prop_Fault") ||
+                    cod.equalsIgnoreCase("Prop_LocationClsSection")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
@@ -891,7 +843,7 @@ class DataDao extends BaseMdbUtils {
         }
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_DefectsComponent")) {
+            if (cod.equalsIgnoreCase("Prop_LocationClsSection")) {
                 if (objRef > 0)
                     sql = "update DataPropval set propVal=${propVal}, obj=${objRef}, timeStamp='${tmst}' where id=${idVal}"
                 else {

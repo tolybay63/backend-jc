@@ -149,10 +149,6 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
         pms.put("pvStatus", pvStatus)
         fillProperties(true, "Prop_Status", pms)
 
-        //2 Prop_Criticality
-        if (pms.getLong("fvCriticality") > 0)
-            fillProperties(false, "Prop_Criticality", pms)
-
         //3 Prop_Event
         if (pms.getLong("objEvent") > 0)
             fillProperties(true, "Prop_Event", pms)
@@ -227,10 +223,6 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
         else
             throw new XError("[InfoApplicant] not specified")
 
-        //19 Prop_LocationClsSection
-        if (pms.getLong("objLocationClsSection") > 0)
-            fillProperties(true, "Prop_LocationClsSection", pms)
-
         return own
     }
 
@@ -252,6 +244,12 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
 
         if (params.get("AssignDateTime") != "")
             fillProperties(true, "Prop_AssignDateTime", params)
+
+        if (params.get("objLocationClsSection") > 0)
+            fillProperties(true, "Prop_LocationClsSection", params)
+
+        if (params.get("fvCriticality") > 0)
+            fillProperties(true, "Prop_Criticality", params)
 
         return own
     }
