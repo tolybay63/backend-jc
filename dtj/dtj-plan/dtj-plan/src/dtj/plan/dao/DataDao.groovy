@@ -776,6 +776,13 @@ class DataDao extends BaseMdbUtils {
                 if (stData.size() > 0)
                     lstService.add("inspectiondata")
                 //
+                stData = loadSqlService("""
+                    select id from DataPropVal
+                    where propval in (${idsPV.join(",")}) and obj=${owner}
+                """, "", "incidentdata")
+                if (stData.size() > 0)
+                    lstService.add("incidentdata")
+                //
 
                 if (lstService.size() > 0) {
                     throw new XError("${name} используется в [" + lstService.join(", ") + "]")
@@ -1149,6 +1156,8 @@ class DataDao extends BaseMdbUtils {
             return apiPlanData().get(ApiPlanData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("inspectiondata"))
             return apiInspectionData().get(ApiInspectionData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("incidentdata"))
+            return apiIncidentData().get(ApiIncidentData).loadSql(sql, domain)
         else
             throw new XError("Unknown model [${model}]")
     }
