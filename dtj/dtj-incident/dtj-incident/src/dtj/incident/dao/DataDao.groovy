@@ -109,34 +109,15 @@ class DataDao extends BaseMdbUtils {
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Criticality", "")
         Store st = mdb.createStore("Obj.Event")
         mdb.loadQuery(st, """
-            select o.id, o.cls, v.name, null as pv,
-                v1.id as idCriticality, v1.propVal as pvCriticality,  null as fvCriticality, null as nameCriticality
+            select o.id, o.cls, v.name, null as pv
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
-                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Criticality
-                left join DataPropVal v1 on d1.id=v1.dataprop
             where ${whe}
         """, map)
 
-        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
-
         for (StoreRecord record in st) {
             record.set("pv", pv)
-            record.set("fvCriticality", mapPV.get(record.getLong("pvCriticality")))
         }
-        Set<Object> fvs = st.getUniqueValues("fvCriticality")
-
-        Store stFV = loadSqlMeta("""
-            select id, name from Factor where id in (0${fvs.join(",")})
-        """, "")
-
-        StoreIndex indFV = stFV.getIndex("id")
-        for (StoreRecord record in st) {
-            StoreRecord rec = indFV.get(record.getLong("fvCriticality"))
-            if (rec != null)
-                record.set("nameCriticality", rec.getString("name"))
-        }
-        //mdb.outTable(st)
         return st
     }
 
@@ -153,22 +134,26 @@ class DataDao extends BaseMdbUtils {
             own = eu.insertEntity(par)
             pms.put("own", own)
             //1 Prop_Criticality
+/*
             if (pms.getLong("fvCriticality") > 0)
                 fillProperties(true, "Prop_Criticality", pms)
             else
                 throw new XError("Не указан [Критичность]")
+*/
         } else if (mode.equalsIgnoreCase("upd")) {
             own = pms.getLong("id")
             eu.updateEntity(par)
             //
             pms.put("own", own)
             //1 Prop_Criticality
+/*
             if (pms.getLong("idCriticality") > 0) {
                 if (pms.getLong("fvCriticality") > 0)
                     updateProperties("Prop_Criticality", pms)
                 else
                     throw new XError("Не указан [Критичность]")
             }
+*/
         } else
             throw new XError("Не известный режим записи (mode = ins | upd) в БД")
         //

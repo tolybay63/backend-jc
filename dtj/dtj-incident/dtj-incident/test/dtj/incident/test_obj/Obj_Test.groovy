@@ -20,8 +20,6 @@ class Obj_Test extends Apx_Test {
         Map<String, Object> rec = new HashMap<>()
         //
         rec.put("name", "test Event")
-        rec.put("fvCriticality", 1178)
-        rec.put("pvCriticality", 1319)
         //
         Store st = dao.saveEvent("ins", rec)
         mdb.outTable(st)
