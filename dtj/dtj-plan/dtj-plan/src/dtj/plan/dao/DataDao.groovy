@@ -454,14 +454,10 @@ class DataDao extends BaseMdbUtils {
             //7 Prop_StartPicket
             if (pms.getString("StartPicket") != "")
                 fillProperties(true, "Prop_StartPicket", pms)
-            else
-                throw new XError("[StartPicket] not specified")
 
             //8 Prop_FinishPicket
             if (pms.getString("FinishPicket") != "")
                 fillProperties(true, "Prop_FinishPicket", pms)
-            else
-                throw new XError("[FinishPicket] not specified")
 
             //9 Prop_PlanDateEnd
             if (pms.getString("PlanDateEnd") != "")
@@ -488,7 +484,6 @@ class DataDao extends BaseMdbUtils {
             if (stInsp.size() > 0)
                 throw new XError("Существует запись в 'Журнале осмотров и проверок' по данной плановой работе")
 
-
             eu.updateEntity(par)
             //
             pms.put("own", own)
@@ -506,9 +501,19 @@ class DataDao extends BaseMdbUtils {
             //6 Prop_FinishKm
             updateProperties("Prop_FinishKm", pms)
             //7 Prop_StartPicket
-            updateProperties("Prop_StartPicket", pms)
+            if (pms.containsKey("idStartPicket")) {
+                updateProperties("Prop_StartPicket", pms)
+            } else {
+                if (pms.getString("StartPicket") != "")
+                    fillProperties(true, "Prop_StartPicket", pms)
+            }
             //8 Prop_FinishPicket
-            updateProperties("Prop_FinishPicket", pms)
+            if (pms.containsKey("idFinishPicket")) {
+                updateProperties("Prop_FinishPicket", pms)
+            } else {
+                if (pms.getString("FinishPicket") != "")
+                    fillProperties(true, "Prop_FinishPicket", pms)
+            }
             //9 Prop_PlanDateEnd
             updateProperties("Prop_PlanDateEnd", pms)
             //10 Prop_CreatedAt
