@@ -10,7 +10,7 @@
     "WaitTimeAfterStart": 3,
     "Server": {
         "Name": "dtj-server",
-        "IP": "192.168.0.19",
+        "IP": "192.168.0.15",
         "Username": "admin",
         "Password": "",
         "BasePath": "C:\\dtj"
@@ -70,7 +70,13 @@
             "Name": "inspection",
             "DevPath": "D:\\jc-projects\\backend-jc\\dtj\\dtj-inspection",
             "BuildPath": "_jc\\product"
+        },
+        {
+            "Name": "client",
+            "DevPath": "D:\\jc-projects\\backend-jc\\dtj\\dtj-client",
+            "BuildPath": "_jc\\product"
         }
+
     ],
     "ProdServices": [
         {
@@ -138,7 +144,14 @@
             "Port": 9182,
             "RemotePath": "C:\\dtj\\server\\inspection",
             "SourceService": "inspection"
+        },
+        {
+            "Name": "client",
+            "Port": 9183,
+            "RemotePath": "C:\\dtj\\server\\client",
+            "SourceService": "client"
         }
+
     ],
     "NetworkSettings": {
         "UseLocalCopy": true,
