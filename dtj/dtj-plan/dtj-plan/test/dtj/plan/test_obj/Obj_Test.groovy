@@ -8,6 +8,15 @@ import org.junit.jupiter.api.Test
 
 class Obj_Test extends Apx_Test {
 
+    @Test
+    void test_loadWorkOnObjectServedForSelect() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadWorkOnObjectServedForSelect(0)
+        mdb.outTable(st)
+    }
+
+
+
 
     @Test
     void test_findLocationOfCoord() {
@@ -74,7 +83,7 @@ class Obj_Test extends Apx_Test {
     @Test
     void loadObjectServedForSelect() {
         DataDao dao = mdb.createDao(DataDao.class)
-        Store st = dao.loadObjectServedForSelect(0/*2477*/)
+        Store st = dao.loadObjectServedForSelect(2477)
         mdb.outTable(st)
     }
 

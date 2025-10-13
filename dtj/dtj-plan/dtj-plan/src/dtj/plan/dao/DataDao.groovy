@@ -724,6 +724,94 @@ class DataDao extends BaseMdbUtils {
         return stTmp
     }
 
+    /*
+    Рассмотреть возможность объедининения с методом loadObjectServedForSelect
+     */
+    @DaoMethod
+    Store loadWorkOnObjectServedForSelect(long id) {
+        Set<Object> owners
+
+        if (id > 0) {
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_ObjectType", "")
+            Store stTmp = loadSqlService("""
+                select v.obj
+                from DataProp d, DataPropval v
+                where d.id=v.dataProp and d.prop=${map.get("Prop_ObjectType")} and d.objOrRelObj=${id}
+            """, "", "objectdata")
+
+            long idObjectType = stTmp.get(0).getLong("obj")
+
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelTyp", "RT_Works", "")
+            Store stTyp = loadSqlMeta("""
+                select typ from reltypmember
+                where reltyp=${map.get("RT_Works")}
+                order by ord
+            """, "")
+            long typ1 = stTyp.get(0).getLong("typ")
+            long typ2 = stTyp.get(1).getLong("typ")
+
+            Store stRCM1 = loadSqlMeta("""
+                select distinct cls 
+                from relclsmember
+                where cls in (
+                    select id from Cls where typ=${typ1}
+                )
+            """, "")
+
+            Set<Object> idsCls1 = stRCM1.getUniqueValues("cls")
+            Store stRCM2 = loadSqlMeta("""
+                select distinct cls 
+                from relclsmember
+                where cls in (
+                    select id from Cls where typ=${typ2}
+                )
+            """, "")
+            Set<Object> idsCls2 = stRCM2.getUniqueValues("cls")
+
+            stTmp = loadSqlService("""
+                select obj as owner
+                from relobjmember
+                where cls in (${idsCls1.join(",")})
+                    and relobj in (
+                        select relobj from relobjmember
+                        where cls in (${idsCls2.join(",")}) and obj=${idObjectType}
+                    )
+            """, "", "nsidata")
+            owners = stTmp.getUniqueValues("owner")
+        } else {
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Work", "")
+            Store stTmp = loadSqlMeta("""
+                select id from Cls where typ=${map.get("Typ_Work")}
+            """, "")
+            Set<Object> idsCls = stTmp.getUniqueValues("id")
+            stTmp = loadSqlService("""
+                select id
+                from Obj
+                where cls in (0${idsCls.join(",")})
+            """, "", "nsidata")
+            owners = stTmp.getUniqueValues("id")
+        }
+
+        Store stTmp = loadSqlService("""
+            select o.id, o.cls, v.name, v.fullName, null as pv
+            from Obj o, ObjVer v
+            where o.id=v.ownerver and lastver=1 and o.id in (0${owners.join(",")})
+        """, "", "nsidata")
+
+        Set<Object> idsCls = stTmp.getUniqueValues("cls")
+        //
+        Store stPV = apiMeta().get(ApiMeta).getPvFromCls(idsCls, "Prop_Work")
+        StoreIndex indPV = stPV.getIndex("cls")
+        for (StoreRecord r in stTmp) {
+            StoreRecord rPV = indPV.get(r.getLong("cls"))
+            if (rPV != null)
+                r.set("pv", rPV.getLong("propVal"))
+        }
+
+        return stTmp
+    }
+
+
     private void validateForDeleteOwner(long owner) {
         //---< check data in other DB
         Store stObj = mdb.loadQuery("""
