@@ -242,7 +242,7 @@ class Obj_Test extends Apx_Test {
     @Test
     void deleteInspection() {
         DataDao dao = mdb.createDao(DataDao.class)
-        dao.deleteObjWithProperties(1002)
+        dao.deleteObjWithProperties(1304)
     }
 
     @Test
