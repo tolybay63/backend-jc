@@ -66,6 +66,7 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiInspectionData() {
         return app.bean(ApinatorService).getApi("inspectiondata")
     }
+
     ApinatorApi apiIncidentData() {
         return app.bean(ApinatorService).getApi("incidentdata")
     }
@@ -231,7 +232,7 @@ class DataDao extends BaseMdbUtils {
                 select cls from Obj where id=${UtCnv.toLong(params.get("objLocation"))}
             """, "", "orgstructuredata")//.get(0).getLong("cls")
 
-            long clsLocation = stTmp.size()>0 ? stTmp.get(0).getLong("cls") : 0
+            long clsLocation = stTmp.size() > 0 ? stTmp.get(0).getLong("cls") : 0
 
             if (clsLocation == mapCls.get("Cls_LocationSection")) {
                 Set<Object> idsObjLocation = getIdsObjLocation(UtCnv.toLong(params.get("objLocation")))
@@ -383,6 +384,11 @@ class DataDao extends BaseMdbUtils {
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
         Map<String, Object> par = new HashMap<>(pms)
         if (mode.equalsIgnoreCase("ins")) {
+            if (pms.getLong("id") > 0) {
+                params.put("objIncident", pms.getLong("id"))
+                long pv = apiMeta().get(ApiMeta).idPV("cls", pms.getLong("cls"), "Prop_Incident")
+                params.put("pvIncident", pv)
+            }
             // find cls(linkCls)
             long linkCls = pms.getLong("linkCls")
             Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_WorkPlan", "")
@@ -471,6 +477,9 @@ class DataDao extends BaseMdbUtils {
             //11 Prop_UpdatedAt
             if (pms.getString("UpdatedAt") != "")
                 fillProperties(true, "Prop_UpdatedAt", pms)
+            //12 Prop_Inspection
+            if (pms.getLong("objIncident") > 0)
+                fillProperties(true, "Prop_Incident", pms)
         } else if (mode.equalsIgnoreCase("upd")) {
             own = pms.getLong("id")
             par.put("fullName", par.get("name"))
@@ -542,15 +551,8 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     long assignPlan(Map<String, Object> params) {
         //Prop_WorkPlan
-        StoreRecord recWorkPlan = savePlan("ins", params).get(0)
-        long objWorkPlan = recWorkPlan.getLong("id")
-        long pvWorkPlan = apiMeta().get(ApiMeta).idPV("cls", recWorkPlan.getLong("cls"), "Prop_WorkPlan")
-        //
-        params.put("objWorkPlan", objWorkPlan)
-        params.put("pvWorkPlan", pvWorkPlan)
-        long own = apiIncidentData().get(ApiIncidentData).updateIncident(params)
-        //
-        return own
+        savePlan("ins", params).get(0)
+        return apiIncidentData().get(ApiIncidentData).updateIncident(params)
     }
 
     /**
@@ -727,6 +729,7 @@ class DataDao extends BaseMdbUtils {
     /*
     Рассмотреть возможность объедининения с методом loadObjectServedForSelect
      */
+
     @DaoMethod
     Store loadWorkOnObjectServedForSelect(long id) {
         Set<Object> owners
@@ -978,7 +981,7 @@ class DataDao extends BaseMdbUtils {
             if (cod.equalsIgnoreCase("Prop_CreatedAt") ||
                     cod.equalsIgnoreCase("Prop_UpdatedAt") ||
                     cod.equalsIgnoreCase("Prop_PlanDateEnd") ||
-                        cod.equalsIgnoreCase("Prop_FactDateEnd")) {
+                    cod.equalsIgnoreCase("Prop_FactDateEnd")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
                 }
@@ -1024,11 +1027,13 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
             }
         }
+        //Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_LocationClsSection") ||
                     cod.equalsIgnoreCase("Prop_Work") ||
                     cod.equalsIgnoreCase("Prop_Object") ||
-                    cod.equalsIgnoreCase("Prop_User")) {
+                    cod.equalsIgnoreCase("Prop_User") ||
+                    cod.equalsIgnoreCase("Prop_Incident")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)

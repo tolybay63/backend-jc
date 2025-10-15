@@ -239,9 +239,6 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
             updateProperties("Prop_Status", params)
         }
 
-        if (params.get("objWorkPlan") > 0)
-            fillProperties(true, "Prop_WorkPlan", params)
-
         if (params.get("AssignDateTime") != "")
             fillProperties(true, "Prop_AssignDateTime", params)
 
