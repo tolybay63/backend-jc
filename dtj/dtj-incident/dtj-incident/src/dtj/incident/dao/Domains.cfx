@@ -82,19 +82,13 @@
         <field name="idAssignDateTime" parent="long"/>
         <field name="AssignDateTime" parent="string"/>
 
-        <field name="idWorkPlan" parent="long"/>
-        <field name="pvWorkPlan" parent="long"/>
         <field name="objWorkPlan" parent="long"/>
 
-        <field name="idWork" parent="long"/>
-        <field name="pvWork" parent="long"/>
         <field name="objWork" parent="long"/>
         <field name="fullNameWork" parent="string"/>
 
-        <field name="idPlanDateEnd" parent="long"/>
         <field name="PlanDateEnd" parent="string"/>
 
-        <field name="idFactDateEnd" parent="long"/>
         <field name="FactDateEnd" parent="string"/>
 
     </domain>

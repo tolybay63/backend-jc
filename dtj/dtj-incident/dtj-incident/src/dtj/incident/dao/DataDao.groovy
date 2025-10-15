@@ -8,7 +8,6 @@ import jandcode.commons.datetime.XDateTimeFormatter
 import jandcode.commons.error.XError
 import jandcode.commons.variant.VariantMap
 import jandcode.core.auth.AuthService
-import jandcode.core.auth.AuthUser
 import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
@@ -22,13 +21,8 @@ import tofi.api.mdl.model.consts.FD_AttribValType_consts
 import tofi.api.mdl.model.consts.FD_InputType_consts
 import tofi.api.mdl.model.consts.FD_PeriodType_consts
 import tofi.api.mdl.model.consts.FD_PropType_consts
-import tofi.api.mdl.utils.UtData
-import tofi.api.mdl.utils.tree.DataTreeNode
-import tofi.api.mdl.utils.tree.ITreeNodeVisitor
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
-
-import static tofi.api.mdl.utils.UtData.scanTree
 
 @CompileStatic
 class DataDao extends BaseMdbUtils {
@@ -203,7 +197,6 @@ class DataDao extends BaseMdbUtils {
                 v17.id as idRegistrationDateTime, v17.dateTimeVal as RegistrationDateTime,
                 v18.id as idInfoApplicant, v18.strVal as InfoApplicant,
                 v19.id as idLocationClsSection, v19.propVal as pvLocationClsSection, v19.obj as objLocationClsSection,
-                v20.id as idWorkPlan, v20.propVal as pvWorkPlan, v20.obj as objWorkPlan,
                 v21.id as idAssignDateTime, v21.dateTimeVal as AssignDateTime
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
@@ -246,8 +239,6 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v18 on d18.id=v18.dataprop
                 left join DataProp d19 on d19.objorrelobj=o.id and d19.prop=${map.get("Prop_LocationClsSection")}
                 left join DataPropVal v19 on d19.id=v19.dataprop
-                left join DataProp d20 on d20.objorrelobj=o.id and d20.prop=${map.get("Prop_WorkPlan")}
-                left join DataPropVal v20 on d20.id=v20.dataprop
                 left join DataProp d21 on d21.objorrelobj=o.id and d21.prop=${map.get("Prop_AssignDateTime")}
                 left join DataPropVal v21 on d21.id=v21.dataprop
             where ${whe}
@@ -256,8 +247,9 @@ class DataDao extends BaseMdbUtils {
         //... Пересечение
         Set<Object> idsCls = st.getUniqueValues("cls")
         stCls = loadSqlMeta("""
-            select c.id, v.name from Cls c, ClsVer v
-            where c.id=v.ownerVer and v.lastVer=1 and c.id in (0${idsCls.join(",")})
+            select c.id, v.name, pv.id as pv from Cls c, ClsVer v, PropVal pv
+            where c.id=v.ownerVer and v.lastVer=1 and c.id in (0${idsCls.join(",")}) and c.id=pv.cls
+                and pv.prop=${map.get("Prop_Incident")}
         """, "")
         StoreIndex indCls = stCls.getIndex("id")
         //
@@ -289,7 +281,29 @@ class DataDao extends BaseMdbUtils {
         """, "")
         StoreIndex indCriticality = stPV.getIndex("id")
         //
-        Set<Object> idsWorkPlan = st.getUniqueValues("objWorkPlan")
+        Set<Object> idsIncident = st.getUniqueValues("id")
+
+        String sqlWorkPlan = """
+            select v.obj as id, d.objorrelobj as objWorkPlan,
+                v1.obj as objWork,
+                v2.dateTimeVal as PlanDateEnd,
+                v3.dateTimeVal as FactDateEnd
+            from DataProp d
+                left join DataPropVal v on d.id=v.dataProp and d.isObj=1 and d.prop=${map.get("Prop_Incident")}
+                left join DataProp d1 on d1.objorrelobj=d.objorrelobj and d1.prop=${map.get("Prop_Work")}
+                left join DataPropVal v1 on d1.id=v1.dataProp
+                left join DataProp d2 on d2.objorrelobj=d.objorrelobj and d2.prop=${map.get("Prop_PlanDateEnd")}
+                left join DataPropVal v2 on d2.id=v2.dataProp
+                left join DataProp d3 on d3.objorrelobj=d.objorrelobj and d3.prop=${map.get("Prop_FactDateEnd")}
+                left join DataPropVal v3 on d3.id=v3.dataProp
+            where v.obj in (0${idsIncident.join(",")})
+        """
+
+        Store stWorkPlan = loadSqlService(sqlWorkPlan, "", "plandata")
+        StoreIndex indWorkPlan = stWorkPlan.getIndex("id")
+
+        //
+/*        Set<Object> idsWorkPlan = st.getUniqueValues("objWorkPlan")
         Store stWorkPlan = loadSqlService("""
             select o.id, 
                 v1.id as idWork, v1.obj as objWork, v1.propVal as pvWork,
@@ -304,7 +318,7 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v3 on d3.id=v3.dataProp
             where o.id in (0${idsWorkPlan.join(",")})                
         """, "", "plandata")
-        StoreIndex indWorkPlan = stWorkPlan.getIndex("id")
+        StoreIndex indWorkPlan = stWorkPlan.getIndex("id")*/
         //
         for (StoreRecord r in st) {
             StoreRecord recCls = indCls.get(r.getLong("cls"))
@@ -331,14 +345,11 @@ class DataDao extends BaseMdbUtils {
                 r.set("nameCriticality", recCriticality.getString("name"))
             }
             //
-            StoreRecord recWorkPlan = indWorkPlan.get(r.getLong("objWorkPlan"))
+            StoreRecord recWorkPlan = indWorkPlan.get(r.getLong("id"))
             if (recWorkPlan != null) {
-                r.set("idWork", recWorkPlan.getLong("idWork"))
+                r.set("objWorkPlan", recWorkPlan.getLong("objWorkPlan"))
                 r.set("objWork", recWorkPlan.getLong("objWork"))
-                r.set("pvWork", recWorkPlan.getLong("pvWork"))
-                r.set("idPlanDateEnd", recWorkPlan.getLong("idPlanDateEnd"))
                 r.set("PlanDateEnd", recWorkPlan.getString("PlanDateEnd"))
-                r.set("idFactDateEnd", recWorkPlan.getLong("idFactDateEnd"))
                 r.set("FactDateEnd", recWorkPlan.getString("FactDateEnd"))
             }
         }
@@ -416,6 +427,7 @@ class DataDao extends BaseMdbUtils {
             """, "")
             Set<Object> idsPV = stPV.getUniqueValues("id")
             if (stPV.size() > 0) {
+                //
                 Store stData = loadSqlService("""
                     select id from DataPropVal
                     where propval in (${idsPV.join(",")}) and obj=${owner}

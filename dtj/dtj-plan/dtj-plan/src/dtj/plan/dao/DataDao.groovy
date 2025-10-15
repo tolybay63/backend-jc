@@ -385,9 +385,9 @@ class DataDao extends BaseMdbUtils {
         Map<String, Object> par = new HashMap<>(pms)
         if (mode.equalsIgnoreCase("ins")) {
             if (pms.getLong("id") > 0) {
-                params.put("objIncident", pms.getLong("id"))
+                pms.put("objIncident", pms.getLong("id"))
                 long pv = apiMeta().get(ApiMeta).idPV("cls", pms.getLong("cls"), "Prop_Incident")
-                params.put("pvIncident", pv)
+                pms.put("pvIncident", pv)
             }
             // find cls(linkCls)
             long linkCls = pms.getLong("linkCls")
