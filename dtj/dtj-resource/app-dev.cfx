@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <x-if env.test="false" env.dev="true">
+        <x-depends module="jandcode.core.apx.tst"/>
+    </x-if>
+
+</root>
