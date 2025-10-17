@@ -78,6 +78,11 @@
                   class="tofi.api.dta.impl.ApiIncidentDataImpl"/>
         </api>
 
+        <api name="resourcedata" invoker="model" model="resourcedata">
+            <item name="tofi.api.dta.ApiResourceData"
+                  class="tofi.api.dta.impl.ApiResourceDataImpl"/>
+        </api>
+
     </apinator>
 
 
