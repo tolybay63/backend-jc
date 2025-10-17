@@ -104,11 +104,13 @@ class DataDao extends BaseMdbUtils {
         if (mode.equalsIgnoreCase("ins")) {
             Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Equipment", "")
             Map<String, Long> map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Number", "")
+            pms.put("Number", pms.getString("Number").trim())
+            String num = pms.getString("Number").toLowerCase()
             Store st = mdb.loadQuery("""
                 select v.strVal 
                 from Obj o
                     left join DataProp d on d.objorrelobj=o.id and d.prop=${map2.get("Prop_Number")}
-                    left join DataPropval v on d.id=v.dataProp and v.strVal='${pms.getString("Number")}'
+                    left join DataPropval v on d.id=v.dataProp and lower(v.strVal)='${num}'
                 where o.cls=${map.get("Cls_Equipment")} 
             """)
             if (st.size() > 0)
@@ -210,7 +212,8 @@ class DataDao extends BaseMdbUtils {
         Map<String, Object> par = new HashMap<>(pms)
         if (mode.equalsIgnoreCase("ins")) {
             Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Tool", "")
-            String nm = pms.getString("name").trim().toLowerCase()
+            pms.put("name", pms.getString("name").trim())
+            String nm = pms.getString("name").toLowerCase()
             Store st = mdb.loadQuery("""
                 select v.name from Obj o, ObjVer v
                 where o.id=v.ownerVer and v.lastVer=1 and o.cls=${map.get("Cls_Tool")} and lower(v.name)='${nm}' 
