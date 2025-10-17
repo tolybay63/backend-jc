@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
+
     <domain name="Obj.material" parent="base">
         <field name="id" parent="long"/>
         <field name="cls" parent="long"/>
@@ -10,6 +11,27 @@
         <field name="pvMeasure" parent="long"/>
         <field name="meaMeasure" parent="long"/>
         <field name="nameMeasure" parent="string"/>
+    </domain>
+
+    <domain name="Obj.tool" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idDescription" parent="long"/>
+        <field name="Description" parent="string"/>
+    </domain>
+
+    <domain name="Obj.equipment" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idNumber" parent="long"/>
+        <field name="Number" parent="string"/>
+
+        <field name="idDescription" parent="long"/>
+        <field name="Description" parent="string"/>
     </domain>
 
 
