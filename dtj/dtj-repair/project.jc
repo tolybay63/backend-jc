@@ -1,0 +1,29 @@
+import jandcode.core.jc.*
+import jandcode.jc.*
+import jandcode.jc.std.*
+
+class P extends ProjectScript {
+
+    static beforeLoad = {
+        include("jc/apx-project")
+        include("jc/apx-project")
+        load("../../tofi-tbox")
+    }
+
+    void onInclude() {
+        //
+        project.name = "dtj-repair"
+        project.version = include(GitVersion)
+        //
+        include(AppRunBat).with {
+            mainClass = "dtj.repair.main.Main"
+        }
+        include(RootProject).with {
+            modules(
+                    "dtj-repair",
+            )
+        }
+        //
+    }
+
+}
