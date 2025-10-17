@@ -6,7 +6,7 @@
         <dbsource name="default"
                   dbdriver="postgresql"
                   host="192.168.1.39"
-                  database="dtj_clientdata"
+                  database="dtj_resourcedata"
                   username="pg"
                   password="1q2w3e4R"
         />
@@ -88,6 +88,14 @@
                   dbdriver="postgresql"
                   host="192.168.1.39"
                   database="dtj_clientdata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="resourcedata"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="dtj_resourcedata"
                   username="pg"
                   password="1q2w3e4R"
         />
