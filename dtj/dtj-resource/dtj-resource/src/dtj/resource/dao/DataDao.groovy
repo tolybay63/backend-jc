@@ -121,7 +121,7 @@ class DataDao extends BaseMdbUtils {
                 where o.id=v.ownerVer and v.lastVer=1 and o.cls=${map.get("Cls_Material")} and lower(v.name)='${nm}' 
             """)
             if (st.size() > 0)
-                throw new XError("Материал [{0}] уже существует", nm)
+                throw new XError("[{0}] уже существует", nm)
 
             par.put("cls", map.get("Cls_Material"))
             //
@@ -132,6 +132,8 @@ class DataDao extends BaseMdbUtils {
             //1 Prop_Measure
             if (pms.getLong("meaMeasure") > 0)
                 fillProperties(true, "Prop_Measure", pms)
+            else
+                throw new XError("[Единица измерения] не указан")
             //
         } else if (mode.equalsIgnoreCase("upd")) {
             String nm = pms.getString("name").trim().toLowerCase()
@@ -141,7 +143,7 @@ class DataDao extends BaseMdbUtils {
                     v.lastVer=1 and o.cls=${pms.getLong("cls")} and lower(v.name)='${nm}' 
             """)
             if (st.size() > 0)
-                throw new XError("Материал [{0}] уже существует", nm)
+                throw new XError("[{0}] уже существует", nm)
 
             own = pms.getLong("id")
             par.putIfAbsent("fullName", pms.getString("name"))
@@ -150,11 +152,16 @@ class DataDao extends BaseMdbUtils {
             pms.put("own", own)
 
             //1 Prop_Measure
-            if (pms.containsKey("idMeasure"))
-                updateProperties("Prop_Measure", pms)
-            else {
+            if (pms.containsKey("idMeasure")) {
+                if (pms.getLong("meaMeasure") > 0)
+                    updateProperties("Prop_Measure", pms)
+                else
+                    throw new XError("[Единица измерения] не указан")
+            } else {
                 if (pms.getLong("meaMeasure") > 0)
                     fillProperties(true, "Prop_Measure", pms)
+                else
+                    throw new XError("[Единица измерения] не указан")
             }
         } else {
             throw new XError("Неизвестный режим сохранения ('ins', 'upd')")

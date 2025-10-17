@@ -67,9 +67,130 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiClientData() {
         return app.bean(ApinatorService).getApi("clientdata")
     }
-
-
     //-------------------------
+
+
+    @DaoMethod
+    Store loadTask(long id) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Task", "")
+        Store st = mdb.createStore("Obj.task")
+        String whe = "o.id=${id}"
+        if (id==0)
+            whe = "o.cls=${map.get("Cls_Task")}"
+
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+
+        mdb.loadQuery(st, """
+            select o.id, o.cls, v.name, v.fullName,
+                v1.id as idMeasure, v1.propVal as pvMeasure, null as meaMeasure, null as nameMeasure,
+                v2.id as idDescription, v2.multiStrVal as Description
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Measure
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Description
+                left join DataPropVal v2 on d2.id=v2.dataprop
+            where ${whe}
+        """, map)
+        //
+
+        Map<Long, Long> mapMea = apiMeta().get(ApiMeta).mapEntityIdFromPV("measure", true)
+
+        Store stMea = loadSqlMeta("""
+            select id, name from Measure where 0=0
+        """, "")
+        StoreIndex indMea = stMea.getIndex("id")
+        for (StoreRecord r in st) {
+            if (r.getLong("pvMeasure") > 0) {
+                r.set("meaMeasure", mapMea.get(r.getLong("pvMeasure")))
+            }
+            StoreRecord rec = indMea.get(r.getLong("meaMeasure"))
+            if (rec != null)
+                r.set("nameMeasure", rec.getString("name"))
+        }
+        return st
+    }
+
+    @DaoMethod
+    Store saveTask(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        //
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        if (UtCnv.toString(params.get("name")).trim().isEmpty())
+            throw new XError("[name] не указан")
+        Map<String, Object> par = new HashMap<>(pms)
+        if (mode.equalsIgnoreCase("ins")) {
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Task", "")
+            String nm = pms.getString("name").trim().toLowerCase()
+            Store st = mdb.loadQuery("""
+                select v.name from Obj o, ObjVer v
+                where o.id=v.ownerVer and v.lastVer=1 and o.cls=${map.get("Cls_Material")} and lower(v.name)='${nm}' 
+            """)
+            if (st.size() > 0)
+                throw new XError("[{0}] уже существует", nm)
+
+            par.put("cls", map.get("Cls_Task"))
+            //
+            par.putIfAbsent("fullName", pms.getString("name"))
+            //
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+            //1 Prop_Measure
+            if (pms.getLong("meaMeasure") > 0)
+                fillProperties(true, "Prop_Measure", pms)
+            else
+                throw new XError("[Единица измерения] не указан")
+            //
+            //1 Prop_Description
+            if (pms.containsKey("Description")) {
+                if (!pms.getString("Description").isEmpty())
+                fillProperties(true, "Prop_Description", pms)
+            }
+        } else if (mode.equalsIgnoreCase("upd")) {
+            String nm = pms.getString("name").trim().toLowerCase()
+            Store st = mdb.loadQuery("""
+                select v.name from Obj o, ObjVer v
+                where o.id=v.ownerVer and o.id<>${pms.getLong("id")} and 
+                    v.lastVer=1 and o.cls=${pms.getLong("cls")} and lower(v.name)='${nm}' 
+            """)
+            if (st.size() > 0)
+                throw new XError("[{0}] уже существует", nm)
+
+            own = pms.getLong("id")
+            par.putIfAbsent("fullName", pms.getString("name"))
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+
+            //1 Prop_Measure
+            if (pms.containsKey("idMeasure")) {
+                if (pms.getLong("meaMeasure") > 0)
+                    updateProperties("Prop_Measure", pms)
+                else
+                    throw new XError("[Единица измерения] не указан")
+            } else {
+                if (pms.getLong("meaMeasure") > 0)
+                    fillProperties(true, "Prop_Measure", pms)
+                else
+                    throw new XError("[Единица измерения] не указан")
+            }
+            //1 Prop_Description
+            if (pms.getLong("idDescription") > 0) {
+                updateProperties("Prop_Description", pms)
+            } else {
+                if (pms.containsKey("Description")) {
+                    if (!pms.getString("Description").isEmpty())
+                        fillProperties(true, "Prop_Description", pms)
+                }
+            }
+        } else {
+            throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
+        }
+        //
+        return loadTask(own)
+    }
+
 
     void validateForDeleteOwner(long owner, int isObj) {
         //---< check data in other DB
@@ -2211,7 +2332,7 @@ class DataDao extends BaseMdbUtils {
         //
         StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
         recDPV.set("dataProp", idDP)
-        // Attrib
+        // Attrib str
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_NumberSource") ||
                     cod.equalsIgnoreCase("Prop_NumberOt") ||
@@ -2227,7 +2348,7 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
             }
         }
-
+        // Attrib multistr
         if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_Description")) {
                 if (params.get(keyValue) != null) {
@@ -2237,7 +2358,7 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
             }
         }
-
+        // Attrib date
         if ([FD_AttribValType_consts.dt].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_DocumentApprovalDate") ||
                     cod.equalsIgnoreCase("Prop_DocumentStartDate") ||
@@ -2248,7 +2369,6 @@ class DataDao extends BaseMdbUtils {
             } else
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
         }
-
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_Source") ||
@@ -2265,7 +2385,8 @@ class DataDao extends BaseMdbUtils {
 
         // For Measure
         if ([FD_PropType_consts.measure].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_ParamsMeasure")) {
+            if (cod.equalsIgnoreCase("Prop_ParamsMeasure") ||
+                    cod.equalsIgnoreCase("Prop_Measure") ) {
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
                 }
@@ -2351,7 +2472,7 @@ class DataDao extends BaseMdbUtils {
         String sql = ""
         def tmst = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
         def strValue = mapProp.getString(keyValue)
-        // For Attrib
+        // For Attrib str
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_NumberSource") ||
                     cod.equalsIgnoreCase("Prop_NumberOt") ||
@@ -2376,7 +2497,7 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
             }
         }
-
+        // For Attrib multistr
         if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_Description")) {
                 if (params.get(keyValue) != null) {
@@ -2386,7 +2507,7 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
             }
         }
-
+        // For Attrib date
         if ([FD_AttribValType_consts.dt].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_DocumentApprovalDate") ||
                     cod.equalsIgnoreCase("Prop_DocumentStartDate") ||
@@ -2432,7 +2553,8 @@ class DataDao extends BaseMdbUtils {
 
         // For Measure
         if ([FD_PropType_consts.measure].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_ParamsMeasure")) {
+            if (cod.equalsIgnoreCase("Prop_ParamsMeasure") ||
+                    cod.equalsIgnoreCase("Prop_Measure")) {
                 if (propVal > 0)
                     sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
                 else {
@@ -2449,8 +2571,6 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
             }
         }
-
-
         // For Meter
         if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_StartKm") ||

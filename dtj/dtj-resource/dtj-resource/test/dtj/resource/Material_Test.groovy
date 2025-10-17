@@ -26,7 +26,7 @@ class Material_Test extends Apx_Test {
     void save_upd_test () {
         DataDao dao = mdb.createDao(DataDao.class)
         Map <String, Object> map = Map.of("id", 1000, "cls", 1289, "name", "цемент",
-                "idMeasure", 1000, "meaMeasure", 1010, "pvMeasure", 1323)
+                "idMeasure", 1000, /*"meaMeasure", 1010,*/ "pvMeasure", 1323)
         Store st = dao.saveMaterial("upd", map)
         mdb.outTable(st)
     }
