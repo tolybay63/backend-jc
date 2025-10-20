@@ -70,6 +70,240 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store loadTaskLog(Map<String, Object> params) {
+        Store st = mdb.createStore("Obj.task.log")
+
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_TaskLog", "")
+
+        String whe
+        String wheV6 = ""
+        String wheV12 = ""
+        if (params.containsKey("id"))
+            whe = "o.id=${UtCnv.toLong(params.get("id"))}"
+        else {
+            whe = "o.cls = ${map.get("Cls_TaskLog")}"
+            //
+            Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_LocationSection", "")
+            long clsLocation = loadSqlService("""
+                select cls from Obj where id=${UtCnv.toLong(params.get("objLocation"))}
+            """, "", "orgstructuredata").get(0).getLong("cls")
+            if (clsLocation == mapCls.get("Cls_LocationSection")) {
+                Set<Object> idsObjLocation = getIdsObjWithChildren(UtCnv.toLong(params.get("objLocation")))
+                wheV12 = "and v12.obj in (${idsObjLocation.join(",")})"
+            }
+            long pt = UtCnv.toLong(params.get("periodType"))
+            String dte = UtCnv.toString(params.get("date"))
+            UtPeriod utPeriod = new UtPeriod()
+            XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(dte), pt, 0)
+            XDate d2 = utPeriod.calcDend(UtCnv.toDate(dte), pt, 0)
+            wheV6 = "and v6.dateTimeVal between '${d1}' and '${d2}'"
+        }
+
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+
+        mdb.loadQuery(st, """
+            select o.id, o.cls, v.name,
+                v1.id as idWorkPlan, v1.obj as objWorkPlan, v1.propVal as pvWorkPlan,
+                v2.id as idTask, v2.obj as objTask, v2.propVal as pvTask, null as nameTask,
+                v3.id as idUser, v3.obj as objUser, v3.propVal as pvUser, null as nameUser,
+                v4.id as idValuePlan, v4.numberVal as ValuePlan,
+                v5.id as idValueFact, v5.numberVal as ValueFact,
+                v6.id as idPlanDateStart, v6.dateTimeVal as PlanDateStart,
+                v7.id as idPlanDateEnd, v7.dateTimeVal as PlanDateEnd,
+                v8.id as idFactDateStart, v8.dateTimeVal as FactDateStart,
+                v9.id as idFactDateEnd, v9.dateTimeVal as FactDateEnd,
+                v10.id as idCreatedAt, v10.dateTimeVal as CreatedAt,
+                v11.id as idUpdatedAt, v11.dateTimeVal as UpdatedAt,
+                v12.id as idLocationClsSection, v12.propVal as pvLocationClsSection, 
+                    v12.obj as objLocationClsSection, null as nameLocationClsSection
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_WorkPlan
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Task
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_User
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_ValuePlan
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_ValueFact
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_PlanDateStart
+                inner join DataPropVal v6 on d6.id=v6.dataprop  ${wheV6}
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_PlanDateEnd
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_FactDateStart
+                left join DataPropVal v8 on d8.id=v8.dataprop
+                left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=:Prop_FactDateEnd
+                left join DataPropVal v9 on d9.id=v9.dataprop
+                left join DataProp d10 on d10.objorrelobj=o.id and d10.prop=:Prop_CreatedAt
+                left join DataPropVal v10 on d10.id=v10.dataprop
+                left join DataProp d11 on d11.objorrelobj=o.id and d11.prop=:Prop_UpdatedAt
+                left join DataPropVal v11 on d11.id=v11.dataprop
+                left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_LocationClsSection
+                inner join DataPropVal v12 on d12.id=v12.dataprop ${wheV12}
+            where ${whe}
+        """, map)
+
+        //... Пересечение
+        Set<Object> idsTask = st.getUniqueValues("objTask")
+        Store stTask = loadSqlService("""
+            select o.id, v.fullName
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsTask.join(",")})
+        """, "", "nsidata")
+        StoreIndex indTask = stTask.getIndex("id")
+        //
+        Set<Object> idsUser = st.getUniqueValues("objUser")
+        Store stUser = loadSqlService("""
+            select o.id, o.cls, v.fullName
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsUser.join(",")})
+        """, "", "personnaldata")
+        StoreIndex indUser = stUser.getIndex("id")
+        //
+        Set<Object> idsObjLocation = st.getUniqueValues("objLocationClsSection")
+        Store stObjLocation = loadSqlService("""
+            select o.id, v.name
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsObjLocation.join(",")})
+        """, "", "orgstructuredata")
+        StoreIndex indLocation = stObjLocation.getIndex("id")
+        //
+        Set<Object> idsWorkPlan = st.getUniqueValues("objWorkPlan")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        Store stWPprops = loadSqlService("""
+            select o.id, v1.obj as objWork, v2.obj as objObject,
+                v3.numberVal as StartKm,
+                v4.numberVal as FinishKm,
+                v5.numberVal as StartPicket,
+                v6.numberVal as FinishPicket,
+                v7.dateTimeVal as PlanDate,
+                v8.dateTimeVal as ActualDateEnd
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Work")}
+                left join DataPropVal v1 on d1.id=v1.dataProp
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_Object")}
+                left join DataPropVal v2 on d2.id=v2.dataProp
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_StartKm")}
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_FinishKm")}
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_StartPicket")}
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=${map.get("Prop_FinishPicket")}
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=${map.get("Prop_PlanDateEnd")}
+                left join DataPropVal v7 on d7.id=v7.dataProp
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=${map.get("Prop_FactDateEnd")}
+                left join DataPropVal v8 on d8.id=v8.dataProp            
+            where o.id in (0${idsWorkPlan.join(",")})
+        """, "", "plandata")
+        StoreIndex indWPprops = stWPprops.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord recTask = indTask.get(r.getLong("objTask"))
+            if (recTask != null)
+                r.set("fullNameTask", recTask.getString("fullName"))
+
+            StoreRecord rLocation = indLocation.get(r.getLong("objLocationClsSection"))
+            if (rLocation != null)
+                r.set("nameLocationClsSection", rLocation.getString("name"))
+
+            StoreRecord rWPprops = indWPprops.get(r.getLong("objWorkPlan"))
+            if (rWPprops != null) {
+                r.set("objWork", rWPprops.getLong("objWork"))
+                r.set("objObject", rWPprops.getLong("objObject"))
+                r.set("StartKm", rWPprops.getDouble("StartKm"))
+                r.set("FinishKm", rWPprops.getDouble("FinishKm"))
+                r.set("StartPicket", rWPprops.getDouble("StartPicket"))
+                r.set("FinishPicket", rWPprops.getDouble("FinishPicket"))
+                r.set("PlanDate", rWPprops.getString("PlanDate"))
+                r.set("ActualDateEnd", rWPprops.getString("ActualDateEnd"))
+            }
+
+            StoreRecord rUser = indUser.get(r.getLong("objUser"))
+            if (rUser != null)
+                r.set("fullNameUser", rUser.getString("fullName"))
+        }
+        //
+        Set<Object> idsWork = st.getUniqueValues("objWork")
+        Store stWork = loadSqlService("""
+            select o.id, v.fullName
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsWork.join(",")})
+        """, "", "nsidata")
+        StoreIndex indWork = stWork.getIndex("id")
+        //
+        Set<Object> idsObject = st.getUniqueValues("objObject")
+        Store stObject = loadSqlService("""
+            select o.id, v.fullName
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsObject.join(",")})
+        """, "", "objectdata")
+        StoreIndex indObject = stObject.getIndex("id")
+
+        //...
+        for (StoreRecord r in st) {
+            StoreRecord rWork = indWork.get(r.getLong("objWork"))
+            if (rWork != null)
+                r.set("fullNameWork", rWork.getString("fullName"))
+            StoreRecord rObject = indObject.get(r.getLong("objObject"))
+            if (rObject != null)
+                r.set("fullNameObject", rObject.getString("fullName"))
+        }
+        //
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Section", "")
+        stObject = loadSqlService("""
+            select o.id, v.obj, ov.name
+            from Obj o
+                left join DataProp d on d.objorrelobj=o.id and prop=${map.get("Prop_Section")}
+                left join DataPropVal v on d.id=v.dataProp
+                left join ObjVer ov on v.obj=ov.ownerVer and ov.lastVer=1            
+            where o.id in (0${idsObject.join(",")})
+        """, "", "objectdata")
+        indObject = stObject.getIndex("id")
+
+        for (StoreRecord r : st) {
+            StoreRecord rObj = indObject.get(r.getLong("objObject"))
+            if (rObj != null) {
+                r.set("objSection", rObj.getLong("obj"))
+                r.set("nameSection", rObj.getString("name"))
+            }
+        }
+        //
+        return st
+    }
+
+    private Set<Object> getIdsObjWithChildren(long obj) {
+        Store st = loadSqlService("""
+           WITH RECURSIVE r AS (
+               SELECT o.id, v.objParent as parent
+               FROM Obj o, ObjVer v
+               WHERE o.id=v.ownerver and v.lastver=1 and v.objParent=${obj}
+               UNION ALL
+               SELECT t.*
+               FROM ( SELECT o.id, v.objParent as parent
+                      FROM Obj o, ObjVer v
+                      WHERE o.id=v.ownerver and v.lastver=1
+                    ) t
+                  JOIN r
+                      ON t.parent = r.id
+           ),
+           o as (
+           SELECT o.id, v.objParent as parent
+           FROM Obj o, ObjVer v
+           WHERE o.id=v.ownerver and v.lastver=1 and o.id=${obj}
+           )
+           SELECT * FROM o
+           UNION ALL
+           SELECT * FROM r
+           where 0=0
+        """, "", "orgstructuredata")
+
+        return st.getUniqueValues("id")
+    }
+
+    @DaoMethod
     Store loadObjClsWorkPlanCorrectionalUnfinishedByDate(Map<String, Object> params) {
         long obj = UtCnv.toLong(params.get("id"))
         long pvObj = UtCnv.toLong(params.get("pv"))
@@ -247,7 +481,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadTaskLog(long id) {
+    Store loadTaskLog_test(long id) {
 
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_TaskLog", "")
         Store st = mdb.createStore("Obj.task.log")
@@ -321,7 +555,7 @@ class DataDao extends BaseMdbUtils {
 
             StoreRecord recUser = indUser.get(r.getLong("objUser"))
             if (recUser != null)
-                r.set("nameUser", recUser.getString("fullName"))
+                r.set("fullNameUser", recUser.getString("fullName"))
         }
         //
         return st
@@ -339,7 +573,7 @@ class DataDao extends BaseMdbUtils {
         if (mode.equalsIgnoreCase("ins")) {
             Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_TaskLog", "")
             par.put("cls", map.get("Cls_TaskLog"))
-            par.put("fullName", par.get("name"))
+            par.putIfAbsent("fullName", par.get("name"))
             own = eu.insertEntity(par)
             pms.put("own", own)
             //1 Prop_WorkPlan
@@ -382,9 +616,14 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("[UpdatedAt] не указан")
             else
                 fillProperties(true, "Prop_UpdatedAt", pms)
+            //9 Prop_LocationClsSection
+            if (pms.getLong("objLocationClsSection") == 0)
+                throw new XError("[LocationClsSection] не указан")
+            else
+                fillProperties(true, "Prop_LocationClsSection", pms)
         } else if (mode.equalsIgnoreCase("upd")) {
             own = pms.getLong("id")
-            par.put("fullName", par.get("name"))
+            par.putIfAbsent("fullName", par.get("name"))
             eu.updateEntity(par)
             //
             pms.put("own", own)
@@ -425,11 +664,19 @@ class DataDao extends BaseMdbUtils {
                     throw new XError("[UpdatedAt] не указан")
                 else
                     updateProperties("Prop_UpdatedAt", pms)
+            //9 Prop_LocationClsSection
+            if (pms.containsKey("idLocationClsSection"))
+                if (pms.getLong("objLocationClsSection") == 0)
+                    throw new XError("[LocationClsSection] не указан")
+                else
+                    updateProperties("Prop_LocationClsSection", pms)
         } else {
             throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
         }
         //
-        return loadTaskLog(own)
+        Map<String, Object> mapRez = new HashMap<>()
+        mapRez.put("id", own)
+        return loadTaskLog(mapRez)
     }
 
     @DaoMethod
@@ -489,7 +736,7 @@ class DataDao extends BaseMdbUtils {
                 updateProperties("Prop_UpdatedAt", pms)
         }
         //
-        return loadTaskLog(own)
+        return loadTaskLog_test(own)
     }
 
     /**
@@ -727,7 +974,8 @@ class DataDao extends BaseMdbUtils {
         if ([FD_PropType_consts.typ].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_WorkPlan") ||
                     cod.equalsIgnoreCase("Prop_Task") ||
-                    cod.equalsIgnoreCase("Prop_User")) {
+                    cod.equalsIgnoreCase("Prop_User") ||
+                    cod.equalsIgnoreCase("Prop_LocationClsSection")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
@@ -908,7 +1156,8 @@ class DataDao extends BaseMdbUtils {
         if ([FD_PropType_consts.typ].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_WorkPlan") ||
                     cod.equalsIgnoreCase("Prop_Task") ||
-                    cod.equalsIgnoreCase("Prop_User")) {
+                    cod.equalsIgnoreCase("Prop_User") ||
+                    cod.equalsIgnoreCase("Prop_LocationClsSection")) {
                 if (objRef > 0)
                     sql = "update DataPropval set propVal=${propVal}, obj=${objRef}, timeStamp='${tmst}' where id=${idVal}"
                 else {

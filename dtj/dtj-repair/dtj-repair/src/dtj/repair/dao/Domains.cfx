@@ -5,21 +5,18 @@
         <field name="cls" parent="long"/>
         <field name="name" parent="string"/>
 
-        <field name="idWorkPlan" parent="long"/>
-        <field name="objWorkPlan" parent="long"/>
-        <field name="pvWorkPlan" parent="long"/>
         <field name="idTask" parent="long"/>
         <field name="objTask" parent="long"/>
         <field name="pvTask" parent="long"/>
-        <field name="nameTask" parent="string"/>
+        <field name="fullNameTask" parent="string"/>
+
         <field name="idUser" parent="long"/>
         <field name="objUser" parent="long"/>
         <field name="pvUser" parent="long"/>
-        <field name="nameUser" parent="string"/>
+        <field name="fullNameUser" parent="string"/>
 
         <field name="idValuePlan" parent="long"/>
         <field name="ValuePlan" parent="double"/>
-
         <field name="idValueFact" parent="long"/>
         <field name="ValueFact" parent="double"/>
 
@@ -37,6 +34,33 @@
         <field name="CreatedAt" parent="string"/>
         <field name="idUpdatedAt" parent="long"/>
         <field name="UpdatedAt" parent="string"/>
+
+        <field name="StartKm" parent="double"/>
+        <field name="FinishKm" parent="double"/>
+        <field name="StartPicket" parent="double"/>
+        <field name="FinishPicket" parent="double"/>
+
+        <field name="idLocationClsSection" parent="long"/>
+        <field name="pvLocationClsSection" parent="long"/>
+        <field name="objLocationClsSection" parent="long"/>
+        <field name="nameLocationClsSection" parent="string"/>
+
+        <field name="idWorkPlan" parent="long"/>
+        <field name="pvWorkPlan" parent="long"/>
+        <field name="objWorkPlan" parent="long"/>
+        <!--prop of WorkPlan-->
+        <field name="objWork" parent="long"/>
+        <field name="fullNameWork" parent="string"/>
+
+        <field name="PlanDate" parent="string"/>
+        <field name="ActualDateEnd" parent="string"/>
+
+        <field name="objObject" parent="long"/>
+        <field name="fullNameObject" parent="string"/>
+        <!--prop of Object-->
+        <field name="objSection" parent="long"/>
+        <field name="nameSection" parent="string"/>
+
     </domain>
 
 
