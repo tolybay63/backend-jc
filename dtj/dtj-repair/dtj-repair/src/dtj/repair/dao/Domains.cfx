@@ -64,5 +64,14 @@
     </domain>
 
 
+    <domain name="Obj.TaskLogEntriesForWorkPlan" parent="base">
+        <field name="id" parent="long"/>
+        <field name="PlanDateStart" parent="string"/>
+        <field name="PlanDateEnd" parent="string"/>
+        <field name="ValuePlan" parent="double"/>
+        <field name="objTask" parent="long"/>
+        <field name="fullNameTask" parent="string"/>
+    </domain>
+
 </root>
 

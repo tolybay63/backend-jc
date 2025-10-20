@@ -27,6 +27,16 @@ class Repair_Test extends Apx_Test {
 
 
     @Test
+    void loadTaskLogEntriesForWorkPlan_test () {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadTaskLogEntriesForWorkPlan(Map.of(
+                "id", 1056,
+                "pv", 1492
+        ))
+        mdb.outTable(st)
+    }
+
+    @Test
     void loadTaskLog_test () {
         DataDao dao = mdb.createDao(DataDao.class)
         Store st = dao.loadTaskLog(Map.of(

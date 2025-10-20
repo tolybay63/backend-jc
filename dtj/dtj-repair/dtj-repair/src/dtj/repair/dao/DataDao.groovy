@@ -70,6 +70,53 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store loadTaskLogEntriesForWorkPlan(Map<String, Object> params) {
+        long obj = UtCnv.toLong(params.get("id"))
+        long pv = UtCnv.toLong(params.get("pv"))
+        Store stOwn = mdb.loadQuery("""
+            select d.objorrelobj as own
+            from DataProp d, DataPropVal v
+            where d.id=v.dataProp and v.propVal=:pv and v.obj=:o
+        """, [pv: pv, o: obj])
+        Set<Object> idsOwn = stOwn.getUniqueValues("own")
+        Store st = mdb.createStore("Obj.TaskLogEntriesForWorkPlan")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        mdb.loadQuery(st, """
+            select o.id,
+                v1.dateTimeVal as PlanDateStart,
+                v2.dateTimeVal as PlanDateEnd,
+                v3.numberVal as ValuePlan,
+                v4.obj as objTask, null as fullNameTask
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_PlanDateStart
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_PlanDateEnd
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_ValuePlan
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Task
+                left join DataPropVal v4 on d4.id=v4.dataprop
+            where o.id in (0${idsOwn.join(",")})
+        """, map)
+        //... Пересечение
+        Set<Object> idsTask = st.getUniqueValues("objTask")
+        Store stTask = loadSqlService("""
+            select o.id, v.fullName
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsTask.join(",")})
+        """, "", "nsidata")
+        StoreIndex indTask = stTask.getIndex("id")
+
+        for (StoreRecord r in st) {
+            StoreRecord recTask = indTask.get(r.getLong("objTask"))
+            if (recTask != null)
+                r.set("fullNameTask", recTask.getString("fullName"))
+        }
+        //
+        return st
+    }
+
+    @DaoMethod
     Store loadTaskLog(Map<String, Object> params) {
         Store st = mdb.createStore("Obj.task.log")
 

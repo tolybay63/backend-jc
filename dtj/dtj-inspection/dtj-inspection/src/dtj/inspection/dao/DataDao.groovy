@@ -1216,7 +1216,7 @@ class DataDao extends BaseMdbUtils {
         """, [pv: pv, o: obj])
         Set<Object> idsOwn = stOwn.getUniqueValues("own")
         Store st = mdb.createStore("Obj.InspectionEntriesForWorkPlan")
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
         mdb.loadQuery(st, """
             select o.id,
                 v3.numberVal as StartKm,
