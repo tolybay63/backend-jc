@@ -8,6 +8,25 @@ import org.junit.jupiter.api.Test
 class Repair_Test extends Apx_Test {
 
     @Test
+    void LoadObjClsWorkPlanCorrectionalUnfinishedByDate_test() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadObjClsWorkPlanCorrectionalUnfinishedByDate(Map.of(
+                "date", "2025-10-09",
+                "id", 1077,
+                "pv", 1241
+        ))
+        mdb.outTable(st)
+    }
+
+    @Test
+    void LoadDateWorkPlanCorrectional_test() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Set<String>  plDate= dao.loadDateWorkPlanCorrectional(["id": 1077, "pv": 1241])
+        println(plDate.join(", "))
+    }
+
+
+    @Test
     void loadTaskLog_test () {
         DataDao dao = mdb.createDao(DataDao.class)
         Store st = dao.loadTaskLog(0)
