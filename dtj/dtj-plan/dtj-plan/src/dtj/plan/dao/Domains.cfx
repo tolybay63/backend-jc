@@ -51,6 +51,65 @@
 
     </domain>
 
+    <domain name="Obj.plan.correctional" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
 
+        <field name="idWork" parent="long"/>
+        <field name="pvWork" parent="long"/>
+        <field name="objWork" parent="long"/>
+        <field name="fullNameWork" parent="string"/>
+
+        <field name="idObject" parent="long"/>
+        <field name="pvObject" parent="long"/>
+        <field name="objObject" parent="long"/>
+        <field name="nameClsObject" parent="string"/>
+        <field name="fullNameObject" parent="string"/>
+
+        <field name="idStartKm" parent="long"/>
+        <field name="StartKm" parent="double"/>
+
+        <field name="idFinishKm" parent="long"/>
+        <field name="FinishKm" parent="double"/>
+
+        <field name="idStartPicket" parent="long"/>
+        <field name="StartPicket" parent="double"/>
+
+        <field name="idFinishPicket" parent="long"/>
+        <field name="FinishPicket" parent="double"/>
+
+        <field name="idPlanDateEnd" parent="long"/>
+        <field name="PlanDateEnd" parent="string"/>
+
+        <field name="idFactDateEnd" parent="long"/>
+        <field name="FactDateEnd" parent="string"/>
+
+        <field name="idCreatedAt" parent="long"/>
+        <field name="CreatedAt" parent="string"/>
+
+        <field name="idUpdatedAt" parent="long"/>
+        <field name="UpdatedAt" parent="string"/>
+
+        <field name="idUser" parent="long"/>
+        <field name="pvUser" parent="long"/>
+        <field name="objUser" parent="long"/>
+        <field name="fullNameUser" parent="string"/>
+
+        <field name="idLocationClsSection" parent="long"/>
+        <field name="pvLocationClsSection" parent="long"/>
+        <field name="objLocationClsSection" parent="long"/>
+        <field name="nameLocationClsSection" parent="string"/>
+
+        <field name="idStatus" parent="long"/>
+        <field name="pvStatus" parent="long"/>
+        <field name="fvStatus" parent="long"/>
+        <field name="nameStatus" parent="string"/>
+
+        <field name="idIncident" parent="long"/>
+        <field name="pvIncident" parent="long"/>
+        <field name="objIncident" parent="long"/>
+
+    </domain>
 </root>
 

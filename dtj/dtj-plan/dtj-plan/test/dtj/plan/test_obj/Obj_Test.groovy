@@ -9,14 +9,23 @@ import org.junit.jupiter.api.Test
 class Obj_Test extends Apx_Test {
 
     @Test
+    void loadPlanCorrectional_test() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadPlanCorrectional(Map.of(
+                "date", "2025-07-29",
+                "periodType", 11,
+                "objLocation", 1077
+        ))
+        mdb.outTable(st)
+    }
+
+
+    @Test
     void test_loadWorkOnObjectServedForSelect() {
         DataDao dao = mdb.createDao(DataDao.class)
         Store st = dao.loadWorkOnObjectServedForSelect(0)
         mdb.outTable(st)
     }
-
-
-
 
     @Test
     void test_findLocationOfCoord() {
