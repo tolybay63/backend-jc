@@ -8,6 +8,36 @@ import org.junit.jupiter.api.Test
 class Repair_Test extends Apx_Test {
 
     @Test
+    void loadResourceMaterial_test() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadResourceMaterial(0)
+        mdb.outTable(st)
+    }
+
+    @Test
+    void saveResourceMaterial_ins_test () {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("name", "Test")
+        map.put("objMaterial", 1001)
+        map.put("pvMaterial", 1534)
+        map.put("meaMeasure", 1037)
+        map.put("pvMeasure", 1529)
+        map.put("Value", 5)
+        map.put("objTaskLog", 1004)
+        map.put("linkCls", 1294)
+        map.put("CreatedAt", "2025-10-17")
+        map.put("UpdatedAt", "2025-10-17")
+        map.put("objUser", 1003)
+        map.put("pvUser", 108)
+
+        Store st = dao.saveResourceMaterial("ins", map)
+        mdb.outTable(st)
+    }
+
+
+
+    @Test
     void LoadObjClsWorkPlanCorrectionalUnfinishedByDate_test() {
         DataDao dao = mdb.createDao(DataDao.class)
         Store st = dao.loadObjClsWorkPlanCorrectionalUnfinishedByDate(Map.of(

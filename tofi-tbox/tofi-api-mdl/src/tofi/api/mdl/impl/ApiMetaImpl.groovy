@@ -361,7 +361,7 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
     @Override
     long getDefaultStatus(long prop) {
         Store st = mdb.loadQuery("""
-            select factorVal from PropStatus where prop=${prop} and isDefault is true
+            select factorVal from PropStatus where prop=${prop} and isDefault=1
         """)
         if (st.size() == 0)
             throw new XError("Not found default status")

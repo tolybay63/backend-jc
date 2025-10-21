@@ -83,6 +83,10 @@
                   class="tofi.api.dta.impl.ApiResourceDataImpl"/>
         </api>
 
+        <api name="repairdata" invoker="model" model="repairdata">
+            <item name="tofi.api.dta.ApiRepairData"
+                  class="tofi.api.dta.impl.ApiRepairDataImpl"/>
+        </api>
     </apinator>
 
 
