@@ -10,7 +10,7 @@ class Repair_Test extends Apx_Test {
     @Test
     void loadResourceMaterial_test() {
         DataDao dao = mdb.createDao(DataDao.class)
-        Store st = dao.loadResourceMaterial(0)
+        Store st = dao.loadResourceMaterial(1004)
         mdb.outTable(st)
     }
 
@@ -19,22 +19,50 @@ class Repair_Test extends Apx_Test {
         DataDao dao = mdb.createDao(DataDao.class)
         Map<String, Object> map = new HashMap<>()
         map.put("name", "Test")
-        map.put("objMaterial", 1001)
+        map.put("objMaterial", 1000)
         map.put("pvMaterial", 1534)
         map.put("meaMeasure", 1037)
         map.put("pvMeasure", 1529)
-        map.put("Value", 5)
+        map.put("Value", 0)
         map.put("objTaskLog", 1004)
         map.put("linkCls", 1294)
         map.put("CreatedAt", "2025-10-17")
         map.put("UpdatedAt", "2025-10-17")
         map.put("objUser", 1003)
-        map.put("pvUser", 108)
+        map.put("pvUser", 1087)
 
         Store st = dao.saveResourceMaterial("ins", map)
         mdb.outTable(st)
     }
 
+    @Test
+    void saveResourceMaterial_upd_test () {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("id", 1013)
+        map.put("name", "Test upd")
+        map.put("idMaterial", 1075)
+        map.put("objMaterial", 1001)
+        map.put("pvMaterial", 1534)
+        map.put("idMeasure", 1076)
+        map.put("meaMeasure", 1037)
+        map.put("pvMeasure", 1529)
+        map.put("idValue", 1079)
+        map.put("Value", 5)
+        map.put("idTaskLog", 1077)
+        map.put("objTaskLog", 1004)
+        map.put("pvTaskLog", 1533)
+        map.put("idCreatedAt", 1080)
+        map.put("CreatedAt", "2025-10-17")
+        map.put("idUpdatedAt", 1081)
+        map.put("UpdatedAt", "2025-10-17")
+        map.put("idUser", 1078)
+        map.put("objUser", 1003)
+        map.put("pvUser", 1087)
+
+        Store st = dao.saveResourceMaterial("upd", map)
+        mdb.outTable(st)
+    }
 
 
     @Test
@@ -134,7 +162,7 @@ class Repair_Test extends Apx_Test {
     @Test
     void delete_test() {
         DataDao dao = mdb.createDao(DataDao.class)
-        dao.deleteObjWithProperties(0)
+        dao.deleteObjWithProperties(1004)
     }
 
 }

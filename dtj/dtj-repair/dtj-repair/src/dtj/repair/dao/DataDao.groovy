@@ -20,6 +20,7 @@ import tofi.api.dta.ApiObjectData
 import tofi.api.dta.ApiOrgStructureData
 import tofi.api.dta.ApiPersonnalData
 import tofi.api.dta.ApiPlanData
+import tofi.api.dta.ApiRepairData
 import tofi.api.dta.ApiResourceData
 import tofi.api.dta.ApiUserData
 import tofi.api.dta.model.utils.EntityMdbUtils
@@ -67,6 +68,9 @@ class DataDao extends BaseMdbUtils {
     }
     ApinatorApi apiResourceData() {
         return app.bean(ApinatorService).getApi("resourcedata")
+    }
+    ApinatorApi apiRepairData() {
+        return app.bean(ApinatorService).getApi("repairdata")
     }
 
     @DaoMethod
@@ -152,17 +156,24 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Store saveResourceMaterial(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
-        long pv = apiMeta().get(ApiMeta).idPV("cls", pms.getLong("linkCls"), "Prop_TaskLog")
-        pms.put("pvTaskLog", pv)
+        long pv = pms.getLong("pvTaskLog")
+        if (pv == 0) {
+            pv = apiMeta().get(ApiMeta).idPV("cls", pms.getLong("linkCls"), "Prop_TaskLog")
+            pms.put("pvTaskLog", pv)
+        }
         //
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
         pms.put("fvStatus", map.get("FV_Plan"))
         //
+        String whe = ""
+        if (mode == "upd")
+            whe = "and d.objorrelobj <>"+pms.getLong("id")
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_TaskLog", "")
         Store stOwn = mdb.loadQuery("""
                 select d.objorrelobj as own
                 from DataProp d, DataPropVal v
-                where d.id=v.dataProp and d.prop=${map.get("Prop_TaskLog")} and v.propVal=${pv} and v.obj=${pms.getLong("objTaskLog")}
+                where d.id=v.dataProp and d.prop=${map.get("Prop_TaskLog")} and v.propVal=${pv} 
+                    and v.obj=${pms.getLong("objTaskLog")} ${whe}
             """)
         Set<Object> idsOwn = stOwn.getUniqueValues("own")
         //
@@ -1044,10 +1055,10 @@ class DataDao extends BaseMdbUtils {
                 Store stData = loadSqlService("""
                     select id from DataPropVal
                     where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "nsidata")
+                """, "", "repairdata")
                 if (stData.size() > 0)
-                    lstService.add("nsidata")
-                //
+                    lstService.add("repairdata")
+/*                //
                 stData = loadSqlService("""
                     select id from DataPropVal
                     where propval in (${idsPV.join(",")}) and obj=${owner}
@@ -1090,7 +1101,7 @@ class DataDao extends BaseMdbUtils {
                 if (stData.size() > 0)
                     lstService.add("clientndata")
                 //
-
+*/
                 if (lstService.size()>0) {
                     throw new XError("${name} используется в ["+ lstService.join(", ") + "]")
                 }
@@ -1398,8 +1409,7 @@ class DataDao extends BaseMdbUtils {
         }
         // For Meter
         if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_ValuePlan") ||
-                    cod.equalsIgnoreCase("Prop_ValueFact")) {
+            if (cod.equalsIgnoreCase("Prop_Value")) {
                 if (mapProp[keyValue] != "") {
                     def v = mapProp.getDouble(keyValue)
                     v = v / koef
@@ -1469,6 +1479,8 @@ class DataDao extends BaseMdbUtils {
             return apiClientData().get(ApiClientData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("resourcedata"))
             return apiResourceData().get(ApiResourceData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("repairdata"))
+            return apiRepairData().get(ApiRepairData).loadSql(sql, domain)
         else
             throw new XError("Unknown model [${model}]")
     }
@@ -1492,6 +1504,8 @@ class DataDao extends BaseMdbUtils {
             return apiClientData().get(ApiClientData).loadSqlWithParams(sql, params, domain)
         else if (model.equalsIgnoreCase("resourcedata"))
             return apiResourceData().get(ApiResourceData).loadSqlWithParams(sql, params, domain)
+        else if (model.equalsIgnoreCase("resourcedata"))
+            return apiRepairData().get(ApiRepairData).loadSqlWithParams(sql, params, domain)
         else
             throw new XError("Unknown model [${model}]")
     }
