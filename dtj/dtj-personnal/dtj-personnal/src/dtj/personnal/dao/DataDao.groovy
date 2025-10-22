@@ -67,6 +67,47 @@ class DataDao extends BaseMdbUtils {
     /* =================================================================== */
 
     @DaoMethod
+    Store loadPersonnalLocationForSelect(long obj, String codProp) {
+        Store st = mdb.createStore("Obj.PersonalLocationForSelect")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Personnel", "")
+        Map<String, Long> map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        map2.put("Cls_Personnel", map.get("Cls_Personnel"))
+        map2.put("obj", obj)
+
+        mdb.loadQuery(st, """
+            select o.id, o.cls, v.name, v.fullName, null as pv,
+            v1.propVal as pvPosition, null as fvPosition, null as namePosition            
+            from Obj o
+                left join ObjVer v on o.id=v.ownerVer and v.lastVer=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Position
+                left join DataPropval v1 on d1.id=v1.dataProp
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Location
+                inner join DataPropval v2 on d2.id=v2.dataProp and v2.obj=:obj
+            where o.cls=:Cls_Personnel    
+        """, map2)
+
+        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
+        Map<Long, Long> mapPV2 = apiMeta().get(ApiMeta).mapEntityIdFromPV("cls", false)
+        for (StoreRecord r in st) {
+            r.set("fvPosition", mapPV.get(r.getLong("pvPosition")))
+            r.set("pv", mapPV2.get(r.getLong("cls")))
+        }
+        Set<Object> fvsPosition = st.getUniqueValues("fvPosition")
+        Store stFV = loadSqlMeta("""
+            select id, name from Factor where id in (0${fvsPosition.join(",")}) 
+        """, "")
+        StoreIndex indFV = stFV.getIndex("id")
+        for (StoreRecord r in st) {
+            StoreRecord rec = indFV.get(r.getLong("fvPosition"))
+            if (rec != null)
+                r.set("namePosition", rec.getString("name"))
+        }
+        //
+        return st
+    }
+
+
+    @DaoMethod
     Store loadPersonnal(long id) {
         return apiPersonnalData().get(ApiPersonnalData).loadPersonnal(id)
     }

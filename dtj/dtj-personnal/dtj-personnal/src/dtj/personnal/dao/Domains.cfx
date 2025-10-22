@@ -1,4 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
 
+    <domain name="Obj.PersonalLocationForSelect" parent="base">
+        <field name="id" parent="long"/>
+        <field name="pv" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="fullName" parent="string"/>
+
+        <field name="fvPosition" parent="long"/>
+        <field name="pvPosition" parent="long"/>
+        <field name="namePosition" parent="string"/>
+    </domain>
+
+
+
 </root>
