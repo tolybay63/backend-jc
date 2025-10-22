@@ -65,6 +65,127 @@ class DataDao extends BaseMdbUtils {
         return app.bean(ApinatorService).getApi("clientdata")
     }
 
+    @DaoMethod
+    Store loadTpService(long id) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_TpService", "")
+        Store st = mdb.createStore("Obj.TpService")
+        String whe = "o.id=${id}"
+        if (id==0)
+            whe = "o.cls=${map.get("Cls_TpService")}"
+
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+
+        mdb.loadQuery(st, """
+            select o.id, o.cls, v.name, v.fullName,
+                v1.id as idMeasure, v1.propVal as pvMeasure, null as meaMeasure, null as nameMeasure,
+                v2.id as idDescription, v2.multiStrVal as Description
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Measure
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Description
+                left join DataPropVal v2 on d2.id=v2.dataprop
+            where ${whe}
+        """, map)
+        //
+
+        Map<Long, Long> mapMea = apiMeta().get(ApiMeta).mapEntityIdFromPV("measure", true)
+
+        Store stMea = loadSqlMeta("""
+            select id, name from Measure where 0=0
+        """, "")
+        StoreIndex indMea = stMea.getIndex("id")
+        for (StoreRecord r in st) {
+            if (r.getLong("pvMeasure") > 0) {
+                r.set("meaMeasure", mapMea.get(r.getLong("pvMeasure")))
+            }
+            StoreRecord rec = indMea.get(r.getLong("meaMeasure"))
+            if (rec != null)
+                r.set("nameMeasure", rec.getString("name"))
+        }
+        return st
+    }
+
+    @DaoMethod
+    Store saveTpService(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        //
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        if (UtCnv.toString(params.get("name")).trim().isEmpty())
+            throw new XError("[name] не указан")
+        Map<String, Object> par = new HashMap<>(pms)
+        if (mode.equalsIgnoreCase("ins")) {
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_TpService", "")
+            String nm = pms.getString("name").trim().toLowerCase()
+            Store st = mdb.loadQuery("""
+                select v.name from Obj o, ObjVer v
+                where o.id=v.ownerVer and v.lastVer=1 and o.cls=${map.get("Cls_TpService")} and lower(v.name)='${nm}' 
+            """)
+            if (st.size() > 0)
+                throw new XError("[{0}] уже существует", nm)
+
+            par.put("cls", map.get("Cls_TpService"))
+            //
+            par.putIfAbsent("fullName", pms.getString("name"))
+            //
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+            //1 Prop_Measure
+            if (pms.getLong("meaMeasure") > 0)
+                fillProperties(true, "Prop_Measure", pms)
+            else
+                throw new XError("[Единица измерения] не указан")
+            //
+            //2 Prop_Description
+            if (pms.containsKey("Description")) {
+                if (!pms.getString("Description").isEmpty())
+                    fillProperties(true, "Prop_Description", pms)
+            }
+        } else if (mode.equalsIgnoreCase("upd")) {
+            String nm = pms.getString("name").trim().toLowerCase()
+            Store st = mdb.loadQuery("""
+                select v.name from Obj o, ObjVer v
+                where o.id=v.ownerVer and o.id<>${pms.getLong("id")} and 
+                    v.lastVer=1 and o.cls=${pms.getLong("cls")} and lower(v.name)='${nm}' 
+            """)
+            if (st.size() > 0)
+                throw new XError("[{0}] уже существует", nm)
+
+            own = pms.getLong("id")
+            par.putIfAbsent("fullName", pms.getString("name"))
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+
+            //1 Prop_Measure
+            if (pms.containsKey("idMeasure")) {
+                if (pms.getLong("meaMeasure") > 0)
+                    updateProperties("Prop_Measure", pms)
+                else
+                    throw new XError("[Единица измерения] не указан")
+            } else {
+                if (pms.getLong("meaMeasure") > 0)
+                    fillProperties(true, "Prop_Measure", pms)
+                else
+                    throw new XError("[Единица измерения] не указан")
+            }
+
+            //2 Prop_Description
+            if (pms.getLong("idDescription") > 0) {
+                updateProperties("Prop_Description", pms)
+            } else {
+                if (pms.containsKey("Description")) {
+                    if (!pms.getString("Description").isEmpty())
+                        fillProperties(true, "Prop_Description", pms)
+                }
+            }
+        } else {
+            throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
+        }
+        //
+        return loadMaterial(own)
+    }
 
     @DaoMethod
     Store loadEquipment(long id) {
