@@ -184,7 +184,7 @@ class DataDao extends BaseMdbUtils {
             throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
         }
         //
-        return loadMaterial(own)
+        return loadTpService(own)
     }
 
     @DaoMethod

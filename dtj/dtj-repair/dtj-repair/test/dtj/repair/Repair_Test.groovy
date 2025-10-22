@@ -6,6 +6,62 @@ import jandcode.core.store.Store
 import org.junit.jupiter.api.Test
 
 class Repair_Test extends Apx_Test {
+
+
+    @Test
+    void loadResourceTpService_test() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadResourceTpService(1042)
+        mdb.outTable(st)
+    }
+
+    @Test
+    void saveResourceTpService_ins_test () {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("name", "Test 2")
+        map.put("objTpService", 1008)
+        map.put("pvTpService", 1537)
+        map.put("Value", 2)
+        map.put("objTaskLog", 1042)
+        map.put("linkCls", 1294)
+        map.put("CreatedAt", "2025-10-17")
+        map.put("UpdatedAt", "2025-10-17")
+        map.put("objUser", 1003)
+        map.put("pvUser", 1087)
+
+        Store st = dao.saveResourceTpService("ins", map)
+        mdb.outTable(st)
+    }
+
+    @Test
+    void saveResourceTpService_upd_test () {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("id", 1044)
+        map.put("cls", 1303)
+        map.put("name", "Test upd")
+        map.put("idTpService", 1226)
+        map.put("objTpService", 1008)
+        map.put("pvTpService", 1537)
+        map.put("idValue", 1229)
+        map.put("Value", 5)
+        map.put("idTaskLog", 1227)
+        map.put("objTaskLog", 1042)
+        map.put("pvTaskLog", 1533)
+        map.put("idCreatedAt", 1230)
+        map.put("CreatedAt", "2025-10-17")
+        map.put("idUpdatedAt", 1231)
+        map.put("UpdatedAt", "2025-10-18")
+        map.put("idUser", 1228)
+        map.put("objUser", 1003)
+        map.put("pvUser", 1087)
+
+        Store st = dao.saveResourceTpService("upd", map)
+        mdb.outTable(st)
+    }
+
+
     @Test
     void loadResourcePersonnel_test() {
         DataDao dao = mdb.createDao(DataDao.class)

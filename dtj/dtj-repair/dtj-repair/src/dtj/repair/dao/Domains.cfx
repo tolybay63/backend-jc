@@ -189,5 +189,33 @@
         <field name="UpdatedAt" parent="string"/>
     </domain>
 
+    <domain name="Obj.ResourceTpService" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idTpService" parent="long"/>
+        <field name="objTpService" parent="long"/>
+        <field name="pvTpService" parent="long"/>
+        <field name="nameTpService" parent="string"/>
+
+        <field name="idTaskLog" parent="long"/>
+        <field name="objTaskLog" parent="long"/>
+        <field name="pvTaskLog" parent="long"/>
+
+        <field name="idUser" parent="long"/>
+        <field name="objUser" parent="long"/>
+        <field name="pvUser" parent="long"/>
+        <field name="fullNameUser" parent="string"/>
+
+        <field name="idValue" parent="long"/>
+        <field name="Value" parent="double"/>
+
+        <field name="idCreatedAt" parent="long"/>
+        <field name="CreatedAt" parent="string"/>
+        <field name="idUpdatedAt" parent="long"/>
+        <field name="UpdatedAt" parent="string"/>
+    </domain>
+
 </root>
 
