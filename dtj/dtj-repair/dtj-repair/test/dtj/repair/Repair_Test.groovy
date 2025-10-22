@@ -6,6 +6,166 @@ import jandcode.core.store.Store
 import org.junit.jupiter.api.Test
 
 class Repair_Test extends Apx_Test {
+    @Test
+    void loadResourcePersonnel_test() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadResourcePersonnel(1004)
+        mdb.outTable(st)
+    }
+
+    @Test
+    void saveResourcePersonnel_ins_test () {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("name", "Test 2")
+        map.put("objPersonnel", 1006)
+        map.put("pvPersonnel", 1538)
+        map.put("Value", 1)
+        map.put("objTaskLog", 1004)
+        map.put("linkCls", 1294)
+        map.put("CreatedAt", "2025-10-17")
+        map.put("UpdatedAt", "2025-10-17")
+        map.put("objUser", 1003)
+        map.put("pvUser", 1087)
+
+        Store st = dao.saveResourcePersonnel("ins", map)
+        mdb.outTable(st)
+    }
+
+    @Test
+    void saveResourcePersonnel_upd_test () {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("id", 1031)
+        map.put("cls", 1304)
+        map.put("name", "Test upd")
+        map.put("idPersonnel", 1142)
+        map.put("objPersonnel", 1005)
+        map.put("pvPersonnel", 1538)
+        map.put("idValue", 1145)
+        map.put("Value", 5)
+        map.put("idTaskLog", 1143)
+        map.put("objTaskLog", 1004)
+        map.put("pvTaskLog", 1533)
+        map.put("idCreatedAt", 1146)
+        map.put("CreatedAt", "2025-10-17")
+        map.put("idUpdatedAt", 1147)
+        map.put("UpdatedAt", "2025-10-18")
+        map.put("idUser", 1144)
+        map.put("objUser", 1003)
+        map.put("pvUser", 1087)
+
+        Store st = dao.saveResourcePersonnel("upd", map)
+        mdb.outTable(st)
+    }
+
+
+    @Test
+    void loadResourceEquipment_test() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadResourceEquipment(1004)
+        mdb.outTable(st)
+    }
+
+    @Test
+    void saveResourceEquipment_ins_test () {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("name", "Test")
+        map.put("objEquipment", 1007)
+        map.put("pvEquipment", 1536)
+        map.put("Value", 1)
+        map.put("objTaskLog", 1004)
+        map.put("linkCls", 1294)
+        map.put("CreatedAt", "2025-10-17")
+        map.put("UpdatedAt", "2025-10-17")
+        map.put("objUser", 1003)
+        map.put("pvUser", 1087)
+
+        Store st = dao.saveResourceEquipment("ins", map)
+        mdb.outTable(st)
+    }
+
+    @Test
+    void saveResourceEquipment_upd_test () {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("id", 1028)
+        map.put("cls", 1302)
+        map.put("name", "Test upd")
+        map.put("idEquipment", 1130)
+        map.put("objEquipment", 1007)
+        map.put("pvEquipment", 1536)
+        map.put("idValue", 1133)
+        map.put("Value", 5)
+        map.put("idTaskLog", 1131)
+        map.put("objTaskLog", 1004)
+        map.put("pvTaskLog", 1533)
+        map.put("idCreatedAt", 1134)
+        map.put("CreatedAt", "2025-10-17")
+        map.put("idUpdatedAt", 1135)
+        map.put("UpdatedAt", "2025-10-18")
+        map.put("idUser", 1132)
+        map.put("objUser", 1003)
+        map.put("pvUser", 1087)
+
+        Store st = dao.saveResourceEquipment("upd", map)
+        mdb.outTable(st)
+    }
+
+
+    @Test
+    void loadResourceTool_test() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadResourceTool(1004)
+        mdb.outTable(st)
+    }
+
+    @Test
+    void saveResourceTool_ins_test () {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("name", "Test")
+        map.put("objTool", 1003)
+        map.put("pvTool", 1535)
+        map.put("Value", 1)
+        map.put("objTaskLog", 1004)
+        map.put("linkCls", 1294)
+        map.put("CreatedAt", "2025-10-17")
+        map.put("UpdatedAt", "2025-10-17")
+        map.put("objUser", 1003)
+        map.put("pvUser", 1087)
+
+        Store st = dao.saveResourceTool("ins", map)
+        mdb.outTable(st)
+    }
+
+    @Test
+    void saveResourceTool_upd_test () {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("id", 1026)
+        map.put("cls", 1301)
+        map.put("name", "Test upd")
+        map.put("idTool", 1118)
+        map.put("objTool", 1003)
+        map.put("pvTool", 1535)
+        map.put("idValue", 1121)
+        map.put("Value", 5)
+        map.put("idTaskLog", 1119)
+        map.put("objTaskLog", 1004)
+        map.put("pvTaskLog", 1533)
+        map.put("idCreatedAt", 1122)
+        map.put("CreatedAt", "2025-10-17")
+        map.put("idUpdatedAt", 1123)
+        map.put("UpdatedAt", "2025-10-18")
+        map.put("idUser", 1120)
+        map.put("objUser", 1003)
+        map.put("pvUser", 1087)
+
+        Store st = dao.saveResourceTool("upd", map)
+        mdb.outTable(st)
+    }
 
     @Test
     void loadResourceMaterial_test() {
@@ -162,7 +322,7 @@ class Repair_Test extends Apx_Test {
     @Test
     void delete_test() {
         DataDao dao = mdb.createDao(DataDao.class)
-        dao.deleteObjWithProperties(1004)
+        dao.deleteObjWithProperties(1013)
     }
 
 }

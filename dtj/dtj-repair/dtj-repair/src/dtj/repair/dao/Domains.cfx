@@ -60,9 +60,7 @@
         <!--prop of Object-->
         <field name="objSection" parent="long"/>
         <field name="nameSection" parent="string"/>
-
     </domain>
-
 
     <domain name="Obj.TaskLogEntriesForWorkPlan" parent="base">
         <field name="id" parent="long"/>
@@ -72,7 +70,6 @@
         <field name="objTask" parent="long"/>
         <field name="fullNameTask" parent="string"/>
     </domain>
-
 
     <domain name="Obj.ResourceMaterial" parent="base">
         <field name="id" parent="long"/>
@@ -105,7 +102,91 @@
         <field name="CreatedAt" parent="string"/>
         <field name="idUpdatedAt" parent="long"/>
         <field name="UpdatedAt" parent="string"/>
+    </domain>
 
+    <domain name="Obj.ResourceTool" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idTool" parent="long"/>
+        <field name="objTool" parent="long"/>
+        <field name="pvTool" parent="long"/>
+        <field name="nameTool" parent="string"/>
+
+        <field name="idTaskLog" parent="long"/>
+        <field name="objTaskLog" parent="long"/>
+        <field name="pvTaskLog" parent="long"/>
+
+        <field name="idUser" parent="long"/>
+        <field name="objUser" parent="long"/>
+        <field name="pvUser" parent="long"/>
+        <field name="fullNameUser" parent="string"/>
+
+        <field name="idValue" parent="long"/>
+        <field name="Value" parent="double"/>
+
+        <field name="idCreatedAt" parent="long"/>
+        <field name="CreatedAt" parent="string"/>
+        <field name="idUpdatedAt" parent="long"/>
+        <field name="UpdatedAt" parent="string"/>
+    </domain>
+
+    <domain name="Obj.ResourceEquipment" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idEquipment" parent="long"/>
+        <field name="objEquipment" parent="long"/>
+        <field name="pvEquipment" parent="long"/>
+        <field name="nameEquipment" parent="string"/>
+        <field name="Number" parent="string"/>
+
+        <field name="idTaskLog" parent="long"/>
+        <field name="objTaskLog" parent="long"/>
+        <field name="pvTaskLog" parent="long"/>
+
+        <field name="idUser" parent="long"/>
+        <field name="objUser" parent="long"/>
+        <field name="pvUser" parent="long"/>
+        <field name="fullNameUser" parent="string"/>
+
+        <field name="idValue" parent="long"/>
+        <field name="Value" parent="double"/>
+
+        <field name="idCreatedAt" parent="long"/>
+        <field name="CreatedAt" parent="string"/>
+        <field name="idUpdatedAt" parent="long"/>
+        <field name="UpdatedAt" parent="string"/>
+    </domain>
+
+    <domain name="Obj.ResourcePersonnel" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idPersonnel" parent="long"/>
+        <field name="objPersonnel" parent="long"/>
+        <field name="pvPersonnel" parent="long"/>
+        <field name="fullNamePersonnel" parent="string"/>
+
+        <field name="idTaskLog" parent="long"/>
+        <field name="objTaskLog" parent="long"/>
+        <field name="pvTaskLog" parent="long"/>
+
+        <field name="idUser" parent="long"/>
+        <field name="objUser" parent="long"/>
+        <field name="pvUser" parent="long"/>
+        <field name="fullNameUser" parent="string"/>
+
+        <field name="idValue" parent="long"/>
+        <field name="Value" parent="double"/>
+
+        <field name="idCreatedAt" parent="long"/>
+        <field name="CreatedAt" parent="string"/>
+        <field name="idUpdatedAt" parent="long"/>
+        <field name="UpdatedAt" parent="string"/>
     </domain>
 
 </root>

@@ -31,5 +31,18 @@ class Material_Test extends Apx_Test {
         mdb.outTable(st)
     }
 
+    @Test
+    void loadEquipment_test () {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadEquipment(0)
+        mdb.outTable(st)
+    }
 
+    @Test
+    void saveEquipment_ins_test () {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map <String, Object> map = Map.of("name", "Техника 2", "Number", "002OOO01")
+        Store st = dao.saveEquipment("ins", map)
+        mdb.outTable(st)
+    }
 }

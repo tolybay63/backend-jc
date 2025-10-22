@@ -110,7 +110,7 @@ class DataDao extends BaseMdbUtils {
                 select v.strVal 
                 from Obj o
                     left join DataProp d on d.objorrelobj=o.id and d.prop=${map2.get("Prop_Number")}
-                    left join DataPropval v on d.id=v.dataProp and lower(v.strVal)='${num}'
+                    inner join DataPropval v on d.id=v.dataProp and lower(v.strVal)='${num}'
                 where o.cls=${map.get("Cls_Equipment")} 
             """)
             if (st.size() > 0)
@@ -532,7 +532,7 @@ class DataDao extends BaseMdbUtils {
         recDPV.set("dataProp", idDP)
         // Attrib
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_BIN")) {
+            if (cod.equalsIgnoreCase("Prop_Number")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
                 }
@@ -651,7 +651,7 @@ class DataDao extends BaseMdbUtils {
         def strValue = mapProp.getString(keyValue)
         // For Attrib
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_BIN")) {   //For Template
+            if (cod.equalsIgnoreCase("Prop_Number")) {   //For Template
                 if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
                     sql = """
                         delete from DataPropVal where id=${idVal};

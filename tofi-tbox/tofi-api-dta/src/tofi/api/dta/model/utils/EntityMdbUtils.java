@@ -111,10 +111,16 @@ public class EntityMdbUtils extends BaseMdbUtils {
         }
         //
         long id1 = 0;
-        if (tableName.equalsIgnoreCase("Obj"))
+        if (tableName.equalsIgnoreCase("Obj")) {
             id1 = UtCnv.toLong(rec.get("cls"));
-        if (tableName.equalsIgnoreCase("RelObj"))
+            if (id1==0L)
+                throw new XError("NotFoundCls");
+        }
+        if (tableName.equalsIgnoreCase("RelObj")) {
             id1 = UtCnv.toLong(rec.get("relcls"));
+            if (id1==0L)
+                throw new XError("NotFoundRelCls");
+        }
 
         long ent = EntityConst.getNumConst(tableName);
         // генерим код, если не указан
