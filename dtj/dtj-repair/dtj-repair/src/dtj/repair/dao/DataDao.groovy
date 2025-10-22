@@ -84,6 +84,8 @@ class DataDao extends BaseMdbUtils {
         map.put("objTaskLog", objTaskLog)
         Map<String, Long> map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ResourcePersonnel", "")
         map.put("cls", map2.get("Cls_ResourcePersonnel"))
+        map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
+        map.put("FV_Plan", map2.get("FV_Plan"))
 
         mdb.loadQuery(st, """
             select o.id, o.cls, v.name,
@@ -101,7 +103,7 @@ class DataDao extends BaseMdbUtils {
                 inner join DataPropVal v2 on d2.id=v2.dataprop and v2.propVal=:pvTaskLog and v2.obj=:objTaskLog 
                 left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_User
                 left join DataPropVal v3 on d3.id=v3.dataprop
-                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Value
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Value and d4.status=:FV_Plan
                 left join DataPropVal v4 on d4.id=v4.dataprop
                 left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_CreatedAt
                 left join DataPropVal v7 on d7.id=v7.dataprop
@@ -267,6 +269,8 @@ class DataDao extends BaseMdbUtils {
         map.put("objTaskLog", objTaskLog)
         Map<String, Long> map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ResourceEquipment", "")
         map.put("cls", map2.get("Cls_ResourceEquipment"))
+        map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
+        map.put("FV_Plan", map2.get("FV_Plan"))
 
         mdb.loadQuery(st, """
             select o.id, o.cls, v.name,
@@ -284,7 +288,7 @@ class DataDao extends BaseMdbUtils {
                 inner join DataPropVal v2 on d2.id=v2.dataprop and v2.propVal=:pvTaskLog and v2.obj=:objTaskLog 
                 left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_User
                 left join DataPropVal v3 on d3.id=v3.dataprop
-                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Value
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Value and d4.status=:FV_Plan
                 left join DataPropVal v4 on d4.id=v4.dataprop
                 left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_CreatedAt
                 left join DataPropVal v7 on d7.id=v7.dataprop
@@ -460,6 +464,8 @@ class DataDao extends BaseMdbUtils {
         map.put("objTaskLog", objTaskLog)
         Map<String, Long> map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ResourceTool", "")
         map.put("cls", map2.get("Cls_ResourceTool"))
+        map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
+        map.put("FV_Plan", map2.get("FV_Plan"))
 
         mdb.loadQuery(st, """
             select o.id, o.cls, v.name,
@@ -477,7 +483,7 @@ class DataDao extends BaseMdbUtils {
                 inner join DataPropVal v2 on d2.id=v2.dataprop and v2.propVal=:pvTaskLog and v2.obj=:objTaskLog 
                 left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_User
                 left join DataPropVal v3 on d3.id=v3.dataprop
-                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Value
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Value and d4.status=:FV_Plan
                 left join DataPropVal v4 on d4.id=v4.dataprop
                 left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_CreatedAt
                 left join DataPropVal v7 on d7.id=v7.dataprop
@@ -647,6 +653,8 @@ class DataDao extends BaseMdbUtils {
         map.put("objTaskLog", objTaskLog)
         Map<String, Long> map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ResourceMaterial", "")
         map.put("cls", map2.get("Cls_ResourceMaterial"))
+        map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
+        map.put("FV_Plan", map2.get("FV_Plan"))
 
         mdb.loadQuery(st, """
             select o.id, o.cls, v.name,
@@ -665,7 +673,7 @@ class DataDao extends BaseMdbUtils {
                 inner join DataPropVal v2 on d2.id=v2.dataprop and v2.propVal=:pvTaskLog and v2.obj=:objTaskLog 
                 left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_User
                 left join DataPropVal v3 on d3.id=v3.dataprop
-                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Value
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Value and d4.status=:FV_Plan
                 left join DataPropVal v4 on d4.id=v4.dataprop
                 left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_Measure
                 left join DataPropVal v6 on d6.id=v6.dataprop
@@ -870,18 +878,20 @@ class DataDao extends BaseMdbUtils {
         Set<Object> idsOwn = stOwn.getUniqueValues("own")
         Store st = mdb.createStore("Obj.TaskLogEntriesForWorkPlan")
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        Map<String, Long> map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
+        map.put("FV_Plan", map2.get("FV_Plan"))
         mdb.loadQuery(st, """
             select o.id,
                 v1.dateTimeVal as PlanDateStart,
                 v2.dateTimeVal as PlanDateEnd,
-                v3.numberVal as ValuePlan,
+                v3.numberVal as Value,
                 v4.obj as objTask, null as fullNameTask
             from Obj o
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_PlanDateStart
                 left join DataPropVal v1 on d1.id=v1.dataprop
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_PlanDateEnd
                 left join DataPropVal v2 on d2.id=v2.dataprop
-                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_ValuePlan
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Value and d3.status=:FV_Plan
                 left join DataPropVal v3 on d3.id=v3.dataprop
                 left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Task
                 left join DataPropVal v4 on d4.id=v4.dataprop
@@ -935,7 +945,10 @@ class DataDao extends BaseMdbUtils {
             wheV6 = "and v6.dateTimeVal between '${d1}' and '${d2}'"
         }
 
+        Map<String, Long> mapFV = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "", "FV_%")
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        map.put("FV_Plan", mapFV.get("FV_Plan"))
+        map.put("FV_Fact", mapFV.get("FV_Fact"))
 
         mdb.loadQuery(st, """
             select o.id, o.cls, v.name,
@@ -960,9 +973,9 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v2 on d2.id=v2.dataprop
                 left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_User
                 left join DataPropVal v3 on d3.id=v3.dataprop
-                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_ValuePlan
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Value and d4.status=:FV_Plan
                 left join DataPropVal v4 on d4.id=v4.dataprop
-                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_ValueFact
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_Value and d5.status=:FV_Fact
                 left join DataPropVal v5 on d5.id=v5.dataprop
                 left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_PlanDateStart
                 inner join DataPropVal v6 on d6.id=v6.dataprop  ${wheV6}
@@ -1724,7 +1737,9 @@ class DataDao extends BaseMdbUtils {
             recDP.set("objOrRelObj", own)
             recDP.set("prop", prop)
             if (stProp.get(0).getLong("statusFactor") > 0) {
-                long fv = apiMeta().get(ApiMeta).getDefaultStatus(prop)
+                long fv = UtCnv.toLong(params.get("fvStatus"))
+                if (fv == 0)
+                    fv = apiMeta().get(ApiMeta).getDefaultStatus(prop)
                 recDP.set("status", fv)
             }
             if (stProp.get(0).getLong("providerTyp") > 0) {
