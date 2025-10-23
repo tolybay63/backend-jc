@@ -394,15 +394,18 @@ class DataDao extends BaseMdbUtils {
         if (id==0)
             whe = "o.cls=${map.get("Cls_Material")}"
 
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Measure", "")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
 
         mdb.loadQuery(st, """
             select o.id, o.cls, v.name, v.fullName,
-                v1.id as idMeasure, v1.propVal as pvMeasure, null as meaMeasure, null as nameMeasure
+                v1.id as idMeasure, v1.propVal as pvMeasure, null as meaMeasure, null as nameMeasure,
+                v2.id as idDescription, v2.multiStrVal as Description
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Measure
                 left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Description
+                left join DataPropVal v2 on d2.id=v2.dataprop
             where ${whe}
         """, map)
         //
@@ -455,6 +458,11 @@ class DataDao extends BaseMdbUtils {
             else
                 throw new XError("[Единица измерения] не указан")
             //
+            //2 Prop_Description
+            if (pms.containsKey("Description")) {
+                if (!pms.getString("Description").isEmpty())
+                    fillProperties(true, "Prop_Description", pms)
+            }
         } else if (mode.equalsIgnoreCase("upd")) {
             String nm = pms.getString("name").trim().toLowerCase()
             Store st = mdb.loadQuery("""
@@ -482,6 +490,15 @@ class DataDao extends BaseMdbUtils {
                     fillProperties(true, "Prop_Measure", pms)
                 else
                     throw new XError("[Единица измерения] не указан")
+            }
+            //2 Prop_Description
+            if (pms.getLong("idDescription") > 0) {
+                updateProperties("Prop_Description", pms)
+            } else {
+                if (pms.containsKey("Description")) {
+                    if (!pms.getString("Description").isEmpty())
+                        fillProperties(true, "Prop_Description", pms)
+                }
             }
         } else {
             throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
