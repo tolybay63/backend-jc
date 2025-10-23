@@ -1094,7 +1094,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadTaskLog(Map<String, Object> params) {
+    Map<String, Object> loadTaskLog(Map<String, Object> params) {
         Store st = mdb.createStore("Obj.task.log")
 
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_TaskLog", "")
@@ -1298,7 +1298,27 @@ class DataDao extends BaseMdbUtils {
             }
         }
         //
-        return st
+        Map<String, Object> mapRes = new HashMap<>()
+        //
+        if (!params.containsKey("id")) {
+            Store stResource = mdb.createStore("Obj.Resource")
+            for (StoreRecord r in st) {
+                Store stPersonnel = loadResourcePersonnel(r.getLong("id"))
+                Store stMaterial = loadResourceMaterial(r.getLong("id"))
+                Store stEquipment = loadResourceEquipment(r.getLong("id"))
+                Store stTool = loadResourceTool(r.getLong("id"))
+                Store stTpService = loadResourceTpService(r.getLong("id"))
+                stResource.add(stPersonnel)
+                stResource.add(stMaterial)
+                stResource.add(stEquipment)
+                stResource.add(stTool)
+                stResource.add(stTpService)
+            }
+            mapRes.put("resource", stResource)
+        }
+
+        mapRes.put("store", st)
+        return mapRes
     }
 
     private Set<Object> getIdsObjWithChildren(long obj) {
@@ -1589,7 +1609,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store saveTaskLogPlan(String mode, Map<String, Object> params) {
+    Map<String, Object> saveTaskLogPlan(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
         pms.put("fvStatus", map.get("FV_Plan"))
@@ -1812,50 +1832,7 @@ class DataDao extends BaseMdbUtils {
                 """, "", "repairdata")
                 if (stData.size() > 0)
                     lstService.add("repairdata")
-/*                //
-                stData = loadSqlService("""
-                    select id from DataPropVal
-                    where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "objectdata")
-                if (stData.size() > 0)
-                    lstService.add("objectdata")
                 //
-                stData = loadSqlService("""
-                    select id from DataPropVal
-                    where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "orgstructuredata")
-                if (stData.size() > 0)
-                    lstService.add("orgstructuredata")
-                //
-                stData = loadSqlService("""
-                    select id from DataPropVal
-                    where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "personnaldata")
-                if (stData.size() > 0)
-                    lstService.add("personnaldata")
-                //
-                stData = loadSqlService("""
-                    select id from DataPropVal
-                    where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "plandata")
-                if (stData.size() > 0)
-                    lstService.add("plandata")
-                //
-                stData = loadSqlService("""
-                    select id from DataPropVal
-                    where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "inspectiondata")
-                if (stData.size() > 0)
-                    lstService.add("inspectiondata")
-                //
-                stData = loadSqlService("""
-                    select id from DataPropVal
-                    where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "clientdata")
-                if (stData.size() > 0)
-                    lstService.add("clientndata")
-                //
-*/
                 if (lstService.size()>0) {
                     throw new XError("${name} используется в ["+ lstService.join(", ") + "]")
                 }
@@ -1863,8 +1840,6 @@ class DataDao extends BaseMdbUtils {
             }
         }
     }
-
-
 
     //-------------------------
     private void fillProperties(boolean isObj, String cod, Map<String, Object> params) {
