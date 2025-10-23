@@ -73,10 +73,11 @@ class Repair_Test extends Apx_Test {
     void saveResourcePersonnel_ins_test () {
         DataDao dao = mdb.createDao(DataDao.class)
         Map<String, Object> map = new HashMap<>()
-        map.put("name", "Test 2")
-        map.put("objPersonnel", 1006)
-        map.put("pvPersonnel", 1538)
+        map.put("name", "Test 3")
+        map.put("fvPosition", 1132)
+        map.put("pvPosition", 1248)
         map.put("Value", 1)
+        map.put("Quantity", 1)
         map.put("objTaskLog", 1004)
         map.put("linkCls", 1294)
         map.put("CreatedAt", "2025-10-17")
@@ -92,22 +93,24 @@ class Repair_Test extends Apx_Test {
     void saveResourcePersonnel_upd_test () {
         DataDao dao = mdb.createDao(DataDao.class)
         Map<String, Object> map = new HashMap<>()
-        map.put("id", 1031)
+        map.put("id", 1085)
         map.put("cls", 1304)
         map.put("name", "Test upd")
-        map.put("idPersonnel", 1142)
-        map.put("objPersonnel", 1005)
-        map.put("pvPersonnel", 1538)
-        map.put("idValue", 1145)
+        map.put("idPosition", 1551)
+        map.put("fvPosition", 1133)
+        map.put("pvPosition", 1249)
+        map.put("idValue", 1554)
         map.put("Value", 5)
-        map.put("idTaskLog", 1143)
+        map.put("idQuantity", 1557)
+        map.put("Quantity", 5)
+        map.put("idTaskLog", 1552)
         map.put("objTaskLog", 1004)
         map.put("pvTaskLog", 1533)
-        map.put("idCreatedAt", 1146)
+        map.put("idCreatedAt", 1555)
         map.put("CreatedAt", "2025-10-17")
-        map.put("idUpdatedAt", 1147)
+        map.put("idUpdatedAt", 1556)
         map.put("UpdatedAt", "2025-10-18")
-        map.put("idUser", 1144)
+        map.put("idUser", 1553)
         map.put("objUser", 1003)
         map.put("pvUser", 1087)
 
@@ -119,7 +122,7 @@ class Repair_Test extends Apx_Test {
     @Test
     void loadResourceEquipment_test() {
         DataDao dao = mdb.createDao(DataDao.class)
-        Store st = dao.loadResourceEquipment(1004)
+        Store st = dao.loadResourceEquipment(1046)
         mdb.outTable(st)
     }
 
@@ -127,11 +130,12 @@ class Repair_Test extends Apx_Test {
     void saveResourceEquipment_ins_test () {
         DataDao dao = mdb.createDao(DataDao.class)
         Map<String, Object> map = new HashMap<>()
-        map.put("name", "Test")
-        map.put("objEquipment", 1007)
-        map.put("pvEquipment", 1536)
+        map.put("name", "Test 2")
+        map.put("fvTypEquipment", 1286)
+        map.put("pvTypEquipment", 1566)
         map.put("Value", 1)
-        map.put("objTaskLog", 1004)
+        map.put("Quantity", 1)
+        map.put("objTaskLog", 1046)
         map.put("linkCls", 1294)
         map.put("CreatedAt", "2025-10-17")
         map.put("UpdatedAt", "2025-10-17")
@@ -146,22 +150,24 @@ class Repair_Test extends Apx_Test {
     void saveResourceEquipment_upd_test () {
         DataDao dao = mdb.createDao(DataDao.class)
         Map<String, Object> map = new HashMap<>()
-        map.put("id", 1028)
+        map.put("id", 1113)
         map.put("cls", 1302)
         map.put("name", "Test upd")
-        map.put("idEquipment", 1130)
-        map.put("objEquipment", 1007)
-        map.put("pvEquipment", 1536)
-        map.put("idValue", 1133)
+        map.put("idTypEquipment", 1763)
+        map.put("fvTypEquipment", 1285)
+        map.put("pvTypEquipment", 1565)
+        map.put("idValue", 1766)
         map.put("Value", 5)
-        map.put("idTaskLog", 1131)
-        map.put("objTaskLog", 1004)
+        map.put("idQuantity", 1767)
+        map.put("Quantity", 5)
+        map.put("idTaskLog", 1764)
+        map.put("objTaskLog", 1046)
         map.put("pvTaskLog", 1533)
-        map.put("idCreatedAt", 1134)
+        map.put("idCreatedAt", 1768)
         map.put("CreatedAt", "2025-10-17")
-        map.put("idUpdatedAt", 1135)
+        map.put("idUpdatedAt", 1769)
         map.put("UpdatedAt", "2025-10-18")
-        map.put("idUser", 1132)
+        map.put("idUser", 1765)
         map.put("objUser", 1003)
         map.put("pvUser", 1087)
 
@@ -222,6 +228,7 @@ class Repair_Test extends Apx_Test {
         Store st = dao.saveResourceTool("upd", map)
         mdb.outTable(st)
     }
+
 
     @Test
     void loadResourceMaterial_test() {
@@ -299,7 +306,6 @@ class Repair_Test extends Apx_Test {
         println(plDate.join(", "))
     }
 
-
     @Test
     void loadTaskLogEntriesForWorkPlan_test () {
         DataDao dao = mdb.createDao(DataDao.class)
@@ -309,6 +315,7 @@ class Repair_Test extends Apx_Test {
         ))
         mdb.outTable(st)
     }
+
 
     @Test
     void loadTaskLog_test () {
@@ -324,13 +331,6 @@ class Repair_Test extends Apx_Test {
 
         mdb.outTable(stResource)
 
-    }
-
-    @Test
-    void loadTaskLog_test_test () {
-        DataDao dao = mdb.createDao(DataDao.class)
-        Store st = dao.loadTaskLog_test(0)
-        mdb.outTable(st)
     }
 
     @Test
@@ -352,19 +352,28 @@ class Repair_Test extends Apx_Test {
         map.put("objLocationClsSection", 1071)
         map.put("pvLocationClsSection", 1275)
 
-        Store st = dao.saveTaskLogPlan("ins", map)
-        mdb.outTable(st)
+        Map<String, Object> st = dao.saveTaskLogPlan("ins", map)
+        mdb.outTable(st.get("store"))
     }
 
     @Test
     void saveTaskLogPlan_upd_test() {
         DataDao dao = mdb.createDao(DataDao.class)
-        Store stTmp = dao.loadTaskLog(Map.of("id", 1002))
+        Map<String, Object> mapRez = dao.loadTaskLog(Map.of("id", 1095))
+        Store stTmp = mapRez.get("store")
         Map<String, Object> map = stTmp.get(0).getValues()
         map.put("name", "test 2")
         map.put("UpdatedAt", "2025-10-18")
 
-        Store st = dao.saveTaskLogPlan("upd", map)
+        Map<String, Object> st = dao.saveTaskLogPlan("upd", map)
+        mdb.outTable(st.get("store"))
+    }
+
+
+    @Test
+    void loadTaskLog_test_test () {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadTaskLog_test(0)
         mdb.outTable(st)
     }
 

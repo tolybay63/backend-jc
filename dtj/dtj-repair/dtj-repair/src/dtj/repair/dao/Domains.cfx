@@ -137,11 +137,10 @@
         <field name="cls" parent="long"/>
         <field name="name" parent="string"/>
 
-        <field name="idEquipment" parent="long"/>
-        <field name="objEquipment" parent="long"/>
-        <field name="pvEquipment" parent="long"/>
-        <field name="nameEquipment" parent="string"/>
-        <field name="Number" parent="string"/>
+        <field name="idTypEquipment" parent="long"/>
+        <field name="fvTypEquipment" parent="long"/>
+        <field name="pvTypEquipment" parent="long"/>
+        <field name="nameTypEquipment" parent="string"/>
 
         <field name="idTaskLog" parent="long"/>
         <field name="objTaskLog" parent="long"/>
@@ -154,6 +153,8 @@
 
         <field name="idValue" parent="long"/>
         <field name="Value" parent="double"/>
+        <field name="idQuantity" parent="long"/>
+        <field name="Quantity" parent="double"/>
 
         <field name="idCreatedAt" parent="long"/>
         <field name="CreatedAt" parent="string"/>
@@ -166,10 +167,10 @@
         <field name="cls" parent="long"/>
         <field name="name" parent="string"/>
 
-        <field name="idPersonnel" parent="long"/>
-        <field name="objPersonnel" parent="long"/>
-        <field name="pvPersonnel" parent="long"/>
-        <field name="fullNamePersonnel" parent="string"/>
+        <field name="idPosition" parent="long"/>
+        <field name="fvPosition" parent="long"/>
+        <field name="pvPosition" parent="long"/>
+        <field name="namePosition" parent="string"/>
 
         <field name="idTaskLog" parent="long"/>
         <field name="objTaskLog" parent="long"/>
@@ -182,6 +183,9 @@
 
         <field name="idValue" parent="long"/>
         <field name="Value" parent="double"/>
+
+        <field name="idQuantity" parent="long"/>
+        <field name="Quantity" parent="double"/>
 
         <field name="idCreatedAt" parent="long"/>
         <field name="CreatedAt" parent="string"/>
@@ -233,6 +237,8 @@
 
         <field name="idValue" parent="long"/>
         <field name="Value" parent="double"/>
+        <field name="idQuantity" parent="long"/>
+        <field name="Quantity" parent="double"/>
 
         <field name="idCreatedAt" parent="long"/>
         <field name="CreatedAt" parent="string"/>
@@ -250,10 +256,10 @@
         <field name="pvMeasure" parent="long"/>
         <field name="nameMeasure" parent="string"/>
 
-        <field name="idPersonnel" parent="long"/>
-        <field name="objPersonnel" parent="long"/>
-        <field name="pvPersonnel" parent="long"/>
-        <field name="fullNamePersonnel" parent="string"/>
+        <field name="idPosition" parent="long"/>
+        <field name="fvPosition" parent="long"/>
+        <field name="pvPosition" parent="long"/>
+        <field name="namePosition" parent="string"/>
 
         <field name="idTool" parent="long"/>
         <field name="objTool" parent="long"/>
