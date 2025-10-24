@@ -61,6 +61,43 @@ class DataDao extends BaseMdbUtils {
         return app.bean(ApinatorService).getApi("repairdata")
     }
 
+    @DaoMethod
+    Store saveComplex(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        //Prop_PerformerComplex Prop_Performer  Prop_PerformerValue
+        long own = pms.getLong("id")
+        pms.put("own", own)
+        if (mode.equalsIgnoreCase("ins")) {
+            pms.remove("idComplex")
+            pms.put("PerformerComplex", "PerformerComplex-"+own+"-"+pms.getString("objPerformer"))
+
+            mdb.startTran()
+            try {
+                fillProperties(true, "Prop_PerformerComplex", pms)
+                //
+                if (pms.getLong("objPerformer") > 0)
+                    fillProperties(true, "Prop_Performer", pms)
+                else
+                    throw new XError("[Performer] не указан")
+
+                if (pms.getDouble("PerformerValue") > 0)
+                    fillProperties(true, "Prop_PerformerValue", pms)
+                else
+                    throw new XError("[PerformerValue] не указан")
+                mdb.commit()
+            } catch (Exception e) {
+                mdb.rollback(e)
+            }
+        } else if (mode.equalsIgnoreCase("upd")) {
+
+        } else {
+            throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
+        }
+
+
+
+        return null
+    }
 
     @DaoMethod
     Store loadResourceTpService(long objTaskLog) {
@@ -1939,6 +1976,15 @@ class DataDao extends BaseMdbUtils {
         //
         StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
         recDPV.set("dataProp", idDP)
+        //Complex
+        if ([FD_PropType_consts.complex].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_PerformerComplex")) {
+                recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
         // Attrib str
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_BIN")) {
@@ -2000,12 +2046,15 @@ class DataDao extends BaseMdbUtils {
         // For Meter
         if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_Value") ||
-                    cod.equalsIgnoreCase("Prop_Quantity")) {
+                    cod.equalsIgnoreCase("Prop_Quantity") ||
+                    cod.equalsIgnoreCase("Prop_PerformerValue")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     double v = UtCnv.toDouble(params.get(keyValue))
                     v = v / koef
                     if (digit) v = v.round(digit)
                     recDPV.set("numberval", v)
+                    if (UtCnv.toLong(params.get("idComplex")) > 0)
+                        recDPV.set("parent", params.get("idComplex"))
                 }
             } else {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
@@ -2022,10 +2071,13 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_Equipment") ||
                     cod.equalsIgnoreCase("Prop_Personnel") ||
                     cod.equalsIgnoreCase("Prop_TpService") ||
-                    cod.equalsIgnoreCase("Prop_TaskLog")) {
+                    cod.equalsIgnoreCase("Prop_TaskLog") ||
+                    cod.equalsIgnoreCase("Prop_Performer")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
+                    if (UtCnv.toLong(params.get("idComplex")) > 0)
+                        recDPV.set("parent", params.get("idComplex"))
                 }
             } else {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
@@ -2053,7 +2105,9 @@ class DataDao extends BaseMdbUtils {
         recDPV.set("ord", idDPV)
         recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
         mdb.insertRec("DataPropVal", recDPV, false)
-
+        if ([FD_PropType_consts.complex].contains(propType)) {
+            params.put("idComplex", idDPV)
+        }
     }
 
     private void updateProperties(String cod, Map<String, Object> params) {

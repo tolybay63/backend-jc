@@ -7,6 +7,18 @@ import org.junit.jupiter.api.Test
 
 class Repair_Test extends Apx_Test {
 
+    @Test
+    void saveComplex_ins_test () {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("id", 1130)
+        map.put("objPerformer", 1005)
+        map.put("pvPerformer", 1564)
+        map.put("PerformerValue", 2)
+
+        Store st = dao.saveComplex("ins", map)
+//        mdb.outTable(st)
+    }
 
     @Test
     void loadResourceTpService_test() {
