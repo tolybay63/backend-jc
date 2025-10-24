@@ -272,7 +272,7 @@ class DataDao extends BaseMdbUtils {
                 select v.strVal 
                 from Obj o
                     left join DataProp d on d.objorrelobj=o.id and d.prop=${map.get("Prop_Number")}
-                    left join DataPropval v on d.id=v.dataProp and v.strVal='${pms.getString("Number")}'
+                    inner join DataPropval v on d.id=v.dataProp and v.strVal='${pms.getString("Number")}'
                 where o.cls=${pms.getLong("cls")} and o.id<>${pms.getLong("id")} 
             """)
             if (st.size() > 0)

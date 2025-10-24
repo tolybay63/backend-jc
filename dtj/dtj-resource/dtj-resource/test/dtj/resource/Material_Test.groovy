@@ -47,6 +47,15 @@ class Material_Test extends Apx_Test {
     }
 
     @Test
+    void saveEquipment_upd_test () {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map <String, Object> map = Map.of("name", "Газель", "idNumber", "1015", "Number", "0001",
+                "id", 1014, "cls", 1291, "idDescription", 1016)
+        Store st = dao.saveEquipment("upd", map)
+        mdb.outTable(st)
+    }
+
+    @Test
     void deleteObjWithProperties_test() {
         DataDao dao = mdb.createDao(DataDao.class)
         dao.deleteObjWithProperties(1000)
