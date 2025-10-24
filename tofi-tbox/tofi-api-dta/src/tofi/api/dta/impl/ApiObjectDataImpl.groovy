@@ -173,7 +173,7 @@ class ApiObjectDataImpl extends BaseMdbUtils implements ApiObjectData {
             r.set("ord", id)
             r.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
             //
-            return mdb.insertRec(tableName, r, false);
+            return mdb.insertRec(tableName, r, false)
         }
     }
 

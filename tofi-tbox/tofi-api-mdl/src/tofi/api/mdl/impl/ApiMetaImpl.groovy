@@ -57,63 +57,63 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
         if (typ == 0) {
             String typCod = UtCnv.toString(params.get("typCod"))
             Store st = mdb.loadQuery("select id from typ where lower(cod) like :c",
-                    Map.of("c", typCod.toLowerCase()));
+                    Map.of("c", typCod.toLowerCase()))
             if (st.size() == 0)
-                throw new XError("NotFoundCod@${typCod}");
-            typ = st.get(0).getLong("id");
-            params.put("typ", typ);
+                throw new XError("NotFoundCod@${typCod}")
+            typ = st.get(0).getLong("id")
+            params.put("typ", typ)
         }
 
-        boolean typNodeVisible = true;
-        long typId = UtCnv.toLong(params.get("typ"));
+        boolean typNodeVisible = true
+        long typId = UtCnv.toLong(params.get("typ"))
         if (params.get("typNodeVisible") != null)
-            typNodeVisible = UtCnv.toBoolean( params.get("typNodeVisible"));
+            typNodeVisible = UtCnv.toBoolean( params.get("typNodeVisible"))
 
-        Store dsTyp = loadFltTyp(params);
-        Store dsResult = mdb.createStore("ClsTree");
-        Store dsRes = mdb.createStore("ClsTree");
+        Store dsTyp = loadFltTyp(params)
+        Store dsResult = mdb.createStore("ClsTree")
+        Store dsRes = mdb.createStore("ClsTree")
 
         if (typId > 0) {
             if (typNodeVisible) {
-                dsResult.add(dsTyp);
+                dsResult.add(dsTyp)
             }
         } else {
-            dsResult.add(dsTyp);
+            dsResult.add(dsTyp)
         }
 
         //Store dsCls
         //Store dsClsPrt
-        Map<String, Object> param = new HashMap<>();
+        Map<String, Object> param = new HashMap<>()
         for (StoreRecord rTyp : dsTyp) {
-            param.put("own", 1L);
-            param.put("typ", rTyp.get("ent"));
+            param.put("own", 1L)
+            param.put("typ", rTyp.get("ent"))
 
-            Store dsCls = loadFltClsCpy(param);
-            dsResult.add(dsCls);
-            dsCls.clear();
+            Store dsCls = loadFltClsCpy(param)
+            dsResult.add(dsCls)
+            dsCls.clear()
 
             if (rTyp.getLong("typParent") > 0) {
-                param.put("own", 0);
-                param.put("typ", rTyp.get("ent"));
-                Store dsClsPrt = loadFltClsCpy(param);
-                dsResult.add(dsClsPrt);
-                dsClsPrt.clear();
+                param.put("own", 0)
+                param.put("typ", rTyp.get("ent"))
+                Store dsClsPrt = loadFltClsCpy(param)
+                dsResult.add(dsClsPrt)
+                dsClsPrt.clear()
             }
 
-            ClsTreeUtils clsTreeUtils = new ClsTreeUtils(mdb);
-            dsResult = clsTreeUtils.MakeTreeCls(rTyp, dsResult, typNodeVisible);
-            dsRes.add(dsResult);
+            ClsTreeUtils clsTreeUtils = new ClsTreeUtils(mdb)
+            dsResult = clsTreeUtils.MakeTreeCls(rTyp, dsResult, typNodeVisible)
+            dsRes.add(dsResult)
         }
         //
-        var ids = dsRes.getUniqueValues("id");
+        var ids = dsRes.getUniqueValues("id")
 
         for (StoreRecord r: dsRes) {
             if (!ids.contains(r.getString("parent"))) {
-                r.set("parent", null);
+                r.set("parent", null)
             }
         }
         //mdb.outTable(dsRes)
-        return dsRes;
+        return dsRes
     }
     //
     private Store loadFltTyp(Map<String, Object> params) {
@@ -130,9 +130,9 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
             ) t
             /**/where 0=0
             order by cod
-        """;
+        """
 
-        long typId = UtCnv.toLong(params.get("typ"));
+        long typId = UtCnv.toLong(params.get("typ"))
         if (typId > 0) {
             sql = """
                         select * from
@@ -145,17 +145,17 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
                         ) t
                         /**/where 0=0
                         order by cod
-                    """;
+                    """
         }
 
-        Store st = mdb.createStore("ClsTree");
-        mdb.loadQuery(st, sql, Map.of("typId", typId));
-        return st;
+        Store st = mdb.createStore("ClsTree")
+        mdb.loadQuery(st, sql, Map.of("typId", typId))
+        return st
     }
 
     private Store loadFltClsCpy(Map<String, Object> params) {
-        ClsTreeUtils clsTreeUtils = new ClsTreeUtils(mdb);
-        return clsTreeUtils.loadFltCls(params);
+        ClsTreeUtils clsTreeUtils = new ClsTreeUtils(mdb)
+        return clsTreeUtils.loadFltCls(params)
     }
 
     private long getAccessLevel() throws Exception {
@@ -277,7 +277,7 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
             where p.cod like '${codProp}'
         """)
         if (st.size() == 0)
-            throw new XError("NotFoundPossibleValues@${codProp}");
+            throw new XError("NotFoundPossibleValues@${codProp}")
         return st
     }
 
@@ -299,7 +299,7 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
             where pv.prop=p.id and pv.${entity}=${idEntity} and p.cod like '${codProp}'
         """)
         if (st.size() == 0)
-            throw new XError("NotFoundPossibleValues@${codProp}");
+            throw new XError("NotFoundPossibleValues@${codProp}")
         else
             return st.get(0).getLong("id")
     }
@@ -398,7 +398,7 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
         """)
         if (st.size()==0) {
             if (st.size() == 0)
-                throw new XError("NotFoundCod@${codFactor}");
+                throw new XError("NotFoundCod@${codFactor}")
         }
         return st
     }
@@ -588,7 +588,7 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
         Map<Long, String> mapPeriod = new HashMap<>()
         dd.forEach(r -> {
             mapPeriod.put(r.getLong("id"), r.getString("text"))
-        });
+        })
         return Map.of("dbeg", d1, "dend", d2, "periodTypeName", mapPeriod.get(periodType))
     }
 
@@ -656,15 +656,15 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
             List<Object> lst = new ArrayList<>()
             for (StoreRecord rr : stMembCls ) {
                 if (rr.getLong("membertype")== FD_MemberType_consts.cls) {
-                    lst.add(rr.getLong("cls"));
+                    lst.add(rr.getLong("cls"))
                 } else {
-                    lst.add(rr.getLong("relclsmemb"));
+                    lst.add(rr.getLong("relclsmemb"))
                 }
             }
-            lists.add(lst);
+            lists.add(lst)
         }
 
-        return lists;
+        return lists
 
     }
 
@@ -710,140 +710,139 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
         }
         lists.add(lst2)
         //
-        List<List<Object>> lstlstAll = combAll(relTyp);
-        List<List<Map<String, Object>>> listsNew = new ArrayList<>();
-        Set<Object> setCls = new HashSet<>();
-        Set<Object> setRel = new HashSet<>();
+        List<List<Object>> lstlstAll = combAll(relTyp)
+        List<List<Map<String, Object>>> listsNew = new ArrayList<>()
+        Set<Object> setCls = new HashSet<>()
+        Set<Object> setRel = new HashSet<>()
 
         for (List<Map<String, Object>> lst : lists) {
-            List<Map<String, Object>> lstNew = new ArrayList<>();
+            List<Map<String, Object>> lstNew = new ArrayList<>()
 
             lst.forEach((Map<String, Object> l) -> {
-                System.out.println(l);
-                int memType = UtCnv.toInt(l.get("memType"));
-                long cls = UtCnv.toLong(l.get("ent"));
+                System.out.println(l)
+                int memType = UtCnv.toInt(l.get("memType"))
+                long cls = UtCnv.toLong(l.get("ent"))
                 if (!setCls.contains(cls)) {
 
-                    lstNew.add(l);
+                    lstNew.add(l)
 
                     if (memType == FD_MemberType_consts.cls)
-                        setCls.add(UtCnv.toLong(cls));
+                        setCls.add(UtCnv.toLong(cls))
                     else if (memType == FD_MemberType_consts.relcls)
-                        setRel.add(UtCnv.toLong(cls));
+                        setRel.add(UtCnv.toLong(cls))
                     else
-                        throw new XError("Unknown memberTyp: " + memType);
+                        throw new XError("Unknown memberTyp: " + memType)
                 }
-            });
-            listsNew.add(lstNew);
+            })
+            listsNew.add(lstNew)
         }
 
-        String wheIds = UtString.join(setCls, ",");
-        wheIds = wheIds.isEmpty() ? "(0)" : "(" + wheIds + ")";
-        String wheIdsRel = UtString.join(setRel, ",");
-        wheIdsRel = wheIdsRel.isEmpty() ? "(0)" : "(" + wheIdsRel + ")";
+        String wheIds = UtString.join(setCls, ",")
+        wheIds = wheIds.isEmpty() ? "(0)" : "(" + wheIds + ")"
+        String wheIdsRel = UtString.join(setRel, ",")
+        wheIdsRel = wheIdsRel.isEmpty() ? "(0)" : "(" + wheIdsRel + ")"
         //
 
-        Store stCls = mdb.createStore("Cls.full");
+        Store stCls = mdb.createStore("Cls.full")
         mdb.loadQuery(stCls, """
                     select c.id, name,fullName, dataBase from Cls c, ClsVer v where c.id=v.ownerVer and v.lastVer=1
                     and c.id in
-                """ + wheIds);
-        StoreIndex indCls = stCls.getIndex("id");
+                """ + wheIds)
+        StoreIndex indCls = stCls.getIndex("id")
         //
-        Store stRelCls = mdb.createStore("Cls.full");
+        Store stRelCls = mdb.createStore("Cls.full")
         mdb.loadQuery(stRelCls, """
                     select c.id, name,fullName, dataBase from RelCls c, RelClsVer v where c.id=v.ownerVer and v.lastVer=1
                     and c.id in
-                """ + wheIdsRel);
-        StoreIndex indRelCls = stRelCls.getIndex("id");
+                """ + wheIdsRel)
+        StoreIndex indRelCls = stRelCls.getIndex("id")
         //
 
-        List<List<Map<String, Object>>> lstlstUch = CartesianProduct.result(listsNew);
+        List<List<Map<String, Object>>> lstlstUch = CartesianProduct.result(listsNew)
 
-        Map<String, Object> mapRelClsMem = new HashMap<>();
+        Map<String, Object> mapRelClsMem = new HashMap<>()
         lstlstUch.forEach((List<Map<String, Object>> lstUch) -> {
-            List<Object> sNm = new ArrayList<>();
-            List<Object> sFn = new ArrayList<>();
-            Store stMemcls = mdb.createStore("RelClsMember");
+            List<Object> sNm = new ArrayList<>()
+            List<Object> sFn = new ArrayList<>()
+            Store stMemcls = mdb.createStore("RelClsMember")
             lstUch.forEach((Map<String, Object> u) -> {
-                int memType = UtCnv.toInt(u.get("memType"));
-                int card = UtCnv.toInt(u.get("card"));
-                long cls = UtCnv.toLong(u.get("ent"));
-                StoreRecord r;
+                int memType = UtCnv.toInt(u.get("memType"))
+                int card = UtCnv.toInt(u.get("card"))
+                long cls = UtCnv.toLong(u.get("ent"))
+                StoreRecord r
                 if (memType == FD_MemberType_consts.cls) {
-                    r = indCls.get(cls);
-                    mapRelClsMem.put("cls", cls);
-                    mapRelClsMem.put("relClsMemb", null);
+                    r = indCls.get(cls)
+                    mapRelClsMem.put("cls", cls)
+                    mapRelClsMem.put("relClsMemb", null)
                 } else if (memType == FD_MemberType_consts.relcls) {
-                    r = indRelCls.get(cls);
-                    mapRelClsMem.put("cls", null);
-                    mapRelClsMem.put("relClsMemb", cls);
+                    r = indRelCls.get(cls)
+                    mapRelClsMem.put("cls", null)
+                    mapRelClsMem.put("relClsMemb", cls)
                 } else {
-                    throw new XError("Unknown memberTyp: " + memType);
+                    throw new XError("Unknown memberTyp: " + memType)
                 }
                 if (r != null) {
-                    sNm.add(r.getString("name"));
-                    sFn.add(r.getString("fullName"));
-                    mapRelClsMem.put("name", r.getString("name"));
-                    mapRelClsMem.put("fullName", r.getString("fullName"));
-                    mapRelClsMem.put("memberType", memType);
-                    mapRelClsMem.put("card", card);
+                    sNm.add(r.getString("name"))
+                    sFn.add(r.getString("fullName"))
+                    mapRelClsMem.put("name", r.getString("name"))
+                    mapRelClsMem.put("fullName", r.getString("fullName"))
+                    mapRelClsMem.put("memberType", memType)
+                    mapRelClsMem.put("card", card)
                 }
-                stMemcls.add(mapRelClsMem);
-            });
-            String nm = UtString.join(sNm, " <=> ");
-            String fn = UtString.join(sFn, " <=> ");
-            long idRelCls = 0;
-            Map<String, Object> map = new HashMap<>();
-            map.put("relTyp", relTyp);
-            map.put("name", nm);
-            map.put("fullName", fn);
+                stMemcls.add(mapRelClsMem)
+            })
+            String nm = UtString.join(sNm, " <=> ")
+            String fn = UtString.join(sFn, " <=> ")
+            long idRelCls = 0
+            Map<String, Object> map = new HashMap<>()
+            map.put("relTyp", relTyp)
+            map.put("name", nm)
+            map.put("fullName", fn)
             try {
                 StoreRecord recRelTyp = mdb.loadQueryRecord("""
                             select accessLevel, isOpenness from RelTyp where id=:id
-                        """, Map.of("id", relTyp));
-                map.put("accessLevel", recRelTyp.getLong("accesslevel"));
-                map.put("isOpenness", recRelTyp.getLong("isopenness"));
+                        """, Map.of("id", relTyp))
+                map.put("accessLevel", recRelTyp.getLong("accesslevel"))
+                map.put("isOpenness", recRelTyp.getLong("isopenness"))
                 //
-                map.put("dataBase", db);
+                map.put("dataBase", db)
             } catch (Exception e) {
-                e.printStackTrace();
+                e.printStackTrace()
             }
 
-            List<Object> setUch = new ArrayList<>();
+            List<Object> setUch = new ArrayList<>()
             for (StoreRecord r : stMemcls) {
                 if (r.getLong("cls") > 0) {
-                    setUch.add(r.getLong("cls"));
+                    setUch.add(r.getLong("cls"))
                 } else {
-                    setUch.add(r.getLong("relClsMemb"));
+                    setUch.add(r.getLong("relClsMemb"))
                 }
             }
 
             if (!lstlstAll.contains(setUch)) {
                 try {
-                    //RelClsMdbUtils ut = new RelClsMdbUtils(mdb, "RelCls");
                     EntityMdbUtils ut = new EntityMdbUtils(mdb, "RelCls")
-                    idRelCls = ut.insertEntity(map);
+                    idRelCls = ut.insertEntity(map)
                     // add to PropVal
                     Store rProp = mdb.loadQuery("select id, allItem from Prop where reltyp=:rt and proptype=:pt",
-                            Map.of("rt", relTyp, "pt", FD_PropType_consts.reltyp));
+                            Map.of("rt", relTyp, "pt", FD_PropType_consts.reltyp))
                     if (rProp.size() > 0) {
                         if (rProp.get(0).getBoolean("allItem")) {
-                            long prop = rProp.get(0).getLong("id");
-                            mdb.insertRec("PropVal", Map.of("prop", prop, "relCls", idRelCls), true);
+                            long prop = rProp.get(0).getLong("id")
+                            mdb.insertRec("PropVal", Map.of("prop", prop, "relCls", idRelCls), true)
                         }
                     }
 
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    e.printStackTrace()
                 }
 
                 for (StoreRecord r : stMemcls) {
-                    r.set("relCls", idRelCls);
+                    r.set("relCls", idRelCls)
                     try {
-                        mdb.insertRec("RelClsMember", r, true);
+                        mdb.insertRec("RelClsMember", r, true)
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        e.printStackTrace()
                     }
                 }
             }

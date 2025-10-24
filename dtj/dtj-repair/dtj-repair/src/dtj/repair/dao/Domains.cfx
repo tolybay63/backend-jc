@@ -266,10 +266,10 @@
         <field name="pvTool" parent="long"/>
         <field name="nameTool" parent="string"/>
 
-        <field name="idEquipment" parent="long"/>
-        <field name="objEquipment" parent="long"/>
-        <field name="pvEquipment" parent="long"/>
-        <field name="nameEquipment" parent="string"/>
+        <field name="idTypEquipment" parent="long"/>
+        <field name="fvTypEquipment" parent="long"/>
+        <field name="pvTypEquipment" parent="long"/>
+        <field name="nameTypEquipment" parent="string"/>
 
         <field name="idTpService" parent="long"/>
         <field name="objTpService" parent="long"/>
