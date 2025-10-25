@@ -62,6 +62,24 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store loadComplex(long id) {
+        String whe = "o.id=${id}";
+
+
+        return mdb.loadQuery("""
+            select *
+            from Obj o
+                left join DataProp d0 on d0.objorrelobj=o.id and d0.prop=:Prop_PerformerComplex
+                left join DataPropVal v0 on d0.id=v0.dataProp
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Performer
+                left join DataPropVal v1 on d1.id=v1.dataProp
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_PerformerValue
+                left join DataPropVal v2 on d2.id=v2.dataProp
+            where ${whe}
+        """)
+    }
+
+    @DaoMethod
     Store saveComplex(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         //Prop_PerformerComplex Prop_Performer  Prop_PerformerValue
@@ -89,14 +107,24 @@ class DataDao extends BaseMdbUtils {
                 mdb.rollback(e)
             }
         } else if (mode.equalsIgnoreCase("upd")) {
+            //1 Prop_Performer
+            if (pms.containsKey("idPerformer"))
+                if (pms.getLong("objPerformer") == 0)
+                    throw new XError("[Performer] не указан")
+                else
+                    updateProperties("Prop_Performer", pms)
 
+            //2 Prop_PerformerValue
+            if (pms.containsKey("idPerformerValue"))
+                if (pms.getDouble("PerformerValue") == 0)
+                    throw new XError("[PerformerValue] не указан")
+                else
+                    updateProperties("Prop_PerformerValue", pms)
         } else {
             throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
         }
-
-
-
-        return null
+        //
+        return loadComplex(own)
     }
 
     @DaoMethod
