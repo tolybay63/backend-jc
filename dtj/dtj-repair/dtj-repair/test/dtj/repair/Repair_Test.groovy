@@ -7,17 +7,31 @@ import org.junit.jupiter.api.Test
 
 class Repair_Test extends Apx_Test {
 
+
+
+    @Test
+    void loadComplex_test() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("id", 1130)
+        Store st = dao.loadComplex(map)
+        mdb.outTable(st)
+    }
+
+
+
+
     @Test
     void saveComplex_ins_test () {
         DataDao dao = mdb.createDao(DataDao.class)
         Map<String, Object> map = new HashMap<>()
         map.put("id", 1130)
-        map.put("objPerformer", 1005)
+        map.put("objPerformer", 1006)
         map.put("pvPerformer", 1564)
-        map.put("PerformerValue", 2)
+        map.put("PerformerValue", 5)
 
         Store st = dao.saveComplex("ins", map)
-//        mdb.outTable(st)
+        mdb.outTable(st)
     }
 
     @Test
@@ -77,7 +91,7 @@ class Repair_Test extends Apx_Test {
     @Test
     void loadResourcePersonnel_test() {
         DataDao dao = mdb.createDao(DataDao.class)
-        Store st = dao.loadResourcePersonnel(1004)
+        Store st = dao.loadResourcePersonnel(1126)
         mdb.outTable(st)
     }
 

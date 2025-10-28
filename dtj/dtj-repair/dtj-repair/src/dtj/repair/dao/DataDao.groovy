@@ -62,21 +62,34 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadComplex(long id) {
-        String whe = "o.id=${id}";
+    Store loadComplex(Map<String, Object> params) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_TaskLog", "")
 
+        String whe
+        if (params.containsKey("id"))
+            whe = "o.id=${UtCnv.toLong(params.get("id"))}"
+        else {
+            whe = "o.cls = ${map.get("Cls_TaskLog")}"
+        }
 
-        return mdb.loadQuery("""
-            select *
+        Store st = mdb.createStore("Obj.Complex")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        mdb.loadQuery(st,"""
+            select o.id, o.cls,
+                v1.id as idPerformerComplex, v1.strVal as PerformerComplex,
+                v2.id as idPerformer, v2.obj as objPerformer, v2.propVal as pvPerformer,
+                v3.id as idPerformerValue, v3.numberVal as PerformerValue
             from Obj o
-                left join DataProp d0 on d0.objorrelobj=o.id and d0.prop=:Prop_PerformerComplex
-                left join DataPropVal v0 on d0.id=v0.dataProp
-                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Performer
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_PerformerComplex
                 left join DataPropVal v1 on d1.id=v1.dataProp
-                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_PerformerValue
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Performer
                 left join DataPropVal v2 on d2.id=v2.dataProp
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_PerformerValue
+                left join DataPropVal v3 on d3.id=v3.dataProp
             where ${whe}
-        """)
+        """, map)
+
+        return st
     }
 
     @DaoMethod
@@ -124,7 +137,9 @@ class DataDao extends BaseMdbUtils {
             throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
         }
         //
-        return loadComplex(own)
+        Map<String, Object> mapRez = new HashMap<>()
+        mapRez.put("id", own)
+        return loadComplex(mapRez)
     }
 
     @DaoMethod
@@ -384,6 +399,38 @@ class DataDao extends BaseMdbUtils {
                 r.set("namePosition", rec.getString("name"))
         }
         return st
+    }
+
+    @DaoMethod
+    Map<String, Object> loadResourcePersonnelFact(long objTaskLog) {
+        Map<String, Object> mapRes = new HashMap<>()
+        Store plan = loadResourcePersonnel(objTaskLog)
+        //
+        if (plan.size() > 0) {
+            Set<Object> idsPlan = plan.getUniqueValues("id")
+            String whe = "o.id in (${idsPlan.join(",")})"
+            Store st = mdb.createStore("Obj.Complex")
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Performer%")
+            mdb.loadQuery(st,"""
+                select o.id, o.cls,
+                    v1.id as idPerformerComplex, v1.strVal as PerformerComplex,
+                    v2.id as idPerformer, v2.obj as objPerformer, v2.propVal as pvPerformer,
+                    v3.id as idPerformerValue, v3.numberVal as PerformerValue
+                from Obj o
+                    left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_PerformerComplex
+                    inner join DataPropVal v1 on d1.id=v1.dataProp
+                    left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Performer
+                    inner join DataPropVal v2 on d2.id=v2.dataProp and v2.parent=v1.id
+                    left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_PerformerValue
+                    inner join DataPropVal v3 on d3.id=v3.dataProp and v3.parent=v1.id
+                where ${whe}
+            """, map)
+            if (st.size() > 0) {
+                mapRes.put("resource", st)
+            }
+        }
+        mapRes.put("store", plan)
+        return mapRes
     }
 
     @DaoMethod
@@ -1624,84 +1671,32 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadTaskLog_test(long id) {
-
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_TaskLog", "")
-        Store st = mdb.createStore("Obj.task.log")
-
-
-        String whe = "o.id=${id}"
-        if (id==0)
-            whe = "o.cls=${map.get("Cls_TaskLog")}"
-
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
-
-        mdb.loadQuery(st, """
-            select o.id, o.cls, v.name,
-                v1.id as idWorkPlan, v1.obj as objWorkPlan, v1.propVal as pvWorkPlan,
-                v2.id as idTask, v2.obj as objTask, v2.propVal as pvTask, null as nameTask,
-                v3.id as idUser, v3.obj as objUser, v3.propVal as pvUser, null as nameUser,
-                v4.id as idValuePlan, v4.numberVal as ValuePlan,
-                v5.id as idValueFact, v5.numberVal as ValueFact,
-                v6.id as idPlanDateStart, v6.dateTimeVal as PlanDateStart,
-                v7.id as idPlanDateEnd, v7.dateTimeVal as PlanDateEnd,
-                v8.id as idFactDateStart, v8.dateTimeVal as FactDateStart,
-                v9.id as idFactDateEnd, v9.dateTimeVal as FactDateEnd,
-                v10.id as idCreatedAt, v10.dateTimeVal as CreatedAt,
-                v11.id as idUpdatedAt, v11.dateTimeVal as UpdatedAt
-            from Obj o 
-                left join ObjVer v on o.id=v.ownerver and v.lastver=1
-                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_WorkPlan
-                left join DataPropVal v1 on d1.id=v1.dataprop
-                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Task
-                left join DataPropVal v2 on d2.id=v2.dataprop
-                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_User
-                left join DataPropVal v3 on d3.id=v3.dataprop
-                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_ValuePlan
-                left join DataPropVal v4 on d4.id=v4.dataprop
-                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_ValueFact
-                left join DataPropVal v5 on d5.id=v5.dataprop
-                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_PlanDateStart
-                left join DataPropVal v6 on d6.id=v6.dataprop
-                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_PlanDateEnd
-                left join DataPropVal v7 on d7.id=v7.dataprop
-                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_FactDateStart
-                left join DataPropVal v8 on d8.id=v8.dataprop
-                left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=:Prop_FactDateEnd
-                left join DataPropVal v9 on d9.id=v9.dataprop
-                left join DataProp d10 on d10.objorrelobj=o.id and d10.prop=:Prop_CreatedAt
-                left join DataPropVal v10 on d10.id=v10.dataprop
-                left join DataProp d11 on d11.objorrelobj=o.id and d11.prop=:Prop_UpdatedAt
-                left join DataPropVal v11 on d11.id=v11.dataprop
-            where ${whe}
-        """, map)
-        //Пересечение
-        Set<Object> idsTask = st.getUniqueValues("objTask")
-        Store stTask = loadSqlService("""
-            select o.id, v.fullName
-            from Obj o, ObjVer v
-            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsTask.join(",")})
-        """, "", "nsidata")
-        StoreIndex indTask = stTask.getIndex("id")
-
-        Set<Object> idsUser = st.getUniqueValues("objUser")
-        Store stUser = loadSqlService("""
-            select o.id, v.fullName
-            from Obj o, ObjVer v
-            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsUser.join(",")})
-        """, "", "personnaldata")
-        StoreIndex indUser = stUser.getIndex("id")
-        for (StoreRecord r in st) {
-            StoreRecord recTask = indTask.get(r.getLong("objTask"))
-            if (recTask != null)
-                r.set("nameTask", recTask.getString("fullName"))
-
-            StoreRecord recUser = indUser.get(r.getLong("objUser"))
-            if (recUser != null)
-                r.set("fullNameUser", recUser.getString("fullName"))
-        }
+    Map<String, Object> loadTaskLogFact(Map<String, Object> params) {
+        Map<String, Object> taskLog = loadTaskLog(params)
+        Map<String, Object> mapRes = new HashMap<>()
         //
-        return st
+        Store st = taskLog.get("store") as Store
+        Map<String, Object> mapResource = new HashMap<>()
+            for (StoreRecord r in st) {
+                Map<String, Object> mapPersonnel = loadResourcePersonnelFact(r.getLong("id"))
+                Store stMaterial = loadResourceMaterial(r.getLong("id"))
+                Store stEquipment = loadResourceEquipment(r.getLong("id"))
+                Store stTool = loadResourceTool(r.getLong("id"))
+                Store stTpService = loadResourceTpService(r.getLong("id"))
+                if (((Store) mapPersonnel.get("store")).size() > 0)
+                    mapResource.put(r.getString("id") + "_personnel", mapPersonnel)
+                if (!stMaterial.isEmpty())
+                    mapResource.put(r.getString("id") + "_material", stMaterial)
+                if (!stEquipment.isEmpty())
+                    mapResource.put(r.getString("id") + "_equipment", stEquipment)
+                if (!stTool.isEmpty())
+                    mapResource.put(r.getString("id") + "_tool", stTool)
+                if (!stTpService.isEmpty())
+                    mapResource.put(r.getString("id") + "_tpService", stTpService)
+            }
+            mapRes.put("resource", mapResource)
+        mapRes.put("store", st)
+        return mapRes
     }
 
     @DaoMethod
@@ -1881,7 +1876,7 @@ class DataDao extends BaseMdbUtils {
                 updateProperties("Prop_UpdatedAt", pms)
         }
         //
-        return loadTaskLog_test(own)
+        return null
     }
 
     /**

@@ -277,6 +277,21 @@
         <field name="nameTpService" parent="string"/>
     </domain>
 
+    <domain name="Obj.Complex" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+
+        <field name="idPerformerComplex" parent="long"/>
+        <field name="PerformerComplex" parent="string"/>
+
+        <field name="idPerformer" parent="long"/>
+        <field name="objPerformer" parent="long"/>
+        <field name="pvPerformer" parent="long"/>
+        <field name="namePerformer" parent="string"/>
+
+        <field name="idPerformerValue" parent="long"/>
+        <field name="PerformerValue" parent="double"/>
+    </domain>
 
 </root>
 
