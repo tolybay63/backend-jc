@@ -104,6 +104,40 @@
         <field name="UpdatedAt" parent="string"/>
     </domain>
 
+    <domain name="Obj.ResourceMaterialFact" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idMaterial" parent="long"/>
+        <field name="objMaterial" parent="long"/>
+        <field name="pvMaterial" parent="long"/>
+        <field name="nameMaterial" parent="string"/>
+
+        <field name="idMeasure" parent="long"/>
+        <field name="meaMeasure" parent="long"/>
+        <field name="pvMeasure" parent="long"/>
+        <field name="nameMeasure" parent="string"/>
+
+        <field name="idTaskLog" parent="long"/>
+        <field name="objTaskLog" parent="long"/>
+        <field name="pvTaskLog" parent="long"/>
+
+        <field name="idUser" parent="long"/>
+        <field name="objUser" parent="long"/>
+        <field name="pvUser" parent="long"/>
+        <field name="fullNameUser" parent="string"/>
+
+        <field name="idValue" parent="long"/>
+        <field name="Value" parent="double"/>
+        <field name="ValuePlan" parent="double"/>
+
+        <field name="idCreatedAt" parent="long"/>
+        <field name="CreatedAt" parent="string"/>
+        <field name="idUpdatedAt" parent="long"/>
+        <field name="UpdatedAt" parent="string"/>
+    </domain>
+
     <domain name="Obj.ResourceTool" parent="base">
         <field name="id" parent="long"/>
         <field name="cls" parent="long"/>
@@ -221,6 +255,35 @@
         <field name="UpdatedAt" parent="string"/>
     </domain>
 
+    <domain name="Obj.ResourceTpServiceFact" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idTpService" parent="long"/>
+        <field name="objTpService" parent="long"/>
+        <field name="pvTpService" parent="long"/>
+        <field name="nameTpService" parent="string"/>
+
+        <field name="idTaskLog" parent="long"/>
+        <field name="objTaskLog" parent="long"/>
+        <field name="pvTaskLog" parent="long"/>
+
+        <field name="idUser" parent="long"/>
+        <field name="objUser" parent="long"/>
+        <field name="pvUser" parent="long"/>
+        <field name="fullNameUser" parent="string"/>
+
+        <field name="idValue" parent="long"/>
+        <field name="Value" parent="double"/>
+        <field name="ValuePlan" parent="double"/>
+
+        <field name="idCreatedAt" parent="long"/>
+        <field name="CreatedAt" parent="string"/>
+        <field name="idUpdatedAt" parent="long"/>
+        <field name="UpdatedAt" parent="string"/>
+    </domain>
+
     <domain name="Obj.Resource" parent="base">
         <field name="id" parent="long"/>
         <field name="cls" parent="long"/>
@@ -261,10 +324,10 @@
         <field name="pvPosition" parent="long"/>
         <field name="namePosition" parent="string"/>
 
-        <field name="idTool" parent="long"/>
-        <field name="objTool" parent="long"/>
-        <field name="pvTool" parent="long"/>
-        <field name="nameTool" parent="string"/>
+        <field name="idTypTool" parent="long"/>
+        <field name="fvTypTool" parent="long"/>
+        <field name="pvTypTool" parent="long"/>
+        <field name="nameTypTool" parent="string"/>
 
         <field name="idTypEquipment" parent="long"/>
         <field name="fvTypEquipment" parent="long"/>
@@ -277,7 +340,7 @@
         <field name="nameTpService" parent="string"/>
     </domain>
 
-    <domain name="Obj.Complex" parent="base">
+    <domain name="Obj.Complex.Personnel" parent="base">
         <field name="id" parent="long"/>
         <field name="cls" parent="long"/>
 
@@ -291,6 +354,38 @@
 
         <field name="idPerformerValue" parent="long"/>
         <field name="PerformerValue" parent="double"/>
+    </domain>
+
+    <domain name="Obj.Complex.Tool" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+
+        <field name="idToolComplex" parent="long"/>
+        <field name="ToolComplex" parent="string"/>
+
+        <field name="idTool" parent="long"/>
+        <field name="objTool" parent="long"/>
+        <field name="pvTool" parent="long"/>
+        <field name="nameTool" parent="string"/>
+
+        <field name="idToolValue" parent="long"/>
+        <field name="ToolValue" parent="double"/>
+    </domain>
+
+    <domain name="Obj.Complex.Equipment" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+
+        <field name="idEquipmentComplex" parent="long"/>
+        <field name="EquipmentComplex" parent="string"/>
+
+        <field name="idEquipment" parent="long"/>
+        <field name="objEquipment" parent="long"/>
+        <field name="pvEquipment" parent="long"/>
+        <field name="nameEquipment" parent="string"/>
+
+        <field name="idEquipmentValue" parent="long"/>
+        <field name="EquipmentValue" parent="double"/>
     </domain>
 
 </root>

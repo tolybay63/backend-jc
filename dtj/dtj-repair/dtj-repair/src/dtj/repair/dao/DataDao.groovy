@@ -62,6 +62,327 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    List<Map<String, Object>> loadResourceMaterialFact(long objTaskLog) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_TaskLog", "")
+        long pv = apiMeta().get(ApiMeta).idPV("cls", map.get("Cls_TaskLog"), "Prop_TaskLog")
+        //
+        Store st = mdb.createStore("Obj.ResourceMaterialFact")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        map.put("pvTaskLog", pv)
+        map.put("objTaskLog", objTaskLog)
+        Map<String, Long> map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ResourceMaterial", "")
+        map.put("cls", map2.get("Cls_ResourceMaterial"))
+        map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "", "FV_%")
+        map.put("FV_Plan", map2.get("FV_Plan"))
+        map.put("FV_Fact", map2.get("FV_Fact"))
+
+        mdb.loadQuery(st, """
+            select o.id, o.cls, v.name,
+                v1.id as idMaterial, v1.obj as objMaterial, v1.propVal as pvMaterial, null as nameMaterial,
+                v2.id as idTaskLog, v2.obj as objTaskLog, v2.propVal as pvTaskLog,
+                v3.id as idUser, v3.obj as objUser, v3.propVal as pvUser, null as fullNameUser,
+                v4.id as idValue, v4.numberVal as Value, v5.numberVal as ValuePlan,
+                v6.id as idMeasure, v6.propVal as pvMeasure, null as meaMeasure,
+                v7.id as idCreatedAt, v7.dateTimeVal as CreatedAt,
+                v8.id as idUpdatedAt, v8.dateTimeVal as UpdatedAt
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Material
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_TaskLog
+                inner join DataPropVal v2 on d2.id=v2.dataprop and v2.propVal=:pvTaskLog and v2.obj=:objTaskLog 
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_User
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Value and d4.status=:FV_Fact
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_Value and d5.status=:FV_Plan
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_Measure
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_CreatedAt
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_UpdatedAt
+                left join DataPropVal v8 on d8.id=v8.dataprop
+            where o.cls=:cls
+        """, map)
+        //Пересечение
+        Set<Object> idsMaterial = st.getUniqueValues("objMaterial")
+        Store stMaterial = loadSqlService("""
+            select o.id, o.cls, v.name
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsMaterial.join(",")})
+        """, "", "resourcedata")
+        StoreIndex indMaterial = stMaterial.getIndex("id")
+        //
+        Set<Object> idsUser = st.getUniqueValues("objUser")
+        Store stUser = loadSqlService("""
+            select o.id, o.cls, v.fullName
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsUser.join(",")})
+        """, "", "personnaldata")
+        StoreIndex indUser = stUser.getIndex("id")
+        //
+        Map<Long, Long> mapMea = apiMeta().get(ApiMeta).mapEntityIdFromPV("measure", true)
+        Store stMea = loadSqlMeta("""
+            select id, name from Measure where 0=0
+        """, "")
+        StoreIndex indMea = stMea.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord recMaterial = indMaterial.get(r.getLong("objMaterial"))
+            if (recMaterial != null)
+                r.set("nameMaterial", recMaterial.getString("name"))
+
+            StoreRecord recUser = indUser.get(r.getLong("objUser"))
+            if (recUser != null)
+                r.set("fullNameUser", recUser.getString("fullName"))
+
+            if (r.getLong("pvMeasure") > 0) {
+                r.set("meaMeasure", mapMea.get(r.getLong("pvMeasure")))
+            }
+            StoreRecord rec = indMea.get(r.getLong("meaMeasure"))
+            if (rec != null)
+                r.set("nameMeasure", rec.getString("name"))
+        }
+        //
+        List<Map<String, Object>> lstRes = new ArrayList<>()
+        if (st.size() > 0) {
+            for (StoreRecord r in st) {
+                Map<String, Object> mapRez = new HashMap<>()
+                mapRez.putAll(r.getValues())
+                lstRes.add(mapRez)
+            }
+        }
+        return lstRes
+    }
+
+    @DaoMethod
+    List<Map<String, Object>> loadResourceTpServiceFact(long objTaskLog) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_TaskLog", "")
+        long pv = apiMeta().get(ApiMeta).idPV("cls", map.get("Cls_TaskLog"), "Prop_TaskLog")
+        //
+        Store st = mdb.createStore("Obj.ResourceTpServiceFact")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        map.put("pvTaskLog", pv)
+        map.put("objTaskLog", objTaskLog)
+        Map<String, Long> map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ResourceTpService", "")
+        map.put("cls", map2.get("Cls_ResourceTpService"))
+        map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "", "FV_%")
+        map.put("FV_Plan", map2.get("FV_Plan"))
+        map.put("FV_Fact", map2.get("FV_Fact"))
+
+        mdb.loadQuery(st, """
+            select o.id, o.cls, v.name,
+                v1.id as idTpService, v1.obj as objTpService, v1.propVal as pvTpService, null as nameTpService,
+                v2.id as idTaskLog, v2.obj as objTaskLog, v2.propVal as pvTaskLog,
+                v3.id as idUser, v3.obj as objUser, v3.propVal as pvUser, null as fullNameUser,
+                v4.id as idValue, v4.numberVal as Value, v5.numberVal as ValuePlan,
+                v7.id as idCreatedAt, v7.dateTimeVal as CreatedAt,
+                v8.id as idUpdatedAt, v8.dateTimeVal as UpdatedAt
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_TpService
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_TaskLog
+                inner join DataPropVal v2 on d2.id=v2.dataprop and v2.propVal=:pvTaskLog and v2.obj=:objTaskLog 
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_User
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Value and d4.status=:FV_Fact
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_Value and d5.status=:FV_Plan
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_CreatedAt
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_UpdatedAt
+                left join DataPropVal v8 on d8.id=v8.dataprop
+            where o.cls=:cls
+        """, map)
+        //Пересечение
+        Set<Object> idsTpService = st.getUniqueValues("objTpService")
+        Store stTpService = loadSqlService("""
+            select o.id, o.cls, v.name
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsTpService.join(",")})
+        """, "", "resourcedata")
+        StoreIndex indTpService = stTpService.getIndex("id")
+        //
+        Set<Object> idsUser = st.getUniqueValues("objUser")
+        Store stUser = loadSqlService("""
+            select o.id, o.cls, v.fullName
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsUser.join(",")})
+        """, "", "personnaldata")
+        StoreIndex indUser = stUser.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord recTpService = indTpService.get(r.getLong("objTpService"))
+            if (recTpService != null)
+                r.set("nameTpService", recTpService.getString("name"))
+
+            StoreRecord recUser = indUser.get(r.getLong("objUser"))
+            if (recUser != null)
+                r.set("fullNameUser", recUser.getString("fullName"))
+        }
+        //
+        List<Map<String, Object>> lstRes = new ArrayList<>()
+        if (st.size() > 0) {
+            for (StoreRecord r in st) {
+                Map<String, Object> mapRez = new HashMap<>()
+                mapRez.putAll(r.getValues())
+                lstRes.add(mapRez)
+            }
+        }
+        return lstRes
+    }
+
+    @DaoMethod
+    List<Map<String, Object>> loadResourceEquipmentFact(long objTaskLog) {
+        List<Map<String, Object>> lstRes = new ArrayList<>()
+        Store stPlan = loadResourceEquipment(objTaskLog)
+        //
+        if (stPlan.size() > 0) {
+            Set<Object> idsPlan = stPlan.getUniqueValues("id")
+            String whe = "o.id in (${idsPlan.join(",")})"
+            Store st = mdb.createStore("Obj.Complex.Equipment")
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Equipment%")
+            mdb.loadQuery(st,"""
+                select o.id, o.cls,
+                    v1.id as idEquipmentComplex, v1.strVal as EquipmentComplex,
+                    v2.id as idEquipment, v2.obj as objEquipment, v2.propVal as pvEquipment,
+                    v3.id as idEquipmentValue, v3.numberVal as EquipmentValue
+                from Obj o
+                    left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_EquipmentComplex
+                    inner join DataPropVal v1 on d1.id=v1.dataProp
+                    left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Equipment
+                    inner join DataPropVal v2 on d2.id=v2.dataProp and v2.parent=v1.id
+                    left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_EquipmentValue
+                    inner join DataPropVal v3 on d3.id=v3.dataProp and v3.parent=v1.id
+                where ${whe}
+            """, map)
+            //
+            if (st.size() > 0) {
+                for (StoreRecord r in stPlan) {
+                    Map<String, Object> mapR = new HashMap<>()
+                    List<Map<String, Object>> lst = new ArrayList<>()
+                    mapR.putAll(r.getValues())
+                    //
+                    for (StoreRecord p in st) {
+                        if (r.getLong("id") == p.getLong("id")) {
+                            Map<String, Object> mapP = new HashMap<>()
+                            p.set("id", null)
+                            p.set("cls", null)
+                            mapP.putAll(p.getValues())
+                            lst.add(mapP)
+                        }
+                    }
+                    mapR.put("complex", lst)
+                    //
+                    lstRes.add(mapR)
+                }
+            }
+        }
+        //
+        return lstRes
+    }
+
+    @DaoMethod
+    List<Map<String, Object>> loadResourceToolFact(long objTaskLog) {
+        List<Map<String, Object>> lstRes = new ArrayList<>()
+        Store stPlan = loadResourceTool(objTaskLog)
+        //
+        if (stPlan.size() > 0) {
+            Set<Object> idsPlan = stPlan.getUniqueValues("id")
+            String whe = "o.id in (${idsPlan.join(",")})"
+            Store st = mdb.createStore("Obj.Complex.Tool")
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Tool%")
+            mdb.loadQuery(st,"""
+                select o.id, o.cls,
+                    v1.id as idToolComplex, v1.strVal as ToolComplex,
+                    v2.id as idTool, v2.obj as objTool, v2.propVal as pvTool,
+                    v3.id as idToolValue, v3.numberVal as ToolValue
+                from Obj o
+                    left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_ToolComplex
+                    inner join DataPropVal v1 on d1.id=v1.dataProp
+                    left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Tool
+                    inner join DataPropVal v2 on d2.id=v2.dataProp and v2.parent=v1.id
+                    left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_ToolValue
+                    inner join DataPropVal v3 on d3.id=v3.dataProp and v3.parent=v1.id
+                where ${whe}
+            """, map)
+            //
+            if (st.size() > 0) {
+                for (StoreRecord r in stPlan) {
+                    Map<String, Object> mapR = new HashMap<>()
+                    List<Map<String, Object>> lst = new ArrayList<>()
+                    mapR.putAll(r.getValues())
+                    //
+                    for (StoreRecord p in st) {
+                        if (r.getLong("id") == p.getLong("id")) {
+                            Map<String, Object> mapP = new HashMap<>()
+                            p.set("id", null)
+                            p.set("cls", null)
+                            mapP.putAll(p.getValues())
+                            lst.add(mapP)
+                        }
+                    }
+                    mapR.put("complex", lst)
+                    //
+                    lstRes.add(mapR)
+                }
+            }
+        }
+        //
+        return lstRes
+    }
+
+    @DaoMethod
+    List<Map<String, Object>> loadResourcePersonnelFact(long objTaskLog) {
+        List<Map<String, Object>> lstRes = new ArrayList<>()
+        Store stPlan = loadResourcePersonnel(objTaskLog)
+        //
+        if (stPlan.size() > 0) {
+            Set<Object> idsPlan = stPlan.getUniqueValues("id")
+            String whe = "o.id in (${idsPlan.join(",")})"
+            Store st = mdb.createStore("Obj.Complex.Personnel")
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Performer%")
+            mdb.loadQuery(st,"""
+                select o.id, o.cls,
+                    v1.id as idPerformerComplex, v1.strVal as PerformerComplex,
+                    v2.id as idPerformer, v2.obj as objPerformer, v2.propVal as pvPerformer,
+                    v3.id as idPerformerValue, v3.numberVal as PerformerValue
+                from Obj o
+                    left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_PerformerComplex
+                    inner join DataPropVal v1 on d1.id=v1.dataProp
+                    left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Performer
+                    inner join DataPropVal v2 on d2.id=v2.dataProp and v2.parent=v1.id
+                    left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_PerformerValue
+                    inner join DataPropVal v3 on d3.id=v3.dataProp and v3.parent=v1.id
+                where ${whe}
+            """, map)
+            //
+            if (st.size() > 0) {
+                for (StoreRecord r in stPlan) {
+                    Map<String, Object> mapR = new HashMap<>()
+                    List<Map<String, Object>> lst = new ArrayList<>()
+                    mapR.putAll(r.getValues())
+                    //
+                    for (StoreRecord p in st) {
+                        if (r.getLong("id") == p.getLong("id")) {
+                            Map<String, Object> mapP = new HashMap<>()
+                            p.set("id", null)
+                            p.set("cls", null)
+                            mapP.putAll(p.getValues())
+                            lst.add(mapP)
+                        }
+                    }
+                    mapR.put("complex", lst)
+                    //
+                    lstRes.add(mapR)
+                }
+            }
+        }
+        //
+        return lstRes
+    }
+
+    //todo
+    @DaoMethod
     Store loadComplex(Map<String, Object> params) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_TaskLog", "")
 
@@ -93,7 +414,105 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store saveComplex(String mode, Map<String, Object> params) {
+    void saveComplexEquipment(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own = pms.getLong("id")
+        pms.put("own", own)
+        if (mode.equalsIgnoreCase("ins")) {
+            pms.remove("idComplex")
+            pms.put("EquipmentComplex", "EquipmentComplex-"+own+"-"+pms.getString("objEquipment"))
+
+            mdb.startTran()
+            try {
+                fillProperties(true, "Prop_EquipmentComplex", pms)
+                //
+                if (pms.getLong("objEquipment") > 0)
+                    fillProperties(true, "Prop_Equipment", pms)
+                else
+                    throw new XError("[Equipment] не указан")
+
+                if (pms.getDouble("EquipmentValue") > 0)
+                    fillProperties(true, "Prop_EquipmentValue", pms)
+                else
+                    throw new XError("[EquipmentValue] не указан")
+                mdb.commit()
+            } catch (Exception e) {
+                mdb.rollback(e)
+            }
+        } else if (mode.equalsIgnoreCase("upd")) {
+            //1 Prop_Equipment
+            if (pms.containsKey("idEquipment"))
+                if (pms.getLong("objEquipment") == 0)
+                    throw new XError("[Equipment] не указан")
+                else
+                    updateProperties("Prop_Equipment", pms)
+
+            //2 Prop_EquipmentValue
+            if (pms.containsKey("idEquipmentValue"))
+                if (pms.getDouble("EquipmentValue") == 0)
+                    throw new XError("[EquipmentValue] не указан")
+                else
+                    updateProperties("Prop_EquipmentValue", pms)
+        } else {
+            throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
+        }
+        //
+        Map<String, Object> mapRez = new HashMap<>()
+        mapRez.put("id", own)
+        //return loadComplex(mapRez)
+    }
+
+    @DaoMethod
+    void saveComplexTool(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own = pms.getLong("id")
+        pms.put("own", own)
+        if (mode.equalsIgnoreCase("ins")) {
+            pms.remove("idComplex")
+            pms.put("ToolComplex", "ToolComplex-"+own+"-"+pms.getString("objTool"))
+
+            mdb.startTran()
+            try {
+                fillProperties(true, "Prop_ToolComplex", pms)
+                //
+                if (pms.getLong("objTool") > 0)
+                    fillProperties(true, "Prop_Tool", pms)
+                else
+                    throw new XError("[Tool] не указан")
+
+                if (pms.getDouble("ToolValue") > 0)
+                    fillProperties(true, "Prop_ToolValue", pms)
+                else
+                    throw new XError("[ToolValue] не указан")
+                mdb.commit()
+            } catch (Exception e) {
+                mdb.rollback(e)
+            }
+        } else if (mode.equalsIgnoreCase("upd")) {
+            //1 Prop_Tool
+            if (pms.containsKey("idTool"))
+                if (pms.getLong("objTool") == 0)
+                    throw new XError("[Tool] не указан")
+                else
+                    updateProperties("Prop_Tool", pms)
+
+            //2 Prop_ToolValue
+            if (pms.containsKey("idToolValue"))
+                if (pms.getDouble("ToolValue") == 0)
+                    throw new XError("[ToolValue] не указан")
+                else
+                    updateProperties("Prop_ToolValue", pms)
+        } else {
+            throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
+        }
+        //
+        Map<String, Object> mapRez = new HashMap<>()
+        mapRez.put("id", own)
+        //return loadComplex(mapRez)
+    }
+
+    @DaoMethod
+    void saveComplexPersonnel(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         //Prop_PerformerComplex Prop_Performer  Prop_PerformerValue
         long own = pms.getLong("id")
@@ -139,7 +558,7 @@ class DataDao extends BaseMdbUtils {
         //
         Map<String, Object> mapRez = new HashMap<>()
         mapRez.put("id", own)
-        return loadComplex(mapRez)
+        //return loadComplex(mapRez)
     }
 
     @DaoMethod
@@ -399,38 +818,6 @@ class DataDao extends BaseMdbUtils {
                 r.set("namePosition", rec.getString("name"))
         }
         return st
-    }
-
-    @DaoMethod
-    Map<String, Object> loadResourcePersonnelFact(long objTaskLog) {
-        Map<String, Object> mapRes = new HashMap<>()
-        Store plan = loadResourcePersonnel(objTaskLog)
-        //
-        if (plan.size() > 0) {
-            Set<Object> idsPlan = plan.getUniqueValues("id")
-            String whe = "o.id in (${idsPlan.join(",")})"
-            Store st = mdb.createStore("Obj.Complex")
-            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Performer%")
-            mdb.loadQuery(st,"""
-                select o.id, o.cls,
-                    v1.id as idPerformerComplex, v1.strVal as PerformerComplex,
-                    v2.id as idPerformer, v2.obj as objPerformer, v2.propVal as pvPerformer,
-                    v3.id as idPerformerValue, v3.numberVal as PerformerValue
-                from Obj o
-                    left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_PerformerComplex
-                    inner join DataPropVal v1 on d1.id=v1.dataProp
-                    left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Performer
-                    inner join DataPropVal v2 on d2.id=v2.dataProp and v2.parent=v1.id
-                    left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_PerformerValue
-                    inner join DataPropVal v3 on d3.id=v3.dataProp and v3.parent=v1.id
-                where ${whe}
-            """, map)
-            if (st.size() > 0) {
-                mapRes.put("resource", st)
-            }
-        }
-        mapRes.put("store", plan)
-        return mapRes
     }
 
     @DaoMethod
@@ -1238,6 +1625,212 @@ class DataDao extends BaseMdbUtils {
         return st
     }
 
+    private Set<Object> getIdsObjWithChildren(long obj) {
+        Store st = loadSqlService("""
+           WITH RECURSIVE r AS (
+               SELECT o.id, v.objParent as parent
+               FROM Obj o, ObjVer v
+               WHERE o.id=v.ownerver and v.lastver=1 and v.objParent=${obj}
+               UNION ALL
+               SELECT t.*
+               FROM ( SELECT o.id, v.objParent as parent
+                      FROM Obj o, ObjVer v
+                      WHERE o.id=v.ownerver and v.lastver=1
+                    ) t
+                  JOIN r
+                      ON t.parent = r.id
+           ),
+           o as (
+           SELECT o.id, v.objParent as parent
+           FROM Obj o, ObjVer v
+           WHERE o.id=v.ownerver and v.lastver=1 and o.id=${obj}
+           )
+           SELECT * FROM o
+           UNION ALL
+           SELECT * FROM r
+           where 0=0
+        """, "", "orgstructuredata")
+
+        return st.getUniqueValues("id")
+    }
+
+    @DaoMethod
+    Store loadObjClsWorkPlanCorrectionalUnfinishedByDate(Map<String, Object> params) {
+        long obj = UtCnv.toLong(params.get("id"))
+        long pvObj = UtCnv.toLong(params.get("pv"))
+        String dte = UtCnv.toString(params.get("date"))
+
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_WorkPlanCorrectional", "")
+        long cls_WorkPlanInspection = map.get("Cls_WorkPlanCorrectional")
+        Store stTmp = loadSqlService("""
+            select id
+            from Obj
+            where cls=${map.get("Cls_WorkPlanCorrectional")}    
+        """, "", "plandata")
+        Set<Object> idsWorkPlan = stTmp.getUniqueValues("id")
+        //
+        stTmp = loadSqlService("""
+            select d.objorrelobj as own
+            from DataProp d, DataPropVal v
+            where d.id=v.dataProp and v.propVal=${pvObj} and v.obj=${obj} and d.objorrelobj in (0${idsWorkPlan.join(",")})
+        """, "", "plandata")
+
+        Set<Object> idsOwn = stTmp.getUniqueValues("own")
+
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_____DateEnd")
+        stTmp = loadSqlService("""
+            select d.objorrelobj as own
+            from DataProp d
+                left join DataPropVal v on d.id=v.dataProp 
+            where d.objorrelobj in (0${idsOwn.join(",")}) and d.prop=${map.get("Prop_PlanDateEnd")}
+            and v.dateTimeVal::date='${dte}'
+            except
+            select d.objorrelobj as own
+            from DataProp d
+                left join DataPropVal v on d.id=v.dataProp 
+            where d.objorrelobj in (0${idsOwn.join(",")}) and d.prop=${map.get("Prop_FactDateEnd")}
+                and v.dateTimeVal is not null
+        """, "", "plandata")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        long prop_WorkPlan = map.get("Prop_WorkPlan")
+        idsOwn = stTmp.getUniqueValues("own")
+        Store st = loadSqlService("""
+            select o.id, o.cls, null as pv, null as objSection, null as nameSection,
+                v1.id as idWork, v1.propVal as pvWork, v1.obj as objWork, null as fullNameWork,
+                v2.id as idObject, v2.propVal as pvObject, v2.obj as objObject, 
+                    null as nameClsObject, null as fullNameObject,
+                v3.id as idStartKm, v3.numberVal as StartKm,
+                v4.id as idFinishKm, v4.numberVal as FinishKm,
+                v5.id as idStartPicket, v5.numberVal as StartPicket,
+                v6.id as idFinishPicket, v6.numberVal as FinishPicket
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Work")}
+                left join DataPropVal v1 on d1.id=v1.dataprop             
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_Object")}
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_StartKm")}
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_FinishKm")}
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_StartPicket")}
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=${map.get("Prop_FinishPicket")}
+                left join DataPropVal v6 on d6.id=v6.dataprop
+            where o.id in (0${idsOwn.join(",")})
+        """, "Obj.UnfinishedByDate", "plandata")
+        // find pv...
+        Store stPV = loadSqlMeta("""
+            select id, prop, cls
+            from PropVal
+            where prop=${prop_WorkPlan} and cls=${cls_WorkPlanInspection}
+        """, "")
+        long pv
+        if (stPV.size() > 0) {
+            pv = stPV.get(0).getLong("id")
+        } else {
+            throw new XError("Не найден pvWorkPlan")
+        }
+        //
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Object", "")
+        Store stCls = loadSqlMeta("""
+            select c.id, v.name from Cls c, ClsVer v where c.id=v.ownerVer and v.lastVer=1 and typ=${map.get("Typ_Object")}
+        """, "")
+        StoreIndex indCls = stCls.getIndex("id")
+        //
+        Set<Object> idsObject = st.getUniqueValues("objObject")
+        Store stObject = loadSqlService("""
+            select o.id, o.cls, v.fullName, null as nameClsObject
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (${idsObject.join(",")})
+        """, "", "objectdata")
+
+        for (StoreRecord r in stObject) {
+            StoreRecord rec = indCls.get(r.getLong("cls"))
+            if (rec != null)
+                r.set("nameClsObject", rec.getString("name"))
+        }
+        StoreIndex indObject = stObject.getIndex("id")
+        //
+        Set<Object> idsWork = st.getUniqueValues("objWork")
+        Store stWork = loadSqlService("""
+            select o.id, o.cls, v.fullName
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsWork.join(",")})
+        """, "", "nsidata")
+        StoreIndex indWork = stWork.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            r.set("pv", pv)
+            StoreRecord rWork = indWork.get(r.getLong("objWork"))
+            if (rWork != null) {
+                r.set("fullNameWork", rWork.getString("fullName"))
+            }
+            StoreRecord rObject = indObject.get(r.getLong("objObject"))
+            if (rObject != null) {
+                r.set("fullNameObject", rObject.getString("fullName"))
+                r.set("nameClsObject", rObject.getString("nameClsObject"))
+            }
+        }
+        //
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Section", "")
+        Store stSection = loadSqlService("""
+            select o.id, o.cls, v1.obj as objSection, ov1.name as nameSection
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Section")}
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join ObjVer ov1 on ov1.ownerVer=v1.obj and ov1.lastVer=1
+            where o.id in (0${idsObject.join(",")})
+        """, "", "objectdata")
+
+        StoreIndex indSection = stSection.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord rec = indSection.get(r.getLong("objObject"))
+            if (rec != null) {
+                r.set("nameSection", rec.getString("nameSection"))
+                r.set("objSection", rec.getString("objSection"))
+            }
+        }
+
+        return st
+    }
+
+    @DaoMethod
+    Set<String> loadDateWorkPlanCorrectional(Map<String, Object> params) {
+        long obj = UtCnv.toLong(params.get("id"))
+        long pv = UtCnv.toLong(params.get("pv"))
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_WorkPlanCorrectional", "")
+
+        Store stTmp = loadSqlService("""
+            select d.objorrelobj as own
+            from DataProp d, DataPropVal v, Obj o
+            where d.id=v.dataProp and d.objorrelobj=o.id and 
+                o.cls=${map.get("Cls_WorkPlanCorrectional")} and v.propVal=${pv} and v.obj=${obj}    
+        """, "", "plandata")
+        Set<Object> idsOwn = stTmp.getUniqueValues("own")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_____DateEnd")
+        stTmp = loadSqlService("""
+            select d.objorrelobj as own
+            from DataProp d
+                left join DataPropVal v on d.id=v.dataProp 
+            where d.objorrelobj in (0${idsOwn.join(",")}) and d.prop=${map.get("Prop_PlanDateEnd")}
+            and v.dateTimeVal is not null
+            except
+            select d.objorrelobj as own
+            from DataProp d
+                left join DataPropVal v on d.id=v.dataProp 
+            where d.objorrelobj in (0${idsOwn.join(",")}) and d.prop=${map.get("Prop_FactDateEnd")}
+                and v.dateTimeVal is not null
+        """, "", "plandata")
+        idsOwn = stTmp.getUniqueValues("own")
+        stTmp = loadSqlService("""
+            select v.dateTimeVal as plDate
+            from DataProp d, DataPropVal v
+            where d.id=v.dataProp and d.objorrelobj in (0${idsOwn.join(",")})
+                and d.prop=${map.get("Prop_PlanDateEnd")}
+        """, "", "plandata")
+
+        return stTmp.getUniqueValues("plDate") as Set<String>
+    }
+
     @DaoMethod
     Map<String, Object> loadTaskLog(Map<String, Object> params) {
         Store st = mdb.createStore("Obj.task.log")
@@ -1466,241 +2059,6 @@ class DataDao extends BaseMdbUtils {
         return mapRes
     }
 
-    private Set<Object> getIdsObjWithChildren(long obj) {
-        Store st = loadSqlService("""
-           WITH RECURSIVE r AS (
-               SELECT o.id, v.objParent as parent
-               FROM Obj o, ObjVer v
-               WHERE o.id=v.ownerver and v.lastver=1 and v.objParent=${obj}
-               UNION ALL
-               SELECT t.*
-               FROM ( SELECT o.id, v.objParent as parent
-                      FROM Obj o, ObjVer v
-                      WHERE o.id=v.ownerver and v.lastver=1
-                    ) t
-                  JOIN r
-                      ON t.parent = r.id
-           ),
-           o as (
-           SELECT o.id, v.objParent as parent
-           FROM Obj o, ObjVer v
-           WHERE o.id=v.ownerver and v.lastver=1 and o.id=${obj}
-           )
-           SELECT * FROM o
-           UNION ALL
-           SELECT * FROM r
-           where 0=0
-        """, "", "orgstructuredata")
-
-        return st.getUniqueValues("id")
-    }
-
-    @DaoMethod
-    Store loadObjClsWorkPlanCorrectionalUnfinishedByDate(Map<String, Object> params) {
-        long obj = UtCnv.toLong(params.get("id"))
-        long pvObj = UtCnv.toLong(params.get("pv"))
-        String dte = UtCnv.toString(params.get("date"))
-
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_WorkPlanCorrectional", "")
-        long cls_WorkPlanInspection = map.get("Cls_WorkPlanCorrectional")
-        Store stTmp = loadSqlService("""
-            select id
-            from Obj
-            where cls=${map.get("Cls_WorkPlanCorrectional")}    
-        """, "", "plandata")
-        Set<Object> idsWorkPlan = stTmp.getUniqueValues("id")
-        //
-        stTmp = loadSqlService("""
-            select d.objorrelobj as own
-            from DataProp d, DataPropVal v
-            where d.id=v.dataProp and v.propVal=${pvObj} and v.obj=${obj} and d.objorrelobj in (0${idsWorkPlan.join(",")})
-        """, "", "plandata")
-
-        Set<Object> idsOwn = stTmp.getUniqueValues("own")
-
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_____DateEnd")
-        stTmp = loadSqlService("""
-            select d.objorrelobj as own
-            from DataProp d
-                left join DataPropVal v on d.id=v.dataProp 
-            where d.objorrelobj in (0${idsOwn.join(",")}) and d.prop=${map.get("Prop_PlanDateEnd")}
-            and v.dateTimeVal::date='${dte}'
-            except
-            select d.objorrelobj as own
-            from DataProp d
-                left join DataPropVal v on d.id=v.dataProp 
-            where d.objorrelobj in (0${idsOwn.join(",")}) and d.prop=${map.get("Prop_FactDateEnd")}
-                and v.dateTimeVal is not null
-        """, "", "plandata")
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
-        long prop_WorkPlan = map.get("Prop_WorkPlan")
-        idsOwn = stTmp.getUniqueValues("own")
-        Store st = loadSqlService("""
-            select o.id, o.cls, null as pv, null as objSection, null as nameSection,
-                v1.id as idWork, v1.propVal as pvWork, v1.obj as objWork, null as fullNameWork,
-                v2.id as idObject, v2.propVal as pvObject, v2.obj as objObject, 
-                    null as nameClsObject, null as fullNameObject,
-                v3.id as idStartKm, v3.numberVal as StartKm,
-                v4.id as idFinishKm, v4.numberVal as FinishKm,
-                v5.id as idStartPicket, v5.numberVal as StartPicket,
-                v6.id as idFinishPicket, v6.numberVal as FinishPicket
-            from Obj o
-                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Work")}
-                left join DataPropVal v1 on d1.id=v1.dataprop             
-                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_Object")}
-                left join DataPropVal v2 on d2.id=v2.dataprop
-                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_StartKm")}
-                left join DataPropVal v3 on d3.id=v3.dataprop
-                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_FinishKm")}
-                left join DataPropVal v4 on d4.id=v4.dataprop
-                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_StartPicket")}
-                left join DataPropVal v5 on d5.id=v5.dataprop
-                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=${map.get("Prop_FinishPicket")}
-                left join DataPropVal v6 on d6.id=v6.dataprop
-            where o.id in (0${idsOwn.join(",")})
-        """, "Obj.UnfinishedByDate", "plandata")
-        // find pv...
-        Store stPV = loadSqlMeta("""
-            select id, prop, cls
-            from PropVal
-            where prop=${prop_WorkPlan} and cls=${cls_WorkPlanInspection}
-        """, "")
-        long pv
-        if (stPV.size() > 0) {
-            pv = stPV.get(0).getLong("id")
-        } else {
-            throw new XError("Не найден pvWorkPlan")
-        }
-        //
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Object", "")
-        Store stCls = loadSqlMeta("""
-            select c.id, v.name from Cls c, ClsVer v where c.id=v.ownerVer and v.lastVer=1 and typ=${map.get("Typ_Object")}
-        """, "")
-        StoreIndex indCls = stCls.getIndex("id")
-        //
-        Set<Object> idsObject = st.getUniqueValues("objObject")
-        Store stObject = loadSqlService("""
-            select o.id, o.cls, v.fullName, null as nameClsObject
-            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (${idsObject.join(",")})
-        """, "", "objectdata")
-
-        for (StoreRecord r in stObject) {
-            StoreRecord rec = indCls.get(r.getLong("cls"))
-            if (rec != null)
-                r.set("nameClsObject", rec.getString("name"))
-        }
-        StoreIndex indObject = stObject.getIndex("id")
-        //
-        Set<Object> idsWork = st.getUniqueValues("objWork")
-        Store stWork = loadSqlService("""
-            select o.id, o.cls, v.fullName
-            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsWork.join(",")})
-        """, "", "nsidata")
-        StoreIndex indWork = stWork.getIndex("id")
-        //
-        for (StoreRecord r in st) {
-            r.set("pv", pv)
-            StoreRecord rWork = indWork.get(r.getLong("objWork"))
-            if (rWork != null) {
-                r.set("fullNameWork", rWork.getString("fullName"))
-            }
-            StoreRecord rObject = indObject.get(r.getLong("objObject"))
-            if (rObject != null) {
-                r.set("fullNameObject", rObject.getString("fullName"))
-                r.set("nameClsObject", rObject.getString("nameClsObject"))
-            }
-        }
-        //
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Section", "")
-        Store stSection = loadSqlService("""
-            select o.id, o.cls, v1.obj as objSection, ov1.name as nameSection
-            from Obj o
-                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Section")}
-                left join DataPropVal v1 on d1.id=v1.dataprop
-                left join ObjVer ov1 on ov1.ownerVer=v1.obj and ov1.lastVer=1
-            where o.id in (0${idsObject.join(",")})
-        """, "", "objectdata")
-
-        StoreIndex indSection = stSection.getIndex("id")
-        //
-        for (StoreRecord r in st) {
-            StoreRecord rec = indSection.get(r.getLong("objObject"))
-            if (rec != null) {
-                r.set("nameSection", rec.getString("nameSection"))
-                r.set("objSection", rec.getString("objSection"))
-            }
-        }
-
-        return st
-    }
-
-    @DaoMethod
-    Set<String> loadDateWorkPlanCorrectional(Map<String, Object> params) {
-        long obj = UtCnv.toLong(params.get("id"))
-        long pv = UtCnv.toLong(params.get("pv"))
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_WorkPlanCorrectional", "")
-
-        Store stTmp = loadSqlService("""
-            select d.objorrelobj as own
-            from DataProp d, DataPropVal v, Obj o
-            where d.id=v.dataProp and d.objorrelobj=o.id and 
-                o.cls=${map.get("Cls_WorkPlanCorrectional")} and v.propVal=${pv} and v.obj=${obj}    
-        """, "", "plandata")
-        Set<Object> idsOwn = stTmp.getUniqueValues("own")
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_____DateEnd")
-        stTmp = loadSqlService("""
-            select d.objorrelobj as own
-            from DataProp d
-                left join DataPropVal v on d.id=v.dataProp 
-            where d.objorrelobj in (0${idsOwn.join(",")}) and d.prop=${map.get("Prop_PlanDateEnd")}
-            and v.dateTimeVal is not null
-            except
-            select d.objorrelobj as own
-            from DataProp d
-                left join DataPropVal v on d.id=v.dataProp 
-            where d.objorrelobj in (0${idsOwn.join(",")}) and d.prop=${map.get("Prop_FactDateEnd")}
-                and v.dateTimeVal is not null
-        """, "", "plandata")
-        idsOwn = stTmp.getUniqueValues("own")
-        stTmp = loadSqlService("""
-            select v.dateTimeVal as plDate
-            from DataProp d, DataPropVal v
-            where d.id=v.dataProp and d.objorrelobj in (0${idsOwn.join(",")})
-                and d.prop=${map.get("Prop_PlanDateEnd")}
-        """, "", "plandata")
-
-        return stTmp.getUniqueValues("plDate") as Set<String>
-    }
-
-    @DaoMethod
-    Map<String, Object> loadTaskLogFact(Map<String, Object> params) {
-        Map<String, Object> taskLog = loadTaskLog(params)
-        Map<String, Object> mapRes = new HashMap<>()
-        //
-        Store st = taskLog.get("store") as Store
-        Map<String, Object> mapResource = new HashMap<>()
-            for (StoreRecord r in st) {
-                Map<String, Object> mapPersonnel = loadResourcePersonnelFact(r.getLong("id"))
-                Store stMaterial = loadResourceMaterial(r.getLong("id"))
-                Store stEquipment = loadResourceEquipment(r.getLong("id"))
-                Store stTool = loadResourceTool(r.getLong("id"))
-                Store stTpService = loadResourceTpService(r.getLong("id"))
-                if (((Store) mapPersonnel.get("store")).size() > 0)
-                    mapResource.put(r.getString("id") + "_personnel", mapPersonnel)
-                if (!stMaterial.isEmpty())
-                    mapResource.put(r.getString("id") + "_material", stMaterial)
-                if (!stEquipment.isEmpty())
-                    mapResource.put(r.getString("id") + "_equipment", stEquipment)
-                if (!stTool.isEmpty())
-                    mapResource.put(r.getString("id") + "_tool", stTool)
-                if (!stTpService.isEmpty())
-                    mapResource.put(r.getString("id") + "_tpService", stTpService)
-            }
-            mapRes.put("resource", mapResource)
-        mapRes.put("store", st)
-        return mapRes
-    }
-
     @DaoMethod
     Map<String, Object> saveTaskLogPlan(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
@@ -1819,6 +2177,38 @@ class DataDao extends BaseMdbUtils {
         Map<String, Object> mapRez = new HashMap<>()
         mapRez.put("id", own)
         return loadTaskLog(mapRez)
+    }
+
+    @DaoMethod
+    List<Map<String, Object>> loadTaskLogFact(Map<String, Object> params) {
+        Map<String, Object> taskLog = loadTaskLog(params)
+        //
+        Store st = taskLog.get("store") as Store
+        List<Map<String, Object>> lstResource = new ArrayList<>()
+        for (StoreRecord r in st) {
+            Map<String, Object> mapResource = new HashMap<>()
+            mapResource.putAll(r.getValues())
+            //
+            List<Map<String, Object>> lstPersonnel = loadResourcePersonnelFact(r.getLong("id"))
+            List<Map<String, Object>> lstMaterial = loadResourceMaterialFact(r.getLong("id"))
+            List<Map<String, Object>> lstEquipment = loadResourceEquipmentFact(r.getLong("id"))
+            List<Map<String, Object>> lstTool = loadResourceToolFact(r.getLong("id"))
+            List<Map<String, Object>> lstTpService = loadResourceTpServiceFact(r.getLong("id"))
+            //
+            if (!lstPersonnel.isEmpty())
+                mapResource.put("personnel", lstPersonnel)
+            if (!lstMaterial.isEmpty())
+                mapResource.put("material", lstMaterial)
+            if (!lstEquipment.isEmpty())
+                mapResource.put("equipment", lstEquipment)
+            if (!lstTool.isEmpty())
+                mapResource.put("tool", lstTool)
+            if (!lstTpService.isEmpty())
+                mapResource.put("tpService", lstTpService)
+            //
+            lstResource.add(mapResource)
+        }
+        return lstResource
     }
 
     @DaoMethod
@@ -2003,7 +2393,9 @@ class DataDao extends BaseMdbUtils {
         recDPV.set("dataProp", idDP)
         //Complex
         if ([FD_PropType_consts.complex].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_PerformerComplex")) {
+            if (cod.equalsIgnoreCase("Prop_PerformerComplex") ||
+                    cod.equalsIgnoreCase("Prop_ToolComplex") ||
+                    cod.equalsIgnoreCase("Prop_EquipmentComplex")) {
                 recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
             } else {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
@@ -2073,7 +2465,9 @@ class DataDao extends BaseMdbUtils {
         if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_Value") ||
                     cod.equalsIgnoreCase("Prop_Quantity") ||
-                    cod.equalsIgnoreCase("Prop_PerformerValue")) {
+                    cod.equalsIgnoreCase("Prop_PerformerValue") ||
+                    cod.equalsIgnoreCase("Prop_ToolValue") ||
+                    cod.equalsIgnoreCase("Prop_EquipmentValue")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     double v = UtCnv.toDouble(params.get(keyValue))
                     v = v / koef
@@ -2098,7 +2492,9 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_Personnel") ||
                     cod.equalsIgnoreCase("Prop_TpService") ||
                     cod.equalsIgnoreCase("Prop_TaskLog") ||
-                    cod.equalsIgnoreCase("Prop_Performer")) {
+                    cod.equalsIgnoreCase("Prop_Performer") ||
+                    cod.equalsIgnoreCase("Prop_Tool") ||
+                    cod.equalsIgnoreCase("Prop_Equipment")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
@@ -2261,7 +2657,10 @@ class DataDao extends BaseMdbUtils {
         // For Meter
         if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_Value") ||
-                    cod.equalsIgnoreCase("Prop_Quantity")) {
+                    cod.equalsIgnoreCase("Prop_Quantity") ||
+                    cod.equalsIgnoreCase("Prop_PerformerValue") ||
+                    cod.equalsIgnoreCase("Prop_ToolValue") ||
+                    cod.equalsIgnoreCase("Prop_EquipmentValue")) {
                 if (mapProp[keyValue] != "") {
                     def v = mapProp.getDouble(keyValue)
                     v = v / koef
@@ -2291,6 +2690,9 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_Tool") ||
                     cod.equalsIgnoreCase("Prop_Personnel") ||
                     cod.equalsIgnoreCase("Prop_TpService") ||
+                    cod.equalsIgnoreCase("Prop_Equipment") ||
+                    cod.equalsIgnoreCase("Prop_Performer") ||
+                    cod.equalsIgnoreCase("Prop_Tool") ||
                     cod.equalsIgnoreCase("Prop_Equipment")) {
                 if (objRef > 0)
                     sql = "update DataPropval set propVal=${propVal}, obj=${objRef}, timeStamp='${tmst}' where id=${idVal}"
