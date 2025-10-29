@@ -19,8 +19,6 @@ class Repair_Test extends Apx_Test {
     }
 
 
-
-
     @Test
     void saveComplex_ins_test () {
         DataDao dao = mdb.createDao(DataDao.class)
@@ -205,7 +203,7 @@ class Repair_Test extends Apx_Test {
     @Test
     void loadResourceTool_test() {
         DataDao dao = mdb.createDao(DataDao.class)
-        Store st = dao.loadResourceTool(1004)
+        Store st = dao.loadResourceTool(1126)
         mdb.outTable(st)
     }
 
@@ -214,9 +212,10 @@ class Repair_Test extends Apx_Test {
         DataDao dao = mdb.createDao(DataDao.class)
         Map<String, Object> map = new HashMap<>()
         map.put("name", "Test")
-        map.put("objTool", 1003)
-        map.put("pvTool", 1535)
+        map.put("fvTypTool", 1289)
+        map.put("pvTypTool", 1568)
         map.put("Value", 1)
+        map.put("Quantity", 1)
         map.put("objTaskLog", 1126)
         map.put("linkCls", 1294)
         map.put("CreatedAt", "2025-10-27")
@@ -232,22 +231,24 @@ class Repair_Test extends Apx_Test {
     void saveResourceTool_upd_test () {
         DataDao dao = mdb.createDao(DataDao.class)
         Map<String, Object> map = new HashMap<>()
-        map.put("id", 1026)
+        map.put("id", 1187)
         map.put("cls", 1301)
         map.put("name", "Test upd")
-        map.put("idTool", 1118)
-        map.put("objTool", 1003)
-        map.put("pvTool", 1535)
-        map.put("idValue", 1121)
+        map.put("idTypTool", 2167)
+        map.put("fvTypTool", 1289)
+        map.put("pvTypTool", 1568)
+        map.put("idValue", 2170)
         map.put("Value", 5)
-        map.put("idTaskLog", 1119)
-        map.put("objTaskLog", 1004)
+        map.put("idQuantity", 2171)
+        map.put("Quantity", 5)
+        map.put("idTaskLog", 2168)
+        map.put("objTaskLog", 1126)
         map.put("pvTaskLog", 1533)
-        map.put("idCreatedAt", 1122)
+        map.put("idCreatedAt", 2172)
         map.put("CreatedAt", "2025-10-17")
-        map.put("idUpdatedAt", 1123)
+        map.put("idUpdatedAt", 2173)
         map.put("UpdatedAt", "2025-10-18")
-        map.put("idUser", 1120)
+        map.put("idUser", 2169)
         map.put("objUser", 1003)
         map.put("pvUser", 1087)
 

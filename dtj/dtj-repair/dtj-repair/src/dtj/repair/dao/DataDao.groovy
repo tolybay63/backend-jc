@@ -712,17 +712,17 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("[Value] не указан")
             else
                 fillProperties(true, "Prop_Value", pms)
-            //4.1 Prop_Quantity
+            //5 Prop_Quantity
             if (pms.getDouble("Quantity") == 0)
                 throw new XError("[Quantity] не указан")
             else
                 fillProperties(true, "Prop_Quantity", pms)
-            //5 Prop_CreatedAt
+            //6 Prop_CreatedAt
             if (pms.getString("CreatedAt").isEmpty())
                 throw new XError("[CreatedAt] не указан")
             else
                 fillProperties(true, "Prop_CreatedAt", pms)
-            //6 Prop_UpdatedAt
+            //7 Prop_UpdatedAt
             if (pms.getString("UpdatedAt").isEmpty())
                 throw new XError("[UpdatedAt] не указан")
             else
@@ -755,13 +755,13 @@ class DataDao extends BaseMdbUtils {
                     throw new XError("[Value] не указан")
                 else
                     updateProperties("Prop_Value", pms)
-            //3.1 Prop_Quantity
+            //4 Prop_Quantity
             if (pms.containsKey("idQuantity"))
                 if (pms.getDouble("Quantity") == 0)
                     throw new XError("[Quantity] не указан")
                 else
                     updateProperties("Prop_Quantity", pms)
-            //4 Prop_UpdatedAt
+            //5 Prop_UpdatedAt
             if (pms.containsKey("idUpdatedAt"))
                 if (pms.getString("UpdatedAt").isEmpty())
                     throw new XError("[UpdatedAt] не указан")
@@ -790,15 +790,16 @@ class DataDao extends BaseMdbUtils {
 
         mdb.loadQuery(st, """
             select o.id, o.cls, v.name,
-                v1.id as idTool, v1.obj as objTool, v1.propVal as pvTool, null as nameTool,
+                v1.id as idTypTool, v1.obj as objTypTool, v1.propVal as pvTypTool, null as nameTypTool,
                 v2.id as idTaskLog, v2.obj as objTaskLog, v2.propVal as pvTaskLog,
                 v3.id as idUser, v3.obj as objUser, v3.propVal as pvUser, null as fullNameUser,
                 v4.id as idValue, v4.numberVal as Value,
+                v5.id as idQuantity, v5.numberVal as Quantity,
                 v7.id as idCreatedAt, v7.dateTimeVal as CreatedAt,
                 v8.id as idUpdatedAt, v8.dateTimeVal as UpdatedAt
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
-                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Tool
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_TypTool
                 left join DataPropVal v1 on d1.id=v1.dataprop
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_TaskLog
                 inner join DataPropVal v2 on d2.id=v2.dataprop and v2.propVal=:pvTaskLog and v2.obj=:objTaskLog 
@@ -806,6 +807,8 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v3 on d3.id=v3.dataprop
                 left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Value and d4.status=:FV_Plan
                 left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_Quantity
+                left join DataPropVal v5 on d5.id=v5.dataprop                
                 left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_CreatedAt
                 left join DataPropVal v7 on d7.id=v7.dataprop
                 left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_UpdatedAt
@@ -813,12 +816,7 @@ class DataDao extends BaseMdbUtils {
             where o.cls=:cls
         """, map)
         //Пересечение
-        Set<Object> idsTool = st.getUniqueValues("objTool")
-        Store stTool = loadSqlService("""
-            select o.id, o.cls, v.name
-            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsTool.join(",")})
-        """, "", "resourcedata")
-        StoreIndex indTool = stTool.getIndex("id")
+        Map<Long, Long> mapFV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
         //
         Set<Object> idsUser = st.getUniqueValues("objUser")
         Store stUser = loadSqlService("""
@@ -828,13 +826,22 @@ class DataDao extends BaseMdbUtils {
         StoreIndex indUser = stUser.getIndex("id")
         //
         for (StoreRecord r in st) {
-            StoreRecord recTool = indTool.get(r.getLong("objTool"))
-            if (recTool != null)
-                r.set("nameTool", recTool.getString("name"))
-
             StoreRecord recUser = indUser.get(r.getLong("objUser"))
             if (recUser != null)
                 r.set("fullNameUser", recUser.getString("fullName"))
+            r.set("fvTypTool", mapFV.get(r.getLong("pvTypTool")))
+        }
+        //
+        Set<Object> fvs = st.getUniqueValues("fvTypTool")
+        Store stFV = loadSqlMeta("""
+            select id, name from Factor where id in (0${fvs.join(",")})
+        """, "")
+        StoreIndex indFV = stFV.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord rec = indFV.get(r.getLong("fvTypTool"))
+            if (rec != null)
+                r.set("nameTypTool", rec.getString("name"))
         }
         //
         return st
@@ -864,13 +871,13 @@ class DataDao extends BaseMdbUtils {
             """)
         Set<Object> idsOwn = stOwn.getUniqueValues("own")
         //
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Tool", "")
-        map.put("objTool", pms.getLong("objTool"))
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_TypTool", "")
+        map.put("pvTypTool", pms.getLong("pvTypTool"))
         stOwn = mdb.loadQuery("""
                 select o.id
                 from Obj o
-                    left join DataProp d on d.objorrelobj=o.id and d.prop=:Prop_Tool
-                    inner join DataPropVal v on d.id=v.dataProp and v.obj=:objTool                
+                    left join DataProp d on d.objorrelobj=o.id and d.prop=:Prop_TypTool
+                    inner join DataPropVal v on d.id=v.dataProp and v.propVal=:pvTypTool                
                 where o.id in (0${idsOwn.join(",")})
             """, map)
         if (stOwn.size() > 0)
@@ -889,12 +896,11 @@ class DataDao extends BaseMdbUtils {
             //
             own = eu.insertEntity(par)
             pms.put("own", own)
-
-            //1 Prop_Tool
-            if (pms.getLong("objTool") == 0)
-                throw new XError("[Инструмент] не указан")
+            //1 Prop_TypTool
+            if (pms.getLong("fvTypTool") == 0)
+                throw new XError("[TypTool] не указан")
             else
-                fillProperties(true, "Prop_Tool", pms)
+                fillProperties(true, "Prop_TypTool", pms)
 
             //2 Prop_TaskLog
             if (pms.getLong("objTaskLog") == 0)
@@ -911,12 +917,17 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("[Value] не указан")
             else
                 fillProperties(true, "Prop_Value", pms)
-            //5 Prop_CreatedAt
+            //5 Prop_Quantity
+            if (pms.getDouble("Quantity") == 0)
+                throw new XError("[Quantity] не указан")
+            else
+                fillProperties(true, "Prop_Quantity", pms)
+            //6 Prop_CreatedAt
             if (pms.getString("CreatedAt").isEmpty())
                 throw new XError("[CreatedAt] не указан")
             else
                 fillProperties(true, "Prop_CreatedAt", pms)
-            //6 Prop_UpdatedAt
+            //7 Prop_UpdatedAt
             if (pms.getString("UpdatedAt").isEmpty())
                 throw new XError("[UpdatedAt] не указан")
             else
@@ -929,12 +940,12 @@ class DataDao extends BaseMdbUtils {
             //
             pms.put("own", own)
 
-            //1 Prop_Tool
+            //1 Prop_TypTool
             if (pms.containsKey("idTool"))
-                if (pms.getLong("objTool") == 0)
-                    throw new XError("[Tool] не указан")
+                if (pms.getLong("fvTypTool") == 0)
+                    throw new XError("[TypTool] не указан")
                 else
-                    updateProperties("Prop_Tool", pms)
+                    updateProperties("Prop_TypTool", pms)
 
             //2 Prop_User
             if (pms.containsKey("idUser"))
@@ -949,8 +960,13 @@ class DataDao extends BaseMdbUtils {
                     throw new XError("[Value] не указан")
                 else
                     updateProperties("Prop_Value", pms)
-
-            //4 Prop_UpdatedAt
+            //4 Prop_Quantity
+            if (pms.containsKey("idQuantity"))
+                if (pms.getDouble("Quantity") == 0)
+                    throw new XError("[Quantity] не указан")
+                else
+                    updateProperties("Prop_Quantity", pms)
+            //5 Prop_UpdatedAt
             if (pms.containsKey("idUpdatedAt"))
                 if (pms.getString("UpdatedAt").isEmpty())
                     throw new XError("[UpdatedAt] не указан")
@@ -2046,7 +2062,8 @@ class DataDao extends BaseMdbUtils {
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_Position") ||
-                    cod.equalsIgnoreCase("Prop_TypEquipment")) {
+                    cod.equalsIgnoreCase("Prop_TypEquipment") ||
+                    cod.equalsIgnoreCase("Prop_TypTool")) {
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
                 }
@@ -2217,7 +2234,8 @@ class DataDao extends BaseMdbUtils {
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_Position") ||
-                    cod.equalsIgnoreCase("Prop_TypEquipment")) {
+                    cod.equalsIgnoreCase("Prop_TypEquipment") ||
+                    cod.equalsIgnoreCase("Prop_TypTool")) {
                 if (propVal > 0)
                     sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
                 else {
