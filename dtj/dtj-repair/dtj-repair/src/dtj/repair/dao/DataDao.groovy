@@ -299,6 +299,13 @@ class DataDao extends BaseMdbUtils {
                     //
                     lstRes.add(mapR)
                 }
+            } else {
+                for (StoreRecord r in stPlan) {
+                    Map<String, Object> mapR = new HashMap<>()
+                    mapR.putAll(r.getValues())
+                    //
+                    lstRes.add(mapR)
+                }
             }
         }
         //
@@ -360,6 +367,13 @@ class DataDao extends BaseMdbUtils {
                         }
                     }
                     mapR.put("complex", lst)
+                    //
+                    lstRes.add(mapR)
+                }
+            } else {
+                for (StoreRecord r in stPlan) {
+                    Map<String, Object> mapR = new HashMap<>()
+                    mapR.putAll(r.getValues())
                     //
                     lstRes.add(mapR)
                 }
@@ -426,10 +440,31 @@ class DataDao extends BaseMdbUtils {
                     //
                     lstRes.add(mapR)
                 }
+            } else {
+                for (StoreRecord r in stPlan) {
+                    Map<String, Object> mapR = new HashMap<>()
+                    mapR.putAll(r.getValues())
+                    //
+                    lstRes.add(mapR)
+                }
             }
         }
         //
         return lstRes
+    }
+
+    @DaoMethod
+    void deleteComplexData(long id) {
+        mdb.execQuery("""
+            delete from DataPropVal where parent=${id};
+            delete from DataPropVal where id=${id};
+            delete from DataProp 
+            where id in (
+                select id from DataProp
+                except
+                select dataProp as id from DataPropVal
+            );
+        """)
     }
 
     //todo
