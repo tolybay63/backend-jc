@@ -30,33 +30,43 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
     }
+
     ApinatorApi apiUserData() {
         return app.bean(ApinatorService).getApi("userdata")
     }
+
     ApinatorApi apiNSIData() {
         return app.bean(ApinatorService).getApi("nsidata")
     }
+
     ApinatorApi apiPersonnalData() {
         return app.bean(ApinatorService).getApi("personnaldata")
     }
+
     ApinatorApi apiOrgStructureData() {
         return app.bean(ApinatorService).getApi("orgstructuredata")
     }
+
     ApinatorApi apiObjectData() {
         return app.bean(ApinatorService).getApi("objectdata")
     }
+
     ApinatorApi apiPlanData() {
         return app.bean(ApinatorService).getApi("plandata")
     }
+
     ApinatorApi apiInspectionData() {
         return app.bean(ApinatorService).getApi("inspectiondata")
     }
+
     ApinatorApi apiClientData() {
         return app.bean(ApinatorService).getApi("clientdata")
     }
+
     ApinatorApi apiResourceData() {
         return app.bean(ApinatorService).getApi("resourcedata")
     }
+
     ApinatorApi apiRepairData() {
         return app.bean(ApinatorService).getApi("repairdata")
     }
@@ -241,7 +251,7 @@ class DataDao extends BaseMdbUtils {
             String whe = "o.id in (${idsPlan.join(",")})"
             Store st = mdb.createStore("Obj.Complex.Equipment")
             Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Equipment%")
-            mdb.loadQuery(st,"""
+            mdb.loadQuery(st, """
                 select o.id, o.cls,
                     v1.id as idEquipmentComplex, v1.strVal as EquipmentComplex,
                     v2.id as idEquipment, v2.obj as objEquipment, v2.propVal as pvEquipment,
@@ -291,7 +301,7 @@ class DataDao extends BaseMdbUtils {
             String whe = "o.id in (${idsPlan.join(",")})"
             Store st = mdb.createStore("Obj.Complex.Tool")
             Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Tool%")
-            mdb.loadQuery(st,"""
+            mdb.loadQuery(st, """
                 select o.id, o.cls,
                     v1.id as idToolComplex, v1.strVal as ToolComplex,
                     v2.id as idTool, v2.obj as objTool, v2.propVal as pvTool,
@@ -341,7 +351,7 @@ class DataDao extends BaseMdbUtils {
             String whe = "o.id in (${idsPlan.join(",")})"
             Store st = mdb.createStore("Obj.Complex.Personnel")
             Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Performer%")
-            mdb.loadQuery(st,"""
+            mdb.loadQuery(st, """
                 select o.id, o.cls,
                     v1.id as idPerformerComplex, v1.strVal as PerformerComplex,
                     v2.id as idPerformer, v2.obj as objPerformer, v2.propVal as pvPerformer,
@@ -395,7 +405,7 @@ class DataDao extends BaseMdbUtils {
 
         Store st = mdb.createStore("Obj.Complex")
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
-        mdb.loadQuery(st,"""
+        mdb.loadQuery(st, """
             select o.id, o.cls,
                 v1.id as idPerformerComplex, v1.strVal as PerformerComplex,
                 v2.id as idPerformer, v2.obj as objPerformer, v2.propVal as pvPerformer,
@@ -414,13 +424,50 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    void saveResourceFact(Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        //
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Fact", "")
+        pms.put("fvStatus", map.get("FV_Fact"))
+        //
+        long own = pms.getLong("id")
+        pms.put("own", own)
+        //1 Prop_User
+        if (pms.containsKey("idUser")) {
+            if (pms.getLong("objUser") == 0)
+                throw new XError("[User] не указан")
+            else
+                updateProperties("Prop_User", pms)
+        }
+        //2 Prop_Value
+        if (pms.containsKey("idValue")) {
+            if (pms.getDouble("Value") == 0)
+                throw new XError("[Value] не указан")
+            else
+                updateProperties("Prop_Value", pms)
+        } else {
+            if (pms.getDouble("Value") == 0)
+                throw new XError("[Value] не указан")
+            else
+                fillProperties(true, "Prop_Value", pms)
+        }
+        //3 Prop_UpdatedAt
+        if (pms.containsKey("idUpdatedAt")) {
+            if (pms.getString("UpdatedAt").isEmpty())
+                throw new XError("[UpdatedAt] не указан")
+            else
+                updateProperties("Prop_UpdatedAt", pms)
+        }
+    }
+
+    @DaoMethod
     void saveComplexEquipment(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         long own = pms.getLong("id")
         pms.put("own", own)
         if (mode.equalsIgnoreCase("ins")) {
             pms.remove("idComplex")
-            pms.put("EquipmentComplex", "EquipmentComplex-"+own+"-"+pms.getString("objEquipment"))
+            pms.put("EquipmentComplex", "EquipmentComplex-" + own + "-" + pms.getString("objEquipment"))
 
             mdb.startTran()
             try {
@@ -469,7 +516,7 @@ class DataDao extends BaseMdbUtils {
         pms.put("own", own)
         if (mode.equalsIgnoreCase("ins")) {
             pms.remove("idComplex")
-            pms.put("ToolComplex", "ToolComplex-"+own+"-"+pms.getString("objTool"))
+            pms.put("ToolComplex", "ToolComplex-" + own + "-" + pms.getString("objTool"))
 
             mdb.startTran()
             try {
@@ -519,7 +566,7 @@ class DataDao extends BaseMdbUtils {
         pms.put("own", own)
         if (mode.equalsIgnoreCase("ins")) {
             pms.remove("idComplex")
-            pms.put("PerformerComplex", "PerformerComplex-"+own+"-"+pms.getString("objPerformer"))
+            pms.put("PerformerComplex", "PerformerComplex-" + own + "-" + pms.getString("objPerformer"))
 
             mdb.startTran()
             try {
@@ -641,7 +688,7 @@ class DataDao extends BaseMdbUtils {
         //
         String whe = ""
         if (mode == "upd")
-            whe = "and d.objorrelobj <>"+pms.getLong("id")
+            whe = "and d.objorrelobj <>" + pms.getLong("id")
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_TaskLog", "")
         Store stOwn = mdb.loadQuery("""
                 select d.objorrelobj as own
@@ -834,7 +881,7 @@ class DataDao extends BaseMdbUtils {
         //
         String whe = ""
         if (mode == "upd")
-            whe = "and d.objorrelobj <>"+pms.getLong("id")
+            whe = "and d.objorrelobj <>" + pms.getLong("id")
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_TaskLog", "")
         Store stOwn = mdb.loadQuery("""
                 select d.objorrelobj as own
@@ -1042,7 +1089,7 @@ class DataDao extends BaseMdbUtils {
         //
         String whe = ""
         if (mode == "upd")
-            whe = "and d.objorrelobj <>"+pms.getLong("id")
+            whe = "and d.objorrelobj <>" + pms.getLong("id")
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_TaskLog", "")
         Store stOwn = mdb.loadQuery("""
                 select d.objorrelobj as own
@@ -1245,7 +1292,7 @@ class DataDao extends BaseMdbUtils {
         //
         String whe = ""
         if (mode == "upd")
-            whe = "and d.objorrelobj <>"+pms.getLong("id")
+            whe = "and d.objorrelobj <>" + pms.getLong("id")
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_TaskLog", "")
         Store stOwn = mdb.loadQuery("""
                 select d.objorrelobj as own
@@ -1448,7 +1495,7 @@ class DataDao extends BaseMdbUtils {
         //
         String whe = ""
         if (mode == "upd")
-            whe = "and d.objorrelobj <>"+pms.getLong("id")
+            whe = "and d.objorrelobj <>" + pms.getLong("id")
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_TaskLog", "")
         Store stOwn = mdb.loadQuery("""
                 select d.objorrelobj as own
@@ -2316,8 +2363,8 @@ class DataDao extends BaseMdbUtils {
                 if (stData.size() > 0)
                     lstService.add("repairdata")
                 //
-                if (lstService.size()>0) {
-                    throw new XError("${name} используется в ["+ lstService.join(", ") + "]")
+                if (lstService.size() > 0) {
+                    throw new XError("${name} используется в [" + lstService.join(", ") + "]")
                 }
 
             }

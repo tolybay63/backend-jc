@@ -8,6 +8,21 @@ import org.junit.jupiter.api.Test
 class Repair_Test extends Apx_Test {
 
 
+    @Test
+    void saveResourceFact_test() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("id", 1128)
+        map.put("idUser", 1868)
+        map.put("objUser", 1003)
+        map.put("pvUser", 1087)
+        map.put("idValue", 2429)
+        map.put("Value", 15)
+        map.put("idCreatedAt", 1870)
+        map.put("CreatedAt", "2025-10-29")
+        dao.saveResourceFact(map)
+
+    }
 
     @Test
     void loadComplex_test() {
@@ -35,7 +50,7 @@ class Repair_Test extends Apx_Test {
     @Test
     void loadResourceTpService_test() {
         DataDao dao = mdb.createDao(DataDao.class)
-        Store st = dao.loadResourceTpService(1042)
+        Store st = dao.loadResourceTpService(1126)
         mdb.outTable(st)
     }
 
