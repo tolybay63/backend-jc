@@ -777,7 +777,7 @@ class DataDao extends BaseMdbUtils {
 
             //1 Prop_Defect
             if (pms.getLong("relobjComponentParams") > 0)
-                fillProperties(false, "Prop_ComponentParams", pms)
+                fillProperties(true, "Prop_ComponentParams", pms)
             else
                 throw new XError("[relobjComponentParams] not specified")
 
