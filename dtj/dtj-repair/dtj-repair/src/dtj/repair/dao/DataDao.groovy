@@ -2161,7 +2161,7 @@ class DataDao extends BaseMdbUtils {
         //
         Map<String, Object> mapRes = new HashMap<>()
         //
-        if (!params.containsKey("id")) {
+        if (!params.containsKey("notResource")) {
             Store stResource = mdb.createStore("Obj.Resource")
             for (StoreRecord r in st) {
                 Store stPersonnel = loadResourcePersonnel(r.getLong("id"))
@@ -2303,14 +2303,18 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    List<Map<String, Object>> loadTaskLogFact(Map<String, Object> params) {
+    Map<String, Object> loadObjTaskLog(long id) {
+        if (id <= 0)
+            throw new XError("[id] не указан")
+        //
+        Map<String, Object> params = new HashMap<>()
+        params.put("id", id)
         Map<String, Object> taskLog = loadTaskLog(params)
         //
         Store st = taskLog.get("store") as Store
-        List<Map<String, Object>> lstResource = new ArrayList<>()
+        Map<String, Object> mapRes = new HashMap<>()
         for (StoreRecord r in st) {
-            Map<String, Object> mapResource = new HashMap<>()
-            mapResource.putAll(r.getValues())
+            mapRes.putAll(r.getValues())
             //
             List<Map<String, Object>> lstPersonnel = loadResourcePersonnelFact(r.getLong("id"))
             List<Map<String, Object>> lstMaterial = loadResourceMaterialFact(r.getLong("id"))
@@ -2319,19 +2323,17 @@ class DataDao extends BaseMdbUtils {
             List<Map<String, Object>> lstTpService = loadResourceTpServiceFact(r.getLong("id"))
             //
             if (!lstPersonnel.isEmpty())
-                mapResource.put("personnel", lstPersonnel)
+                mapRes.put("personnel", lstPersonnel)
             if (!lstMaterial.isEmpty())
-                mapResource.put("material", lstMaterial)
+                mapRes.put("material", lstMaterial)
             if (!lstEquipment.isEmpty())
-                mapResource.put("equipment", lstEquipment)
+                mapRes.put("equipment", lstEquipment)
             if (!lstTool.isEmpty())
-                mapResource.put("tool", lstTool)
+                mapRes.put("tool", lstTool)
             if (!lstTpService.isEmpty())
-                mapResource.put("tpService", lstTpService)
-            //
-            lstResource.add(mapResource)
+                mapRes.put("tpService", lstTpService)
         }
-        return lstResource
+        return mapRes
     }
 
     @DaoMethod
