@@ -402,7 +402,7 @@ class Repair_Test extends Apx_Test {
     void saveTaskLogPlan_upd_test() {
         DataDao dao = mdb.createDao(DataDao.class)
         Map<String, Object> mapRez = dao.loadTaskLog(Map.of("id", 1095))
-        Store stTmp = mapRez.get("store")
+        Store stTmp = mapRez.get("store") as Store
         Map<String, Object> map = stTmp.get(0).getValues()
         map.put("name", "test 2")
         map.put("UpdatedAt", "2025-10-18")
@@ -422,7 +422,7 @@ class Repair_Test extends Apx_Test {
     @Test
     void saveTaskLogFact_test() {
         DataDao dao = mdb.createDao(DataDao.class)
-        Store stTmp = dao.loadTaskLog(Map.of("id", 1002))
+        Store stTmp = dao.loadTaskLog(Map.of("id", 1002)).get("store") as Store
         Map<String, Object> map = stTmp.get(0).getValues()
         map.put("name", "test 3")
         map.put("FactDateStart", "2025-10-17")

@@ -350,7 +350,7 @@
         <field name="idPerformer" parent="long"/>
         <field name="objPerformer" parent="long"/>
         <field name="pvPerformer" parent="long"/>
-        <field name="namePerformer" parent="string"/>
+        <field name="fullNamePerformer" parent="string"/>
 
         <field name="idPerformerValue" parent="long"/>
         <field name="PerformerValue" parent="double"/>

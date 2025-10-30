@@ -254,7 +254,7 @@ class DataDao extends BaseMdbUtils {
             mdb.loadQuery(st, """
                 select o.id, o.cls,
                     v1.id as idEquipmentComplex, v1.strVal as EquipmentComplex,
-                    v2.id as idEquipment, v2.obj as objEquipment, v2.propVal as pvEquipment,
+                    v2.id as idEquipment, v2.obj as objEquipment, v2.propVal as pvEquipment, null as nameEquipment,
                     v3.id as idEquipmentValue, v3.numberVal as EquipmentValue
                 from Obj o
                     left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_EquipmentComplex
@@ -267,6 +267,20 @@ class DataDao extends BaseMdbUtils {
             """, map)
             //
             if (st.size() > 0) {
+                //Пересечение
+                Set<Object> idsEquipment = st.getUniqueValues("objEquipment")
+                Store stEquipment = loadSqlService("""
+                    select o.id, o.cls, v.name
+                    from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsEquipment.join(",")})
+                """, "", "resourcedata")
+                StoreIndex indEquipment = stEquipment.getIndex("id")
+                //
+                for (StoreRecord r in st) {
+                    StoreRecord recEquipment = indEquipment.get(r.getLong("objEquipment"))
+                    if (recEquipment != null)
+                        r.set("nameEquipment", recEquipment.getString("name"))
+                }
+                //
                 for (StoreRecord r in stPlan) {
                     Map<String, Object> mapR = new HashMap<>()
                     List<Map<String, Object>> lst = new ArrayList<>()
@@ -304,7 +318,7 @@ class DataDao extends BaseMdbUtils {
             mdb.loadQuery(st, """
                 select o.id, o.cls,
                     v1.id as idToolComplex, v1.strVal as ToolComplex,
-                    v2.id as idTool, v2.obj as objTool, v2.propVal as pvTool,
+                    v2.id as idTool, v2.obj as objTool, v2.propVal as pvTool, null as nameTool,
                     v3.id as idToolValue, v3.numberVal as ToolValue
                 from Obj o
                     left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_ToolComplex
@@ -317,6 +331,20 @@ class DataDao extends BaseMdbUtils {
             """, map)
             //
             if (st.size() > 0) {
+                //Пересечение
+                Set<Object> idsTool = st.getUniqueValues("objTool")
+                Store stTool = loadSqlService("""
+                    select o.id, o.cls, v.name
+                    from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsTool.join(",")})
+                """, "", "resourcedata")
+                StoreIndex indTool = stTool.getIndex("id")
+                //
+                for (StoreRecord r in st) {
+                    StoreRecord recTool = indTool.get(r.getLong("objTool"))
+                    if (recTool != null)
+                        r.set("nameTool", recTool.getString("name"))
+                }
+                //
                 for (StoreRecord r in stPlan) {
                     Map<String, Object> mapR = new HashMap<>()
                     List<Map<String, Object>> lst = new ArrayList<>()
@@ -354,7 +382,7 @@ class DataDao extends BaseMdbUtils {
             mdb.loadQuery(st, """
                 select o.id, o.cls,
                     v1.id as idPerformerComplex, v1.strVal as PerformerComplex,
-                    v2.id as idPerformer, v2.obj as objPerformer, v2.propVal as pvPerformer,
+                    v2.id as idPerformer, v2.obj as objPerformer, v2.propVal as pvPerformer, null as fullNamePerformer,
                     v3.id as idPerformerValue, v3.numberVal as PerformerValue
                 from Obj o
                     left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_PerformerComplex
@@ -367,6 +395,19 @@ class DataDao extends BaseMdbUtils {
             """, map)
             //
             if (st.size() > 0) {
+                //Пересечение
+                Set<Object> idsPerformer = st.getUniqueValues("objPerformer")
+                Store stPerformer = loadSqlService("""
+                    select o.id, o.cls, v.fullName
+                    from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsPerformer.join(",")})
+                """, "", "personnaldata")
+                StoreIndex indPerformer = stPerformer.getIndex("id")
+                //
+                for (StoreRecord r in st) {
+                    StoreRecord recPerformer = indPerformer.get(r.getLong("objPerformer"))
+                    if (recPerformer != null)
+                        r.set("fullNamePerformer", recPerformer.getString("fullName"))
+                }
                 for (StoreRecord r in stPlan) {
                     Map<String, Object> mapR = new HashMap<>()
                     List<Map<String, Object>> lst = new ArrayList<>()
