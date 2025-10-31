@@ -2033,7 +2033,12 @@ class DataDao extends BaseMdbUtils {
             from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsMaterial.join(",")})
         """, "", "resourcedata")
         StoreIndex indMaterialAndTpService = stMaterialAndTpService.getIndex("id")
-
+        //
+        Map<Long, Long> mapMea = apiMeta().get(ApiMeta).mapEntityIdFromPV("measure", true)
+        Store stMea = loadSqlMeta("""
+            select id, name from Measure where 0=0
+        """, "")
+        StoreIndex indMea = stMea.getIndex("id")
         //
         Map<Long, Long> mapFV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
         for (StoreRecord r in st) {
@@ -2051,6 +2056,13 @@ class DataDao extends BaseMdbUtils {
             StoreRecord recTpService = indMaterialAndTpService.get(r.getLong("objTpService"))
             if (recTpService != null)
                 r.set("nameTpService", recTpService.getString("fullName"))
+            //
+            if (r.getLong("pvMeasure") > 0) {
+                r.set("meaMeasure", mapMea.get(r.getLong("pvMeasure")))
+            }
+            StoreRecord rec = indMea.get(r.getLong("meaMeasure"))
+            if (rec != null)
+                r.set("nameMeasure", rec.getString("name"))
         }
         Set<Object> fvs = st.getUniqueValues("fvPosition")
         Set<Object> fvs2 = st.getUniqueValues("fvTypTool")
@@ -2288,39 +2300,6 @@ class DataDao extends BaseMdbUtils {
         if (!params.containsKey("notResource")) {
             Set<Object> idsSt = st.getUniqueValues("id")
             Store stAll = loadResourceAll(idsSt)
-/*
-            Store stResource = mdb.createStore("Obj.Resource")
-            for (StoreRecord r in st) {
-                List<Map<String, Object>> lstMap = stAll.records.stream().filter { StoreRecord it ->
-                    it.getLong("objTaskLog")==r.getLong("id")
-                } as List<Map<String, Object>>
-
-                List<Map<String, Object>> stPersonnel = new ArrayList<>()
-                List<Map<String, Object>> stMaterial = new ArrayList<>()
-                List<Map<String, Object>> stEquipment = new ArrayList<>()
-                List<Map<String, Object>> stTool = new ArrayList<>()
-                List<Map<String, Object>> stTpService = new ArrayList<>()
-
-                for (Map<String, Object> map0 in lstMap) {
-                    if (map0.get("objMaterial") != null)
-                        stMaterial.add(map0)
-                    if (map0.get("objTpService") != null)
-                        stTpService.add(map0)
-                    if (map0.get("fvPosition") != null)
-                        stPersonnel.add(map0)
-                    if (map0.get("fvTypEquipment") != null)
-                        stEquipment.add(map0)
-                    if (map0.get("fvTypTool") != null)
-                        stTool.add(map0)
-                }
-                stResource.add(stPersonnel)
-                stResource.add(stMaterial)
-                stResource.add(stEquipment)
-                stResource.add(stTool)
-                stResource.add(stTpService)
-            }
-
- */
             mapRes.put("resource", stAll)
         }
 
