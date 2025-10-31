@@ -24,6 +24,8 @@ import tofi.api.mdl.utils.UtPeriod
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
 
+import java.util.stream.Stream
+
 @CompileStatic
 class DataDao extends BaseMdbUtils {
 
@@ -1955,6 +1957,128 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store loadResourceAll(Set<Object> ids) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_TaskLog", "")
+        long pv = apiMeta().get(ApiMeta).idPV("cls", map.get("Cls_TaskLog"), "Prop_TaskLog")
+        //
+        Store st = mdb.createStore("Obj.ResourceAll")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        map.put("pvTaskLog", pv)
+        Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "", "Cls_Resource%")
+        Set<Long> idsCls = new HashSet<>()
+        idsCls.add(mapCls.get("Cls_ResourcePersonnel"))
+        idsCls.add(mapCls.get("Cls_ResourceTool"))
+        idsCls.add(mapCls.get("Cls_ResourceEquipment"))
+        idsCls.add(mapCls.get("Cls_ResourceTpService"))
+        idsCls.add(mapCls.get("Cls_ResourceMaterial"))
+        //
+        Map<String, Long> map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
+        map.put("FV_Plan", map2.get("FV_Plan"))
+
+        mdb.loadQuery(st, """
+            select o.id, o.cls, v.name,
+                v1.id as idPosition, v1.propVal as pvPosition, null as fvPosition, null as namePosition,
+                v2.id as idTaskLog, v2.obj as objTaskLog, v2.propVal as pvTaskLog,
+                v3.id as idUser, v3.obj as objUser, v3.propVal as pvUser, null as fullNameUser,
+                v4.id as idValue, v4.numberVal as Value,
+                v5.id as idQuantity, v5.numberVal as Quantity,
+                v7.id as idCreatedAt, v7.dateTimeVal as CreatedAt,
+                v8.id as idUpdatedAt, v8.dateTimeVal as UpdatedAt,
+                v9.id as idTypTool, v9.propVal as pvTypTool, null as fvTypTool, null as nameTypTool,
+                v10.id as idTypEquipment, v10.propVal as pvTypEquipment, null as fvTypEquipment, null as nameTypEquipment,
+                v11.id as idTpService, v11.obj as objTpService, v11.propVal as pvTpService, null as nameTpService,
+                v12.id as idMaterial, v12.obj as objMaterial, v12.propVal as pvMaterial, null as nameMaterial,
+                v13.id as idMeasure, v13.propVal as pvMeasure, null as meaMeasure, null as nameMeasure
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Position
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_TaskLog
+                inner join DataPropVal v2 on d2.id=v2.dataprop and v2.propVal=:pvTaskLog and v2.obj in (${ids.join(",")}) 
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_User
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Value and d4.status=:FV_Plan
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_Quantity
+                left join DataPropVal v5 on d5.id=v5.dataprop                
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_CreatedAt
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_UpdatedAt
+                left join DataPropVal v8 on d8.id=v8.dataprop
+                left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=:Prop_TypTool
+                left join DataPropVal v9 on d9.id=v9.dataprop
+                left join DataProp d10 on d10.objorrelobj=o.id and d10.prop=:Prop_TypEquipment
+                left join DataPropVal v10 on d10.id=v10.dataprop
+                left join DataProp d11 on d11.objorrelobj=o.id and d11.prop=:Prop_TpService
+                left join DataPropVal v11 on d11.id=v11.dataprop
+                left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_Material
+                left join DataPropVal v12 on d12.id=v12.dataprop
+                left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_Measure
+                left join DataPropVal v13 on d13.id=v13.dataprop                
+            where o.cls in (${idsCls.join(",")})
+        """, map)
+        //Пересечение
+        Set<Object> idsUser = st.getUniqueValues("objUser")
+        Store stUser = loadSqlService("""
+            select o.id, o.cls, v.fullName
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsUser.join(",")})
+        """, "", "personnaldata")
+        StoreIndex indUser = stUser.getIndex("id")
+        //
+        Set<Object> idsMaterial = st.getUniqueValues("objMaterial")
+        Set<Object> idsTpService = st.getUniqueValues("objTpService")
+        idsMaterial.addAll(idsTpService)
+        Store stMaterialAndTpService = loadSqlService("""
+            select o.id, o.cls, v.name, v.fullName
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsMaterial.join(",")})
+        """, "", "resourcedata")
+        StoreIndex indMaterialAndTpService = stMaterialAndTpService.getIndex("id")
+
+        //
+        Map<Long, Long> mapFV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
+        for (StoreRecord r in st) {
+            StoreRecord recUser = indUser.get(r.getLong("objUser"))
+            if (recUser != null)
+                r.set("fullNameUser", recUser.getString("fullName"))
+            //
+            r.set("fvPosition", mapFV.get(r.getLong("pvPosition")))
+            r.set("fvTypTool", mapFV.get(r.getLong("pvTypTool")))
+            r.set("fvTypEquipment", mapFV.get(r.getLong("pvTypEquipment")))
+            //
+            StoreRecord recMaterial = indMaterialAndTpService.get(r.getLong("objMaterial"))
+            if (recMaterial != null)
+                r.set("nameMaterial", recMaterial.getString("name"))
+            StoreRecord recTpService = indMaterialAndTpService.get(r.getLong("objTpService"))
+            if (recTpService != null)
+                r.set("nameTpService", recTpService.getString("fullName"))
+        }
+        Set<Object> fvs = st.getUniqueValues("fvPosition")
+        Set<Object> fvs2 = st.getUniqueValues("fvTypTool")
+        Set<Object> fvs3 = st.getUniqueValues("fvTypEquipment")
+        fvs.addAll(fvs2)
+        fvs.addAll(fvs3)
+        Store stFV = loadSqlMeta("""
+            select id, name from Factor where id in (0${fvs.join(",")})
+        """, "")
+        StoreIndex indFV = stFV.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord rec = indFV.get(r.getLong("fvPosition"))
+            if (rec != null)
+                r.set("namePosition", rec.getString("name"))
+            //
+            rec = indFV.get(r.getLong("fvTypTool"))
+            if (rec != null)
+                r.set("nameTypTool", rec.getString("name"))
+            //
+            rec = indFV.get(r.getLong("fvTypEquipment"))
+            if (rec != null)
+                r.set("nameTypEquipment", rec.getString("name"))
+        }
+        return st
+    }
+
+    @DaoMethod
     Map<String, Object> loadTaskLog(Map<String, Object> params) {
         Store st = mdb.createStore("Obj.task.log")
 
@@ -2162,20 +2286,42 @@ class DataDao extends BaseMdbUtils {
         Map<String, Object> mapRes = new HashMap<>()
         //
         if (!params.containsKey("notResource")) {
+            Set<Object> idsSt = st.getUniqueValues("id")
+            Store stAll = loadResourceAll(idsSt)
+/*
             Store stResource = mdb.createStore("Obj.Resource")
             for (StoreRecord r in st) {
-                Store stPersonnel = loadResourcePersonnel(r.getLong("id"))
-                Store stMaterial = loadResourceMaterial(r.getLong("id"))
-                Store stEquipment = loadResourceEquipment(r.getLong("id"))
-                Store stTool = loadResourceTool(r.getLong("id"))
-                Store stTpService = loadResourceTpService(r.getLong("id"))
+                List<Map<String, Object>> lstMap = stAll.records.stream().filter { StoreRecord it ->
+                    it.getLong("objTaskLog")==r.getLong("id")
+                } as List<Map<String, Object>>
+
+                List<Map<String, Object>> stPersonnel = new ArrayList<>()
+                List<Map<String, Object>> stMaterial = new ArrayList<>()
+                List<Map<String, Object>> stEquipment = new ArrayList<>()
+                List<Map<String, Object>> stTool = new ArrayList<>()
+                List<Map<String, Object>> stTpService = new ArrayList<>()
+
+                for (Map<String, Object> map0 in lstMap) {
+                    if (map0.get("objMaterial") != null)
+                        stMaterial.add(map0)
+                    if (map0.get("objTpService") != null)
+                        stTpService.add(map0)
+                    if (map0.get("fvPosition") != null)
+                        stPersonnel.add(map0)
+                    if (map0.get("fvTypEquipment") != null)
+                        stEquipment.add(map0)
+                    if (map0.get("fvTypTool") != null)
+                        stTool.add(map0)
+                }
                 stResource.add(stPersonnel)
                 stResource.add(stMaterial)
                 stResource.add(stEquipment)
                 stResource.add(stTool)
                 stResource.add(stTpService)
             }
-            mapRes.put("resource", stResource)
+
+ */
+            mapRes.put("resource", stAll)
         }
 
         mapRes.put("store", st)

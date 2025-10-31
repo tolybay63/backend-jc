@@ -129,7 +129,7 @@ class DataDao extends BaseMdbUtils {
             String nm = pms.getString("name").trim().toLowerCase()
             Store st = mdb.loadQuery("""
                 select v.name from Obj o, ObjVer v
-                where o.id=v.ownerVer and v.lastVer=1 and o.cls=${map.get("Cls_Material")} and lower(v.name)='${nm}' 
+                where o.id=v.ownerVer and v.lastVer=1 and o.cls=${map.get("Cls_Task")} and lower(v.name)='${nm}' 
             """)
             if (st.size() > 0)
                 throw new XError("[{0}] уже существует", nm)

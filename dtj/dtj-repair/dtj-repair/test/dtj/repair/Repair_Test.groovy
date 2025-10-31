@@ -7,6 +7,16 @@ import org.junit.jupiter.api.Test
 
 class Repair_Test extends Apx_Test {
 
+    @Test
+    void loadResourceAll_test() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Set<Object> set = new HashSet<>()
+        set.add(1223L)
+        set.add(1224L)
+
+        Store st = dao.loadResourceAll(set)
+        mdb.outTable(st)
+    }
 
     @Test
     void saveResourceFact_test() {

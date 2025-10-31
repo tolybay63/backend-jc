@@ -388,5 +388,62 @@
         <field name="EquipmentValue" parent="double"/>
     </domain>
 
+    <domain name="Obj.ResourceAll" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idTaskLog" parent="long"/>
+        <field name="objTaskLog" parent="long"/>
+        <field name="pvTaskLog" parent="long"/>
+
+        <field name="idUser" parent="long"/>
+        <field name="objUser" parent="long"/>
+        <field name="pvUser" parent="long"/>
+        <field name="fullNameUser" parent="string"/>
+
+        <field name="idValue" parent="long"/>
+        <field name="Value" parent="double"/>
+
+        <field name="idQuantity" parent="long"/>
+        <field name="Quantity" parent="double"/>
+
+        <field name="idCreatedAt" parent="long"/>
+        <field name="CreatedAt" parent="string"/>
+        <field name="idUpdatedAt" parent="long"/>
+        <field name="UpdatedAt" parent="string"/>
+
+        <field name="idPosition" parent="long"/>
+        <field name="fvPosition" parent="long"/>
+        <field name="pvPosition" parent="long"/>
+        <field name="namePosition" parent="string"/>
+
+        <field name="idTypTool" parent="long"/>
+        <field name="fvTypTool" parent="long"/>
+        <field name="pvTypTool" parent="long"/>
+        <field name="nameTypTool" parent="string"/>
+
+        <field name="idTypEquipment" parent="long"/>
+        <field name="fvTypEquipment" parent="long"/>
+        <field name="pvTypEquipment" parent="long"/>
+        <field name="nameTypEquipment" parent="string"/>
+
+        <field name="idTpService" parent="long"/>
+        <field name="objTpService" parent="long"/>
+        <field name="pvTpService" parent="long"/>
+        <field name="nameTpService" parent="string"/>
+
+        <field name="idMaterial" parent="long"/>
+        <field name="objMaterial" parent="long"/>
+        <field name="pvMaterial" parent="long"/>
+        <field name="nameMaterial" parent="string"/>
+
+        <field name="idMeasure" parent="long"/>
+        <field name="meaMeasure" parent="long"/>
+        <field name="pvMeasure" parent="long"/>
+        <field name="nameMeasure" parent="string"/>
+
+    </domain>
+
 </root>
 
