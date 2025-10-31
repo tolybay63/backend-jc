@@ -2026,41 +2026,6 @@ class DataDao extends BaseMdbUtils {
                 """, "", "inspectiondata")
                 if (stData.size() > 0)
                     lstService.add("inspectiondata")
-                //nsidata
-                stData = loadSqlService("""
-                    select id from DataPropVal
-                    where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "nsidata")
-                if (stData.size() > 0)
-                    lstService.add("nsidata")
-                //objectdata
-                stData = loadSqlService("""
-                    select id from DataPropVal
-                    where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "objectdata")
-                if (stData.size() > 0)
-                    lstService.add("objectdata")
-                //orgstructuredata
-                stData = loadSqlService("""
-                    select id from DataPropVal
-                    where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "orgstructuredata")
-                if (stData.size() > 0)
-                    lstService.add("orgstructuredata")
-                //personnaldata
-                stData = loadSqlService("""
-                    select id from DataPropVal
-                    where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "personnaldata")
-                if (stData.size() > 0)
-                    lstService.add("personnaldata")
-                //plandata
-                stData = loadSqlService("""
-                    select id from DataPropVal
-                    where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "plandata")
-                if (stData.size() > 0)
-                    lstService.add("plandata")
                 //incidentdata
                 stData = loadSqlService("""
                     select id from DataPropVal

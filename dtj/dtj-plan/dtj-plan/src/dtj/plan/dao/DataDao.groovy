@@ -20,6 +20,7 @@ import tofi.api.dta.ApiObjectData
 import tofi.api.dta.ApiOrgStructureData
 import tofi.api.dta.ApiPersonnalData
 import tofi.api.dta.ApiPlanData
+import tofi.api.dta.ApiRepairData
 import tofi.api.dta.ApiUserData
 import tofi.api.dta.model.utils.EntityMdbUtils
 import tofi.api.mdl.ApiMeta
@@ -38,37 +39,32 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
     }
-
     ApinatorApi apiUserData() {
         return app.bean(ApinatorService).getApi("userdata")
     }
-
     ApinatorApi apiNSIData() {
         return app.bean(ApinatorService).getApi("nsidata")
     }
-
     ApinatorApi apiPersonnalData() {
         return app.bean(ApinatorService).getApi("personnaldata")
     }
-
     ApinatorApi apiOrgStructureData() {
         return app.bean(ApinatorService).getApi("orgstructuredata")
     }
-
     ApinatorApi apiObjectData() {
         return app.bean(ApinatorService).getApi("objectdata")
     }
-
     ApinatorApi apiPlanData() {
         return app.bean(ApinatorService).getApi("plandata")
     }
-
     ApinatorApi apiInspectionData() {
         return app.bean(ApinatorService).getApi("inspectiondata")
     }
-
     ApinatorApi apiIncidentData() {
         return app.bean(ApinatorService).getApi("incidentdata")
+    }
+    ApinatorApi apiRepairData() {
+        return app.bean(ApinatorService).getApi("repairdata")
     }
 
     @DaoMethod
@@ -1013,34 +1009,6 @@ class DataDao extends BaseMdbUtils {
                 Store stData = loadSqlService("""
                     select id from DataPropVal
                     where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "nsidata")
-                if (stData.size() > 0)
-                    lstService.add("nsidata")
-                //
-                stData = loadSqlService("""
-                    select id from DataPropVal
-                    where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "objectdata")
-                if (stData.size() > 0)
-                    lstService.add("objectdata")
-                //
-                stData = loadSqlService("""
-                    select id from DataPropVal
-                    where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "orgstructuredata")
-                if (stData.size() > 0)
-                    lstService.add("orgstructuredata")
-                //
-                stData = loadSqlService("""
-                    select id from DataPropVal
-                    where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "personnaldata")
-                if (stData.size() > 0)
-                    lstService.add("personnaldata")
-                //
-                stData = loadSqlService("""
-                    select id from DataPropVal
-                    where propval in (${idsPV.join(",")}) and obj=${owner}
                 """, "", "plandata")
                 if (stData.size() > 0)
                     lstService.add("plandata")
@@ -1055,9 +1023,9 @@ class DataDao extends BaseMdbUtils {
                 stData = loadSqlService("""
                     select id from DataPropVal
                     where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "incidentdata")
+                """, "", "repairdata")
                 if (stData.size() > 0)
-                    lstService.add("incidentdata")
+                    lstService.add("repairdata")
                 //
 
                 if (lstService.size() > 0) {
@@ -1436,6 +1404,8 @@ class DataDao extends BaseMdbUtils {
             return apiInspectionData().get(ApiInspectionData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("incidentdata"))
             return apiIncidentData().get(ApiIncidentData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("repairdata"))
+            return apiRepairData().get(ApiRepairData).loadSql(sql, domain)
         else
             throw new XError("Unknown model [${model}]")
     }

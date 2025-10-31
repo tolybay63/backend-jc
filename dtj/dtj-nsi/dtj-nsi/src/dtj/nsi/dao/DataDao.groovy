@@ -67,6 +67,10 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiClientData() {
         return app.bean(ApinatorService).getApi("clientdata")
     }
+    ApinatorApi apiRepairData() {
+        return app.bean(ApinatorService).getApi("repairdata")
+    }
+
     //-------------------------
 
 
@@ -243,13 +247,6 @@ class DataDao extends BaseMdbUtils {
                     stData = loadSqlService("""
                         select id from DataPropVal
                         where propval in (${idsPV.join(",")}) and obj=${owner}
-                    """, "", "personnaldata")
-                    if (stData.size() > 0)
-                        lstService.add("personnaldata")
-                    //
-                    stData = loadSqlService("""
-                        select id from DataPropVal
-                        where propval in (${idsPV.join(",")}) and obj=${owner}
                     """, "", "plandata")
                     if (stData.size() > 0)
                         lstService.add("plandata")
@@ -260,13 +257,20 @@ class DataDao extends BaseMdbUtils {
                     """, "", "inspectiondata")
                     if (stData.size() > 0)
                         lstService.add("inspectiondata")
-                    //
+                    //todo Проверить!
                     stData = loadSqlService("""
                         select id from DataPropVal
                         where propval in (${idsPV.join(",")}) and obj=${owner}
                     """, "", "clientdata")
                     if (stData.size() > 0)
                         lstService.add("clientdata")
+                    //
+                    stData = loadSqlService("""
+                        select id from DataPropVal
+                        where propval in (${idsPV.join(",")}) and obj=${owner}
+                    """, "", "repairdata")
+                    if (stData.size() > 0)
+                        lstService.add("repairdata")
                     //
                     if (lstService.size() > 0) {
                         throw new XError("${name} используется в [" + lstService.join(", ") + "]")
@@ -3051,6 +3055,8 @@ class DataDao extends BaseMdbUtils {
             return apiInspectionData().get(ApiInspectionData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("clientdata"))
             return apiClientData().get(ApiClientData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("repairdata"))
+            return apiRepairData().get(ApiRepairData).loadSql(sql, domain)
         else
             throw new XError("Unknown model [${model}]")
     }

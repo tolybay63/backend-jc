@@ -431,51 +431,9 @@ class DataDao extends BaseMdbUtils {
                 Store stData = loadSqlService("""
                     select id from DataPropVal
                     where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "nsidata")
-                if (stData.size() > 0)
-                    lstService.add("nsidata")
-                //
-                stData = loadSqlService("""
-                    select id from DataPropVal
-                    where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "objectdata")
-                if (stData.size() > 0)
-                    lstService.add("objectdata")
-                //
-                stData = loadSqlService("""
-                    select id from DataPropVal
-                    where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "orgstructuredata")
-                if (stData.size() > 0)
-                    lstService.add("orgstructuredata")
-                //
-                stData = loadSqlService("""
-                    select id from DataPropVal
-                    where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "personnaldata")
-                if (stData.size() > 0)
-                    lstService.add("personnaldata")
-                //
-                stData = loadSqlService("""
-                    select id from DataPropVal
-                    where propval in (${idsPV.join(",")}) and obj=${owner}
                 """, "", "plandata")
                 if (stData.size() > 0)
                     lstService.add("plandata")
-                //
-                stData = loadSqlService("""
-                    select id from DataPropVal
-                    where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "inspectiondata")
-                if (stData.size() > 0)
-                    lstService.add("inspectiondata")
-                //
-                stData = loadSqlService("""
-                    select id from DataPropVal
-                    where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "clientdata")
-                if (stData.size() > 0)
-                    lstService.add("clientndata")
                 //
                 stData = loadSqlService("""
                     select id from DataPropVal

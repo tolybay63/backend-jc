@@ -15,6 +15,7 @@ import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
 import tofi.api.dta.ApiClientData
+import tofi.api.dta.ApiIncidentData
 import tofi.api.dta.ApiInspectionData
 import tofi.api.dta.ApiNSIData
 import tofi.api.dta.ApiObjectData
@@ -62,6 +63,9 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiClientData() {
         return app.bean(ApinatorService).getApi("clientdata")
     }
+    ApinatorApi apiIncidentData() {
+        return app.bean(ApinatorService).getApi("incidentdata")
+    }
 
     /* =================================================================== */
 
@@ -83,30 +87,9 @@ class DataDao extends BaseMdbUtils {
                 Store stData = loadSqlService("""
                     select id from DataPropVal
                     where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "nsidata")
-                if (stData.size() > 0)
-                    lstService.add("nsidata")
-                //
-                stData = loadSqlService("""
-                    select id from DataPropVal
-                    where propval in (${idsPV.join(",")}) and obj=${owner}
                 """, "", "objectdata")
                 if (stData.size() > 0)
                     lstService.add("objectdata")
-                //
-                stData = loadSqlService("""
-                    select id from DataPropVal
-                    where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "orgstructuredata")
-                if (stData.size() > 0)
-                    lstService.add("orgstructuredata")
-                //
-                stData = loadSqlService("""
-                    select id from DataPropVal
-                    where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "personnaldata")
-                if (stData.size() > 0)
-                    lstService.add("personnaldata")
                 //
                 stData = loadSqlService("""
                     select id from DataPropVal
@@ -118,9 +101,9 @@ class DataDao extends BaseMdbUtils {
                 stData = loadSqlService("""
                     select id from DataPropVal
                     where propval in (${idsPV.join(",")}) and obj=${owner}
-                """, "", "inspectiondata")
+                """, "", "incidentdata")
                 if (stData.size() > 0)
-                    lstService.add("inspectiondata")
+                    lstService.add("incidentdata")
                 //
                 if (lstService.size()>0) {
                     throw new XError("${name} используется в ["+ lstService.join(", ") + "]")
@@ -948,7 +931,8 @@ class DataDao extends BaseMdbUtils {
             return apiInspectioData().get(ApiInspectionData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("clientdata"))
             return apiClientData().get(ApiClientData).loadSql(sql, domain)
-
+        else if (model.equalsIgnoreCase("incidentdata"))
+            return apiIncidentData().get(ApiIncidentData).loadSql(sql, domain)
         else
             throw new XError("Unknown model [${model}]")
     }
