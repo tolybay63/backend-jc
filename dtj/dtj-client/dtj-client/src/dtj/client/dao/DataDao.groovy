@@ -12,14 +12,7 @@ import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
 import jandcode.core.store.StoreRecord
-import tofi.api.dta.ApiClientData
-import tofi.api.dta.ApiInspectionData
-import tofi.api.dta.ApiNSIData
-import tofi.api.dta.ApiObjectData
-import tofi.api.dta.ApiOrgStructureData
-import tofi.api.dta.ApiPersonnalData
-import tofi.api.dta.ApiPlanData
-import tofi.api.dta.ApiUserData
+import tofi.api.dta.*
 import tofi.api.dta.model.utils.EntityMdbUtils
 import tofi.api.mdl.ApiMeta
 import tofi.api.mdl.model.consts.FD_AttribValType_consts
@@ -29,9 +22,6 @@ import tofi.api.mdl.model.consts.FD_PropType_consts
 import tofi.api.mdl.utils.UtPeriod
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
-
-import java.sql.ClientInfoStatus
-
 
 @CompileStatic
 class DataDao extends BaseMdbUtils {
