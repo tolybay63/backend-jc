@@ -2467,7 +2467,7 @@ class DataDao extends BaseMdbUtils {
         long own = pms.getLong("id")
         pms.put("own", own)
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Fact", "")
-        pms.put("fvFact", map.get("FV_Fact"))
+        pms.put("fvStatus", map.get("FV_Fact"))
         //1 Prop_User
         if (pms.containsKey("idUser")) {
             if (pms.getLong("objUser") == 0)
