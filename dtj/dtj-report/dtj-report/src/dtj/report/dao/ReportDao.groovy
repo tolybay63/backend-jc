@@ -1,10 +1,19 @@
 package dtj.report.dao
 
+import dtj.report.action.DownFile
 import groovy.transform.CompileStatic
+import jandcode.commons.UtCnv
 import jandcode.commons.error.XError
 import jandcode.core.auth.AuthService
+import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
+import org.apache.poi.ss.usermodel.Cell
+import org.apache.poi.ss.usermodel.Row
+import org.apache.poi.ss.usermodel.Sheet
+import org.apache.poi.ss.usermodel.Workbook
+import org.apache.poi.ss.usermodel.WorkbookFactory
+import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import tofi.api.dta.ApiClientData
 import tofi.api.dta.ApiInspectionData
 import tofi.api.dta.ApiNSIData
@@ -56,6 +65,32 @@ class ReportDao extends BaseMdbUtils {
         return app.bean(ApinatorService).getApi("resourcedata")
     }
 
+    @DaoMethod
+    void loadFile(Map<String, Object> params) {
+        String tml = UtCnv.toString(params.get("tml"))+".xlsx"
+        String pathin = mdb.getApp().appdir+File.separator+"tml"+File.separator
+        File file = new File(pathin+tml);
+
+        Workbook wb = (XSSFWorkbook) WorkbookFactory.create(file);
+        //Sheet sheet = wb.createSheet("sheet1")
+        Sheet sheet = wb.getSheetAt(0)
+
+
+        Row row = sheet.createRow(1)
+        Cell cell = row.createCell(1)
+        cell.setCellValue("Aaaaaa")
+
+        String pathout = mdb.getApp().appdir+File.separator+"report"+File.separator
+        try (FileOutputStream fos = new FileOutputStream(pathout+"reoprt1.xlsx")) {
+            wb.write(fos);
+        }
+        wb.close();
+
+
+
+
+
+    }
 
 
     //-------------------------
