@@ -13,6 +13,7 @@ import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.usermodel.Sheet
 import org.apache.poi.ss.usermodel.Workbook
 import org.apache.poi.ss.usermodel.WorkbookFactory
+import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import tofi.api.dta.ApiClientData
 import tofi.api.dta.ApiInspectionData
@@ -69,22 +70,36 @@ class ReportDao extends BaseMdbUtils {
     void loadFile(Map<String, Object> params) {
         String tml = UtCnv.toString(params.get("tml"))+".xlsx"
         String pathin = mdb.getApp().appdir+File.separator+"tml"+File.separator
-        File file = new File(pathin+tml);
-
-        Workbook wb = (XSSFWorkbook) WorkbookFactory.create(file);
-        //Sheet sheet = wb.createSheet("sheet1")
-        Sheet sheet = wb.getSheetAt(0)
-
-
-        Row row = sheet.createRow(1)
-        Cell cell = row.createCell(1)
-        cell.setCellValue("Aaaaaa")
-
         String pathout = mdb.getApp().appdir+File.separator+"report"+File.separator
-        try (FileOutputStream fos = new FileOutputStream(pathout+"reoprt1.xlsx")) {
-            wb.write(fos);
+
+
+        // 1. Загрузка исходной книги
+        InputStream inputStream = new FileInputStream("источник.xlsx");
+        XSSFWorkbook sourceWorkbook = new XSSFWorkbook(inputStream);
+        XSSFSheet sourceSheet = sourceWorkbook.getSheet("Лист1");
+
+// 2. Создание целевой книги и листа
+        XSSFWorkbook targetWorkbook = new XSSFWorkbook();
+        XSSFSheet targetSheet = targetWorkbook.createSheet("Копия Листа1");
+
+// 3. Копирование данных
+        for (Row sourceRow : sourceSheet) {
+            Row targetRow = targetSheet.createRow(sourceRow.getRowNum());
+            for (Cell sourceCell : sourceRow) {
+                Cell targetCell = targetRow.createCell(sourceCell.getColumnIndex());
+
+                // Копируем значение ячейки
+                targetCell.setCellValue(sourceCell.getStringCellValue());
+                // И так далее для других типов ячеек (числовых, булевых и т.д.)
+
+                // TODO: Добавить логику копирования стилей и форматирования
+            }
         }
-        wb.close();
+
+// 4. Сохранение целевой книги
+        OutputStream outputStream = new FileOutputStream("цель.xlsx");
+        targetWorkbook.write(outputStream);
+        outputStream.close();
 
 
 
