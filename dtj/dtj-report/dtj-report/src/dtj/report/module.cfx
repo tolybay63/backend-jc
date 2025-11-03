@@ -15,16 +15,15 @@
                 class = "dtj.report.action.DownloadAction"
         />
 
-        <action name="deletefile"
-                class = "dtj.report.action.DeletefileAction"
-        />
 
-        <action name="upload"
-                class = "dtj.report.action.UploadAction"
-        />
         <type name="dtj.report.action.DownFile"
               render="downfile"/>
-        <render name="downfile" class="tdtj.client.action.DownFileRender"/>
+        <render name="downfile" class="dtj.report.action.DownFileRender"/>
+
+        <action name="loadFile"
+                class = "dtj.report.action.LoadFileAction"
+        />
+
 
 
     </web>

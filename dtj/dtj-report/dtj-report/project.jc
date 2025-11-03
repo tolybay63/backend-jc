@@ -19,6 +19,8 @@ class P extends ProjectScript {
                     "tofi-api-dta",
                     "tofi-api-mdl",
                     "tofi-auth",
+		    "poi-ooxml", "log4j-core", "documents4j-api", "documents4j-local",
+			"documents4j-transformer-msoffice-word", "documents4j-transformer-msoffice-excel", "pdfbox"
                 )
                 depends.dev(
                 )

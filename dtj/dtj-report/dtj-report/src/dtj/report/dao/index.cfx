@@ -5,7 +5,7 @@
 
         <holder name="api">
 
-            <item name="data" method="*" invoker="model:default"
+            <item name="report" method="*" invoker="model:default"
                   class="dtj.report.dao.ReportDao"/>
 
 

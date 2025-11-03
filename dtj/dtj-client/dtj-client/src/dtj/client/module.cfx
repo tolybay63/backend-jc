@@ -24,7 +24,7 @@
         />
         <type name="dtj.client.action.DownFile"
               render="downfile"/>
-        <render name="downfile" class="tdtj.client.action.DownFileRender"/>
+        <render name="downfile" class="dtj.client.action.DownFileRender"/>
 
 
     </web>
