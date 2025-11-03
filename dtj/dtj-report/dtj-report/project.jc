@@ -1,0 +1,29 @@
+import jandcode.jc.*
+import jandcode.jc.std.*
+
+class P extends ProjectScript {
+
+    static beforeLoad = {
+    }
+
+    void onInclude() {
+        //
+        project.name = "dtj-report"
+        //
+        include(JavaProject).with {
+            moduleDef("dtj.report").with {
+                depends.prod(
+                    "jandcode.core.apx",
+                    "jandcode.core.db.postgresql",
+                    "tofi-api-adm",
+                    "tofi-api-dta",
+                    "tofi-api-mdl",
+                    "tofi-auth",
+                )
+                depends.dev(
+                )
+            }
+        }
+    }
+
+}

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <web>
+        <mount-module/>
+
+        <action name="root"
+                class = "dtj.report.action.RootAction"
+        />
+
+        <action name="auth"
+                class="jandcode.core.apx.auth.AuthAction"/>
+
+        <action name="download"
+                class = "dtj.report.action.DownloadAction"
+        />
+
+        <action name="deletefile"
+                class = "dtj.report.action.DeletefileAction"
+        />
+
+        <action name="upload"
+                class = "dtj.report.action.UploadAction"
+        />
+        <type name="dtj.report.action.DownFile"
+              render="downfile"/>
+        <render name="downfile" class="tdtj.client.action.DownFileRender"/>
+
+
+    </web>
+
+    <bean name="jandcode.core.auth.AuthService"
+          class="jandcode.core.auth.impl.AuthServiceImpl">
+
+        <!-- AuthProcessor. По умолчанию - заглушка для admin/111, user1/111 -->
+        <auth-processor name="default"
+                        class="dtj.report.auth.TofiAuthProcessor"/>
+
+    </bean>
+
+    <dbm>
+
+        <model name="default" instance="tofi.api.dta.model">
+            <x-include path="dao/Domains.cfx"/>
+        </model>
+        <model name="meta" instance="tofi.api.mdl.model"/>
+        <model name="adm" instance="tofi.api.adm.model"/>
+        <model name="nsidata" instance="tofi.api.dta.model"/>
+        <model name="objectdata" instance="tofi.api.dta.model"/>
+        <model name="personnaldata" instance="tofi.api.dta.model"/>
+        <model name="orgstructuredata" instance="tofi.api.dta.model"/>
+        <model name="plandata" instance="tofi.api.dta.model"/>
+        <model name="inspectiondata" instance="tofi.api.dta.model"/>
+        <model name="clientdata" instance="tofi.api.dta.model"/>
+        <model name="repairdata" instance="tofi.api.dta.model"/>
+        <model name="resourcedata" instance="tofi.api.dta.model"/>
+    </dbm>
+
+
+    <x-include path="dao/index.cfx"/>
+
+</root>

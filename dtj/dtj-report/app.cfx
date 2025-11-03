@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <x-include path="res:dtj/report/main/app.cfx"/>
+
+    <!-- ===================================================================== -->
+
+    <x-include path="app-dev.cfx" required="false"/>
+    <x-include path="_app.cfx" required="false"/>
+    <x-include path="cfg.cfx" required="false"/>
+    <x-include path="_cfg.cfx" required="false"/>
+
+</root>
