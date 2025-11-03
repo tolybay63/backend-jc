@@ -2462,10 +2462,12 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store saveTaskLogFact(Map<String, Object> params) {
+    Map<String, Object> saveTaskLogFact(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         long own = pms.getLong("id")
         pms.put("own", own)
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Fact", "")
+        pms.put("fvFact", map.get("FV_Fact"))
         //1 Prop_User
         if (pms.containsKey("idUser")) {
             if (pms.getLong("objUser") == 0)
@@ -2473,15 +2475,15 @@ class DataDao extends BaseMdbUtils {
             else
                 updateProperties("Prop_User", pms)
         }
-        //2 Prop_ValueFact
-        if (pms.containsKey("idValueFact")) {
-            if (pms.getDouble("ValuePlan") == 0)
-                throw new XError("[ValueFact] не указан")
+        //2 Prop_Value
+        if (pms.containsKey("idValue")) {
+            if (pms.getDouble("Value") == 0)
+                throw new XError("[Value] не указан")
             else
-                updateProperties("Prop_ValueFact", pms)
+                updateProperties("Prop_Value", pms)
         } else {
-            if (pms.getDouble("ValueFact") > 0)
-                fillProperties(true, "Prop_ValueFact", pms)
+            if (pms.getDouble("Value") > 0)
+                fillProperties(true, "Prop_Value", pms)
         }
         //3 Prop_FactDateStart
         if (pms.containsKey("idFactDateStart")) {
@@ -2518,7 +2520,7 @@ class DataDao extends BaseMdbUtils {
                 updateProperties("Prop_UpdatedAt", pms)
         }
         //
-        return null
+        return loadObjTaskLog(own)
     }
 
     /**
