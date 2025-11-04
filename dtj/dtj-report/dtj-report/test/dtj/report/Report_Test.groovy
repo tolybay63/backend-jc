@@ -13,7 +13,7 @@ class Report_Test extends Apx_Test {
                 "tml", "ПО-4")
 
 
-        dao.loadFile(map)
+        dao.generateReport1(map)
 
 
     }

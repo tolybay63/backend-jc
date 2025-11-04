@@ -9,10 +9,15 @@ import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
 import org.apache.poi.ss.usermodel.Cell
+import org.apache.poi.ss.usermodel.CellType
+import org.apache.poi.ss.usermodel.DataFormatter
+import org.apache.poi.ss.usermodel.RangeCopier
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.usermodel.Sheet
 import org.apache.poi.ss.usermodel.Workbook
 import org.apache.poi.ss.usermodel.WorkbookFactory
+import org.apache.poi.ss.util.CellRangeAddress
+import org.apache.poi.xssf.usermodel.XSSFRangeCopier
 import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import tofi.api.dta.ApiClientData
@@ -28,6 +33,8 @@ import tofi.api.dta.ApiUserData
 import tofi.api.mdl.ApiMeta
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
+
+import javax.print.DocFlavor
 
 @CompileStatic
 class ReportDao extends BaseMdbUtils {
@@ -66,30 +73,82 @@ class ReportDao extends BaseMdbUtils {
         return app.bean(ApinatorService).getApi("resourcedata")
     }
 
+
     @DaoMethod
-    void loadFile(Map<String, Object> params) {
-        String tml = UtCnv.toString(params.get("tml"))+".xlsx"
-        String pathin = mdb.getApp().appdir+File.separator+"tml"+File.separator
-        String pathout = mdb.getApp().appdir+File.separator+"report"+File.separator
+    void generateReport1(Map<String, Object> params) {
+        String pathin = mdb.getApp().appdir + File.separator + "tml" + File.separator + "ПО-4.xlsx"
+        String pathout = mdb.getApp().appdir + File.separator + "report" + File.separator + "ПО-4.xlsx"
 
 
         // 1. Загрузка исходной книги
-        InputStream inputStream = new FileInputStream("источник.xlsx");
-        XSSFWorkbook sourceWorkbook = new XSSFWorkbook(inputStream);
-        XSSFSheet sourceSheet = sourceWorkbook.getSheet("Лист1");
+        InputStream inputStream = new FileInputStream(pathin)
+        XSSFWorkbook sourceWorkbook = new XSSFWorkbook(inputStream)
+
 
 // 2. Создание целевой книги и листа
         XSSFWorkbook targetWorkbook = new XSSFWorkbook();
-        XSSFSheet targetSheet = targetWorkbook.createSheet("Копия Листа1");
+
+        XSSFSheet sourceSheet = sourceWorkbook.getSheetAt(0);
+        XSSFSheet destSheet = targetWorkbook.createSheet("ПЧ")
+
+        RangeCopier copier = new XSSFRangeCopier(sourceSheet, destSheet)
+
+        // Например, копирование диапазона A1:C5
+        CellRangeAddress sourceRange = new CellRangeAddress(0, 100, 0, 9)
+        // Вставка в диапазон D1:F5
+        CellRangeAddress destRange = new CellRangeAddress(0, 100, 0, 9)
+
+        //
+        copier.copyRange(sourceRange, destRange, true, true)
+        //
+
+        // Итерируем по всем столбцам от 0 до последнего используемого
+        for (int i = 0; i <= 9; i++) {
+            // Получаем ширину столбца из исходного листа
+            int columnWidth = sourceSheet.getColumnWidth(i);
+
+            // Устанавливаем ту же ширину для соответствующего столбца в целевом листе
+            destSheet.setColumnWidth(i, columnWidth);
+        }
+
+        //
+
+
+
+
+        OutputStream outputStream = new FileOutputStream(pathout)
+        targetWorkbook.write(outputStream)
+        outputStream.close()
+
+
+    }
+
+
+
+    @DaoMethod
+    void generateReport(Map<String, Object> params) {
+        String pathin = mdb.getApp().appdir+File.separator+"tml"+File.separator+"ПО-4.xlsx"
+        String pathout = mdb.getApp().appdir+File.separator+"report"+File.separator+"ПО-4.xlsx"
+
+
+        // 1. Загрузка исходной книги
+        InputStream inputStream = new FileInputStream(pathin)
+        XSSFWorkbook sourceWorkbook = new XSSFWorkbook(inputStream)
+        XSSFSheet sourceSheet = sourceWorkbook.getSheetAt(0)
+
+// 2. Создание целевой книги и листа
+        XSSFWorkbook targetWorkbook = new XSSFWorkbook();
+        XSSFSheet targetSheet = targetWorkbook.createSheet("ПЧ")
 
 // 3. Копирование данных
         for (Row sourceRow : sourceSheet) {
-            Row targetRow = targetSheet.createRow(sourceRow.getRowNum());
+            Row targetRow = targetSheet.createRow(sourceRow.getRowNum())
             for (Cell sourceCell : sourceRow) {
-                Cell targetCell = targetRow.createCell(sourceCell.getColumnIndex());
+                Cell targetCell = targetRow.createCell(sourceCell.getColumnIndex(), sourceCell.cellType)
 
                 // Копируем значение ячейки
-                targetCell.setCellValue(sourceCell.getStringCellValue());
+                //targetCell.setCellValue(sourceCell.getStringCellValue())
+                targetCell.setCellValue(getCellValueAsString(sourceCell))
                 // И так далее для других типов ячеек (числовых, булевых и т.д.)
 
                 // TODO: Добавить логику копирования стилей и форматирования
@@ -97,14 +156,39 @@ class ReportDao extends BaseMdbUtils {
         }
 
 // 4. Сохранение целевой книги
-        OutputStream outputStream = new FileOutputStream("цель.xlsx");
-        targetWorkbook.write(outputStream);
-        outputStream.close();
+        OutputStream outputStream = new FileOutputStream(pathout)
+        targetWorkbook.write(outputStream)
+        outputStream.close()
 
+    }
 
-
-
-
+    public static String getCellValueAsString(Cell cell) {
+        if (cell == null) {
+            return null
+        }
+        switch (cell.getCellType()) {
+            case CellType.STRING:
+                return cell.getStringCellValue()
+            case CellType.NUMERIC:
+                // For numeric cells, including dates and times
+                DataFormatter formatter = new DataFormatter()
+                return formatter.formatCellValue(cell)
+            case CellType.BOOLEAN:
+                return String.valueOf(cell.getBooleanCellValue())
+            case CellType.FORMULA:
+                // To get the evaluated value of a formula cell
+                // You'll need a FormulaEvaluator instance
+                // FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator()
+                // CellValue cellValue = evaluator.evaluate(cell)
+                // return getCellValueAsString(cellValue) // Recursively call for evaluated value
+                return cell.getCellFormula() // Or just return the formula string
+            case CellType.BLANK:
+                return null
+            case CellType.ERROR:
+                return "ERROR" // Or handle error appropriately
+            default:
+                return null
+        }
     }
 
 
