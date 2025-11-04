@@ -6,7 +6,7 @@
         <dbsource name="default"
                   dbdriver="postgresql"
                   host="192.168.1.39"
-                  database="dtj_clientdata"
+                  database="dtj_repairdata"
                   username="pg"
                   password="1q2w3e4R"
         />
@@ -92,6 +92,29 @@
                   password="1q2w3e4R"
         />
 
+        <dbsource name="incidentdata"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="dtj_incidentdata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="resourcedata"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="dtj_resourcedata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="repairdata"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="dtj_repairdata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
 
     </cfg>
 

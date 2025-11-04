@@ -22,10 +22,7 @@ class Report_Test extends Apx_Test {
                 "nameDirectorLocation", "Досжан Темир Жолы"
         )
 
-
         dao.generateReportPO_4(map)
-
-
     }
 
     @Test

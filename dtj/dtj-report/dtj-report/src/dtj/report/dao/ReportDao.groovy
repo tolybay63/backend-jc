@@ -198,8 +198,6 @@ class ReportDao extends BaseMdbUtils {
             where o.cls=${map.get("cls")}
         """, "Report.po_4", "repairdata")
 
-        //mdb.outTable(st)
-
         Set<Object> idsWorkPlan = st.getUniqueValues("objWorkPlan")
         //
         long objLocation = UtCnv.toLong(params.get("objLocation"))
@@ -243,7 +241,6 @@ class ReportDao extends BaseMdbUtils {
                 inner join DataPropVal v3 on d3.id=v3.dataProp
             where o.id in (0${idsWorkPlan.join(",")})
         """, "", "plandata")
-        //mdb.outTable(stWorkPlan)
 
         Set<Object> idsObject = stWorkPlan.getUniqueValues("objObject")
         Store stObject = loadSqlService("""
@@ -257,7 +254,6 @@ class ReportDao extends BaseMdbUtils {
                 r.set("nameobject", rec.getString("name"))
             }
         }
-        //mdb.outTable(stWorkPlan)
         //
         StoreIndex indWorkPlan = stWorkPlan.getIndex("id")
         for (StoreRecord r in st) {
@@ -288,8 +284,6 @@ class ReportDao extends BaseMdbUtils {
                 r.set("Parent", rec.getLong("parent"))
             }
         }
-        //
-        //mdb.outTable(st)
         //
         Set<Object> idsParent = stObject.getUniqueValues("parent")
         stObject = loadSqlService("""
@@ -369,9 +363,54 @@ class ReportDao extends BaseMdbUtils {
             if (r.getLong("objClient") > 0)
                 stRes.add(r)
         }
-
+        //
         mdb.outTable(stRes)
+        //
 
+        Map<String, Map<String, Long>> mapNum = new HashMap<>()
+        Map<String, Long> mapType = new HashMap<>()
+        for (StoreRecord r in stRes) {
+            if (r.getString("DefectsIndex").startsWith("10.1")) {
+                if (r.getString("nameTask").toLowerCase().contains("р75 с"))
+                    mapType.put("75c", mapType.get("75c", 0L)+r.getLong("Value"))
+                else if (r.getString("nameTask").toLowerCase().contains("р75 з"))
+                    mapType.put("75z", mapType.get("75z", 0L)+r.getLong("Value"))
+                else if (r.getString("nameTask").toLowerCase().contains("р65 с"))
+                    mapType.put("65c", mapType.get("65c", 0L)+r.getLong("Value"))
+                else if (r.getString("nameTask").toLowerCase().contains("р65 з"))
+                    mapType.put("65z", mapType.get("65z", 0L)+r.getLong("Value"))
+                else if (r.getString("nameTask").toLowerCase().contains("р50"))
+                    mapType.put("50", mapType.get("50", 0L)+r.getLong("Value"))
+                else if (r.getString("nameTask").toLowerCase().contains("р43"))
+                    mapType.put("43", mapType.get("43", 0L)+r.getLong("Value"))
+                else
+                    mapType.put("43", mapType.get("43", 0L)+r.getLong("Value"))
+                mapNum.put("10", mapType)
+            }
+            if (r.getString("DefectsIndex").startsWith("20.1")) {
+                if (r.getString("nameTask").toLowerCase().contains("р75 с"))
+                    mapType.put("75c", mapType.get("75c", 0L)+r.getLong("Value"))
+                else if (r.getString("nameTask").toLowerCase().contains("р75 з"))
+                    mapType.put("75z", mapType.get("75z", 0L)+r.getLong("Value"))
+                else if (r.getString("nameTask").toLowerCase().contains("р65 с"))
+                    mapType.put("65c", mapType.get("65c", 0L)+r.getLong("Value"))
+                else if (r.getString("nameTask").toLowerCase().contains("р65 з"))
+                    mapType.put("65z", mapType.get("65z", 0L)+r.getLong("Value"))
+                else if (r.getString("nameTask").toLowerCase().contains("р50"))
+                    mapType.put("50", mapType.get("50", 0L)+r.getLong("Value"))
+                else if (r.getString("nameTask").toLowerCase().contains("р43"))
+                    mapType.put("43", mapType.get("43", 0L)+r.getLong("Value"))
+                else
+                    mapType.put("43", mapType.get("43", 0L)+r.getLong("Value"))
+                mapNum.put("20", mapType)
+            }
+
+
+        }
+
+        mdb.outMap(mapNum)
+
+        int o=0
 
     }
 
@@ -446,11 +485,6 @@ class ReportDao extends BaseMdbUtils {
 
 
     //-------------------------
-
-    private Store loadSqlMeta(String sql, String domain) {
-        return apiMeta().get(ApiMeta).loadSql(sql, domain)
-    }
-
     private Store loadSqlService(String sql, String domain, String model) {
         if (model.equalsIgnoreCase("userdata"))
             return apiUserData().get(ApiUserData).loadSql(sql, domain)
