@@ -1,5 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
+    <domain name="Report.po_4" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
 
+        <field name="objTask" parent="long"/>
+        <field name="FactDateEnd" parent="string"/>
+        <field name="Value" parent="double"/>
+
+        <field name="objWorkPlan" parent="long"/>
+        <field name="objLocation" parent="long"/>
+        <field name="objObject" parent="long"/>
+        <field name="nameObject" parent="string"/>
+
+        <field name="clsObject" parent="long"/>
+        <field name="objSection" parent="long"/>
+        <field name="Parent" parent="long"/>
+        <field name="objIncident" parent="long"/>
+        <field name="objFault" parent="long"/>
+        <field name="objDefect" parent="long"/>
+        <field name="DefectsIndex" parent="string"/>
+    </domain>
 </root>
 

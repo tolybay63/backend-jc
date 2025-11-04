@@ -1,40 +1,30 @@
 package dtj.report.dao
 
-import dtj.report.action.DownFile
+
 import groovy.transform.CompileStatic
 import jandcode.commons.UtCnv
+import jandcode.commons.datetime.XDate
 import jandcode.commons.error.XError
+import jandcode.commons.variant.VariantMap
 import jandcode.core.auth.AuthService
 import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
+import jandcode.core.store.StoreIndex
+import jandcode.core.store.StoreRecord
 import org.apache.poi.ss.usermodel.Cell
-import org.apache.poi.ss.usermodel.CellType
-import org.apache.poi.ss.usermodel.DataFormatter
 import org.apache.poi.ss.usermodel.RangeCopier
 import org.apache.poi.ss.usermodel.Row
-import org.apache.poi.ss.usermodel.Sheet
-import org.apache.poi.ss.usermodel.Workbook
-import org.apache.poi.ss.usermodel.WorkbookFactory
 import org.apache.poi.ss.util.CellRangeAddress
 import org.apache.poi.xssf.usermodel.XSSFRangeCopier
 import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
-import tofi.api.dta.ApiClientData
-import tofi.api.dta.ApiInspectionData
-import tofi.api.dta.ApiNSIData
-import tofi.api.dta.ApiObjectData
-import tofi.api.dta.ApiOrgStructureData
-import tofi.api.dta.ApiPersonnalData
-import tofi.api.dta.ApiPlanData
-import tofi.api.dta.ApiRepairData
-import tofi.api.dta.ApiResourceData
-import tofi.api.dta.ApiUserData
+import tofi.api.dta.*
 import tofi.api.mdl.ApiMeta
+import tofi.api.mdl.utils.UtPeriod
+import tofi.api.mdl.utils.dimPeriod.PeriodGenerator
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
-
-import javax.print.DocFlavor
 
 @CompileStatic
 class ReportDao extends BaseMdbUtils {
@@ -66,6 +56,9 @@ class ReportDao extends BaseMdbUtils {
     ApinatorApi apiClientData() {
         return app.bean(ApinatorService).getApi("clientdata")
     }
+    ApinatorApi apiIncidentData() {
+        return app.bean(ApinatorService).getApi("incidentdata")
+    }
     ApinatorApi apiRepairData() {
         return app.bean(ApinatorService).getApi("repairdata")
     }
@@ -75,7 +68,8 @@ class ReportDao extends BaseMdbUtils {
 
 
     @DaoMethod
-    void generateReport1(Map<String, Object> params) {
+    void generateReportPO_4(Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
         String pathin = mdb.getApp().appdir + File.separator + "tml" + File.separator + "ПО-4.xlsx"
         String pathout = mdb.getApp().appdir + File.separator + "report" + File.separator + "ПО-4.xlsx"
 
@@ -85,33 +79,79 @@ class ReportDao extends BaseMdbUtils {
         XSSFWorkbook sourceWorkbook = new XSSFWorkbook(inputStream)
 
 
-// 2. Создание целевой книги и листа
+        // 2. Создание целевой книги и листа
         XSSFWorkbook targetWorkbook = new XSSFWorkbook();
 
         XSSFSheet sourceSheet = sourceWorkbook.getSheetAt(0);
-        XSSFSheet destSheet = targetWorkbook.createSheet("ПЧ")
-
-        RangeCopier copier = new XSSFRangeCopier(sourceSheet, destSheet)
-
-        // Например, копирование диапазона A1:C5
-        CellRangeAddress sourceRange = new CellRangeAddress(0, 100, 0, 9)
-        // Вставка в диапазон D1:F5
-        CellRangeAddress destRange = new CellRangeAddress(0, 100, 0, 9)
-
-        //
-        copier.copyRange(sourceRange, destRange, true, true)
-        //
+        XSSFSheet destSheet = targetWorkbook.createSheet("Лист 1")
 
         // Итерируем по всем столбцам от 0 до последнего используемого
-        for (int i = 0; i <= 9; i++) {
+        for (int i = 0; i < 10; i++) {
             // Получаем ширину столбца из исходного листа
             int columnWidth = sourceSheet.getColumnWidth(i);
-
             // Устанавливаем ту же ширину для соответствующего столбца в целевом листе
             destSheet.setColumnWidth(i, columnWidth);
         }
 
+
+        RangeCopier copier = new XSSFRangeCopier(sourceSheet, destSheet)
+        CellRangeAddress sourceRange = new CellRangeAddress(0, 71, 0, 9)
+        CellRangeAddress destRange = new CellRangeAddress(0, 71, 0, 9)
         //
+        copier.copyRange(sourceRange, destRange, true, true)
+        //
+        long pt = pms.getLong("periodType")
+        String dte = pms.getString("dte")
+        UtPeriod utPeriod = new UtPeriod()
+        XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(dte), pt, 0)
+        XDate d2 = utPeriod.calcDend(UtCnv.toDate(dte), pt, 0)
+        PeriodGenerator pg = new PeriodGenerator()
+        String namePeriod = pg.getPeriodName(d1, d2, pt, 1)
+        String h2=""
+        Store stLocation = loadSqlService("""
+            select v.name from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id=${pms.getLong("objLocation")}
+        """, "", "orgstructuredata")
+        if (stLocation.size()>0)
+            h2 = "за "+namePeriod+" по " + stLocation.get(0).getString("name").toLowerCase()
+
+
+        //
+        Row row = destSheet.getRow(5)
+        Cell cell = row.getCell(0)
+        cell.setCellValue(h2)
+        //
+        row = destSheet.getRow(67)
+        cell = row.getCell(0)
+        cell.setCellValue(pms.getString("nameDirectorPosition"))
+        row = destSheet.getRow(68)
+        cell = row.getCell(0)
+        cell.setCellValue(pms.getString("nameDirectorLocation"))
+        cell = row.getCell(8)
+        cell.setCellValue(pms.getString("fullNameDirector"))
+        //
+        String isp = "Исп. "+pms.getString("nameUserPosition").toLowerCase()+" "+pms.getString("fulNameUser")
+        String tel = "тел. "+pms.getString("UserPhone")
+        row = destSheet.getRow(70)
+        cell = row.getCell(0)
+        cell.setCellValue(isp)
+        row = destSheet.getRow(71)
+        cell = row.getCell(0)
+        cell.setCellValue(tel)
+        //
+
+
+/*
+        for (int idxRow=13; idxRow < 19; idxRow++) {
+            Row row = destSheet.getRow(idxRow)
+            for (int idxCol=4; idxCol < 10; idxCol++) {
+                Cell cell = row.getCell(idxCol)
+                double v = Math.random() * 10
+                def v1 = UtCnv.toInt(v)
+                if (v1 > 0)
+                    cell.setCellValue(v1)
+            }
+        }
+*/
 
 
 
@@ -124,7 +164,219 @@ class ReportDao extends BaseMdbUtils {
     }
 
 
+    @DaoMethod
+    loadDataPO_4(Map<String, Object> params) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        Map<String, Long> map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_TaskLog", "")
+        map.put("cls", map2.get("Cls_TaskLog"))
+        map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Fact", "")
+        map.put("FV_Fact", map2.get("FV_Fact"))
+        //
+        map.put("objClient", UtCnv.toLong(params.get("objClient")))
+        //
+        String dte = UtCnv.toString(params.get("dte"))
+        UtPeriod utPeriod = new UtPeriod()
+        long pt = UtCnv.toLong(params.get("periodType"))
+        XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(dte), pt, 0)
+        XDate d2 = utPeriod.calcDend(UtCnv.toDate(dte), pt, 0)
+        Store st = loadSqlService("""
+            select o.id, o.cls, v2.dateTimeVal as FactDateEnd, v3.obj as objTask, v1.numberVal as Value, 
+                v4.obj as objWorkPlan, v5.obj as objLocation, v6.obj as objObject, null as nameObject
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Value")} and d1.status=${map.get("FV_Fact")}
+                inner join DataPropVal v1 on d1.id=v1.dataProp
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_FactDateEnd")}
+                inner join DataPropVal v2 on d2.id=v2.dataProp and v2.dateTimeVal between '${d1}' and '${d2}'
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_Task")}
+                inner join DataPropVal v3 on d3.id=v3.dataProp
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_WorkPlan")}
+                left join DataPropVal v4 on d4.id=v4.dataProp
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_LocationClsSection")}
+                left join DataPropVal v5 on d5.id=v5.dataProp
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=${map.get("Prop_Object")}
+                left join DataPropVal v6 on d6.id=v6.dataProp                    
+            where o.cls=${map.get("cls")}
+        """, "Report.po_4", "repairdata")
 
+        //mdb.outTable(st)
+
+        Set<Object> idsWorkPlan = st.getUniqueValues("objWorkPlan")
+        //
+        long objLocation = UtCnv.toLong(params.get("objLocation"))
+        Store stLocation = loadSqlService("""
+           WITH RECURSIVE r AS (
+               SELECT o.id, v.objParent as parent
+               FROM Obj o, ObjVer v
+               WHERE o.id=v.ownerver and v.lastver=1 and v.objParent=${objLocation}
+               UNION ALL
+               SELECT t.*
+               FROM ( SELECT o.id, v.objParent as parent
+                      FROM Obj o, ObjVer v
+                      WHERE o.id=v.ownerver and v.lastver=1
+                    ) t
+                  JOIN r
+                      ON t.parent = r.id
+           ),
+           o as (
+           SELECT o.id, v.objParent as parent
+           FROM Obj o, ObjVer v
+           WHERE o.id=v.ownerver and v.lastver=1 and o.id=${objLocation}
+           )
+           SELECT * FROM o
+           UNION ALL
+           SELECT * FROM r
+           where 0=0
+        """, "", "orgstructuredata")
+
+        Set<Object> idsLocation = stLocation.getUniqueValues("id")
+        //
+
+        Store stWorkPlan = loadSqlService("""
+            select o.id, o.cls,  
+                v1.obj as objLocation, v2.obj as objObject, null as clsObject, null as nameObject, v3.obj as objIncident 
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_LocationClsSection")}
+                inner join DataPropVal v1 on d1.id=v1.dataProp and v1.obj in (0${idsLocation.join(",")})
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_Object")}
+                inner join DataPropVal v2 on d2.id=v2.dataProp
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_Incident")}
+                inner join DataPropVal v3 on d3.id=v3.dataProp
+            where o.id in (0${idsWorkPlan.join(",")})
+        """, "", "plandata")
+        //mdb.outTable(stWorkPlan)
+
+        Set<Object> idsObject = stWorkPlan.getUniqueValues("objObject")
+        Store stObject = loadSqlService("""
+            select o.id, o.cls, v.name from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsObject.join(",")})
+        """, "", "objectdata")
+        StoreIndex indObject = stObject.getIndex("id")
+        for (StoreRecord r in stWorkPlan) {
+            StoreRecord rec = indObject.get(r.getLong("objObject"))
+            if (rec != null) {
+                r.set("clsobject", rec.getLong("cls"))
+                r.set("nameobject", rec.getString("name"))
+            }
+        }
+        //mdb.outTable(stWorkPlan)
+        //
+        StoreIndex indWorkPlan = stWorkPlan.getIndex("id")
+        for (StoreRecord r in st) {
+            StoreRecord rec = indWorkPlan.get(r.getLong("objWorkPlan"))
+            if (rec != null) {
+                r.set("objObject", rec.getLong("objObject"))
+                r.set("clsObject", rec.getLong("clsobject"))
+                r.set("nameObject", rec.getString("nameobject"))
+                r.set("objIncident", rec.getLong("objIncident"))
+            }
+        }
+        //
+        stObject = loadSqlService("""
+            select o.id, o.cls, v1.obj as objSection, ov1.objParent as parent
+            from Obj o
+                left join ObjVer v on o.id=v.ownerVer and v.lastVer=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Section")}
+                left join DataPropVal v1 on d1.id=v1.dataProp
+                left join ObjVer ov1 on ov1.ownerVer=v1.obj and ov1.lastVer=1
+            where o.id in (0${idsObject.join(",")})
+        """, "", "objectdata")
+        indObject = stObject.getIndex("id")
+
+        for (StoreRecord r in st) {
+            StoreRecord rec = indObject.get(r.getLong("objObject"))
+            if (rec != null) {
+                r.set("objSection", rec.getLong("objSection"))
+                r.set("Parent", rec.getLong("parent"))
+            }
+        }
+        //
+        //mdb.outTable(st)
+        //
+        Set<Object> idsParent = stObject.getUniqueValues("parent")
+        stObject = loadSqlService("""
+            select o.id, v2.obj as objClient
+            from Obj o
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_Client")}
+                inner join DataPropVal v2 on d2.id=v2.dataProp and v2.obj=${map.get("objClient")}
+            where o.id in (0${idsParent.join(",")}) 
+        """, "", "objectdata")
+        indObject = stObject.getIndex("id")
+        for (StoreRecord r in st) {
+            StoreRecord rec = indObject.get(r.getLong("Parent"))
+            if (rec != null) {
+                r.set("objClient", rec.getLong("objClient"))
+            }
+        }
+        //
+        Set<Object> idsIncident = stWorkPlan.getUniqueValues("objIncident")
+        Store stIncident = loadSqlService("""
+            select o.id, v1.obj as objFault
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Fault")}
+                left join DataPropVal v1 on d1.id=v1.dataProp
+            where o.id in (0${idsIncident.join(",")}) 
+        """, "", "incidentdata")
+        StoreIndex indIncident = stIncident.getIndex("id")
+        Set<Object> idsFault = stIncident.getUniqueValues("objFault")
+        //
+        Store stInspection = loadSqlService("""
+            select o.id, v1.obj as objDefect
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Defect")}
+                left join DataPropVal v1 on d1.id=v1.dataProp
+            where o.id in (0${idsFault.join(",")}) 
+        """, "", "inspectiondata")
+        StoreIndex indInspection = stInspection.getIndex("id")
+        Set<Object> idsDefect = stInspection.getUniqueValues("objDefect")
+        //
+        Store stNsi = loadSqlService("""
+            select o.id, v1.strVal as DefectsIndex
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_DefectsIndex")}
+                left join DataPropVal v1 on d1.id=v1.dataProp
+            where o.id in (0${idsDefect.join(",")}) 
+        """, "", "nsidata")
+
+        StoreIndex indNsi = stNsi.getIndex("id")
+        //
+        Set<Object> idsTask = st.getUniqueValues("objTask")
+        Store stTask = loadSqlService("""
+            select o.id, v.name 
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsTask.join(",")})
+        """, "", "nsidata")
+        StoreIndex indTask = stTask.getIndex("id")
+        //
+        Store stRes = mdb.createStore("Report.po_4")
+        for (StoreRecord r in st) {
+            StoreRecord recTask = indTask.get(r.getLong("objTask"))
+            if (recTask != null)
+                r.set("nameTask", recTask.getString("name"))
+            //
+            StoreRecord recIncident = indIncident.get(r.getLong("objIncident"))
+            if (recIncident != null) {
+                r.set("objFault", recIncident.getLong("objFault"))
+            }
+            //
+            StoreRecord recInspection = indInspection.get(r.getLong("objFault"))
+            if (recInspection != null) {
+                r.set("objDefect", recInspection.getLong("objDefect"))
+            }
+            //
+            StoreRecord recNsi = indNsi.get(r.getLong("objDefect"))
+            if (recNsi != null) {
+                r.set("DefectsIndex", recNsi.getString("DefectsIndex"))
+            }
+            //
+            if (r.getLong("objClient") > 0)
+                stRes.add(r)
+        }
+
+        mdb.outTable(stRes)
+
+
+    }
+
+
+/*
     @DaoMethod
     void generateReport(Map<String, Object> params) {
         String pathin = mdb.getApp().appdir+File.separator+"tml"+File.separator+"ПО-4.xlsx"
@@ -138,7 +390,7 @@ class ReportDao extends BaseMdbUtils {
 
 // 2. Создание целевой книги и листа
         XSSFWorkbook targetWorkbook = new XSSFWorkbook();
-        XSSFSheet targetSheet = targetWorkbook.createSheet("ПЧ")
+        XSSFSheet targetSheet = targetWorkbook.createSheet()
 
 // 3. Копирование данных
         for (Row sourceRow : sourceSheet) {
@@ -190,6 +442,7 @@ class ReportDao extends BaseMdbUtils {
                 return null
         }
     }
+*/
 
 
     //-------------------------
@@ -215,6 +468,8 @@ class ReportDao extends BaseMdbUtils {
             return apiInspectionData().get(ApiInspectionData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("clientdata"))
             return apiClientData().get(ApiClientData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("incidentdata"))
+            return apiIncidentData().get(ApiIncidentData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("repairdata"))
             return apiRepairData().get(ApiRepairData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("resourcedata"))
