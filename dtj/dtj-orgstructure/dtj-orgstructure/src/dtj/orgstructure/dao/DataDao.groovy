@@ -488,6 +488,17 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store loadDepartmentForSelect() {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_LocationSection", "")
+        return mdb.loadQuery("""
+            select o.id, v.name 
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.cls=:Cls_LocationSection
+                and v.objparent not in (select id from Obj where cls=:Cls_LocationSection)
+        """, map)
+    }
+
+    @DaoMethod
     Store loadObjForSelect(String codClsOrTyp) {
         Map<String, Long> map
         String sql
