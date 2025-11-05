@@ -669,13 +669,13 @@ class DataDao extends BaseMdbUtils {
             own = pms.getLong("id")
             par.put("fullName", par.get("name"))
             Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_WorkPlan", "")
-            Store stInsp = loadSqlService("""
+            Store stInspection = loadSqlService("""
                 select v.id
                 from DataProp d, DataPropVal v
                 where d.id=v.dataprop and d.prop=${map.get("Prop_WorkPlan")} and v.obj=${own}
             """, "", "inspectiondata")
 
-            if (stInsp.size() > 0)
+            if (stInspection.size() > 0)
                 throw new XError("Существует запись в 'Журнале осмотров и проверок' по данной плановой работе")
 
             eu.updateEntity(par)
