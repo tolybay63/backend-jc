@@ -66,13 +66,22 @@ class ReportDao extends BaseMdbUtils {
         return app.bean(ApinatorService).getApi("resourcedata")
     }
 
-
     @DaoMethod
+    void generateReport(Map<String, Object> params) {
+        if (UtCnv.toString(params.get("tml")).equalsIgnoreCase("по-4"))
+            generateReportPO_4(params)
+        else
+            throw new XError("Не известный шаблон")
+
+    }
+
+
     void generateReportPO_4(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         String pathin = mdb.getApp().appdir + File.separator + "tml" + File.separator + "ПО-4.xlsx"
         String pathout = mdb.getApp().appdir + File.separator + "report" + File.separator + "ПО-4.xlsx"
 
+        System.out.println(pathout)
 
         // 1. Загрузка исходной книги
         InputStream inputStream = new FileInputStream(pathin)
@@ -341,6 +350,11 @@ class ReportDao extends BaseMdbUtils {
             where o.cls=${map.get("cls")}
         """, "Report.po_4", "repairdata")
 
+        //
+        if (st.size()==0)
+            throw new XError("Нет данных")
+        //
+
         Set<Object> idsWorkPlan = st.getUniqueValues("objWorkPlan")
         //
         long objLocation = UtCnv.toLong(params.get("objLocation"))
@@ -518,6 +532,22 @@ class ReportDao extends BaseMdbUtils {
         Map<String, Long> mapType14 = new HashMap<>()
         Map<String, Long> mapType18 = new HashMap<>()
         Map<String, Long> mapType20 = new HashMap<>()
+        Map<String, Long> mapType21 = new HashMap<>()
+        Map<String, Long> mapType24 = new HashMap<>()
+        Map<String, Long> mapType25 = new HashMap<>()
+        Map<String, Long> mapType26 = new HashMap<>()
+        Map<String, Long> mapType27 = new HashMap<>()
+        Map<String, Long> mapType30 = new HashMap<>()
+        Map<String, Long> mapType31 = new HashMap<>()
+        Map<String, Long> mapType38 = new HashMap<>()
+        Map<String, Long> mapType40 = new HashMap<>()
+        Map<String, Long> mapType41 = new HashMap<>()
+        Map<String, Long> mapType43 = new HashMap<>()
+        Map<String, Long> mapType44 = new HashMap<>()
+        Map<String, Long> mapType46 = new HashMap<>()
+        Map<String, Long> mapType47 = new HashMap<>()
+        Map<String, Long> mapType49 = new HashMap<>()
+
         long shtuka = 0
         //10.
         for (StoreRecord r in stRes) {
@@ -643,7 +673,252 @@ class ReportDao extends BaseMdbUtils {
                                 mapType20.put("43", mapType20.get("43", 0L) + r.getLong("Value"))
                             mapNum.put("20", mapType20)
                         }
-                        //...
+                        //21.
+                        if (r.getString("DefectsIndex").startsWith("21.")) {
+                            if (r.getString("nameTask").toLowerCase().contains("р75 с"))
+                                mapType21.put("75c", mapType21.get("75c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р75 з"))
+                                mapType21.put("75z", mapType21.get("75z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 с"))
+                                mapType21.put("65c", mapType21.get("65c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 з"))
+                                mapType21.put("65z", mapType21.get("65z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р50"))
+                                mapType21.put("50", mapType21.get("50", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р43"))
+                                mapType21.put("43", mapType21.get("43", 0L) + r.getLong("Value"))
+                            mapNum.put("21", mapType21)
+                        }
+                        //24.
+                        if (r.getString("DefectsIndex").startsWith("24.")) {
+                            if (r.getString("nameTask").toLowerCase().contains("р75 с"))
+                                mapType24.put("75c", mapType24.get("75c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р75 з"))
+                                mapType24.put("75z", mapType24.get("75z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 с"))
+                                mapType24.put("65c", mapType24.get("65c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 з"))
+                                mapType24.put("65z", mapType24.get("65z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р50"))
+                                mapType24.put("50", mapType24.get("50", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р43"))
+                                mapType24.put("43", mapType24.get("43", 0L) + r.getLong("Value"))
+                            mapNum.put("24", mapType24)
+                        }
+                        //25.
+                        if (r.getString("DefectsIndex").startsWith("25.")) {
+                            if (r.getString("nameTask").toLowerCase().contains("р75 с"))
+                                mapType25.put("75c", mapType25.get("75c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р75 з"))
+                                mapType25.put("75z", mapType25.get("75z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 с"))
+                                mapType25.put("65c", mapType25.get("65c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 з"))
+                                mapType25.put("65z", mapType25.get("65z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р50"))
+                                mapType25.put("50", mapType25.get("50", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р43"))
+                                mapType25.put("43", mapType25.get("43", 0L) + r.getLong("Value"))
+                            mapNum.put("25", mapType25)
+                        }
+                        //26.
+                        if (r.getString("DefectsIndex").startsWith("26.")) {
+                            if (r.getString("nameTask").toLowerCase().contains("р75 с"))
+                                mapType26.put("75c", mapType26.get("75c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р75 з"))
+                                mapType26.put("75z", mapType26.get("75z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 с"))
+                                mapType26.put("65c", mapType26.get("65c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 з"))
+                                mapType26.put("65z", mapType26.get("65z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р50"))
+                                mapType26.put("50", mapType26.get("50", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р43"))
+                                mapType26.put("43", mapType26.get("43", 0L) + r.getLong("Value"))
+                            mapNum.put("26", mapType26)
+                        }
+                        //27.
+                        if (r.getString("DefectsIndex").startsWith("27.")) {
+                            if (r.getString("nameTask").toLowerCase().contains("р75 с"))
+                                mapType27.put("75c", mapType27.get("75c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р75 з"))
+                                mapType27.put("75z", mapType27.get("75z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 с"))
+                                mapType27.put("65c", mapType27.get("65c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 з"))
+                                mapType27.put("65z", mapType27.get("65z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р50"))
+                                mapType27.put("50", mapType27.get("50", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р43"))
+                                mapType27.put("43", mapType27.get("43", 0L) + r.getLong("Value"))
+                            mapNum.put("27", mapType27)
+                        }
+                        //30.
+                        if (r.getString("DefectsIndex").startsWith("30.")) {
+                            if (r.getString("nameTask").toLowerCase().contains("р75 с"))
+                                mapType30.put("75c", mapType30.get("75c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р75 з"))
+                                mapType30.put("75z", mapType30.get("75z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 с"))
+                                mapType30.put("65c", mapType30.get("65c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 з"))
+                                mapType30.put("65z", mapType30.get("65z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р50"))
+                                mapType30.put("50", mapType30.get("50", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р43"))
+                                mapType30.put("43", mapType30.get("43", 0L) + r.getLong("Value"))
+                            mapNum.put("30", mapType30)
+                        }
+                        //31.
+                        if (r.getString("DefectsIndex").startsWith("31.")) {
+                            if (r.getString("nameTask").toLowerCase().contains("р75 с"))
+                                mapType31.put("75c", mapType31.get("75c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р75 з"))
+                                mapType31.put("75z", mapType31.get("75z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 с"))
+                                mapType31.put("65c", mapType31.get("65c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 з"))
+                                mapType31.put("65z", mapType31.get("65z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р50"))
+                                mapType31.put("50", mapType31.get("50", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р43"))
+                                mapType31.put("43", mapType31.get("43", 0L) + r.getLong("Value"))
+                            mapNum.put("31", mapType31)
+                        }
+                        //38.
+                        if (r.getString("DefectsIndex").startsWith("38.")) {
+                            if (r.getString("nameTask").toLowerCase().contains("р75 с"))
+                                mapType38.put("75c", mapType38.get("75c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р75 з"))
+                                mapType38.put("75z", mapType38.get("75z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 с"))
+                                mapType38.put("65c", mapType38.get("65c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 з"))
+                                mapType38.put("65z", mapType38.get("65z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р50"))
+                                mapType38.put("50", mapType38.get("50", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р43"))
+                                mapType38.put("43", mapType38.get("43", 0L) + r.getLong("Value"))
+                            mapNum.put("38", mapType38)
+                        }
+                        //40.
+                        if (r.getString("DefectsIndex").startsWith("40.")) {
+                            if (r.getString("nameTask").toLowerCase().contains("р75 с"))
+                                mapType40.put("75c", mapType40.get("75c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р75 з"))
+                                mapType40.put("75z", mapType40.get("75z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 с"))
+                                mapType40.put("65c", mapType40.get("65c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 з"))
+                                mapType40.put("65z", mapType40.get("65z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р50"))
+                                mapType40.put("50", mapType40.get("50", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р43"))
+                                mapType40.put("43", mapType40.get("43", 0L) + r.getLong("Value"))
+                            mapNum.put("40", mapType40)
+                        }
+                        //41.
+                        if (r.getString("DefectsIndex").startsWith("41.")) {
+                            if (r.getString("nameTask").toLowerCase().contains("р75 с"))
+                                mapType41.put("75c", mapType41.get("75c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р75 з"))
+                                mapType41.put("75z", mapType41.get("75z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 с"))
+                                mapType41.put("65c", mapType41.get("65c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 з"))
+                                mapType41.put("65z", mapType41.get("65z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р50"))
+                                mapType41.put("50", mapType41.get("50", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р43"))
+                                mapType41.put("43", mapType41.get("43", 0L) + r.getLong("Value"))
+                            mapNum.put("41", mapType41)
+                        }
+                        //43.
+                        if (r.getString("DefectsIndex").startsWith("43.")) {
+                            if (r.getString("nameTask").toLowerCase().contains("р75 с"))
+                                mapType43.put("75c", mapType43.get("75c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р75 з"))
+                                mapType43.put("75z", mapType43.get("75z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 с"))
+                                mapType43.put("65c", mapType43.get("65c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 з"))
+                                mapType43.put("65z", mapType43.get("65z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р50"))
+                                mapType43.put("50", mapType43.get("50", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р43"))
+                                mapType43.put("43", mapType43.get("43", 0L) + r.getLong("Value"))
+                            mapNum.put("43", mapType43)
+                        }
+                        //44.
+                        if (r.getString("DefectsIndex").startsWith("44.")) {
+                            if (r.getString("nameTask").toLowerCase().contains("р75 с"))
+                                mapType44.put("75c", mapType44.get("75c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р75 з"))
+                                mapType44.put("75z", mapType44.get("75z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 с"))
+                                mapType44.put("65c", mapType44.get("65c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 з"))
+                                mapType44.put("65z", mapType44.get("65z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р50"))
+                                mapType44.put("50", mapType44.get("50", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р43"))
+                                mapType44.put("43", mapType44.get("43", 0L) + r.getLong("Value"))
+                            mapNum.put("44", mapType44)
+                        }
+                        //46.
+                        if (r.getString("DefectsIndex").startsWith("46.")) {
+                            if (r.getString("nameTask").toLowerCase().contains("р75 с"))
+                                mapType46.put("75c", mapType46.get("75c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р75 з"))
+                                mapType46.put("75z", mapType46.get("75z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 с"))
+                                mapType46.put("65c", mapType46.get("65c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 з"))
+                                mapType46.put("65z", mapType46.get("65z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р50"))
+                                mapType46.put("50", mapType46.get("50", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р43"))
+                                mapType46.put("43", mapType46.get("43", 0L) + r.getLong("Value"))
+                            mapNum.put("46", mapType46)
+                        }
+                        //47.
+                        if (r.getString("DefectsIndex").startsWith("47.")) {
+                            if (r.getString("nameTask").toLowerCase().contains("р75 с"))
+                                mapType47.put("75c", mapType47.get("75c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р75 з"))
+                                mapType47.put("75z", mapType47.get("75z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 с"))
+                                mapType47.put("65c", mapType47.get("65c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 з"))
+                                mapType47.put("65z", mapType47.get("65z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р50"))
+                                mapType47.put("50", mapType47.get("50", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р43"))
+                                mapType47.put("43", mapType47.get("43", 0L) + r.getLong("Value"))
+                            mapNum.put("47", mapType47)
+                        }
+                        //49.
+                        if (r.getString("DefectsIndex").startsWith("49.")) {
+                            if (r.getString("nameTask").toLowerCase().contains("р75 с"))
+                                mapType49.put("75c", mapType49.get("75c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р75 з"))
+                                mapType49.put("75z", mapType49.get("75z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 с"))
+                                mapType49.put("65c", mapType49.get("65c", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р65 з"))
+                                mapType49.put("65z", mapType49.get("65z", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р50"))
+                                mapType49.put("50", mapType49.get("50", 0L) + r.getLong("Value"))
+                            else if (r.getString("nameTask").toLowerCase().contains("р43"))
+                                mapType49.put("43", mapType49.get("43", 0L) + r.getLong("Value"))
+                            mapNum.put("49", mapType49)
+                        }
+
+
+
+
+
+
 
                     } else if (r.getLong("clsObject") == map.get("Cls_RailwayStation")) {
                         shtuka = shtuka + r.getLong("Value")

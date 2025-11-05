@@ -20,7 +20,7 @@
               render="downfile"/>
         <render name="downfile" class="dtj.report.action.DownFileRender"/>
 
-        <action name="loadreport"
+        <action name="loadReport"
                 class = "dtj.report.action.LoadReportAction"
         />
 

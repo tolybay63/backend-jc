@@ -24,7 +24,7 @@ class Report_Test extends Apx_Test {
         map.put("nameDirectorLocation", "Досжан Темир Жолы")
 
 
-        dao.generateReportPO_4(map)
+        dao.generateReport(map)
     }
 
     @Test
