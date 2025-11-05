@@ -406,6 +406,7 @@ class DataDao extends BaseMdbUtils {
         String whe
         String wheV1 = ""
         String wheV7 = ""
+        String wheV12 = ""
         if (params.containsKey("id"))
             whe = "o.id=${UtCnv.toLong(params.get("id"))}"
         else {
@@ -415,7 +416,7 @@ class DataDao extends BaseMdbUtils {
 
             Store stTmp = loadSqlService("""
                 select cls from Obj where id=${UtCnv.toLong(params.get("objLocation"))}
-            """, "", "orgstructuredata")//.get(0).getLong("cls")
+            """, "", "orgstructuredata")
 
             long clsLocation = stTmp.size() > 0 ? stTmp.get(0).getLong("cls") : 0
 
@@ -425,10 +426,26 @@ class DataDao extends BaseMdbUtils {
             }
             long pt = UtCnv.toLong(params.get("periodType"))
             String dte = UtCnv.toString(params.get("date"))
-            UtPeriod utPeriod = new UtPeriod()
-            XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(dte), pt, 0)
-            XDate d2 = utPeriod.calcDend(UtCnv.toDate(dte), pt, 0)
-            wheV7 = "and v7.dateTimeVal between '${d1}' and '${d2}'"
+            if (pt > 0) {
+                UtPeriod utPeriod = new UtPeriod()
+                XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(dte), pt, 0)
+                XDate d2 = utPeriod.calcDend(UtCnv.toDate(dte), pt, 0)
+                wheV7 = "and v7.dateTimeVal between '${d1}' and '${d2}'"
+            } else {
+                wheV7 = "and v7.dateTimeVal between '1800-01-01' and '${dte}'"
+                wheV12 = """
+                 and o.id not in (
+                    select o.id
+                    from Obj o 
+                        left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                        left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_PlanDateEnd
+                        inner join DataPropVal v7 on d7.id=v7.dataprop ${wheV7}
+                        left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_FactDateEnd
+                        inner join DataPropVal v12 on d12.id=v12.dataprop and v12.dateTimeVal is not null
+                    where ${whe}
+                    )
+                """
+            }
         }
 
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
@@ -449,7 +466,8 @@ class DataDao extends BaseMdbUtils {
                 v9.id as idCreatedAt, v9.dateTimeVal as CreatedAt,
                 v10.id as idUpdatedAt, v10.dateTimeVal as UpdatedAt,
                 v11.id as idWork, v11.propVal as pvWork, v11.obj as objWork,
-                    null as nameClsWork, null as fullNameWork
+                    null as nameClsWork, null as fullNameWork,
+                v12.id as idFactDateEnd, v12.dateTimeVal as FactDateEnd
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
@@ -474,17 +492,15 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v10 on d10.id=v10.dataprop
                 left join DataProp d11 on d11.objorrelobj=o.id and d11.prop=:Prop_Work
                 left join DataPropVal v11 on d11.id=v11.dataprop
-            where ${whe}
+                left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_FactDateEnd
+                left join DataPropVal v12 on d12.id=v12.dataprop
+            where ${whe} ${wheV12}
         """, map)
         //... Пересечение
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Location", "")
-        stCls = loadSqlMeta("""
-            select c.id from Cls c where typ=${map.get("Typ_Location")}
-        """, "")
-        idsCls = stCls.getUniqueValues("id")
+        Set<Object> idsLocation = st.getUniqueValues("objLocationClsSection")
         Store stLocation = loadSqlService("""
             select o.id, v.name
-            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (${idsLocation.join(",")})
         """, "", "orgstructuredata")
         StoreIndex indLocation = stLocation.getIndex("id")
         //
@@ -494,10 +510,10 @@ class DataDao extends BaseMdbUtils {
         """, "")
         StoreIndex indCls = stCls.getIndex("id")
         //
-        idsCls = stCls.getUniqueValues("id")
+        Set<Object> idsWork = st.getUniqueValues("objWork")
         Store stWork = loadSqlService("""
             select o.id, o.cls, v.fullName, null as nameClsWork
-            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (${idsWork.join(",")})
         """, "", "nsidata")
 
         for (StoreRecord r in stWork) {
@@ -507,17 +523,15 @@ class DataDao extends BaseMdbUtils {
         }
         StoreIndex indWork = stWork.getIndex("id")
         //
-
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Object", "")
         stCls = loadSqlMeta("""
             select c.id, v.name from Cls c, ClsVer v where c.id=v.ownerVer and v.lastVer=1 and typ=${map.get("Typ_Object")}
         """, "")
         indCls = stCls.getIndex("id")
-        idsCls = stCls.getUniqueValues("id")
-
+        Set<Object> idsObject = st.getUniqueValues("objObject")
         Store stObject = loadSqlService("""
             select o.id, o.cls, v.fullName, null as nameClsObject
-            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (${idsObject.join(",")})
         """, "", "objectdata")
 
         for (StoreRecord r in stObject) {
@@ -526,11 +540,11 @@ class DataDao extends BaseMdbUtils {
                 r.set("nameClsObject", rec.getString("name"))
         }
         StoreIndex indObject = stObject.getIndex("id")
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Personnel", "")
         //
+        Set<Object> idsUser = st.getUniqueValues("objUser")
         Store stUser = loadSqlService("""
             select o.id, o.cls, v.fullName
-            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.cls=${map.get("Cls_Personnel")}
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsUser.join(",")})
         """, "", "personnaldata")
         StoreIndex indUser = stUser.getIndex("id")
         //
@@ -555,7 +569,6 @@ class DataDao extends BaseMdbUtils {
             if (rObject != null) {
                 r.set("fullNameUser", rUser.getString("fullName"))
             }
-
         }
         //...
         return st

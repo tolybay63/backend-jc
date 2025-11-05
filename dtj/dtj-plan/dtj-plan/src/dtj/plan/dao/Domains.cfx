@@ -32,6 +32,8 @@
 
         <field name="idPlanDateEnd" parent="long"/>
         <field name="PlanDateEnd" parent="string"/>
+        <field name="idFactDateEnd" parent="long"/>
+        <field name="FactDateEnd" parent="string"/>
 
         <field name="idCreatedAt" parent="long"/>
         <field name="CreatedAt" parent="string"/>
