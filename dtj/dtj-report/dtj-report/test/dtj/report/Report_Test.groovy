@@ -15,7 +15,7 @@ class Report_Test extends Apx_Test {
         map.put("dte", "2025-11-04")
         map.put("periodType", 11)
         map.put("objClient", 1014)
-        map.put("objLocation", 1077)
+        map.put("objLocation", 1073)
         map.put("fulNameUser", "Kanat C.")
         map.put("nameUserPosition", "Тех.отдел")
         map.put("UserPhone", "8-777-666 5544")

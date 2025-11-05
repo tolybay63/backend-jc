@@ -25,10 +25,6 @@ import static com.documents4j.api.DocumentType.*;
 
 public class LoadReportAction extends BaseAction {
 
-    ApinatorApi apiMeta() {
-        return getApp().bean(ApinatorService.class).getApi("meta");
-    }
-
     protected void onExec() throws Exception {
         IVariantMap params = getReq().getParams();
         String fn;
