@@ -181,7 +181,6 @@ class ReportDao extends BaseMdbUtils {
 
     }
 
-
     @DaoMethod
     Map<String, Map<String, Long>> loadDataPO_4(Map<String, Object> params) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")

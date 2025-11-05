@@ -3,7 +3,7 @@ package dtj.report.action;
 import com.documents4j.api.DocumentType;
 import com.documents4j.api.IConverter;
 import com.documents4j.job.LocalConverter;
-import jandcode.commons.UtFile;
+import jandcode.commons.error.XError;
 import jandcode.commons.variant.IVariantMap;
 import jandcode.core.web.HttpError;
 import jandcode.core.web.action.BaseAction;
@@ -13,9 +13,6 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
-import tofi.api.mdl.ApiMeta;
-import tofi.api.mdl.utils.dbfilestorage.DbFileStorageItem;
-import tofi.api.mdl.utils.dbfilestorage.DbFileStorageService;
 import tofi.apinator.ApinatorApi;
 import tofi.apinator.ApinatorService;
 
@@ -26,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.documents4j.api.DocumentType.*;
 
-public class LoadFileAction extends BaseAction {
+public class LoadReportAction extends BaseAction {
 
     ApinatorApi apiMeta() {
         return getApp().bean(ApinatorService.class).getApi("meta");
@@ -34,39 +31,25 @@ public class LoadFileAction extends BaseAction {
 
     protected void onExec() throws Exception {
         IVariantMap params = getReq().getParams();
-
-        DbFileStorageService dfsrv = apiMeta().get(ApiMeta.class).getDbFileStorageService();
-        dfsrv.setModelName(params.getString("model"));
-        DbFileStorageItem fi = dfsrv.getFile(params.getLong("id"));
-        File fs;
         String fn;
-        String fnn;
+        String fon;
+        if (params.getString("tml").equalsIgnoreCase("по-4")) {
+            fn = getApp().getAppdir() + File.separator + "report" + File.separator + "ПО-4.xlsx";
+            fon = "ПО-4.xlsx";
+        } else {
+            throw new XError("Not found [tml]");
+        }
+
+        File fs;
         try {
-             fs = fi.getFile();
-             fn = fi.getOriginalFilename();
-             fnn = fn.replace(UtFile.ext(fn), "pdf");
-             if ( !fn.toLowerCase().endsWith(".pdf") ) {
-                 String tempDir = System.getProperty("java.io.tmpdir");
-                 //fnn = fn.replace(UtFile.ext(fn), "pdf");
-                 String destPath = tempDir + fnn;
-                 String srcPath = fs.getAbsolutePath();
-                 if (fn.toLowerCase().endsWith(".docx") || fn.toLowerCase().endsWith(".doc") ||
-                         fn.toLowerCase().endsWith(".xlsx") || fn.toLowerCase().endsWith(".xls") ||
-                            fn.toLowerCase().endsWith(".txt") || fn.toLowerCase().endsWith(".log")) {
-                     DocumentType dt = getDocumentType(fn);
-                     cnv2pdf(srcPath, destPath, dt);
-                 } else if (fn.toLowerCase().endsWith(".jpg") || fn.toLowerCase().endsWith(".jpeg") ||
-                         fn.toLowerCase().endsWith(".png") || fn.toLowerCase().endsWith(".bmp")) {
-                     img2pdf(srcPath, destPath);
-                 }
-                 fs = new File(destPath);
-             }
+            fs = new File(fn);
+
         } catch (Exception e) {
             System.out.println(e.getMessage());
             throw new HttpError(404);
         }
 
-        var res = new DownFile(fs, fnn);
+        var res = new DownFile(fs, fon);
 
         getReq().render(res);
     }
