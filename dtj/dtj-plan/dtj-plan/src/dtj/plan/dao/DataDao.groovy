@@ -385,15 +385,24 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Store loadPlan(Map<String, Object> params) {
         Store st = mdb.createStore("Obj.plan")
+        Map<String, Long> map
+        String wheClsOrTyp
+        if (params.containsKey("codCls")) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", UtCnv.toString(params.get("codCls")), "")
+            wheClsOrTyp = "c.id=${map.get(UtCnv.toString(params.get("codCls")))}"
+        } else {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_WorkPlan", "")
+            wheClsOrTyp = "typ=${map.get('Typ_WorkPlan')}"
+        }
 
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_WorkPlan", "")
         Store stCls = loadSqlMeta("""
-            select c.id , v.name
-            from Cls c, ClsVer v
-            where c.id=v.ownerVer and v.lastVer=1 and typ=${map.get("Typ_WorkPlan")}
-        """, "")
+                select c.id , v.name
+                from Cls c, ClsVer v
+                where c.id=v.ownerVer and v.lastVer=1 and ${wheClsOrTyp}
+            """, "")
         Set<Object> idsCls = stCls.getUniqueValues("id")
         StoreIndex indClsWork = stCls.getIndex("id")
+
         String whe
         String wheV1 = ""
         String wheV7 = ""
