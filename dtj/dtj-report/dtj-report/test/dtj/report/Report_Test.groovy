@@ -48,17 +48,11 @@ class Report_Test extends Apx_Test {
 
     @Test
     void jsonrpc1() throws Exception {
-
-/*
         Map<String, Store> map = apx.execJsonRpc("api", "data/loadObj", [1000]) as Map<String, Store>
         mdb.outMap(map)
         map.result.records.forEach {
             mdb.outTable(it)
         }
-*/
-
-        apx.execJsonRpc("api", "/loadReport", ["tml", "ПО-4"])
-
     }
 
 
