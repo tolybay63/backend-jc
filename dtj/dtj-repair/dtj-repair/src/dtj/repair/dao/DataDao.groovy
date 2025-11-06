@@ -761,8 +761,14 @@ class DataDao extends BaseMdbUtils {
             pms.put("pvTaskLog", pv)
         }
         //
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
-        pms.put("fvStatus", map.get("FV_Plan"))
+        Map<String, Long> map
+        if (pms.containsKey("status")) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Fact", "")
+            pms.put("fvStatus", map.get("FV_Fact"))
+        } else {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
+            pms.put("fvStatus", map.get("FV_Plan"))
+        }
         //
         String whe = ""
         if (mode == "upd")
@@ -954,8 +960,14 @@ class DataDao extends BaseMdbUtils {
             pms.put("pvTaskLog", pv)
         }
         //
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
-        pms.put("fvStatus", map.get("FV_Plan"))
+        Map<String, Long> map
+        if (pms.containsKey("status")) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Fact", "")
+            pms.put("fvStatus", map.get("FV_Fact"))
+        } else {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
+            pms.put("fvStatus", map.get("FV_Plan"))
+        }
         //
         String whe = ""
         if (mode == "upd")
@@ -1162,8 +1174,14 @@ class DataDao extends BaseMdbUtils {
             pms.put("pvTaskLog", pv)
         }
         //
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
-        pms.put("fvStatus", map.get("FV_Plan"))
+        Map<String, Long> map
+        if (pms.containsKey("status")) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Fact", "")
+            pms.put("fvStatus", map.get("FV_Fact"))
+        } else {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
+            pms.put("fvStatus", map.get("FV_Plan"))
+        }
         //
         String whe = ""
         if (mode == "upd")
@@ -1365,8 +1383,14 @@ class DataDao extends BaseMdbUtils {
             pms.put("pvTaskLog", pv)
         }
         //
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
-        pms.put("fvStatus", map.get("FV_Plan"))
+        Map<String, Long> map
+        if (pms.containsKey("status")) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Fact", "")
+            pms.put("fvStatus", map.get("FV_Fact"))
+        } else {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
+            pms.put("fvStatus", map.get("FV_Plan"))
+        }
         //
         String whe = ""
         if (mode == "upd")
@@ -1568,8 +1592,14 @@ class DataDao extends BaseMdbUtils {
             pms.put("pvTaskLog", pv)
         }
         //
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
-        pms.put("fvStatus", map.get("FV_Plan"))
+        Map<String, Long> map
+        if (pms.containsKey("status")) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Fact", "")
+            pms.put("fvStatus", map.get("FV_Fact"))
+        } else {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
+            pms.put("fvStatus", map.get("FV_Plan"))
+        }
         //
         String whe = ""
         if (mode == "upd")
