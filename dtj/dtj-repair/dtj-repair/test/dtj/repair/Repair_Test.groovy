@@ -446,8 +446,8 @@ class Repair_Test extends Apx_Test {
         map.put("name", "test 3")
         map.put("FactDateStart", "2025-10-17")
 
-        Store st = dao.saveTaskLogFact(map)
-        mdb.outTable(st)
+        Map<String, Object> mapRes = dao.saveTaskLogFact(map)
+        mdb.outMap(mapRes)
     }
 
     @Test
