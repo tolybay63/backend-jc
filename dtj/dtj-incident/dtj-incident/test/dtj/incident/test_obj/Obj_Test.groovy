@@ -37,8 +37,9 @@ class Obj_Test extends Apx_Test {
         Map<String, Object> map = new HashMap<>()
         map.put("periodType", 11)
         map.put("date", "2025-09-09")
-        map.put("objLocation", 1071)
-        map.put("status", 1)
+//        map.put("objLocation", 1071)
+//        map.put("status", 1)
+//        map.put("event", 1157)
         Store st = dao.loadIncident(map)
         mdb.outTable(st)
     }
