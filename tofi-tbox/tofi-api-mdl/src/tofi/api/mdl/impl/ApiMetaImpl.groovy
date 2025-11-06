@@ -24,10 +24,12 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
 
     @Override
     Map<Long, String> loadDict(String dictName) {
-        long al = getAccessLevel()
+        //long al = getAccessLevel()
         String wheAL = ""
+/*
         if (dictName.equalsIgnoreCase("FD_AccessLevel"))
             wheAL = "and id <= ${al}"
+*/
 
         Store st = mdb.loadQuery("""
             select * from ${dictName} where vis=1 ${wheAL} order by ord
@@ -42,10 +44,14 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
 
     @Override
     Store loadDictAsStore(String dictName) {
-        long al = getAccessLevel()
+        //long al = getAccessLevel()
         String wheAL = ""
+
+/*
         if (dictName.equalsIgnoreCase("FD_AccessLevel"))
             wheAL = "and id <= ${al}"
+*/
+
         return mdb.loadQuery("""
             select * from ${dictName} where vis=1 ${wheAL} order by ord
         """)
@@ -117,7 +123,7 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
     }
     //
     private Store loadFltTyp(Map<String, Object> params) {
-        long al = getAccessLevel()
+        long al = 10 //getAccessLevel()
 
         String sql = """
             select * from
@@ -204,7 +210,7 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
 
     @Override
     Set<Object> setIdsOfCls(String codTyp) {
-        long al = getAccessLevel()
+        long al =10 // getAccessLevel()
         Store st = mdb.loadQuery("""
             select c.id from Cls c, Typ t
             where c.typ=t.id and t.cod like :cod and c.accessLevel <= :al
@@ -214,11 +220,19 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
 
     @Override
     Set<Object> setIdsOfRelCls(String codRelTyp) {
+/*
         long al = getAccessLevel()
         Store st = mdb.loadQuery("""
             select c.id from RelCls c, RelTyp t
             where c.reltyp=t.id and t.cod like :cod and c.accessLevel <= :al
         """, [cod: codRelTyp, al: al])
+*/
+
+        Store st = mdb.loadQuery("""
+            select c.id from RelCls c, RelTyp t
+            where c.reltyp=t.id and t.cod like :cod
+        """, [cod: codRelTyp])
+
         return st.getUniqueValues("id")
     }
 
