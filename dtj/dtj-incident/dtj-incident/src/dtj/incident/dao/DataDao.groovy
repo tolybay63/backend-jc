@@ -149,10 +149,10 @@ class DataDao extends BaseMdbUtils {
         Store st = mdb.createStore("Obj.Incident")
         Store stCls = apiMeta().get(ApiMeta).loadCls("Typ_Incident")
         String whe
-        String wheV1 = ""
+        String wheV1 = "left join DataPropVal v1 on d1.id=v1.dataprop"
         String wheV6 = ""
         String wheV17 = ""
-        String wheV19 = ""
+        String wheV19 = "left join DataPropVal v19 on d19.id=v19.dataprop"
         Map<String, Long> map
         if (params.containsKey("id"))
             whe = "o.id=${UtCnv.toLong(params.get("id"))}"
@@ -174,16 +174,22 @@ class DataDao extends BaseMdbUtils {
             long clsLocation = stTmp.size() > 0 ? stTmp.get(0).getLong("cls") : 0
             if (clsLocation == mapCls.get("Cls_LocationSection")) {
                 Set<Object> idsObjLocation = getIdsObjLocation(UtCnv.toLong(params.get("objLocation")))
-                wheV19 = "and v19.obj in (${idsObjLocation.join(",")})"
+                wheV19 = "inner join DataPropVal v19 on d19.id=v19.dataprop and v19.obj in (${idsObjLocation.join(",")})"
             }
             //
             if (params.get("status") == 1) {
                 map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "", "FV_Status%")
-                wheV6 = "and v6.propVal not in (${map.get("FV_StatusRegistered")}, ${map.get("FV_StatusEliminated")})"
+                long pv1 = apiMeta().get(ApiMeta).idPV("FactorVal", map.get("FV_StatusRegistered"), "Prop_Status")
+                long pv2 = apiMeta().get(ApiMeta).idPV("FactorVal", map.get("FV_StatusEliminated"), "Prop_Status")
+                wheV6 = "and v6.propVal not in (${pv1}, ${pv2})"
             }
             //
             if (UtCnv.toLong(params.get("event")) > 0) {
-                wheV1 = "and v1.obj=${params.get("event")}"
+                wheV1 = "inner join DataPropVal v1 on d1.id=v1.dataprop and v1.obj=${params.get("event")}"
+                //
+                map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_StatusEliminated", "")
+                long pv2 = apiMeta().get(ApiMeta).idPV("FactorVal", map.get("FV_StatusEliminated"), "Prop_Status")
+                wheV6 = "and v6.propVal<>${pv2}"
             }
         }
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
@@ -212,7 +218,7 @@ class DataDao extends BaseMdbUtils {
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Event")}
-                left join DataPropVal v1 on d1.id=v1.dataprop ${wheV1}
+                ${wheV1}
                 left join ObjVer ov1 on ov1.ownerVer=v1.obj and ov1.lastVer=1
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_Object")}
                 left join DataPropVal v2 on d2.id=v2.dataprop
@@ -249,7 +255,7 @@ class DataDao extends BaseMdbUtils {
                 left join DataProp d18 on d18.objorrelobj=o.id and d18.prop=${map.get("Prop_InfoApplicant")}
                 left join DataPropVal v18 on d18.id=v18.dataprop
                 left join DataProp d19 on d19.objorrelobj=o.id and d19.prop=${map.get("Prop_LocationClsSection")}
-                left join DataPropVal v19 on d19.id=v19.dataprop ${wheV19}
+                ${wheV19}
                 left join DataProp d21 on d21.objorrelobj=o.id and d21.prop=${map.get("Prop_AssignDateTime")}
                 left join DataPropVal v21 on d21.id=v21.dataprop
             where ${whe}
