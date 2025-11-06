@@ -8,6 +8,13 @@ import org.junit.jupiter.api.Test
 class Obj_Test extends Apx_Test {
 
     @Test
+    void loadObjForSelect_test() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadObjForSelect("Cls_LocationSection")
+        mdb.outTable(st)
+    }
+
+    @Test
     void loadLocation() {
         DataDao dao = mdb.createDao(DataDao.class)
         Store st = dao.loadLocation(0)

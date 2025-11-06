@@ -527,8 +527,15 @@ class DataDao extends BaseMdbUtils {
         } else
             throw new XError("Неисвезстная сущность")
 
-
-        return mdb.loadQuery(sql)
+        Store st = mdb.loadQuery(sql)
+        Set<Object> ids = st.getUniqueValues("id")
+        for (StoreRecord r in st) {
+            if (r.get("parent") != null) {
+                if (!ids.contains(r.getLong("parent")))
+                    r.set("parent", null)
+            }
+        }
+        return st
     }
 
     /**
