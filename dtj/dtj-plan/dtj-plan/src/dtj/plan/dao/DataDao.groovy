@@ -496,11 +496,13 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v12 on d12.id=v12.dataprop
             where ${whe} ${wheV12}
         """, map)
+        //
+        if (st.size() == 0) return st
         //... Пересечение
         Set<Object> idsLocation = st.getUniqueValues("objLocationClsSection")
         Store stLocation = loadSqlService("""
             select o.id, v.name
-            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (${idsLocation.join(",")})
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsLocation.join(",")})
         """, "", "orgstructuredata")
         StoreIndex indLocation = stLocation.getIndex("id")
         //
@@ -513,7 +515,7 @@ class DataDao extends BaseMdbUtils {
         Set<Object> idsWork = st.getUniqueValues("objWork")
         Store stWork = loadSqlService("""
             select o.id, o.cls, v.fullName, null as nameClsWork
-            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (${idsWork.join(",")})
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsWork.join(",")})
         """, "", "nsidata")
 
         for (StoreRecord r in stWork) {
@@ -531,7 +533,7 @@ class DataDao extends BaseMdbUtils {
         Set<Object> idsObject = st.getUniqueValues("objObject")
         Store stObject = loadSqlService("""
             select o.id, o.cls, v.fullName, null as nameClsObject
-            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (${idsObject.join(",")})
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsObject.join(",")})
         """, "", "objectdata")
 
         for (StoreRecord r in stObject) {
