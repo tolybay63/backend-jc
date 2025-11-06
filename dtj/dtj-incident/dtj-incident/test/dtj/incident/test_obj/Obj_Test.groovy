@@ -38,6 +38,7 @@ class Obj_Test extends Apx_Test {
         map.put("periodType", 11)
         map.put("date", "2025-09-09")
         map.put("objLocation", 1071)
+        map.put("status", 1)
         Store st = dao.loadIncident(map)
         mdb.outTable(st)
     }

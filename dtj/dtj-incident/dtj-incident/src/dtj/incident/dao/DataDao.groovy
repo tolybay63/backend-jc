@@ -30,43 +30,33 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiAdm() {
         return app.bean(ApinatorService).getApi("adm")
     }
-
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
     }
-
     ApinatorApi apiUserData() {
         return app.bean(ApinatorService).getApi("userdata")
     }
-
     ApinatorApi apiNSIData() {
         return app.bean(ApinatorService).getApi("nsidata")
     }
-
     ApinatorApi apiObjectData() {
         return app.bean(ApinatorService).getApi("objectdata")
     }
-
     ApinatorApi apiPlanData() {
         return app.bean(ApinatorService).getApi("plandata")
     }
-
     ApinatorApi apiPersonnalData() {
         return app.bean(ApinatorService).getApi("personnaldata")
     }
-
     ApinatorApi apiOrgStructureData() {
         return app.bean(ApinatorService).getApi("orgstructuredata")
     }
-
     ApinatorApi apiInspectionData() {
         return app.bean(ApinatorService).getApi("inspectiondata")
     }
-
     ApinatorApi apiClientData() {
         return app.bean(ApinatorService).getApi("clientdata")
     }
-
     ApinatorApi apiIncidentData() {
         return app.bean(ApinatorService).getApi("incidentdata")
     }
@@ -159,7 +149,10 @@ class DataDao extends BaseMdbUtils {
         Store st = mdb.createStore("Obj.Incident")
         Store stCls = apiMeta().get(ApiMeta).loadCls("Typ_Incident")
         String whe
+        String wheV6 = ""
         String wheV17 = ""
+        String wheV19 = ""
+        Map<String, Long> map
         if (params.containsKey("id"))
             whe = "o.id=${UtCnv.toLong(params.get("id"))}"
         else {
@@ -172,10 +165,23 @@ class DataDao extends BaseMdbUtils {
             XDate d2 = utPeriod.calcDend(UtCnv.toDate(dte), pt, 0)
             d2 = d2.addDays(1)
             wheV17 = "and v17.dateTimeVal between '${d1}' and '${d2}'"
+            //
+            Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_LocationSection", "")
+            Store stTmp = loadSqlService("""
+                    select cls from Obj where id=${UtCnv.toLong(params.get("objLocation"))}
+                """, "", "orgstructuredata")
+            long clsLocation = stTmp.size() > 0 ? stTmp.get(0).getLong("cls") : 0
+            if (clsLocation == mapCls.get("Cls_LocationSection")) {
+                Set<Object> idsObjLocation = getIdsObjLocation(UtCnv.toLong(params.get("objLocation")))
+                wheV19 = "and v19.obj in (${idsObjLocation.join(",")})"
+            }
+            //
+            if (params.get("status") == 1) {
+                map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "", "FV_Status%")
+                wheV6 = "and v6.propVal not in (${map.get("FV_StatusRegistered")}, ${map.get("FV_StatusEliminated")})"
+            }
         }
-
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
-
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
         String sql = """
             select o.id, o.cls, v.name, null as nameCls,
                 v1.id as idEvent, v1.propVal as pvEvent, v1.obj as objEvent, ov1.name as nameEvent,
@@ -212,7 +218,7 @@ class DataDao extends BaseMdbUtils {
                 left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_Fault")}
                 left join DataPropVal v5 on d5.id=v5.dataprop
                 left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=${map.get("Prop_Status")}
-                left join DataPropVal v6 on d6.id=v6.dataprop
+                inner join DataPropVal v6 on d6.id=v6.dataprop ${wheV6}
                 left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=${map.get("Prop_Criticality")}
                 left join DataPropVal v7 on d7.id=v7.dataprop
                 left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=${map.get("Prop_StartKm")}
@@ -238,7 +244,7 @@ class DataDao extends BaseMdbUtils {
                 left join DataProp d18 on d18.objorrelobj=o.id and d18.prop=${map.get("Prop_InfoApplicant")}
                 left join DataPropVal v18 on d18.id=v18.dataprop
                 left join DataProp d19 on d19.objorrelobj=o.id and d19.prop=${map.get("Prop_LocationClsSection")}
-                left join DataPropVal v19 on d19.id=v19.dataprop
+                inner join DataPropVal v19 on d19.id=v19.dataprop ${wheV19}
                 left join DataProp d21 on d21.objorrelobj=o.id and d21.prop=${map.get("Prop_AssignDateTime")}
                 left join DataPropVal v21 on d21.id=v21.dataprop
             where ${whe}
@@ -301,24 +307,6 @@ class DataDao extends BaseMdbUtils {
 
         Store stWorkPlan = loadSqlService(sqlWorkPlan, "", "plandata")
         StoreIndex indWorkPlan = stWorkPlan.getIndex("id")
-
-        //
-/*        Set<Object> idsWorkPlan = st.getUniqueValues("objWorkPlan")
-        Store stWorkPlan = loadSqlService("""
-            select o.id, 
-                v1.id as idWork, v1.obj as objWork, v1.propVal as pvWork,
-                v2.id as idPlanDateEnd, v2.dateTimeVal as PlanDateEnd,
-                v3.id as idFactDateEnd, v3.dateTimeVal as FactDateEnd
-            from Obj o
-                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Work")}
-                left join DataPropVal v1 on d1.id=v1.dataProp
-                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_PlanDateEnd")}
-                left join DataPropVal v2 on d2.id=v2.dataProp
-                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_FactDateEnd")}
-                left join DataPropVal v3 on d3.id=v3.dataProp
-            where o.id in (0${idsWorkPlan.join(",")})                
-        """, "", "plandata")
-        StoreIndex indWorkPlan = stWorkPlan.getIndex("id")*/
         //
         for (StoreRecord r in st) {
             StoreRecord recCls = indCls.get(r.getLong("cls"))
@@ -365,9 +353,7 @@ class DataDao extends BaseMdbUtils {
             if (recWork != null) {
                 r.set("fullNameWork", recWork.getString("fullName"))
             }
-
         }
-
         return st
     }
 
@@ -410,6 +396,35 @@ class DataDao extends BaseMdbUtils {
         Map<String, Object> mapRez = new HashMap<>()
         mapRez.put("id", own)
         return loadIncident(mapRez)
+    }
+
+    private Set<Object> getIdsObjLocation(long obj) {
+        Store st = loadSqlService("""
+           WITH RECURSIVE r AS (
+               SELECT o.id, v.objParent as parent
+               FROM Obj o, ObjVer v
+               WHERE o.id=v.ownerver and v.lastver=1 and v.objParent=${obj}
+               UNION ALL
+               SELECT t.*
+               FROM ( SELECT o.id, v.objParent as parent
+                      FROM Obj o, ObjVer v
+                      WHERE o.id=v.ownerver and v.lastver=1
+                    ) t
+                  JOIN r
+                      ON t.parent = r.id
+           ),
+           o as (
+           SELECT o.id, v.objParent as parent
+           FROM Obj o, ObjVer v
+           WHERE o.id=v.ownerver and v.lastver=1 and o.id=${obj}
+           )
+           SELECT * FROM o
+           UNION ALL
+           SELECT * FROM r
+           where 0=0
+        """, "", "orgstructuredata")
+
+        return st.getUniqueValues("id")
     }
 
     private void validateForDeleteOwner(long owner) {
