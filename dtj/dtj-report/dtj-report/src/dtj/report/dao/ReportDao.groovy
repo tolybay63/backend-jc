@@ -11,13 +11,18 @@ import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
+import org.apache.poi.ss.usermodel.BorderStyle
 import org.apache.poi.ss.usermodel.Cell
+import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.RangeCopier
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.util.CellRangeAddress
+import org.apache.poi.ss.util.RegionUtil
+import org.apache.poi.xssf.usermodel.XSSFCellStyle
 import org.apache.poi.xssf.usermodel.XSSFRangeCopier
 import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import org.apache.poi.xwpf.usermodel.Borders
 import tofi.api.dta.*
 import tofi.api.mdl.ApiMeta
 import tofi.api.mdl.utils.UtPeriod
@@ -127,46 +132,85 @@ class ReportDao extends BaseMdbUtils {
         row = destSheet.getRow(5)
         cell = row.getCell(5)
         cell.setCellValue(dte)
+        destSheet.getRow(7).setHeightInPoints(2 * destSheet.getDefaultRowHeightInPoints() as float)
 
         // Данные
+        final XSSFCellStyle cellStyle = targetWorkbook.createCellStyle();
+
+        cellStyle.setBorderTop(BorderStyle.THIN)
+        cellStyle.setBorderRight(BorderStyle.THIN)
+        cellStyle.setBorderBottom(BorderStyle.THIN)
+        cellStyle.setBorderLeft(BorderStyle.THIN)
+
         Map<String, Object> mapRes = loadDataPO_6(params)
         Map<String, Long> mapData = mapRes.get("data") as Map<String, Long>
         //
-        int row0 = 11
+        int rowStart = 11
+        int row0 = rowStart
         for (StoreRecord r in mapRes.get("store") as Store) {
             row = destSheet.createRow(row0)
             cell = row.createCell(0)
+            cell.setCellStyle(cellStyle)
             cell.setCellValue(r.getString("name"))
+
+            cell = row.createCell(2)
+            cell.setCellStyle(cellStyle)
             if (mapData.get("1_"+r.getString("id")) > 0) {
-                cell = row.createCell(2)
                 cell.setCellValue(mapData.get("1_"+r.getString("id")))
             }
+            cell = row.createCell(3)
+            cell.setCellStyle(cellStyle)
             if (mapData.get("2_"+r.getString("id")) > 0) {
-                cell = row.createCell(3)
                 cell.setCellValue(mapData.get("2_"+r.getString("id")))
             }
-
+            cell = row.createCell(5)
+            cell.setCellStyle(cellStyle)
             if (mapData.get("3_"+r.getString("id")) > 0) {
-                cell = row.createCell(5)
                 cell.setCellValue(mapData.get("3_"+r.getString("id")))
             }
+            cell = row.createCell(6)
+            cell.setCellStyle(cellStyle)
             if (mapData.get("4_"+r.getString("id")) > 0) {
-                cell = row.createCell(6)
                 cell.setCellValue(mapData.get("4_"+r.getString("id")))
             }
+            cell = row.createCell(8)
+            cell.setCellStyle(cellStyle)
             if (mapData.get("5_"+r.getString("id")) > 0) {
-                cell = row.createCell(8)
                 cell.setCellValue(mapData.get("5_"+r.getString("id")))
             }
+            cell = row.createCell(9)
+            cell.setCellStyle(cellStyle)
             if (mapData.get("6_"+r.getString("id")) > 0) {
-                cell = row.createCell(9)
                 cell.setCellValue(mapData.get("6_"+r.getString("id")))
             }
+            //
+            cell = row.createCell(1)
+            cell.setCellStyle(cellStyle)
+            int v2 = row.getCell(2) != null ? row.getCell(2).getNumericCellValue() as int : 0
+            int v3 = row.getCell(3) != null ? row.getCell(3).getNumericCellValue() as int : 0
+            if (v2+v3 > 0)
+                cell.setCellValue(v2 + v3)
+            cell = row.createCell(4)
+            cell.setCellStyle(cellStyle)
+            int v5 = row.getCell(5) != null ? row.getCell(5).getNumericCellValue() as int : 0
+            int v6 = row.getCell(6) != null ? row.getCell(6).getNumericCellValue() as int : 0
+            if (v5+v6 > 0)
+                cell.setCellValue(v5 + v6)
+            cell = row.createCell(7)
+            cell.setCellStyle(cellStyle)
+            int v8 = row.getCell(8) != null ? row.getCell(8).getNumericCellValue() as int : 0
+            int v9 = row.getCell(9) != null ? row.getCell(9).getNumericCellValue() as int : 0
+            if (v8+v9 > 0)
+                cell.setCellValue(v8 + v9)
+
+            //
             row0++
         }
+        int rowEnd = row0
         //
 
-
+        //CellRangeAddress region = new CellRangeAddress(rowStart, rowEnd, 0, 9)
+        //RegionUtil.setBorderBottom(BorderStyle.THIN, region, destSheet)
 
 
 
