@@ -31,36 +31,47 @@ class ReportDao extends BaseMdbUtils {
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
     }
+
     ApinatorApi apiUserData() {
         return app.bean(ApinatorService).getApi("userdata")
     }
+
     ApinatorApi apiNSIData() {
         return app.bean(ApinatorService).getApi("nsidata")
     }
+
     ApinatorApi apiPersonnalData() {
         return app.bean(ApinatorService).getApi("personnaldata")
     }
+
     ApinatorApi apiOrgStructureData() {
         return app.bean(ApinatorService).getApi("orgstructuredata")
     }
+
     ApinatorApi apiObjectData() {
         return app.bean(ApinatorService).getApi("objectdata")
     }
+
     ApinatorApi apiPlanData() {
         return app.bean(ApinatorService).getApi("plandata")
     }
+
     ApinatorApi apiInspectionData() {
         return app.bean(ApinatorService).getApi("inspectiondata")
     }
+
     ApinatorApi apiClientData() {
         return app.bean(ApinatorService).getApi("clientdata")
     }
+
     ApinatorApi apiIncidentData() {
         return app.bean(ApinatorService).getApi("incidentdata")
     }
+
     ApinatorApi apiRepairData() {
         return app.bean(ApinatorService).getApi("repairdata")
     }
+
     ApinatorApi apiResourceData() {
         return app.bean(ApinatorService).getApi("resourcedata")
     }
@@ -69,10 +80,277 @@ class ReportDao extends BaseMdbUtils {
     void generateReport(Map<String, Object> params) {
         if (UtCnv.toString(params.get("tml")).equalsIgnoreCase("по-4"))
             generateReportPO_4(params)
+        else if (UtCnv.toString(params.get("tml")).equalsIgnoreCase("по-6"))
+            generateReportPO_6(params)
         else
             throw new XError("Не известный шаблон")
 
     }
+
+    void generateReportPO_6(Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        String pathin = mdb.getApp().appdir + File.separator + "tml" + File.separator + "ПО-6.xlsx"
+        String pathout = mdb.getApp().appdir + File.separator + "reports" + File.separator + "ПО-6.xlsx"
+
+        // 1. Загрузка исходной книги
+        InputStream inputStream = new FileInputStream(pathin)
+        XSSFWorkbook sourceWorkbook = new XSSFWorkbook(inputStream)
+
+        // 2. Создание целевой книги и листа
+        XSSFWorkbook targetWorkbook = new XSSFWorkbook()
+
+        XSSFSheet sourceSheet = sourceWorkbook.getSheetAt(0)
+        XSSFSheet destSheet = targetWorkbook.createSheet("Лист1")
+
+        // Итерируем по всем столбцам от 0 до последнего используемого
+        for (int i = 0; i < 10; i++) {
+            // Получаем ширину столбца из исходного листа
+            int columnWidth = sourceSheet.getColumnWidth(i)
+            // Устанавливаем ту же ширину для соответствующего столбца в целевом листе
+            destSheet.setColumnWidth(i, columnWidth)
+        }
+
+        RangeCopier copier = new XSSFRangeCopier(sourceSheet, destSheet)
+        CellRangeAddress sourceRange = new CellRangeAddress(0, 10, 0, 9)
+        CellRangeAddress destRange = new CellRangeAddress(0, 10, 0, 9)
+        //
+        copier.copyRange(sourceRange, destRange, true, true)
+
+        // Шапка
+        String dte = pms.getString("date")
+        String nameLocation = pms.getString("nameLocation")
+
+        Row row = destSheet.getRow(4)
+        Cell cell = row.getCell(6)
+        cell.setCellValue(nameLocation)
+        //
+        row = destSheet.getRow(5)
+        cell = row.getCell(5)
+        cell.setCellValue(dte)
+
+        // Данные
+        Map<String, Object> mapRes = loadDataPO_6(params)
+        Map<String, Long> mapData = mapRes.get("data") as Map<String, Long>
+        //
+        int row0 = 11
+        for (StoreRecord r in mapRes.get("store") as Store) {
+            row = destSheet.createRow(row0)
+            cell = row.createCell(0)
+            cell.setCellValue(r.getString("name"))
+            if (mapData.get("1_"+r.getString("id")) > 0) {
+                cell = row.createCell(2)
+                cell.setCellValue(mapData.get("1_"+r.getString("id")))
+            }
+            if (mapData.get("2_"+r.getString("id")) > 0) {
+                cell = row.createCell(3)
+                cell.setCellValue(mapData.get("2_"+r.getString("id")))
+            }
+
+            if (mapData.get("3_"+r.getString("id")) > 0) {
+                cell = row.createCell(5)
+                cell.setCellValue(mapData.get("3_"+r.getString("id")))
+            }
+            if (mapData.get("4_"+r.getString("id")) > 0) {
+                cell = row.createCell(6)
+                cell.setCellValue(mapData.get("4_"+r.getString("id")))
+            }
+            if (mapData.get("5_"+r.getString("id")) > 0) {
+                cell = row.createCell(8)
+                cell.setCellValue(mapData.get("5_"+r.getString("id")))
+            }
+            if (mapData.get("6_"+r.getString("id")) > 0) {
+                cell = row.createCell(9)
+                cell.setCellValue(mapData.get("6_"+r.getString("id")))
+            }
+            row0++
+        }
+        //
+
+
+
+
+
+        OutputStream outputStream = new FileOutputStream(pathout)
+        targetWorkbook.write(outputStream)
+        outputStream.close()
+
+    }
+
+    Map<String, Object> loadDataPO_6(Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long objClient = pms.getLong("objClient")
+        long objLocation = pms.getLong("objLocation")
+        String dte = pms.getString("date")
+        if (objClient == 0)
+            throw new XError("[Client] не указан")
+        if (objLocation == 0)
+            throw new XError("[Location] не указан")
+        if (dte.isEmpty())
+            throw new XError("[Date] не указан")
+
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Section", "")
+        Store stRow = loadSqlService("""
+            select o.id, o.cls, v.name
+            from Obj o
+                left join ObjVer v on o.id=v.ownerVer and v.lastVer=1
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_StartKm")}
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_FinishKm")}
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_StartPicket")}
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_FinishPicket")}
+                left join DataPropVal v5 on d5.id=v5.dataprop
+            where v.objParent in (
+                select o.id
+                from Obj o
+                    left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Client")}
+                    inner join DataPropVal v1 on d1.id=v1.dataProp and v1.obj=${objClient}
+                where o.cls=${mapCls.get("Cls_Section")}
+            )
+            order by v2.numberVal, v4.numberVal, v3.numberVal, v5.numberVal
+        """, "", "objectdata")
+        if (stRow.size()==0)
+            throw new XError("[Section] не найден")
+        //
+        mdb.outTable(stRow)
+        //
+        Set<Object> idsRow = stRow.getUniqueValues("id")
+        //
+        mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelCls", "RC_ParamsComponent", "")
+        Store stParams = loadSqlService("""
+            select o.id, left(v.name, -10) as name
+            from Relobj o, RelobjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.relcls=${mapCls.get("RC_ParamsComponent")}
+                and v.name like '%лежащих в пути%' and v.name like '%шпал%'
+        """, "", "nsidata")
+        if (stParams.size()==0)
+            throw new XError("[Parameter] не найден")
+        Set<Object> idsParams = stParams.getUniqueValues("id")
+        StoreIndex indParams = stParams.getIndex("id")
+        //
+        mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_IncidentParameter", "")
+        Map<String, Long> mapPV = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_StatusEliminated", "")
+        long pv = apiMeta().get(ApiMeta).idPV("FactorVal", mapPV.get("FV_StatusEliminated"), "Prop_Status")
+        Store stIncident = loadSqlService("""
+            select o.id, 
+                v1.obj as objParameterLog
+            from Obj o 
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_ParameterLog")}
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_Status")}
+                inner join DataPropVal v2 on d2.id=v2.dataprop and v2.propVal<>${pv}
+            where o.cls=${mapCls.get("Cls_IncidentParameter")}
+        """, "", "incidentdata")
+        if (stIncident.size()==0)
+            throw new XError("[Incident] не найден")
+        //
+        Set<Object> idsParameterLog = stIncident.getUniqueValues("objParameterLog")
+        //
+        String wheV1="and v1.obj=${objLocation}",
+                wheV7="and v7.dateTimeVal::date between '1800-01-01' and '${dte}'",
+                wheV8="and v8.relobj in (0${idsParams.join(',')})"
+        mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ParameterLog", "")
+        Store stParameterLog = loadSqlService("""
+            select o.id, 
+                v8.relobj as relobjComponentParams, null as nameParams,
+                v15.numberVal as ParamsLimit,
+                v16.obj as objWorkPlan, null as objSection 
+            from Obj o 
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_LocationClsSection")}
+                inner join DataPropVal v1 on d1.id=v1.dataprop ${wheV1}
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_Inspection")}
+                left join DataPropVal v2 on d2.id=v2.dataprop      
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=${map.get("Prop_CreationDateTime")}
+                inner join DataPropVal v7 on d7.id=v7.dataprop ${wheV7}
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=${map.get("Prop_ComponentParams")}
+                inner join DataPropVal v8 on d8.id=v8.dataprop ${wheV8}                
+                left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=${map.get("Prop_ParamsLimit")}
+                left join DataPropVal v15 on d15.id=v15.dataprop
+                left join DataProp d16 on d16.objorrelobj=v2.obj and d16.prop=${map.get("Prop_WorkPlan")}
+                left join DataPropVal v16 on d16.id=v16.dataprop                  
+            where o.id in (${idsParameterLog.join(',')})
+        """, "", "inspectiondata")
+        if (stParameterLog.size()==0)
+            throw new XError("[ParameterLog] не найден")
+        //
+        Set<Object> idsWorkPlan = stParameterLog.getUniqueValues("objWorkPlan")
+        Store stObject = loadSqlService("""
+            select o.id, 
+                v1.obj as objObject, null as objSection
+            from Obj o 
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Object")}
+                left join DataPropVal v1 on d1.id=v1.dataprop
+            where o.id in (${idsWorkPlan.join(',')})
+        """, "", "plandata")
+        Set<Object> idsObject = stObject.getUniqueValues("objObject")
+        Store stSection = loadSqlService("""
+            select o.id, 
+                v1.obj as objSection
+            from Obj o 
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Section")}
+                inner join DataPropVal v1 on d1.id=v1.dataprop and v1.obj in (0${idsRow.join(',')})
+            where o.id in (${idsObject.join(',')})
+        """, "", "objectdata")
+        StoreIndex indSection = stSection.getIndex("id")
+        for(StoreRecord r in stObject) {
+            StoreRecord rec = indSection.get(r.getLong("objObject"))
+            if (rec != null)
+                r.set("objSection", rec.getLong("objSection"))
+        }
+        StoreIndex indObject = stObject.getIndex("id")
+        for(StoreRecord r in stParameterLog) {
+            StoreRecord rec = indObject.get(r.getLong("objWorkPlan"))
+            if (rec != null)
+                r.set("objSection", rec.getLong("objSection"))
+            rec = indParams.get(r.getLong("relobjComponentParams"))
+            if (rec != null)
+                r.set("nameParams", rec.getString("name"))
+        }
+        //
+        mdb.outTable(stParameterLog)
+        //
+        Map<String, Long> mapData = new HashMap<>()
+        for (Object o in idsRow) {
+            long row = UtCnv.toLong(o)
+            for (StoreRecord r in stParameterLog) {
+                if (row != r.getLong("objSection"))
+                    continue
+
+                if (r.getString("nameParams").toLowerCase().contains("количество деревянных шпал, лежащих в пути"))
+                    mapData.put("1_"+r.getString("objSection"), UtCnv.toLong(mapData.get("1_"+r.getString("objSection"))) + r.getLong("paramsLimit"))
+                if (r.getString("nameParams").toLowerCase().contains("количество железобетонных шпал, лежащих в пути"))
+                    mapData.put("2_"+r.getString("objSection"), UtCnv.toLong(mapData.get("2_"+r.getString("objSection"))) + r.getLong("paramsLimit"))
+                if (r.getString("nameParams").toLowerCase().contains("количество, неподряд лежащих в пути негодных деревянных шпал"))
+                    mapData.put("3_"+r.getString("objSection"), UtCnv.toLong(mapData.get("3_"+r.getString("objSection"))) + r.getLong("paramsLimit"))
+                if (r.getString("nameParams").toLowerCase().contains("количество, неподряд лежащих в пути негодных железобетонных шпал"))
+                    mapData.put("4_"+r.getString("objSection"), UtCnv.toLong(mapData.get("4_"+r.getString("objSection"))) + r.getLong("paramsLimit"))
+                if (r.getString("nameParams").toLowerCase().contains("количество, подряд лежащих в пути негодных деревянных шпал")) {
+                    if (r.getLong("paramsLimit") > 2)
+                        mapData.put("5_"+r.getString("objSection"), UtCnv.toLong(mapData.get("5_"+r.getString("objSection"))) + r.getLong("paramsLimit"))
+                    else
+                        mapData.put("3_"+r.getString("objSection"), UtCnv.toLong(mapData.get("3_"+r.getString("objSection"))) + r.getLong("paramsLimit"))
+
+                }
+                if (r.getString("nameParams").toLowerCase().contains("количество, подряд лежащих в пути негодных железобетонных шпал")) {
+                    if (r.getLong("paramsLimit") > 2)
+                        mapData.put("6_" + r.getString("objSection"), UtCnv.toLong(mapData.get("6_" + r.getString("objSection"))) + r.getLong("paramsLimit"))
+                    else
+                        mapData.put("4_"+r.getString("objSection"), UtCnv.toLong(mapData.get("4_"+r.getString("objSection"))) + r.getLong("paramsLimit"))
+                }
+            }
+        }
+
+        mdb.outMap(mapData)
+
+        Map<String, Object> mapRes = new HashMap<>()
+        mapRes.put("store", stRow)
+        mapRes.put("data", mapData)
+
+        return mapRes
+    }
+
 
     void generateReportPO_4(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
@@ -104,18 +382,18 @@ class ReportDao extends BaseMdbUtils {
         copier.copyRange(sourceRange, destRange, true, true)
         //
         long pt = pms.getLong("periodType")
-        String dte = pms.getString("dte")
+        String dte = pms.getString("date")
         UtPeriod utPeriod = new UtPeriod()
         XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(dte), pt, 0)
         XDate d2 = utPeriod.calcDend(UtCnv.toDate(dte), pt, 0)
         PeriodGenerator pg = new PeriodGenerator()
         String namePeriod = pg.getPeriodName(d1, d2, pt, 1)
-        String h2=""
+        String h2 = ""
         Store stLocation = loadSqlService("""
             select v.name from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id=${pms.getLong("objLocation")}
         """, "", "orgstructuredata")
-        if (stLocation.size()>0)
-            h2 = "за "+namePeriod+" по " + stLocation.get(0).getString("name").toLowerCase()
+        if (stLocation.size() > 0)
+            h2 = "за " + namePeriod + " по " + stLocation.get(0).getString("name").toLowerCase()
         //
         Row row = destSheet.getRow(5)
         Cell cell = row.getCell(0)
@@ -130,8 +408,8 @@ class ReportDao extends BaseMdbUtils {
         cell = row.getCell(8)
         cell.setCellValue(pms.getString("fullNameDirector"))
         //
-        String isp = "Исп. "+pms.getString("nameUserPosition").toLowerCase()+" "+pms.getString("fulNameUser")
-        String tel = "тел. "+pms.getString("UserPhone")
+        String isp = "Исп. " + pms.getString("nameUserPosition").toLowerCase() + " " + pms.getString("fulNameUser")
+        String tel = "тел. " + pms.getString("UserPhone")
         row = destSheet.getRow(70)
         cell = row.getCell(0)
         cell.setCellValue(isp)
@@ -141,16 +419,16 @@ class ReportDao extends BaseMdbUtils {
         //
 
         // Данные
-        Map<String, Map<String, Long>> mapData =  loadDataPO_4(params)
+        Map<String, Map<String, Long>> mapData = loadDataPO_4(params)
         //
         row = destSheet.getRow(63)
         cell = row.getCell(8)
         cell.setCellValue(mapData.get("shtuka").get("shtuka"))
 
-        def rowNums = [13,14,15,16,17,18, 20,21,22,23,24,25, 27,28,29, 31,32,33,34,35,36,37, 39,40,41,42,43,44, 46,47,48,49,50, 52,53,54, 56,57, 59]
-        def rowIndex = ["10","11","12","13","14","18","20","21","24","25","26","27","31","30","38","40","41","43","44","46","47","49","50","52","53","55","56","59","60","62","65","66","69","70","74","79","85","86","99"]
+        def rowNums = [13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 27, 28, 29, 31, 32, 33, 34, 35, 36, 37, 39, 40, 41, 42, 43, 44, 46, 47, 48, 49, 50, 52, 53, 54, 56, 57, 59]
+        def rowIndex = ["10", "11", "12", "13", "14", "18", "20", "21", "24", "25", "26", "27", "31", "30", "38", "40", "41", "43", "44", "46", "47", "49", "50", "52", "53", "55", "56", "59", "60", "62", "65", "66", "69", "70", "74", "79", "85", "86", "99"]
 
-        for (def i=0; i<rowNums.size(); i++) {
+        for (def i = 0; i < rowNums.size(); i++) {
             row = destSheet.getRow(rowNums[i])
             cell = row.getCell(4)
             if (mapData.get(rowIndex[i]) && mapData.get(rowIndex[i]).get("75c"))
@@ -223,7 +501,7 @@ class ReportDao extends BaseMdbUtils {
             where o.cls=${map.get("cls")}
         """, "Report.po_4", "repairdata")
         //
-        if (st.size()==0)
+        if (st.size() == 0)
             throw new XError("Нет данных")
         //
 
@@ -1099,7 +1377,7 @@ class ReportDao extends BaseMdbUtils {
                 index.startsWith("55.") || index.startsWith("56.") || index.startsWith("59.") || index.startsWith("60.") ||
                 index.startsWith("62.") || index.startsWith("65.") || index.startsWith("66.") || index.startsWith("69.") ||
                 index.startsWith("70.") || index.startsWith("74.") || index.startsWith("79.") || index.startsWith("85.") ||
-                index.startsWith("86.") || index.startsWith("99.") ||  index.startsWith("41.")
+                index.startsWith("86.") || index.startsWith("99.") || index.startsWith("41.")
     }
 
 /*

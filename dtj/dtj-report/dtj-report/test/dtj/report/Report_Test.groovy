@@ -8,7 +8,30 @@ import org.junit.jupiter.api.Test
 class Report_Test extends Apx_Test {
 
     @Test
-    void report1_test() {
+    void report_PO_6_test() {
+        ReportDao dao = mdb.createDao(ReportDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("tml", "ПО-6")
+        map.put("date", "2025-11-07")
+        map.put("nameLocation", "Location")
+
+        map.put("objClient", 1014)
+        map.put("objLocation", 1077)
+        map.put("fulNameUser", "Kanat C.")
+        map.put("nameUserPosition", "Тех.отдел")
+        map.put("UserPhone", "8-777-666 5544")
+        map.put("fullNameDirector", "Мыркинбаев Н.Д.")
+        map.put("nameDirectorPosition", "Зам.начальника")
+        map.put("nameDirectorLocation", "Досжан Темир Жолы")
+
+
+        dao.generateReport(map)
+    }
+
+
+
+    @Test
+    void report_PO_4_test() {
         ReportDao dao = mdb.createDao(ReportDao.class)
         Map<String, Object> map = new HashMap<>()
         map.put("tml", "ПО-4")
