@@ -3,8 +3,10 @@ package dtj.report.action;
 import com.documents4j.api.DocumentType;
 import com.documents4j.api.IConverter;
 import com.documents4j.job.LocalConverter;
+import dtj.report.dao.ReportDao;
 import jandcode.commons.error.XError;
 import jandcode.commons.variant.IVariantMap;
+import jandcode.core.dao.DaoService;
 import jandcode.core.web.HttpError;
 import jandcode.core.web.action.BaseAction;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -20,10 +22,15 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.concurrent.TimeUnit;
-
 import static com.documents4j.api.DocumentType.*;
 
+
 public class LoadReportAction extends BaseAction {
+
+    ApinatorApi apiReport() {
+        return getApp().bean(ApinatorService.class).getApi("report");
+    }
+
 
     protected void onExec() throws Exception {
         IVariantMap params = getReq().getParams();
@@ -35,6 +42,9 @@ public class LoadReportAction extends BaseAction {
         } else {
             throw new XError("Not found [tml]");
         }
+
+        ReportDao dao = getApp().create(ReportDao.class);
+        dao.generateReport(params);
 
         File fs;
         try {

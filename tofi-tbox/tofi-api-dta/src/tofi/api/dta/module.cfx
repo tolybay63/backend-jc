@@ -18,21 +18,6 @@
                   class="tofi.api.dta.impl.ApiUserDataImpl"/>
         </api>
 
-        <api name="polldata" invoker="model" model="polldata">
-            <item name="tofi.api.dta.ApiPollData"
-                  class="tofi.api.dta.impl.ApiPollDataImpl"/>
-        </api>
-
-        <api name="kpidata" invoker="model" model="kpidata">
-            <item name="tofi.api.dta.ApiKPIData"
-                  class="tofi.api.dta.impl.ApiKPIDataImpl"/>
-        </api>
-
-        <api name="indicatordata" invoker="model" model="indicatordata">
-            <item name="tofi.api.dta.ApiIndicatorData"
-                  class="tofi.api.dta.impl.ApiIndicatorDataImpl"/>
-        </api>
-
         <api name="nsidata" invoker="model" model="nsidata">
             <item name="tofi.api.dta.ApiNSIData"
                   class="tofi.api.dta.impl.ApiNSIDataImpl"/>
@@ -87,6 +72,12 @@
             <item name="tofi.api.dta.ApiRepairData"
                   class="tofi.api.dta.impl.ApiRepairDataImpl"/>
         </api>
+
+        <api name="reportdata" invoker="model" model="reportdata">
+            <item name="tofi.api.dta.ApiReportData"
+                  class="tofi.api.dta.impl.ApiReportDataImpl"/>
+        </api>
+
     </apinator>
 
 
