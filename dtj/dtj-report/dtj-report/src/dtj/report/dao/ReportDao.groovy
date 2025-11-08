@@ -213,6 +213,12 @@ class ReportDao extends BaseMdbUtils {
             col++
         }
         //
+        row = destSheet.createRow(rowEnd+3)
+        cell = row.createCell(0)
+        cell.setCellValue("Начальник дистанции пути")
+        cell = row.createCell(3)
+        cell.setCellValue(pms.getString("fullNameDirector"))
+        //
         try (FileOutputStream fileOut = new FileOutputStream(pathout)) {
             targetWorkbook.write(fileOut);
         } catch (Exception e) {

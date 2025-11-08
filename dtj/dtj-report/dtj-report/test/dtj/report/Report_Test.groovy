@@ -20,7 +20,7 @@ class Report_Test extends Apx_Test {
         map.put("fulNameUser", "Kanat C.")
         map.put("nameUserPosition", "Тех.отдел")
         map.put("UserPhone", "8-777-666 5544")
-        map.put("fullNameDirector", "Мыркинбаев Н.Д.")
+        map.put("fullNameDirector", "Мулькибаев Н.Д.")
         map.put("nameDirectorPosition", "Зам.начальника")
         map.put("nameDirectorLocation", "Досжан Темир Жолы")
 
