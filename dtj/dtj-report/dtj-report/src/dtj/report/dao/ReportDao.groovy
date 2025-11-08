@@ -80,6 +80,10 @@ class ReportDao extends BaseMdbUtils {
 
     @DaoMethod
     void generateReport(Map<String, Object> params) {
+        def dir = new File(mdb.getApp().appdir + File.separator + "reports")
+        if (!dir.exists()) {
+            dir.mkdirs()
+        }
         if (UtCnv.toString(params.get("tml")).equalsIgnoreCase("по-4"))
             generateReportPO_4(params)
         else if (UtCnv.toString(params.get("tml")).equalsIgnoreCase("по-6"))
