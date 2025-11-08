@@ -13,16 +13,13 @@ import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
 import org.apache.poi.ss.usermodel.BorderStyle
 import org.apache.poi.ss.usermodel.Cell
-import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.RangeCopier
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.util.CellRangeAddress
-import org.apache.poi.ss.util.RegionUtil
 import org.apache.poi.xssf.usermodel.XSSFCellStyle
 import org.apache.poi.xssf.usermodel.XSSFRangeCopier
 import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
-import org.apache.poi.xwpf.usermodel.Borders
 import tofi.api.dta.*
 import tofi.api.mdl.ApiMeta
 import tofi.api.mdl.utils.UtPeriod
@@ -183,41 +180,50 @@ class ReportDao extends BaseMdbUtils {
             if (mapData.get("6_"+r.getString("id")) > 0) {
                 cell.setCellValue(mapData.get("6_"+r.getString("id")))
             }
-            //
+            // Sum
             cell = row.createCell(1)
+            String formula = String.format("SUM(C%d:D%d)", row0+1, row0+1)
+            cell.setCellFormula(formula)
             cell.setCellStyle(cellStyle)
-            int v2 = row.getCell(2) != null ? row.getCell(2).getNumericCellValue() as int : 0
-            int v3 = row.getCell(3) != null ? row.getCell(3).getNumericCellValue() as int : 0
-            if (v2+v3 > 0)
-                cell.setCellValue(v2 + v3)
+            //
             cell = row.createCell(4)
+            formula = String.format("SUM(F%d:G%d)", row0+1, row0+1)
             cell.setCellStyle(cellStyle)
-            int v5 = row.getCell(5) != null ? row.getCell(5).getNumericCellValue() as int : 0
-            int v6 = row.getCell(6) != null ? row.getCell(6).getNumericCellValue() as int : 0
-            if (v5+v6 > 0)
-                cell.setCellValue(v5 + v6)
+            cell.setCellFormula(formula)
+            //
             cell = row.createCell(7)
+            formula = String.format("SUM(I%d:J%d)", row0+1, row0+1)
+            cell.setCellFormula(formula)
             cell.setCellStyle(cellStyle)
-            int v8 = row.getCell(8) != null ? row.getCell(8).getNumericCellValue() as int : 0
-            int v9 = row.getCell(9) != null ? row.getCell(9).getNumericCellValue() as int : 0
-            if (v8+v9 > 0)
-                cell.setCellValue(v8 + v9)
-
             //
             row0++
         }
         int rowEnd = row0
+        // All sum
+        row = destSheet.createRow(rowEnd)
+        int col = 0
+        cell = row.createCell(col++)
+        cell.setCellValue("Всего")
+        cell.setCellStyle(cellStyle)
+        for (String c in ['B','C','D','E','F','G','H','I','J']) {
+            cell = row.createCell(col)
+            String formula = String.format("SUM(%s%d:%s%d)", c, rowStart+1, c, rowEnd)
+            cell.setCellFormula(formula)
+            cell.setCellStyle(cellStyle)
+            col++
+        }
         //
-
-        //CellRangeAddress region = new CellRangeAddress(rowStart, rowEnd, 0, 9)
-        //RegionUtil.setBorderBottom(BorderStyle.THIN, region, destSheet)
-
-
-
-        OutputStream outputStream = new FileOutputStream(pathout)
-        targetWorkbook.write(outputStream)
-        outputStream.close()
-
+        try (FileOutputStream fileOut = new FileOutputStream(pathout)) {
+            targetWorkbook.write(fileOut);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                targetWorkbook.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     Map<String, Object> loadDataPO_6(Map<String, Object> params) {
@@ -258,7 +264,7 @@ class ReportDao extends BaseMdbUtils {
         if (stRow.size()==0)
             throw new XError("[Section] не найден")
         //
-        mdb.outTable(stRow)
+        //mdb.outTable(stRow)
         //
         Set<Object> idsRow = stRow.getUniqueValues("id")
         //
@@ -353,7 +359,7 @@ class ReportDao extends BaseMdbUtils {
                 r.set("nameParams", rec.getString("name"))
         }
         //
-        mdb.outTable(stParameterLog)
+        //mdb.outTable(stParameterLog)
         //
         Map<String, Long> mapData = new HashMap<>()
         for (Object o in idsRow) {
@@ -386,7 +392,7 @@ class ReportDao extends BaseMdbUtils {
             }
         }
 
-        mdb.outMap(mapData)
+        //mdb.outMap(mapData)
 
         Map<String, Object> mapRes = new HashMap<>()
         mapRes.put("store", stRow)
@@ -494,9 +500,17 @@ class ReportDao extends BaseMdbUtils {
                 cell.setCellValue(mapData.get(rowIndex[i]).get("43"))
         }
 
-        OutputStream outputStream = new FileOutputStream(pathout)
-        targetWorkbook.write(outputStream)
-        outputStream.close()
+        try (FileOutputStream fileOut = new FileOutputStream(pathout)) {
+            targetWorkbook.write(fileOut);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                targetWorkbook.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @DaoMethod

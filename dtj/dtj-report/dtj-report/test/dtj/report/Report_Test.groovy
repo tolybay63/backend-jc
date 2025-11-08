@@ -28,8 +28,6 @@ class Report_Test extends Apx_Test {
         dao.generateReport(map)
     }
 
-
-
     @Test
     void report_PO_4_test() {
         ReportDao dao = mdb.createDao(ReportDao.class)
@@ -77,6 +75,5 @@ class Report_Test extends Apx_Test {
             mdb.outTable(it)
         }
     }
-
 
 }
