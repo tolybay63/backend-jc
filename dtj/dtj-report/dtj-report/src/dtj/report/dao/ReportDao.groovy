@@ -224,14 +224,14 @@ class ReportDao extends BaseMdbUtils {
         cell.setCellValue(pms.getString("fullNameDirector"))
         //
         try (FileOutputStream fileOut = new FileOutputStream(pathout)) {
-            targetWorkbook.write(fileOut);
+            targetWorkbook.write(fileOut)
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace()
         } finally {
             try {
-                targetWorkbook.close();
+                targetWorkbook.close()
             } catch (Exception e) {
-                e.printStackTrace();
+                e.printStackTrace()
             }
         }
     }
