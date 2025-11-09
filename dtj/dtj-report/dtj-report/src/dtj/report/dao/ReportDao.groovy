@@ -79,24 +79,27 @@ class ReportDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    void generateReport(Map<String, Object> params) {
+    String generateReport(Map<String, Object> params) {
         def dir = new File(mdb.getApp().appdir + File.separator + "reports")
         if (!dir.exists()) {
             dir.mkdirs()
         }
+        String id = UUID.randomUUID().toString()
+        params.put("fout", id+".xlsx")
         if (UtCnv.toString(params.get("tml")).equalsIgnoreCase("по-4"))
             generateReportPO_4(params)
         else if (UtCnv.toString(params.get("tml")).equalsIgnoreCase("по-6"))
             generateReportPO_6(params)
         else
             throw new XError("Не известный шаблон")
+        return id
 
     }
 
     void generateReportPO_6(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         String pathin = mdb.getApp().appdir + File.separator + "tml" + File.separator + "ПО-6.xlsx"
-        String pathout = mdb.getApp().appdir + File.separator + "reports" + File.separator + "ПО-6.xlsx"
+        String pathout = mdb.getApp().appdir + File.separator + "reports" + File.separator + pms.getString("fout")
 
         // 1. Загрузка исходной книги
         InputStream inputStream = new FileInputStream(pathin)
@@ -415,7 +418,7 @@ class ReportDao extends BaseMdbUtils {
     void generateReportPO_4(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         String pathin = mdb.getApp().appdir + File.separator + "tml" + File.separator + "ПО-4.xlsx"
-        String pathout = mdb.getApp().appdir + File.separator + "reports" + File.separator + "ПО-4.xlsx"
+        String pathout = mdb.getApp().appdir + File.separator + "reports" + File.separator + pms.getString("fout")
 
         // 1. Загрузка исходной книги
         InputStream inputStream = new FileInputStream(pathin)

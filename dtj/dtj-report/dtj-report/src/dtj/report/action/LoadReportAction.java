@@ -3,10 +3,8 @@ package dtj.report.action;
 import com.documents4j.api.DocumentType;
 import com.documents4j.api.IConverter;
 import com.documents4j.job.LocalConverter;
-import dtj.report.dao.ReportDao;
 import jandcode.commons.error.XError;
 import jandcode.commons.variant.IVariantMap;
-import jandcode.core.dao.DaoService;
 import jandcode.core.web.HttpError;
 import jandcode.core.web.action.BaseAction;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -22,6 +20,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.concurrent.TimeUnit;
+
 import static com.documents4j.api.DocumentType.*;
 
 
@@ -36,28 +35,33 @@ public class LoadReportAction extends BaseAction {
         IVariantMap params = getReq().getParams();
         String fn;
         String fon;
-        if (params.getString("tml").equalsIgnoreCase("по-4")) {
-            fn = getApp().getAppdir() + File.separator + "report" + File.separator + "ПО-4.xlsx";
-            fon = "ПО-4.xlsx";
+        if (!params.getString("id").isEmpty()) {
+            fn = getApp().getAppdir() + File.separator + "reports" + File.separator + params.getString("id") + ".xlsx";
+            if (params.getString("tml").equalsIgnoreCase("по-4")) {
+                fon = "ПО-4.xlsx";
+            } else if (params.getString("tml").equalsIgnoreCase("по-6")) {
+                fon = "ПО-6.xlsx";
+            } else {
+                throw new XError("Not found [tml]");
+            }
         } else {
-            throw new XError("Not found [tml]");
+            throw new XError("Not found [id]");
         }
-
-        ReportDao dao = getApp().create(ReportDao.class);
-        dao.generateReport(params);
 
         File fs;
         try {
             fs = new File(fn);
-
         } catch (Exception e) {
             System.out.println(e.getMessage());
             throw new HttpError(404);
         }
 
         var res = new DownFile(fs, fon);
-
-        getReq().render(res);
+        try {
+            getReq().render(res);
+        } finally {
+            fs.deleteOnExit();
+        }
     }
 
     private static DocumentType getDocumentType(String fn) {

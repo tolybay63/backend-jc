@@ -23,9 +23,9 @@ class Report_Test extends Apx_Test {
         map.put("fullNameDirector", "Мулькибаев Н.Д.")
         map.put("nameDirectorPosition", "Зам.начальника")
         map.put("nameDirectorLocation", "Досжан Темир Жолы")
-
-
-        dao.generateReport(map)
+        //
+        String res = dao.generateReport(map)
+        System.out.println(res)
     }
 
     @Test
@@ -44,8 +44,8 @@ class Report_Test extends Apx_Test {
         map.put("nameDirectorPosition", "Зам.начальника")
         map.put("nameDirectorLocation", "Досжан Темир Жолы")
 
-
-        dao.generateReport(map)
+        String res = dao.generateReport(map)
+        System.out.println(res)
     }
 
     @Test
@@ -63,7 +63,7 @@ class Report_Test extends Apx_Test {
         map.put("fullNameDirector", "Мыркинбаев Н.Д.")
         map.put("nameDirectorPosition", "Зам.начальника")
         map.put("nameDirectorLocation", "Досжан Темир Жолы")
-        dao.loadDataPO_4(map)
+        //
     }
 
 
@@ -75,5 +75,6 @@ class Report_Test extends Apx_Test {
             mdb.outTable(it)
         }
     }
+
 
 }
