@@ -906,6 +906,7 @@ class DataDao extends BaseMdbUtils {
             select id, text
             from FD_PeriodType
             where vis=1
+            order by ord
         """, "")
     }
 
