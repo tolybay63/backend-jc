@@ -3,6 +3,7 @@ package dtj.report.action;
 import com.documents4j.api.DocumentType;
 import com.documents4j.api.IConverter;
 import com.documents4j.job.LocalConverter;
+import jandcode.commons.UtFile;
 import jandcode.commons.error.XError;
 import jandcode.commons.variant.IVariantMap;
 import jandcode.core.web.HttpError;
@@ -35,16 +36,16 @@ public class LoadReportAction extends BaseAction {
 
     protected void onExec() throws Exception {
         IVariantMap params = getReq().getParams();
-        String fn, fon, fnpdf, fonpdf;
+        String fn, fon/*, fnpdf, fonpdf*/;
         if (!params.getString("id").isEmpty()) {
             fn = getApp().getAppdir() + File.separator + "reports" + File.separator + params.getString("id") + ".xlsx";
-            fnpdf = getApp().getAppdir() + File.separator + "reports" + File.separator + params.getString("id") + ".pdf";
+            //fnpdf = getApp().getAppdir() + File.separator + "reports" + File.separator + params.getString("id") + ".pdf";
             if (params.getString("tml").equalsIgnoreCase("по-4")) {
                 fon = "ПО-4.xlsx";
-                fonpdf = "ПО-4.pdf";
+                //fonpdf = "ПО-4.pdf";
             } else if (params.getString("tml").equalsIgnoreCase("по-6")) {
                 fon = "ПО-6.xlsx";
-                fonpdf = "ПО-6.pdf";
+                //fonpdf = "ПО-6.pdf";
             } else {
                 throw new XError("Not found [tml]");
             }
@@ -52,25 +53,40 @@ public class LoadReportAction extends BaseAction {
             throw new XError("Not found [id]");
         }
 
-        cnv2pdf(fn, fnpdf);
-
-
-/*        File fs;
-        try {
+        File fs;
+        DownFile res;
+        String fnPdf, fnPdfOrg;
+        if (params.getString("ext").equalsIgnoreCase("pdf")) {
+            fnPdf = fn.replace(UtFile.ext(fn), "pdf");
+            fnPdfOrg = fon.replace(UtFile.ext(fon), "pdf");
+            cnv2pdf(fn, fnPdf);
+            fs = new File(fnPdf);
+            res = new DownFile(fs, fnPdfOrg);
+            getReq().render(res);
+        } else {
             fs = new File(fn);
+            res = new DownFile(fs, fon);
+            getReq().render(res);
+        }
+
+
+/*
+        try {
+            fs = new File(fnRes);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             throw new HttpError(404);
-        }*/
+        }
+
+        var res = new DownFile(fs, fnResOrg);
+        getReq().render(res);
 
         //var ex = new DownFile(new File(fn), fon);
         File f = new File(fnpdf);
         var pd = new DownFile(f, fonpdf);
-        //Map<String, Object> res = new HashMap<>();
-        //res.put("pdf", "PDF");
-        //res.put("ex", ex);
         getReq().render(pd);
         //getReq().render(ex);
+*/
 
     }
 
