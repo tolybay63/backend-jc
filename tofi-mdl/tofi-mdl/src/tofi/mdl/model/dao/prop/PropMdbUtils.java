@@ -42,15 +42,6 @@ public class PropMdbUtils extends EntityMdbUtils {
     ApinatorApi apiUserData() {
         return  mdb.getApp().bean(ApinatorService.class).getApi("userdata");
     }
-    ApinatorApi apiKPIData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("kpidata");
-    }
-    ApinatorApi apiPollData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("polldata");
-    }
-    ApinatorApi apiIndicatorData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("indicatordata");
-    }
     ApinatorApi apiNSIData() {
         return mdb.getApp().bean(ApinatorService.class).getApi("nsidata");
     }
@@ -204,25 +195,6 @@ public class PropMdbUtils extends EntityMdbUtils {
             if (st.size() > 0)
                 throw new XError("NotChangeStructComplexProp@userdata");
 
-            st = apiKPIData().get(ApiKPIData.class).loadSql("""
-                        select v.id from dataprop d, Datapropval v
-                        where d.id=v.dataprop and d.prop=
-                    """ + prop, "");
-            if (st.size() > 0)
-                throw new XError("NotChangeStructComplexProp@kpidata");
-
-            st = apiPollData().get(ApiPollData.class).loadSql("""
-                        select v.id from dataprop d, Datapropval v
-                        where d.id=v.dataprop and d.prop=
-                    """ + prop, "");
-            if (st.size() > 0)
-                throw new XError("NotChangeStructComplexProp@polldata");
-            st = apiIndicatorData().get(ApiIndicatorData.class).loadSql("""
-                        select v.id from dataprop d, Datapropval v
-                        where d.id=v.dataprop and d.prop=
-                    """ + prop, "");
-            if (st.size() > 0)
-                throw new XError("NotChangeStructComplexProp@indicatordata");
         }
 
         if (modelMeta.equalsIgnoreCase("fish")) {
@@ -861,12 +833,6 @@ public class PropMdbUtils extends EntityMdbUtils {
     private Store sqlLoad(String sql, String domain, String model) throws Exception {
         if (model.equalsIgnoreCase("userdata"))
             return apiUserData().get(ApiUserData.class).loadSql(sql, domain);
-        else if (model.equalsIgnoreCase("kpidata"))
-            return apiKPIData().get(ApiKPIData.class).loadSql(sql, domain);
-        else if (model.equalsIgnoreCase("polldata"))
-            return apiPollData().get(ApiPollData.class).loadSql(sql, domain);
-        else if (model.equalsIgnoreCase("indicatordata"))
-            return apiIndicatorData().get(ApiIndicatorData.class).loadSql(sql, domain);
         else if (model.equalsIgnoreCase("nsidata"))
             return apiNSIData().get(ApiNSIData.class).loadSql(sql, domain);
         else if (model.equalsIgnoreCase("monitoringdata"))
@@ -881,15 +847,6 @@ public class PropMdbUtils extends EntityMdbUtils {
             Store st = apiUserData().get(ApiUserData.class).loadSql(sql, domain);
             if (st.size() > 0)
                 res.put("userdata", st.getUniqueValues("periodType"));
-            st = apiKPIData().get(ApiKPIData.class).loadSql(sql, domain);
-            if (st.size() > 0)
-                res.put("kpidata", st.getUniqueValues("periodType"));
-            st = apiPollData().get(ApiPollData.class).loadSql(sql, domain);
-            if (st.size() > 0)
-                res.put("polldata", st.getUniqueValues("periodType"));
-            st = apiIndicatorData().get(ApiIndicatorData.class).loadSql(sql, domain);
-            if (st.size() > 0)
-                res.put("indicatordata", st.getUniqueValues("periodType"));
         } else if (metaModel.equalsIgnoreCase("fish")) {
             Store st = apiUserData().get(ApiUserData.class).loadSql(sql, domain);
             if (st.size() > 0)
