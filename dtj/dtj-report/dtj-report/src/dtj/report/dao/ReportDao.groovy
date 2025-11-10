@@ -1,7 +1,11 @@
 package dtj.report.dao
 
+import com.documents4j.api.DocumentType
+import com.documents4j.api.IConverter
+import com.documents4j.job.LocalConverter
 import groovy.transform.CompileStatic
 import jandcode.commons.UtCnv
+import jandcode.commons.UtFile
 import jandcode.commons.datetime.XDate
 import jandcode.commons.error.XError
 import jandcode.commons.variant.VariantMap
@@ -27,6 +31,10 @@ import tofi.api.mdl.utils.UtPeriod
 import tofi.api.mdl.utils.dimPeriod.PeriodGenerator
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
+
+import java.util.concurrent.TimeUnit
+
+import static com.documents4j.api.DocumentType.PDF
 
 @CompileStatic
 class ReportDao extends BaseMdbUtils {
@@ -101,7 +109,7 @@ class ReportDao extends BaseMdbUtils {
         VariantMap pms = new VariantMap(params)
         String pathin = mdb.getApp().appdir + File.separator + "tml" + File.separator + "ПО-6.xlsx"
         String pathout = mdb.getApp().appdir + File.separator + "reports" + File.separator + pms.getString("fout")
-
+        String pathpdf = pathout.replace(UtFile.ext(pathout), "pdf")
         // 1. Загрузка исходной книги
         InputStream inputStream = new FileInputStream(pathin)
         XSSFWorkbook sourceWorkbook = new XSSFWorkbook(inputStream)
@@ -279,6 +287,7 @@ class ReportDao extends BaseMdbUtils {
                 e.printStackTrace()
             }
         }
+
     }
 
     Map<String, Object> loadDataPO_6(Map<String, Object> params) {
@@ -1526,75 +1535,6 @@ class ReportDao extends BaseMdbUtils {
 
         return st.getUniqueValues("id")
     }
-
-/*
-    @DaoMethod
-    void generateReport(Map<String, Object> params) {
-        String pathin = mdb.getApp().appdir+File.separator+"tml"+File.separator+"ПО-4.xlsx"
-        String pathout = mdb.getApp().appdir+File.separator+"reports"+File.separator+"ПО-4.xlsx"
-
-
-        // 1. Загрузка исходной книги
-        InputStream inputStream = new FileInputStream(pathin)
-        XSSFWorkbook sourceWorkbook = new XSSFWorkbook(inputStream)
-        XSSFSheet sourceSheet = sourceWorkbook.getSheetAt(0)
-
-        // 2. Создание целевой книги и листа
-        XSSFWorkbook targetWorkbook = new XSSFWorkbook();
-        XSSFSheet targetSheet = targetWorkbook.createSheet()
-
-        // 3. Копирование данных
-        for (Row sourceRow : sourceSheet) {
-            Row targetRow = targetSheet.createRow(sourceRow.getRowNum())
-            for (Cell sourceCell : sourceRow) {
-                Cell targetCell = targetRow.createCell(sourceCell.getColumnIndex(), sourceCell.cellType)
-
-                // Копируем значение ячейки
-                //targetCell.setCellValue(sourceCell.getStringCellValue())
-                targetCell.setCellValue(getCellValueAsString(sourceCell))
-                // И так далее для других типов ячеек (числовых, булевых и т.д.)
-
-                // TODO: Добавить логику копирования стилей и форматирования
-            }
-        }
-
-// 4. Сохранение целевой книги
-        OutputStream outputStream = new FileOutputStream(pathout)
-        targetWorkbook.write(outputStream)
-        outputStream.close()
-
-    }
-
-    public static String getCellValueAsString(Cell cell) {
-        if (cell == null) {
-            return null
-        }
-        switch (cell.getCellType()) {
-            case CellType.STRING:
-                return cell.getStringCellValue()
-            case CellType.NUMERIC:
-                // For numeric cells, including dates and times
-                DataFormatter formatter = new DataFormatter()
-                return formatter.formatCellValue(cell)
-            case CellType.BOOLEAN:
-                return String.valueOf(cell.getBooleanCellValue())
-            case CellType.FORMULA:
-                // To get the evaluated value of a formula cell
-                // You'll need a FormulaEvaluator instance
-                // FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator()
-                // CellValue cellValue = evaluator.evaluate(cell)
-                // return getCellValueAsString(cellValue) // Recursively call for evaluated value
-                return cell.getCellFormula() // Or just return the formula string
-            case CellType.BLANK:
-                return null
-            case CellType.ERROR:
-                return "ERROR" // Or handle error appropriately
-            default:
-                return null
-        }
-    }
-*/
-
 
     //-------------------------
     private Store loadSqlService(String sql, String domain, String model) {

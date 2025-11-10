@@ -47,7 +47,6 @@ public class LoadpdfAction extends BaseAction {
              fnn = fn.replace(UtFile.ext(fn), "pdf");
              if ( !fn.toLowerCase().endsWith(".pdf") ) {
                  String tempDir = System.getProperty("java.io.tmpdir");
-                 //fnn = fn.replace(UtFile.ext(fn), "pdf");
                  String destPath = tempDir + fnn;
                  String srcPath = fs.getAbsolutePath();
                  if (fn.toLowerCase().endsWith(".docx") || fn.toLowerCase().endsWith(".doc") ||

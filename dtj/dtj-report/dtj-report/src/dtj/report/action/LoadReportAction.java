@@ -19,6 +19,8 @@ import tofi.apinator.ApinatorService;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static com.documents4j.api.DocumentType.*;
@@ -33,14 +35,16 @@ public class LoadReportAction extends BaseAction {
 
     protected void onExec() throws Exception {
         IVariantMap params = getReq().getParams();
-        String fn;
-        String fon;
+        String fn, fon, fnpdf, fonpdf;
         if (!params.getString("id").isEmpty()) {
             fn = getApp().getAppdir() + File.separator + "reports" + File.separator + params.getString("id") + ".xlsx";
+            fnpdf = getApp().getAppdir() + File.separator + "reports" + File.separator + params.getString("id") + ".pdf";
             if (params.getString("tml").equalsIgnoreCase("по-4")) {
                 fon = "ПО-4.xlsx";
+                fonpdf = "ПО-4.pdf";
             } else if (params.getString("tml").equalsIgnoreCase("по-6")) {
                 fon = "ПО-6.xlsx";
+                fonpdf = "ПО-6.pdf";
             } else {
                 throw new XError("Not found [tml]");
             }
@@ -48,20 +52,26 @@ public class LoadReportAction extends BaseAction {
             throw new XError("Not found [id]");
         }
 
-        File fs;
+        cnv2pdf(fn, fnpdf);
+
+
+/*        File fs;
         try {
             fs = new File(fn);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             throw new HttpError(404);
-        }
+        }*/
 
-        var res = new DownFile(fs, fon);
-        try {
-            getReq().render(res);
-        } finally {
-            fs.deleteOnExit();
-        }
+        //var ex = new DownFile(new File(fn), fon);
+        File f = new File(fnpdf);
+        var pd = new DownFile(f, fonpdf);
+        //Map<String, Object> res = new HashMap<>();
+        //res.put("pdf", "PDF");
+        //res.put("ex", ex);
+        getReq().render(pd);
+        //getReq().render(ex);
+
     }
 
     private static DocumentType getDocumentType(String fn) {
@@ -78,7 +88,7 @@ public class LoadReportAction extends BaseAction {
         return dt;
     }
 
-    protected void cnv2pdf(String src, String dst, DocumentType dt) throws Exception {
+    protected void cnv2pdf(String src, String dst) throws Exception {
         try (InputStream docxInputStream = new FileInputStream(src);
              OutputStream pdfOutputStream = new FileOutputStream(dst)) {
             IConverter converter = LocalConverter.builder()
@@ -86,7 +96,7 @@ public class LoadReportAction extends BaseAction {
                     .processTimeout(5, TimeUnit.SECONDS)
                     .build();
 
-            converter.convert(docxInputStream).as(dt)
+            converter.convert(docxInputStream).as(XLSX)
                     .to(pdfOutputStream).as(PDF)
                     .execute();
 
