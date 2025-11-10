@@ -432,6 +432,7 @@ class DataDao extends BaseMdbUtils {
                 XDate d2 = utPeriod.calcDend(UtCnv.toDate(dte), pt, 0)
                 wheV7 = "and v7.dateTimeVal between '${d1}' and '${d2}'"
             } else {
+                dte = UtCnv.toString(UtCnv.toDate(params.get("date")).toJavaLocalDate().minusDays(1))
                 wheV7 = "and v7.dateTimeVal between '1800-01-01' and '${dte}'"
                 wheV12 = """
                  and o.id not in (

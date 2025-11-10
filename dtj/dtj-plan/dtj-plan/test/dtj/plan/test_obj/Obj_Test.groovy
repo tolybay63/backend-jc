@@ -58,9 +58,9 @@ class Obj_Test extends Apx_Test {
     void testPlanLoad() {
         DataDao dao = mdb.createDao(DataDao.class)
         Store st = dao.loadPlan(Map.of(
-                "date", "2025-11-06",
-                "periodType", 71,
-//                "objLocation", 1077,
+                "date", "2025-11-10",
+//                "periodType", 71,
+                "objLocation", 1073,
                 "codCls", "Cls_WorkPlanCorrectional"
         ))
         mdb.outTable(st)
