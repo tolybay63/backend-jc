@@ -14,9 +14,8 @@ class Report_Test extends Apx_Test {
         map.put("tml", "ПО-6")
         map.put("date", "2025-11-07")
         map.put("nameLocation", "Location")
-
-        map.put("objClient", 1014)
-        map.put("objLocation", 1077)
+        map.put("objClient", 1015)
+        map.put("objLocation", 1073)
         map.put("fulNameUser", "Kanat C.")
         map.put("nameUserPosition", "Тех.отдел")
         map.put("UserPhone", "8-777-666 5544")

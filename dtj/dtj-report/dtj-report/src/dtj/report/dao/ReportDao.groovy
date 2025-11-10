@@ -17,6 +17,7 @@ import org.apache.poi.ss.usermodel.RangeCopier
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.util.CellRangeAddress
 import org.apache.poi.xssf.usermodel.XSSFCellStyle
+import org.apache.poi.xssf.usermodel.XSSFFont
 import org.apache.poi.xssf.usermodel.XSSFRangeCopier
 import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
@@ -136,15 +137,30 @@ class ReportDao extends BaseMdbUtils {
         row = destSheet.getRow(5)
         cell = row.getCell(5)
         cell.setCellValue(dte)
-        destSheet.getRow(7).setHeightInPoints(2 * destSheet.getDefaultRowHeightInPoints() as float)
+        destSheet.getRow(7).setHeightInPoints(3 * destSheet.getDefaultRowHeightInPoints() as float)
 
         // Данные
-        final XSSFCellStyle cellStyle = targetWorkbook.createCellStyle();
+        final XSSFCellStyle cellStyle = targetWorkbook.createCellStyle()
+        final XSSFCellStyle cellStyleFont = targetWorkbook.createCellStyle()
+        XSSFFont fontBold = targetWorkbook.createFont()
+        fontBold.setBold(true)
+        cellStyleFont.setFont(fontBold)
+
+        cellStyleFont.setBorderTop(BorderStyle.THIN)
+        cellStyleFont.setBorderRight(BorderStyle.THIN)
+        cellStyleFont.setBorderBottom(BorderStyle.THIN)
+        cellStyleFont.setBorderLeft(BorderStyle.THIN)
 
         cellStyle.setBorderTop(BorderStyle.THIN)
         cellStyle.setBorderRight(BorderStyle.THIN)
         cellStyle.setBorderBottom(BorderStyle.THIN)
         cellStyle.setBorderLeft(BorderStyle.THIN)
+        //
+        final XSSFCellStyle cellStyleBold = targetWorkbook.createCellStyle()
+        XSSFFont ftBold = targetWorkbook.createFont()
+        ftBold.setBold(true)
+        cellStyleBold.setFont(ftBold)
+        //
 
         Map<String, Object> mapRes = loadDataPO_6(params)
         Map<String, Long> mapData = mapRes.get("data") as Map<String, Long>
@@ -210,19 +226,45 @@ class ReportDao extends BaseMdbUtils {
         row = destSheet.createRow(rowEnd)
         int col = 0
         cell = row.createCell(col++)
+        cell.setCellValue("Всего по станционным путям")
+        cell.setCellStyle(cellStyle)
+        cell.setCellStyle(cellStyleFont)
+        //
+        int count = UtCnv.toInt((rowEnd - rowStart - 1) / 2)
+
+        for (String c in ['B','C','D','E','F','G','H','I','J']) {
+            List<String> lstFormula = new ArrayList<>()
+            for (int k=0; k< count+1; k++) {
+                int h = rowStart+1 + 2*k
+                lstFormula.add(k, String.format("%s%d", c, h))
+            }
+            cell = row.createCell(col)
+            String formula = String.format("SUM(%s)", lstFormula.join(","))
+            cell.setCellFormula(formula)
+            cell.setCellStyle(cellStyle)
+            cell.setCellStyle(cellStyleFont)
+            col++
+        }
+        //
+        row = destSheet.createRow(rowEnd+1)
+        col = 0
+        cell = row.createCell(col++)
         cell.setCellValue("Всего")
         cell.setCellStyle(cellStyle)
+        cell.setCellStyle(cellStyleFont)
         for (String c in ['B','C','D','E','F','G','H','I','J']) {
             cell = row.createCell(col)
             String formula = String.format("SUM(%s%d:%s%d)", c, rowStart+1, c, rowEnd)
             cell.setCellFormula(formula)
             cell.setCellStyle(cellStyle)
+            cell.setCellStyle(cellStyleFont)
             col++
         }
         //
         row = destSheet.createRow(rowEnd+3)
         cell = row.createCell(0)
         cell.setCellValue("Начальник дистанции пути")
+        cell.setCellStyle(cellStyleBold)
         cell = row.createCell(3)
         cell.setCellValue(pms.getString("fullNameDirector"))
         //
@@ -251,6 +293,8 @@ class ReportDao extends BaseMdbUtils {
         if (dte.isEmpty())
             throw new XError("[Date] не указан")
 
+        Map<String, Object> mapRes = new HashMap<>()
+
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
         Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Section", "")
         Store stRow = loadSqlService("""
@@ -274,12 +318,16 @@ class ReportDao extends BaseMdbUtils {
             )
             order by v2.numberVal, v4.numberVal, v3.numberVal, v5.numberVal
         """, "", "objectdata")
-        if (stRow.size()==0)
-            throw new XError("[Section] не найден")
-        //
-        //mdb.outTable(stRow)
+        mapRes.put("store", stRow)
+        if (stRow.size() == 0) {
+//            throw new XError("[Section] не найден")
+            mapRes.put("data", new HashMap<Store, Long>())
+            return mapRes
+        }
         //
         Set<Object> idsRow = stRow.getUniqueValues("id")
+        //
+        //mdb.outTable(stRow)
         //
         mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelCls", "RC_ParamsComponent", "")
         Store stParams = loadSqlService("""
@@ -288,7 +336,7 @@ class ReportDao extends BaseMdbUtils {
             where o.id=v.ownerVer and v.lastVer=1 and o.relcls=${mapCls.get("RC_ParamsComponent")}
                 and v.name like '%лежащих в пути%' and v.name like '%шпал%'
         """, "", "nsidata")
-        if (stParams.size()==0)
+        if (stParams.size() == 0)
             throw new XError("[Parameter] не найден")
         Set<Object> idsParams = stParams.getUniqueValues("id")
         StoreIndex indParams = stParams.getIndex("id")
@@ -306,12 +354,16 @@ class ReportDao extends BaseMdbUtils {
                 inner join DataPropVal v2 on d2.id=v2.dataprop and v2.propVal<>${pv}
             where o.cls=${mapCls.get("Cls_IncidentParameter")}
         """, "", "incidentdata")
-        if (stIncident.size()==0)
-            throw new XError("[Incident] не найден")
+        if (stIncident.size() == 0) {
+            mapRes.put("data", new HashMap<Store, Long>())
+            return mapRes
+        }
         //
         Set<Object> idsParameterLog = stIncident.getUniqueValues("objParameterLog")
         //
-        String wheV1="and v1.obj=${objLocation}",
+        Set<Object> idsObjLocation = getIdsObjWithChildren(pms.getLong("objLocation"))
+        //
+        String wheV1="and v1.obj in (${idsObjLocation.join(',')})",
                 wheV7="and v7.dateTimeVal::date between '1800-01-01' and '${dte}'",
                 wheV8="and v8.relobj in (0${idsParams.join(',')})"
         mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ParameterLog", "")
@@ -335,8 +387,10 @@ class ReportDao extends BaseMdbUtils {
                 left join DataPropVal v16 on d16.id=v16.dataprop                  
             where o.id in (${idsParameterLog.join(',')})
         """, "", "inspectiondata")
-        if (stParameterLog.size()==0)
-            throw new XError("[ParameterLog] не найден")
+        if (stParameterLog.size() == 0) {
+            mapRes.put("data", new HashMap<Store, Long>())
+            return mapRes
+        }
         //
         Set<Object> idsWorkPlan = stParameterLog.getUniqueValues("objWorkPlan")
         Store stObject = loadSqlService("""
@@ -390,30 +444,23 @@ class ReportDao extends BaseMdbUtils {
                 if (r.getString("nameParams").toLowerCase().contains("количество, неподряд лежащих в пути негодных железобетонных шпал"))
                     mapData.put("4_"+r.getString("objSection"), UtCnv.toLong(mapData.get("4_"+r.getString("objSection"))) + r.getLong("paramsLimit"))
                 if (r.getString("nameParams").toLowerCase().contains("количество, подряд лежащих в пути негодных деревянных шпал")) {
+                    mapData.put("3_" + r.getString("objSection"), UtCnv.toLong(mapData.get("3_" + r.getString("objSection"))) + r.getLong("paramsLimit"))
                     if (r.getLong("paramsLimit") > 2)
-                        mapData.put("5_"+r.getString("objSection"), UtCnv.toLong(mapData.get("5_"+r.getString("objSection"))) + r.getLong("paramsLimit"))
-                    else
-                        mapData.put("3_"+r.getString("objSection"), UtCnv.toLong(mapData.get("3_"+r.getString("objSection"))) + r.getLong("paramsLimit"))
-
+                        mapData.put("5_" + r.getString("objSection"), UtCnv.toLong(mapData.get("5_" + r.getString("objSection"))) + 1)
                 }
                 if (r.getString("nameParams").toLowerCase().contains("количество, подряд лежащих в пути негодных железобетонных шпал")) {
+                    mapData.put("4_"+r.getString("objSection"), UtCnv.toLong(mapData.get("4_"+r.getString("objSection"))) + r.getLong("paramsLimit"))
                     if (r.getLong("paramsLimit") > 2)
-                        mapData.put("6_" + r.getString("objSection"), UtCnv.toLong(mapData.get("6_" + r.getString("objSection"))) + r.getLong("paramsLimit"))
-                    else
-                        mapData.put("4_"+r.getString("objSection"), UtCnv.toLong(mapData.get("4_"+r.getString("objSection"))) + r.getLong("paramsLimit"))
+                        mapData.put("6_" + r.getString("objSection"), UtCnv.toLong(mapData.get("6_" + r.getString("objSection"))) + 1)
                 }
             }
         }
 
         //mdb.outMap(mapData)
-
-        Map<String, Object> mapRes = new HashMap<>()
-        mapRes.put("store", stRow)
         mapRes.put("data", mapData)
 
         return mapRes
     }
-
 
     void generateReportPO_4(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
@@ -1449,6 +1496,35 @@ class ReportDao extends BaseMdbUtils {
                 index.startsWith("62.") || index.startsWith("65.") || index.startsWith("66.") || index.startsWith("69.") ||
                 index.startsWith("70.") || index.startsWith("74.") || index.startsWith("79.") || index.startsWith("85.") ||
                 index.startsWith("86.") || index.startsWith("99.") || index.startsWith("41.")
+    }
+
+    private Set<Object> getIdsObjWithChildren(long obj) {
+        Store st = loadSqlService("""
+           WITH RECURSIVE r AS (
+               SELECT o.id, v.objParent as parent
+               FROM Obj o, ObjVer v
+               WHERE o.id=v.ownerver and v.lastver=1 and v.objParent=${obj}
+               UNION ALL
+               SELECT t.*
+               FROM ( SELECT o.id, v.objParent as parent
+                      FROM Obj o, ObjVer v
+                      WHERE o.id=v.ownerver and v.lastver=1
+                    ) t
+                  JOIN r
+                      ON t.parent = r.id
+           ),
+           o as (
+           SELECT o.id, v.objParent as parent
+           FROM Obj o, ObjVer v
+           WHERE o.id=v.ownerver and v.lastver=1 and o.id=${obj}
+           )
+           SELECT * FROM o
+           UNION ALL
+           SELECT * FROM r
+           where 0=0
+        """, "", "orgstructuredata")
+
+        return st.getUniqueValues("id")
     }
 
 /*
