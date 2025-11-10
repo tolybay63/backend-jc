@@ -107,6 +107,71 @@ class DataDao extends BaseMdbUtils {
         return st
     }
 
+    @DaoMethod
+    Store loadPersonnalByPosition(long pvPosition, String codProp) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Personnel", "")
+        if (map.isEmpty())
+            throw new XError("Not found [Cls_Personnel]")
+
+        long cls = map.get("Cls_Personnel")
+        long pv = apiMeta().get(ApiMeta).idPV("cls", cls, codProp)
+
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        map.put("cls", cls)
+        map.put("pv", pvPosition)
+        Store st = mdb.createStore("Obj.PersonnalByPosition")
+        mdb.loadQuery(st, """
+            select o.id, o.cls, v.name, v.fullName, ${pv} as pv,
+                v14.propVal as pvPosition, null as fvPosition, null as namePosition,
+                v15.obj as objLocation, v15.propVal as pvLocation, null as nameLocation
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_UserSecondName
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_UserFirstName
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_UserMiddleName
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d14 on d14.objorrelobj=o.id and d14.prop=:Prop_Position
+                inner join DataPropVal v14 on d14.id=v14.dataprop and v14.propVal=:pv     
+                left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_Location
+                left join DataPropVal v15 on d15.id=v15.dataprop
+            where o.cls=:cls
+        """, map)
+
+        //
+        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
+
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "Factor_Position", "")
+
+        Store stFV = apiMeta().get(ApiMeta).loadSql("""
+            select id, name from Factor where parent = ${map.get("Factor_Position")} 
+        """, "")
+        StoreIndex indFV = stFV.getIndex("id")
+
+        Store stObj = loadSqlService("""
+            select o.id, v.name from Obj o, ObjVer v where o.id=v.ownerVer    
+        """, "", "orgstructuredata")
+        StoreIndex indObj = stObj.getIndex("id")
+        //
+        for (StoreRecord record in st) {
+            record.set("fvPosition", mapPV.get(record.getLong("pvPosition")))
+            StoreRecord rFV = indFV.get(record.getLong("fvPosition"))
+            if (rFV != null)
+                record.set("namePosition", rFV.getString("name"))
+
+            StoreRecord rObj = indObj.get(record.getLong("objLocation"))
+            if (rObj != null)
+                record.set("nameLocation", rObj.getString("name"))
+        }
+        //
+        return st
+
+
+
+
+        return null
+    }
 
     @DaoMethod
     Store loadPersonnal(long id) {

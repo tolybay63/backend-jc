@@ -8,6 +8,15 @@ import org.junit.jupiter.api.Test
 
 class Obj_Test extends Apx_Test {
 
+
+    @Test
+    void loadPersonnalByPosition_test() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadPersonnalByPosition(1256, "Prop_Personnel")
+        mdb.outTable(st)
+    }
+
+
     @Test
     void loadPersonnalLocationForSelect_test() {
         DataDao dao = mdb.createDao(DataDao.class)

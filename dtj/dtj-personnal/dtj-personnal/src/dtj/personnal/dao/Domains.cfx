@@ -12,6 +12,20 @@
         <field name="namePosition" parent="string"/>
     </domain>
 
+    <domain name="Obj.PersonnalByPosition" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+        <field name="fullName" parent="string"/>
+        <field name="pv" parent="long"/>
 
+        <field name="fvPosition" parent="long"/>
+        <field name="pvPosition" parent="long"/>
+        <field name="namePosition" parent="string"/>
+
+        <field name="pvLocation" parent="long"/>
+        <field name="objLocation" parent="long"/>
+        <field name="nameLocation" parent="string"/>
+    </domain>
 
 </root>
