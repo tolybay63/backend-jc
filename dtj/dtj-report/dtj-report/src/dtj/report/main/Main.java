@@ -1,9 +1,10 @@
 package dtj.report.main;
 
-import jandcode.commons.cli.*;
-import jandcode.core.cli.*;
-import jandcode.core.web.cli.*;
-import jandcode.core.apx.cli.*;
+import jandcode.commons.cli.CliLauncher;
+import jandcode.core.apx.cli.DbCheckCliCmd;
+import jandcode.core.apx.cli.DbCreateCliCmd;
+import jandcode.core.cli.AppCliExtension;
+import jandcode.core.web.cli.ServeCliCmd;
 
 public class Main {
 
