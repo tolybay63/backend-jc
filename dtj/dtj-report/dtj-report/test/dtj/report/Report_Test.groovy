@@ -14,7 +14,7 @@ class Report_Test extends Apx_Test {
         map.put("tml", "ПО-6")
         map.put("date", "2025-11-07")
         map.put("nameLocation", "Location")
-        map.put("objClient", 1015)
+        map.put("objClient", 1014)
         map.put("objLocation", 1073)
         map.put("fulNameUser", "Kanat C.")
         map.put("nameUserPosition", "Тех.отдел")
@@ -32,7 +32,7 @@ class Report_Test extends Apx_Test {
         ReportDao dao = mdb.createDao(ReportDao.class)
         Map<String, Object> map = new HashMap<>()
         map.put("tml", "ПО-4")
-        map.put("dte", "2025-11-04")
+        map.put("date", "2025-11-04")
         map.put("periodType", 11)
         map.put("objClient", 1014)
         map.put("objLocation", 1073)
@@ -46,25 +46,6 @@ class Report_Test extends Apx_Test {
         String res = dao.generateReport(map)
         System.out.println(res)
     }
-
-    @Test
-    void loadDataPO_4_test() {
-        ReportDao dao = mdb.createDao(ReportDao.class)
-        Map<String, Object> map = new HashMap<>()
-        map.put("tml", "ПО-4")
-        map.put("dte", "2025-11-04")
-        map.put("periodType", 11)
-        map.put("objClient", 1014)
-        map.put("objLocation", 1077)
-        map.put("fulNameUser", "Kanat C.")
-        map.put("nameUserPosition", "Тех.отдел")
-        map.put("UserPhone", "8-777-666 5544")
-        map.put("fullNameDirector", "Мыркинбаев Н.Д.")
-        map.put("nameDirectorPosition", "Зам.начальника")
-        map.put("nameDirectorLocation", "Досжан Темир Жолы")
-        //
-    }
-
 
     @Test
     void jsonrpc1() throws Exception {

@@ -1,8 +1,6 @@
 package dtj.report.dao
 
-import com.documents4j.api.DocumentType
-import com.documents4j.api.IConverter
-import com.documents4j.job.LocalConverter
+
 import groovy.transform.CompileStatic
 import jandcode.commons.UtCnv
 import jandcode.commons.UtFile
@@ -20,21 +18,13 @@ import org.apache.poi.ss.usermodel.Cell
 import org.apache.poi.ss.usermodel.RangeCopier
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.util.CellRangeAddress
-import org.apache.poi.xssf.usermodel.XSSFCellStyle
-import org.apache.poi.xssf.usermodel.XSSFFont
-import org.apache.poi.xssf.usermodel.XSSFRangeCopier
-import org.apache.poi.xssf.usermodel.XSSFSheet
-import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import org.apache.poi.xssf.usermodel.*
 import tofi.api.dta.*
 import tofi.api.mdl.ApiMeta
 import tofi.api.mdl.utils.UtPeriod
 import tofi.api.mdl.utils.dimPeriod.PeriodGenerator
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
-
-import java.util.concurrent.TimeUnit
-
-import static com.documents4j.api.DocumentType.PDF
 
 @CompileStatic
 class ReportDao extends BaseMdbUtils {
@@ -107,11 +97,11 @@ class ReportDao extends BaseMdbUtils {
 
     void generateReportPO_6(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
-        String pathin = mdb.getApp().appdir + File.separator + "tml" + File.separator + "ПО-6.xlsx"
-        String pathout = mdb.getApp().appdir + File.separator + "reports" + File.separator + pms.getString("fout")
-        String pathpdf = pathout.replace(UtFile.ext(pathout), "pdf")
+        String pathtml = mdb.getApp().appdir + File.separator + "tml" + File.separator + "ПО-6.xlsx"
+        String pathexel = mdb.getApp().appdir + File.separator + "reports" + File.separator + pms.getString("fout")
+        String pathpdf = pathexel.replace(UtFile.ext(pathexel), "pdf")
         // 1. Загрузка исходной книги
-        InputStream inputStream = new FileInputStream(pathin)
+        InputStream inputStream = new FileInputStream(pathtml)
         XSSFWorkbook sourceWorkbook = new XSSFWorkbook(inputStream)
 
         // 2. Создание целевой книги и листа
@@ -276,7 +266,7 @@ class ReportDao extends BaseMdbUtils {
         cell = row.createCell(3)
         cell.setCellValue(pms.getString("fullNameDirector"))
         //
-        try (FileOutputStream fileOut = new FileOutputStream(pathout)) {
+        try (FileOutputStream fileOut = new FileOutputStream(pathexel)) {
             targetWorkbook.write(fileOut)
         } catch (Exception e) {
             e.printStackTrace()
@@ -286,6 +276,7 @@ class ReportDao extends BaseMdbUtils {
             } catch (Exception e) {
                 e.printStackTrace()
             }
+            Convertor.cnv2pdf(pathexel, pathpdf, true)
         }
 
     }
@@ -473,11 +464,12 @@ class ReportDao extends BaseMdbUtils {
 
     void generateReportPO_4(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
-        String pathin = mdb.getApp().appdir + File.separator + "tml" + File.separator + "ПО-4.xlsx"
-        String pathout = mdb.getApp().appdir + File.separator + "reports" + File.separator + pms.getString("fout")
+        String pathtml = mdb.getApp().appdir + File.separator + "tml" + File.separator + "ПО-4.xlsx"
+        String pathexel = mdb.getApp().appdir + File.separator + "reports" + File.separator + pms.getString("fout")
+        String pathpdf = pathexel.replace(UtFile.ext(pathexel), "pdf")
 
         // 1. Загрузка исходной книги
-        InputStream inputStream = new FileInputStream(pathin)
+        InputStream inputStream = new FileInputStream(pathtml)
         XSSFWorkbook sourceWorkbook = new XSSFWorkbook(inputStream)
 
         // 2. Создание целевой книги и листа
@@ -569,7 +561,7 @@ class ReportDao extends BaseMdbUtils {
                 cell.setCellValue(mapData.get(rowIndex[i]).get("43"))
         }
 
-        try (FileOutputStream fileOut = new FileOutputStream(pathout)) {
+        try (FileOutputStream fileOut = new FileOutputStream(pathexel)) {
             targetWorkbook.write(fileOut);
         } catch (Exception e) {
             e.printStackTrace();
@@ -579,6 +571,7 @@ class ReportDao extends BaseMdbUtils {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            Convertor.cnv2pdf(pathexel, pathpdf, true)
         }
     }
 
@@ -594,7 +587,7 @@ class ReportDao extends BaseMdbUtils {
         //
         map.put("objClient", UtCnv.toLong(params.get("objClient")))
         //
-        String dte = UtCnv.toString(params.get("dte"))
+        String dte = UtCnv.toString(params.get("date"))
         UtPeriod utPeriod = new UtPeriod()
         long pt = UtCnv.toLong(params.get("periodType"))
         XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(dte), pt, 0)
@@ -1563,6 +1556,63 @@ class ReportDao extends BaseMdbUtils {
         else
             throw new XError("Unknown model [${model}]")
     }
+
+/*    protected static void cnv2pdf(String src, String dst) throws Exception {
+        File tempExcelFile = null
+        try {
+            // 1. Загружаем исходный Excel-файл через Apache POI
+            FileInputStream fis = new FileInputStream(src)
+            Workbook workbook = new XSSFWorkbook(fis)
+
+            // 2. Настраиваем параметры печати для каждого листа
+            for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+                Sheet sheet = workbook.getSheetAt(i)
+                PrintSetup ps = sheet.getPrintSetup()
+
+                // Устанавливаем ориентацию страницы на альбомную (опционально, если нужно больше ширины)
+                // ps.setOrientation(PrintSetup.LANDSCAPE)
+
+                // Самое главное: уместить все колонки на 1 страницу по ширине
+                ps.setFitWidth((short) 1)
+                ps.setFitHeight((short) 0) // Высота может занимать сколько угодно страниц
+            }
+            fis.close()
+
+            // 3. Сохраняем измененный Excel-файл во временный файл
+            tempExcelFile = File.createTempFile("temp", ".xlsx")
+            FileOutputStream fos = new FileOutputStream(tempExcelFile)
+            workbook.write(fos)
+            fos.close()
+            workbook.close()
+
+            // 4. Используем ваш конвертер для конвертации временного файла
+            try (InputStream docxInputStream = new FileInputStream(tempExcelFile)
+                 OutputStream pdfOutputStream = new FileOutputStream(dst)) {
+
+                // Убедитесь, что используете правильный класс IConverter и LocalConverter из вашей библиотеки
+                // (ваш код не показывает импорты, но я предполагаю, что они верны)
+                IConverter converter = LocalConverter.builder()
+                        .workerPool(20, 25, 2, TimeUnit.SECONDS)
+                        .processTimeout(5, TimeUnit.SECONDS)
+                        .build()
+
+                converter.convert(docxInputStream).as(XLSX)
+                        .to(pdfOutputStream).as(PDF)
+                        .execute()
+
+                converter.shutDown()
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        } finally {
+            // 5. Обязательно удаляем временный файл
+            if (tempExcelFile != null && tempExcelFile.exists()) {
+                tempExcelFile.delete();
+            }
+        }
+    }*/
 
     private long getUser() throws Exception {
         AuthService authSvc = mdb.getApp().bean(AuthService.class)
