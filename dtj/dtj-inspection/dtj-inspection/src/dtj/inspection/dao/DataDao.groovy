@@ -357,6 +357,83 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store loadParameterLogByComponentParameter(Map<String, Object> params) {
+        Store st = mdb.createStore("Obj.ParameterLog")
+
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ParameterLog", "")
+        String whe = "o.cls = ${map.get('Cls_ParameterLog')}"
+        String wheV8 = "and v8.relObj = ${params.get('relobj')}"
+        //
+        String dte = UtCnv.toString(params.get("date"))
+        //XDate d1 = UtCnv.toDate(dte).toJavaLocalDate().minusMonths(1) as XDate
+        //XDate d2 = UtCnv.toDate(dte)
+
+        String d1 = UtCnv.toDate(dte).toJavaLocalDate().minusMonths(1) as String
+        String d2 = UtCnv.toDate(dte).toJavaLocalDate().plusDays(1) as String
+
+
+        String wheV7 = "and v7.dateTimeVal between '${d1}' and '${d2}'"
+        //
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+
+        mdb.loadQuery(st, """
+            select o.id, o.cls,
+                v3.numberVal as StartKm,
+                v4.numberVal as FinishKm,
+                v5.numberVal as StartPicket,
+                v6.numberVal as FinishPicket,
+                v7.dateTimeVal as CreationDateTime,
+                v8.propVal as pvComponentParams, v8.relobj as relobjComponentParams,
+                v12.numberVal as StartLink,
+                v13.numberVal as FinishLink,
+                v15.numberVal as ParamsLimit,
+                v16.numberVal as ParamsLimitMax,
+                v17.numberVal as ParamsLimitMin
+            from Obj o
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartKm
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FinishKm
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_StartPicket
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_FinishPicket
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_CreationDateTime
+                inner join DataPropVal v7 on d7.id=v7.dataprop ${wheV7}
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_ComponentParams
+                inner join DataPropVal v8 on d8.id=v8.dataprop ${wheV8}
+                left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_StartLink
+                left join DataPropVal v12 on d12.id=v12.dataprop
+                left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_FinishLink
+                left join DataPropVal v13 on d13.id=v13.dataprop
+                left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_ParamsLimit
+                left join DataPropVal v15 on d15.id=v15.dataprop
+                left join DataProp d16 on d16.objorrelobj=o.id and d16.prop=:Prop_ParamsLimitMax
+                left join DataPropVal v16 on d16.id=v16.dataprop
+                left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=:Prop_ParamsLimitMin
+                left join DataPropVal v17 on d17.id=v17.dataprop
+            where ${whe}
+            order by v7.dateTimeVal desc
+        """, map)
+        //... Пересечение
+        XDate d22 = UtCnv.toDate(st.get(0).getDate("CreationDateTime").toJavaLocalDate().plusDays(1))
+        XDate d11 = UtCnv.toDate(d22.toJavaLocalDate().minusDays(3))
+
+
+        Store stRez = mdb.createStore("Obj.ParameterLog")
+        for (StoreRecord r in st) {
+
+            if (r.getDate("CreationDateTime").toJavaLocalDate().isAfter(d11.toJavaLocalDate()) &&
+                    r.getDate("CreationDateTime").toJavaLocalDate().isBefore(d22.toJavaLocalDate())) {
+                stRez.add(r)
+            }
+
+        }
+
+        return stRez
+    }
+
+    @DaoMethod
     Store loadParameterLog(Map<String, Object> params) {
         Store st = mdb.createStore("Obj.ParameterLog")
 

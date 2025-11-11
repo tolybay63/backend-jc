@@ -10,6 +10,16 @@ class Obj_Test extends Apx_Test {
 
 
     @Test
+    void loadParameterLogByComponentParameter_test() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("relobj", 2525)
+        map.put("date", "2025-11-11")
+        Store st = dao.loadParameterLogByComponentParameter(map)
+        mdb.outTable(st)
+    }
+
+    @Test
     void testLoadParameterEntriesForInspection() {
         DataDao dao = mdb.createDao(DataDao.class)
         Store st = dao.loadParameterEntriesForInspection(1017)
@@ -251,9 +261,6 @@ class Obj_Test extends Apx_Test {
         Store st = dao.loadObjectServedForSelect(2477)
         mdb.outTable(st)
     }
-
-
-
 
     @Test
     void jsonrpc1() throws Exception {
