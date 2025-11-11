@@ -1,6 +1,9 @@
 package dtj.report
 
 import dtj.report.dao.ReportDao
+import jandcode.commons.UtCnv
+import jandcode.commons.UtDateTime
+import jandcode.commons.datetime.XDateTime
 import jandcode.core.apx.test.Apx_Test
 import jandcode.core.store.Store
 import org.junit.jupiter.api.Test
@@ -54,6 +57,21 @@ class Report_Test extends Apx_Test {
         map.result.records.forEach {
             mdb.outTable(it)
         }
+    }
+
+    @Test
+    void test() {
+        File dir = mdb.getApp().appdir + File.separator + "reports" + File.separator as File
+        def files = dir.listFiles()
+
+        files.each { file ->
+            if (file.isFile()) {
+                println file.name + "\t" + file.lastModified()+ "\t" + UtCnv.toDateTime(file.lastModified()) + "\t" + ((new Date()).getTime() - file.lastModified())/1000/60/60
+
+            }
+        }
+
+
     }
 
 
