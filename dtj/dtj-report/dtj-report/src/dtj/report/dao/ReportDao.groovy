@@ -571,7 +571,7 @@ class ReportDao extends BaseMdbUtils {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            Convertor.cnv2pdf(pathexel, pathpdf, true)
+            Convertor.cnv2pdf(pathexel, pathpdf, false)
         }
     }
 

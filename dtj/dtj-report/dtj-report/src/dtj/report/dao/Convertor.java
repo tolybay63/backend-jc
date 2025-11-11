@@ -32,6 +32,13 @@ public class Convertor {
                     ps.setLandscape(true);
 
                 // Самое главное: уместить все колонки на 1 страницу по ширине
+                ps.setPaperSize((short) 9);
+                sheet.setMargin((short) 0, 0.5);
+                sheet.setMargin((short) 1, 0.5);
+                sheet.setMargin((short) 2, 0.5);
+                sheet.setMargin((short) 3, 0.5);
+                //sheet.setAutobreaks(true);
+
                 ps.setFitWidth((short) 1);
                 ps.setFitHeight((short) 0); // Высота может занимать сколько угодно страниц
             }
