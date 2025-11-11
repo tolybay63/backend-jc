@@ -42,33 +42,43 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
     }
+
     ApinatorApi apiUserData() {
         return app.bean(ApinatorService).getApi("userdata")
     }
+
     ApinatorApi apiNSIData() {
         return app.bean(ApinatorService).getApi("nsidata")
     }
+
     ApinatorApi apiPersonnalData() {
         return app.bean(ApinatorService).getApi("personnaldata")
     }
+
     ApinatorApi apiOrgStructureData() {
         return app.bean(ApinatorService).getApi("orgstructuredata")
     }
+
     ApinatorApi apiObjectData() {
         return app.bean(ApinatorService).getApi("objectdata")
     }
+
     ApinatorApi apiPlanData() {
         return app.bean(ApinatorService).getApi("plandata")
     }
+
     ApinatorApi apiInspectionData() {
         return app.bean(ApinatorService).getApi("inspectiondata")
     }
+
     ApinatorApi apiClientData() {
         return app.bean(ApinatorService).getApi("clientdata")
     }
+
     ApinatorApi apiResourceData() {
         return app.bean(ApinatorService).getApi("resourcedata")
     }
+
     ApinatorApi apiRepairData() {
         return app.bean(ApinatorService).getApi("repairdata")
     }
@@ -78,7 +88,7 @@ class DataDao extends BaseMdbUtils {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_TpService", "")
         Store st = mdb.createStore("Obj.TpService")
         String whe = "o.id=${id}"
-        if (id==0)
+        if (id == 0)
             whe = "o.cls=${map.get("Cls_TpService")}"
 
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
@@ -200,7 +210,7 @@ class DataDao extends BaseMdbUtils {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Equipment", "")
         Store st = mdb.createStore("Obj.equipment")
         String whe = "o.id=${id}"
-        if (id==0)
+        if (id == 0)
             whe = "o.cls=${map.get("Cls_Equipment")}"
 
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
@@ -208,15 +218,33 @@ class DataDao extends BaseMdbUtils {
         mdb.loadQuery(st, """
             select o.id, o.cls, v.name,
                 v1.id as idDescription, v1.multiStrVal as Description,
-                v2.id as idNumber, v2.strVal as Number
+                v2.id as idNumber, v2.strVal as Number,
+                v3.id as idTypEquipment, v3.propVal as pvTypEquipment, null as fvTypEquipment
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Description
                 left join DataPropVal v1 on d1.id=v1.dataprop
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Number
                 left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_TypEquipment
+                left join DataPropVal v3 on d3.id=v3.dataprop
             where ${whe}
         """, map)
+        //
+        Set<Object> pvs = st.getUniqueValues("pvTypEquipment")
+        Store stFV = loadSqlMeta("""
+            select pv.id, pv.factorVal, f.name
+            from PropVal pv, Factor f
+            where pv.factorVal=f.id and pv.id in (0${pvs.join(",")})
+        """, "")
+        StoreIndex indFV = stFV.getIndex("id")
+        for (StoreRecord r in st) {
+            StoreRecord rec = indFV.get(r.getLong("pvTypEquipment"))
+            if (rec != null) {
+                r.set("fvTypEquipment", rec.getLong("factorVal"))
+                r.set("nameTypEquipment", rec.getString("name"))
+            }
+        }
         //
         return st
     }
@@ -266,6 +294,12 @@ class DataDao extends BaseMdbUtils {
                 if (!pms.getString("Description").isEmpty())
                     fillProperties(true, "Prop_Description", pms)
             }
+
+            //3 Prop_TypEquipment
+            if (pms.getLong("fvTypEquipment") > 0)
+                fillProperties(true, "Prop_TypEquipment", pms)
+            else
+                throw new XError("[TypEquipment] не указан")
         } else if (mode.equalsIgnoreCase("upd")) {
             Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Number", "")
             Store st = mdb.loadQuery("""
@@ -300,6 +334,14 @@ class DataDao extends BaseMdbUtils {
                         fillProperties(true, "Prop_Description", pms)
                 }
             }
+
+            //3 Prop_TypEquipment
+            if (pms.getLong("idTypEquipment") > 0) {
+                if (pms.getLong("fvTypEquipment") > 0)
+                    updateProperties("Prop_TypEquipment", pms)
+                else
+                    throw new XError("[TypEquipment] не указан")
+            }
         } else {
             throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
         }
@@ -312,20 +354,38 @@ class DataDao extends BaseMdbUtils {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Tool", "")
         Store st = mdb.createStore("Obj.tool")
         String whe = "o.id=${id}"
-        if (id==0)
+        if (id == 0)
             whe = "o.cls=${map.get("Cls_Tool")}"
 
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Description", "")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
 
         mdb.loadQuery(st, """
             select o.id, o.cls, v.name,
-                v1.id as idDescription, v1.multiStrVal as Description
+                v1.id as idTypTool, v1.propVal as pvTypTool, null as fvTypTool,
+                v2.id as idDescription, v2.multiStrVal as Description
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
-                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Description
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_TypTool
                 left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Description
+                left join DataPropVal v2 on d2.id=v2.dataprop
             where ${whe}
         """, map)
+        //
+        Set<Object> pvsTypTool = st.getUniqueValues("pvTypTool")
+        Store stFV = loadSqlMeta("""
+            select pv.id, pv.factorVal, f.name
+            from PropVal pv, Factor f
+            where pv.factorVal=f.id and pv.id in (0${pvsTypTool.join(",")})
+        """, "")
+        StoreIndex indFV = stFV.getIndex("id")
+        for (StoreRecord r in st) {
+            StoreRecord rec = indFV.get(r.getLong("pvTypTool"))
+            if (rec != null) {
+                r.set("fvTypTool", rec.getLong("factorVal"))
+                r.set("nameTypTool", rec.getString("name"))
+            }
+        }
         //
         return st
     }
@@ -362,6 +422,11 @@ class DataDao extends BaseMdbUtils {
                 if (!pms.getString("Description").isEmpty())
                     fillProperties(true, "Prop_Description", pms)
             }
+            //2 Prop_TypTool
+            if (pms.getLong("fvTypTool") > 0)
+                fillProperties(true, "Prop_TypTool", pms)
+            else
+                throw new XError("[TypTool] не указан")
         } else if (mode.equalsIgnoreCase("upd")) {
             String nm = pms.getString("name").trim().toLowerCase()
             Store st = mdb.loadQuery("""
@@ -387,6 +452,13 @@ class DataDao extends BaseMdbUtils {
                         fillProperties(true, "Prop_Description", pms)
                 }
             }
+            //2 Prop_TypTool
+            if (pms.getLong("idTypTool") > 0) {
+                if (pms.getLong("fvTypTool") > 0)
+                    updateProperties("Prop_TypTool", pms)
+                else
+                    throw new XError("[TypTool] не указан")
+            }
         } else {
             throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
         }
@@ -399,7 +471,7 @@ class DataDao extends BaseMdbUtils {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Material", "")
         Store st = mdb.createStore("Obj.material")
         String whe = "o.id=${id}"
-        if (id==0)
+        if (id == 0)
             whe = "o.cls=${map.get("Cls_Material")}"
 
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
@@ -567,13 +639,12 @@ class DataDao extends BaseMdbUtils {
                 if (stData.size() > 0)
                     lstService.add("repairdata")
                 //
-                if (lstService.size()>0) {
-                    throw new XError("${name} используется в ["+ lstService.join(", ") + "]")
+                if (lstService.size() > 0) {
+                    throw new XError("${name} используется в [" + lstService.join(", ") + "]")
                 }
             }
         }
     }
-
 
 
     //-------------------------
@@ -671,7 +742,8 @@ class DataDao extends BaseMdbUtils {
 
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_UserSex")) {    //template
+            if (cod.equalsIgnoreCase("Prop_TypTool") ||
+                    cod.equalsIgnoreCase("Prop_TypEquipment")) {
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
                 }
@@ -817,7 +889,8 @@ class DataDao extends BaseMdbUtils {
 
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_UserSex")) {    //template
+            if (cod.equalsIgnoreCase("Prop_TypTool") ||
+                    cod.equalsIgnoreCase("Prop_TypEquipment")) {
                 if (propVal > 0)
                     sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
                 else {

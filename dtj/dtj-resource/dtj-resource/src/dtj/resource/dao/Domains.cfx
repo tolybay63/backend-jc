@@ -21,6 +21,11 @@
         <field name="cls" parent="long"/>
         <field name="name" parent="string"/>
 
+        <field name="idTypTool" parent="long"/>
+        <field name="fvTypTool" parent="long"/>
+        <field name="pvTypTool" parent="long"/>
+        <field name="nameTypTool" parent="string"/>
+
         <field name="idDescription" parent="long"/>
         <field name="Description" parent="string"/>
     </domain>
@@ -32,6 +37,11 @@
 
         <field name="idNumber" parent="long"/>
         <field name="Number" parent="string"/>
+
+        <field name="idTypEquipment" parent="long"/>
+        <field name="fvTypEquipment" parent="long"/>
+        <field name="pvTypEquipment" parent="long"/>
+        <field name="nameTypEquipment" parent="string"/>
 
         <field name="idDescription" parent="long"/>
         <field name="Description" parent="string"/>
