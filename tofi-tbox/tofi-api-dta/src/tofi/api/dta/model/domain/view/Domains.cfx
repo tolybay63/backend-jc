@@ -85,10 +85,12 @@
         <field name="idUpdatedAt" parent="long"/>
         <field name="UpdatedAt" parent="string"/>
 
+        <field name="idUserSex" parent="long"/>
         <field name="fvUserSex" parent="long"/>
         <field name="pvUserSex" parent="long"/>
         <field name="nameUserSex" parent="string"/>
 
+        <field name="idPosition" parent="long"/>
         <field name="fvPosition" parent="long"/>
         <field name="pvPosition" parent="long"/>
         <field name="namePosition" parent="string"/>
