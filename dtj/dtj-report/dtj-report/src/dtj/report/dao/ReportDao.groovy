@@ -320,7 +320,6 @@ class ReportDao extends BaseMdbUtils {
         """, "", "objectdata")
         mapRes.put("store", stRow)
         if (stRow.size() == 0) {
-//            throw new XError("[Section] не найден")
             mapRes.put("data", new HashMap<Store, Long>())
             return mapRes
         }
@@ -338,8 +337,18 @@ class ReportDao extends BaseMdbUtils {
         """, "", "nsidata")
         if (stParams.size() == 0)
             throw new XError("[Parameter] не найден")
-        Set<Object> idsParams = stParams.getUniqueValues("id")
+        Store stParams1 = mdb.createStore("IdName")
+        Store stParams2 = mdb.createStore("IdName")
+        for (StoreRecord r in stParams) {
+            if (r.getString("name").contains("подряд"))
+                stParams2.add(r)
+            else
+                stParams1.add(r)
+        }
+        //
         StoreIndex indParams = stParams.getIndex("id")
+        Set<Object> idsParams1 = stParams1.getUniqueValues("id")
+        Set<Object> idsParams2 = stParams2.getUniqueValues("id")
         //
         mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_IncidentParameter", "")
         Map<String, Long> mapPV = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_StatusEliminated", "")
@@ -358,16 +367,53 @@ class ReportDao extends BaseMdbUtils {
             mapRes.put("data", new HashMap<Store, Long>())
             return mapRes
         }
-        //
         Set<Object> idsParameterLog = stIncident.getUniqueValues("objParameterLog")
         //
         Set<Object> idsObjLocation = getIdsObjWithChildren(pms.getLong("objLocation"))
-        //
+        /*-----------------Количество шпал, лежащих в пути-----------------*/
+        UtPeriod utPeriod = new UtPeriod()
+        XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(dte), 11, 0)
         String wheV1="and v1.obj in (${idsObjLocation.join(',')})",
-                wheV7="and v7.dateTimeVal::date between '1800-01-01' and '${dte}'",
-                wheV8="and v8.relobj in (0${idsParams.join(',')})"
+                wheV8="and v8.relobj in (0${idsParams1.join(',')})"
         mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ParameterLog", "")
-        Store stParameterLog = loadSqlService("""
+        Map<String, Object> mapDte = new HashMap<>()
+        mapDte.put("d1", UtCnv.toString(d1))
+        mapDte.put("dte", dte)
+        String sqlParams = """
+            select o.id, 
+                v8.relobj as relobjComponentParams, null as nameParams,
+                v15.numberVal as ParamsLimit,
+                v16.obj as objWorkPlan, null as objSection 
+            from Obj o 
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_LocationClsSection")}
+                inner join DataPropVal v1 on d1.id=v1.dataprop ${wheV1}
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_Inspection")}
+                left join DataPropVal v2 on d2.id=v2.dataprop      
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=${map.get("Prop_CreationDateTime")}
+                inner join DataPropVal v7 on d7.id=v7.dataprop and v7.dateTimeVal between :d1 and :dte
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=${map.get("Prop_ComponentParams")}
+                inner join DataPropVal v8 on d8.id=v8.dataprop ${wheV8}                
+                left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=${map.get("Prop_ParamsLimit")}
+                left join DataPropVal v15 on d15.id=v15.dataprop
+                left join DataProp d16 on d16.objorrelobj=v2.obj and d16.prop=${map.get("Prop_WorkPlan")}
+                left join DataPropVal v16 on d16.id=v16.dataprop                  
+            where o.cls = ${mapCls.get("Cls_ParameterLog")}
+        """
+        //
+        Store stParameterLog1 = apiInspectionData().get(ApiInspectionData).loadSqlWithParams(sqlParams, mapDte, "")
+        if (stParameterLog1.size() == 0) {
+            d1 = UtCnv.toDate(d1.toJavaLocalDate().minusYears(1))
+            mapDte.put("d1", UtCnv.toString(d1))
+            stParameterLog1 = apiInspectionData().get(ApiInspectionData).loadSqlWithParams(sqlParams, mapDte, "")
+            if (stParameterLog1.size() == 0) {
+                mapRes.put("data", new HashMap<Store, Long>())
+                return mapRes
+            }
+        }
+        /*-----------------Количество, негодных железобетонных шпал-----------------*/
+        String wheV7="and v7.dateTimeVal::date between '1800-01-01' and '${dte}'"
+        wheV8="and v8.relobj in (0${idsParams2.join(',')})"
+        Store stParameterLog2 = loadSqlService("""
             select o.id, 
                 v8.relobj as relobjComponentParams, null as nameParams,
                 v15.numberVal as ParamsLimit,
@@ -387,12 +433,14 @@ class ReportDao extends BaseMdbUtils {
                 left join DataPropVal v16 on d16.id=v16.dataprop                  
             where o.id in (${idsParameterLog.join(',')})
         """, "", "inspectiondata")
-        if (stParameterLog.size() == 0) {
+        if (stParameterLog2.size() == 0) {
             mapRes.put("data", new HashMap<Store, Long>())
             return mapRes
         }
         //
-        Set<Object> idsWorkPlan = stParameterLog.getUniqueValues("objWorkPlan")
+        stParameterLog2.add(stParameterLog1)
+        //
+        Set<Object> idsWorkPlan = stParameterLog2.getUniqueValues("objWorkPlan")
         Store stObject = loadSqlService("""
             select o.id, 
                 v1.obj as objObject, null as objSection
@@ -417,7 +465,7 @@ class ReportDao extends BaseMdbUtils {
                 r.set("objSection", rec.getLong("objSection"))
         }
         StoreIndex indObject = stObject.getIndex("id")
-        for(StoreRecord r in stParameterLog) {
+        for(StoreRecord r in stParameterLog2) {
             StoreRecord rec = indObject.get(r.getLong("objWorkPlan"))
             if (rec != null)
                 r.set("objSection", rec.getLong("objSection"))
@@ -431,7 +479,7 @@ class ReportDao extends BaseMdbUtils {
         Map<String, Long> mapData = new HashMap<>()
         for (Object o in idsRow) {
             long row = UtCnv.toLong(o)
-            for (StoreRecord r in stParameterLog) {
+            for (StoreRecord r in stParameterLog2) {
                 if (row != r.getLong("objSection"))
                     continue
 
@@ -562,14 +610,14 @@ class ReportDao extends BaseMdbUtils {
         }
 
         try (FileOutputStream fileOut = new FileOutputStream(pathexel)) {
-            targetWorkbook.write(fileOut);
+            targetWorkbook.write(fileOut)
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace()
         } finally {
             try {
-                targetWorkbook.close();
+                targetWorkbook.close()
             } catch (Exception e) {
-                e.printStackTrace();
+                e.printStackTrace()
             }
             Convertor.cnv2pdf(pathexel, pathpdf, false)
         }
@@ -1556,63 +1604,6 @@ class ReportDao extends BaseMdbUtils {
         else
             throw new XError("Unknown model [${model}]")
     }
-
-/*    protected static void cnv2pdf(String src, String dst) throws Exception {
-        File tempExcelFile = null
-        try {
-            // 1. Загружаем исходный Excel-файл через Apache POI
-            FileInputStream fis = new FileInputStream(src)
-            Workbook workbook = new XSSFWorkbook(fis)
-
-            // 2. Настраиваем параметры печати для каждого листа
-            for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
-                Sheet sheet = workbook.getSheetAt(i)
-                PrintSetup ps = sheet.getPrintSetup()
-
-                // Устанавливаем ориентацию страницы на альбомную (опционально, если нужно больше ширины)
-                // ps.setOrientation(PrintSetup.LANDSCAPE)
-
-                // Самое главное: уместить все колонки на 1 страницу по ширине
-                ps.setFitWidth((short) 1)
-                ps.setFitHeight((short) 0) // Высота может занимать сколько угодно страниц
-            }
-            fis.close()
-
-            // 3. Сохраняем измененный Excel-файл во временный файл
-            tempExcelFile = File.createTempFile("temp", ".xlsx")
-            FileOutputStream fos = new FileOutputStream(tempExcelFile)
-            workbook.write(fos)
-            fos.close()
-            workbook.close()
-
-            // 4. Используем ваш конвертер для конвертации временного файла
-            try (InputStream docxInputStream = new FileInputStream(tempExcelFile)
-                 OutputStream pdfOutputStream = new FileOutputStream(dst)) {
-
-                // Убедитесь, что используете правильный класс IConverter и LocalConverter из вашей библиотеки
-                // (ваш код не показывает импорты, но я предполагаю, что они верны)
-                IConverter converter = LocalConverter.builder()
-                        .workerPool(20, 25, 2, TimeUnit.SECONDS)
-                        .processTimeout(5, TimeUnit.SECONDS)
-                        .build()
-
-                converter.convert(docxInputStream).as(XLSX)
-                        .to(pdfOutputStream).as(PDF)
-                        .execute()
-
-                converter.shutDown()
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        } finally {
-            // 5. Обязательно удаляем временный файл
-            if (tempExcelFile != null && tempExcelFile.exists()) {
-                tempExcelFile.delete();
-            }
-        }
-    }*/
 
     private long getUser() throws Exception {
         AuthService authSvc = mdb.getApp().bean(AuthService.class)
