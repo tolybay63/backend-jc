@@ -365,17 +365,12 @@ class DataDao extends BaseMdbUtils {
         String wheV8 = "and v8.relObj = ${params.get('relobj')}"
         //
         String dte = UtCnv.toString(params.get("date"))
-        //XDate d1 = UtCnv.toDate(dte).toJavaLocalDate().minusMonths(1) as XDate
-        //XDate d2 = UtCnv.toDate(dte)
-
         String d1 = UtCnv.toDate(dte).toJavaLocalDate().minusMonths(1) as String
         String d2 = UtCnv.toDate(dte).toJavaLocalDate().plusDays(1) as String
-
 
         String wheV7 = "and v7.dateTimeVal between '${d1}' and '${d2}'"
         //
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
-
         mdb.loadQuery(st, """
             select o.id, o.cls,
                 v3.numberVal as StartKm,
@@ -415,19 +410,16 @@ class DataDao extends BaseMdbUtils {
             where ${whe}
             order by v7.dateTimeVal desc
         """, map)
-        //... Пересечение
+        //
         XDate d22 = UtCnv.toDate(st.get(0).getDate("CreationDateTime").toJavaLocalDate().plusDays(1))
         XDate d11 = UtCnv.toDate(d22.toJavaLocalDate().minusDays(3))
 
-
         Store stRez = mdb.createStore("Obj.ParameterLog")
         for (StoreRecord r in st) {
-
             if (r.getDate("CreationDateTime").toJavaLocalDate().isAfter(d11.toJavaLocalDate()) &&
                     r.getDate("CreationDateTime").toJavaLocalDate().isBefore(d22.toJavaLocalDate())) {
                 stRez.add(r)
             }
-
         }
 
         return stRez
