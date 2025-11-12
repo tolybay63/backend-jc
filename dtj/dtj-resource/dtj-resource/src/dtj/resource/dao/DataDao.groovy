@@ -329,11 +329,11 @@ class DataDao extends BaseMdbUtils {
             //
             rec = indLocation.get(r.getLong("objLocationClsSection"))
             if (rec != null)
-                r.set("nameLocationClsSection", rec.getLong("name"))
+                r.set("nameLocationClsSection", rec.getString("name"))
             //
             rec = indUser.get(r.getLong("objUser"))
             if (rec != null)
-                r.set("fullNameUser", rec.getLong("fullName"))
+                r.set("fullNameUser", rec.getString("fullName"))
         }
         //
         return st
@@ -540,11 +540,11 @@ class DataDao extends BaseMdbUtils {
             //
             rec = indLocation.get(r.getLong("objLocationClsSection"))
             if (rec != null)
-                r.set("nameLocationClsSection", rec.getLong("name"))
+                r.set("nameLocationClsSection", rec.getString("name"))
             //
             rec = indUser.get(r.getLong("objUser"))
             if (rec != null)
-                r.set("fullNameUser", rec.getLong("fullName"))
+                r.set("fullNameUser", rec.getString("fullName"))
         }
         //
         return st
