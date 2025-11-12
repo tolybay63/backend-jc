@@ -183,7 +183,8 @@ class DataDao extends BaseMdbUtils {
 
         mdb.loadQuery(st, """
             select o.id, o.cls, v.name,
-                v1.id as idTpService, v1.obj as objTpService, v1.propVal as pvTpService, null as nameTpService,
+                v1.id as idTpService, v1.obj as objTpService, v1.propVal as pvTpService, 
+                    null as nameTpService, null as fullNameTpService,
                 v2.id as idTaskLog, v2.obj as objTaskLog, v2.propVal as pvTaskLog,
                 v3.id as idUser, v3.obj as objUser, v3.propVal as pvUser, null as fullNameUser,
                 v4.id as idValue, v4.numberVal as Value, v5.numberVal as ValuePlan,
@@ -210,7 +211,7 @@ class DataDao extends BaseMdbUtils {
         //Пересечение
         Set<Object> idsTpService = st.getUniqueValues("objTpService")
         Store stTpService = loadSqlService("""
-            select o.id, o.cls, v.name
+            select o.id, o.cls, v.name, v.fullName
             from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsTpService.join(",")})
         """, "", "resourcedata")
         StoreIndex indTpService = stTpService.getIndex("id")
@@ -224,8 +225,10 @@ class DataDao extends BaseMdbUtils {
         //
         for (StoreRecord r in st) {
             StoreRecord recTpService = indTpService.get(r.getLong("objTpService"))
-            if (recTpService != null)
+            if (recTpService != null) {
                 r.set("nameTpService", recTpService.getString("name"))
+                r.set("fullNameTpService", recTpService.getString("fullName"))
+            }
 
             StoreRecord recUser = indUser.get(r.getLong("objUser"))
             if (recUser != null)

@@ -264,6 +264,7 @@
         <field name="objTpService" parent="long"/>
         <field name="pvTpService" parent="long"/>
         <field name="nameTpService" parent="string"/>
+        <field name="fullNameTpService" parent="string"/>
 
         <field name="idTaskLog" parent="long"/>
         <field name="objTaskLog" parent="long"/>
