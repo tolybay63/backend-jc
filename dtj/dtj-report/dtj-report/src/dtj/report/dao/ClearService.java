@@ -1,26 +1,20 @@
 package dtj.report.dao;
 
-import jandcode.core.dbm.mdb.BaseMdbUtils;
-
 import java.io.File;
+import java.util.Date;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
 public class ClearService implements Runnable {
     String dir;
+
     public ClearService(String dir) {
         this.dir = dir;
     }
 
-    Logger log = Logger.getLogger(ClearService.class.getName());
-
-
     @Override
     public void run() {
-        //log.info("ClearService запущен для очистки: "+this.dir);
-
         // Создаем сервис с одним потоком для выполнения задачи
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
@@ -37,9 +31,6 @@ public class ClearService implements Runnable {
         // 1L      -> интервал между выполнениями
         // TimeUnit.HOURS -> единица измерения интервала (часы)
         scheduler.scheduleAtFixedRate(cleanupTask, 0L, 1L, TimeUnit.MINUTES);
-
-        System.out.println("Сервис очистки запущен. Ожидание первого выполнения...");
-
     }
 
     private static void cleanUpFiles(String directoryPath) {
@@ -52,8 +43,7 @@ public class ClearService implements Runnable {
         File[] files = dir.listFiles();
         if (files != null) {
             for (File file : files) {
-                // Пример фильтрации: удаляем только файлы с расширением .tmp
-                if (file.isFile() && file.getName().toLowerCase().endsWith(".tmp")) {
+                if (file.isFile() && ((new Date()).getTime() - file.lastModified()) / 1000 / 60 / 60 > 1) {
                     if (file.delete()) {
                         System.out.println("Удален файл: " + file.getName());
                     } else {
@@ -63,7 +53,6 @@ public class ClearService implements Runnable {
             }
         }
     }
-
 
 
 }
