@@ -8,6 +8,14 @@ import org.junit.jupiter.api.Test
 class Material_Test extends Apx_Test {
 
     @Test
+    void loadResourceByTyp_test () {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadResourceByTyp(1464, "tool", "Prop_Tool")
+//        Store st = dao.loadResourceByTyp(1461, "equipment", "Prop_Equipment")
+        mdb.outTable(st)
+    }
+
+    @Test
     void load_test () {
         DataDao dao = mdb.createDao(DataDao.class)
         Store st = dao.loadMaterial(0)

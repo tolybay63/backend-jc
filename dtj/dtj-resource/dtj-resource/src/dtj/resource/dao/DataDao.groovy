@@ -84,6 +84,60 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store loadResourceByTyp(long propVal, String flag, String codProp) {
+        long pv
+        String whe, wheD1
+        Map<String, Long> map
+        //
+        if (flag == "tool") {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Tool", "")
+            whe = "o.cls=${map.get("Cls_Tool")}"
+            wheD1 = "d1.prop=:Prop_TypTool"
+            pv = apiMeta().get(ApiMeta).idPV("Cls", UtCnv.toLong(map.get("Cls_Tool")), codProp)
+        } else if (flag == "equipment") {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Equipment", "")
+            whe = "o.cls=${map.get("Cls_Equipment")}"
+            wheD1 = "d1.prop=:Prop_TypEquipment"
+            pv = apiMeta().get(ApiMeta).idPV("Cls", UtCnv.toLong(map.get("Cls_Equipment")), codProp)
+        } else
+            throw new XError("Неверный флаг")
+        //
+        Store st = mdb.createStore("Obj.resource")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        mdb.loadQuery(st, """
+            select o.id, o.cls, '[№' || coalesce(v3.strVal, '') ||'] ' || v.name as name, null as pv,
+                v2.obj as objLocationClsSection, null as nameLocationClsSection
+            from Obj o
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and ${wheD1}
+                inner join DataPropVal v1 on d1.id=v1.dataprop and v1.propVal=${propVal}
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_LocationClsSection
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Number
+                left join DataPropVal v3 on d3.id=v3.dataprop
+            where ${whe}
+        """, map)
+        //
+        Set<Object> ids = st.getUniqueValues("objLocationClsSection")
+        Store stObj = loadSqlService("""
+            select o.id, v.name
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${ids.join(",")})
+        """, "", "orgstructuredata")
+        StoreIndex indObj = stObj.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord rec = indObj.get(r.getLong("objLocationClsSection"))
+            if (rec != null)
+                r.set("nameLocationClsSection", rec.getString("name"))
+            //
+            r.set("pv", pv)
+        }
+        //
+        return st
+    }
+    
+    @DaoMethod
     Store loadTpService(long id) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_TpService", "")
         Store st = mdb.createStore("Obj.TpService")
@@ -214,22 +268,49 @@ class DataDao extends BaseMdbUtils {
             whe = "o.cls=${map.get("Cls_Equipment")}"
 
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
-
         mdb.loadQuery(st, """
             select o.id, o.cls, v.name,
-                v1.id as idDescription, v1.multiStrVal as Description,
-                v2.id as idNumber, v2.strVal as Number,
-                v3.id as idTypEquipment, v3.propVal as pvTypEquipment, null as fvTypEquipment
+                v1.id as idTypEquipment, v1.propVal as pvTypEquipment, null as fvTypEquipment,
+                v2.id as idLocationClsSection, v2.propVal as pvLocationClsSection, 
+                    v2.obj as objLocationClsSection, null as nameLocationClsSection,
+                v3.id as idUser, v3.propVal as pvUser, v3.obj as objUser, null as fullNameUser,
+                v4.id as idCreatedAt, v4.dateTimeVal as CreatedAt,
+                v5.id as idUpdatedAt, v5.dateTimeVal as UpdatedAt,
+                v6.id as idDescription, v6.multiStrVal as Description,
+                v7.id as idNumber, v7.strVal as Number
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
-                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Description
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_TypEquipment
                 left join DataPropVal v1 on d1.id=v1.dataprop
-                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Number
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_LocationClsSection
                 left join DataPropVal v2 on d2.id=v2.dataprop
-                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_TypEquipment
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_User
                 left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_CreatedAt
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_UpdatedAt
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_Description
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_Number
+                left join DataPropVal v7 on d7.id=v7.dataprop
             where ${whe}
         """, map)
+        //... Пересечение
+        Set<Object> idsObjLocation = st.getUniqueValues("objLocationClsSection")
+        Store stObjLocation = loadSqlService("""
+            select o.id, v.name
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsObjLocation.join(",")})
+        """, "", "orgstructuredata")
+        StoreIndex indLocation = stObjLocation.getIndex("id")
+        //
+        Set<Object> idsUser = st.getUniqueValues("objUser")
+        Store stUser = loadSqlService("""
+            select o.id, o.cls, v.fullName
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsUser.join(",")})
+        """, "", "personnaldata")
+        StoreIndex indUser = stUser.getIndex("id")
         //
         Set<Object> pvs = st.getUniqueValues("pvTypEquipment")
         Store stFV = loadSqlMeta("""
@@ -238,12 +319,21 @@ class DataDao extends BaseMdbUtils {
             where pv.factorVal=f.id and pv.id in (0${pvs.join(",")})
         """, "")
         StoreIndex indFV = stFV.getIndex("id")
+        //
         for (StoreRecord r in st) {
             StoreRecord rec = indFV.get(r.getLong("pvTypEquipment"))
             if (rec != null) {
                 r.set("fvTypEquipment", rec.getLong("factorVal"))
                 r.set("nameTypEquipment", rec.getString("name"))
             }
+            //
+            rec = indLocation.get(r.getLong("objLocationClsSection"))
+            if (rec != null)
+                r.set("nameLocationClsSection", rec.getLong("name"))
+            //
+            rec = indUser.get(r.getLong("objUser"))
+            if (rec != null)
+                r.set("fullNameUser", rec.getLong("fullName"))
         }
         //
         return st
@@ -281,25 +371,39 @@ class DataDao extends BaseMdbUtils {
             pms.put("own", own)
 
             //1 Prop_Number
-            if (pms.containsKey("Number")) {
-                if (!pms.getString("Number").isEmpty())
-                    fillProperties(true, "Prop_Number", pms)
-                else
-                    throw new XError("[Номер] не указан")
-            } else
-                throw new XError("[Номер] не указан")
-
-            //2 Prop_Description
-            if (pms.containsKey("Description")) {
-                if (!pms.getString("Description").isEmpty())
-                    fillProperties(true, "Prop_Description", pms)
-            }
-
-            //3 Prop_TypEquipment
+            if (!pms.getString("Number").isEmpty())
+                fillProperties(true, "Prop_Number", pms)
+            else
+                throw new XError("[Number] not specified")
+            //2 Prop_TypEquipment
             if (pms.getLong("fvTypEquipment") > 0)
                 fillProperties(true, "Prop_TypEquipment", pms)
             else
-                throw new XError("[TypEquipment] не указан")
+                throw new XError("[TypEquipment] not specified")
+            //3 Prop_LocationClsSection
+            if (pms.getLong("objLocationClsSection") > 0)
+                fillProperties(true, "Prop_LocationClsSection", pms)
+            else
+                throw new XError("[objLocationClsSection] not specified")
+            //4 Prop_CreatedAt
+            if (pms.getString("CreatedAt") != "")
+                fillProperties(true, "Prop_CreatedAt", pms)
+            else
+                throw new XError("[CreatedAt] not specified")
+            //5 Prop_UpdatedAt
+            if (pms.getString("UpdatedAt") != "")
+                fillProperties(true, "Prop_UpdatedAt", pms)
+            else
+                throw new XError("[UpdatedAt] not specified")
+            //6 Prop_User
+            if (pms.getLong("objUser") > 0)
+                fillProperties(true, "Prop_User", pms)
+            else
+                throw new XError("[objUser] not specified")
+            //7 Prop_Description
+            if (!pms.getString("Description").isEmpty())
+                fillProperties(true, "Prop_Description", pms)
+
         } else if (mode.equalsIgnoreCase("upd")) {
             Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Number", "")
             Store st = mdb.loadQuery("""
@@ -322,25 +426,42 @@ class DataDao extends BaseMdbUtils {
                 if (!pms.getString("Number").isEmpty())
                     updateProperties("Prop_Number", pms)
                 else
-                    throw new XError("[Номер] не указан")
+                    throw new XError("[Number] not specified")
             }
-
-            //2 Prop_Description
-            if (pms.getLong("idDescription") > 0) {
-                updateProperties("Prop_Description", pms)
-            } else {
-                if (pms.containsKey("Description")) {
-                    if (!pms.getString("Description").isEmpty())
-                        fillProperties(true, "Prop_Description", pms)
-                }
-            }
-
-            //3 Prop_TypEquipment
+            //2 Prop_TypEquipment
             if (pms.getLong("idTypEquipment") > 0) {
                 if (pms.getLong("fvTypEquipment") > 0)
                     updateProperties("Prop_TypEquipment", pms)
                 else
-                    throw new XError("[TypEquipment] не указан")
+                    throw new XError("[TypEquipment] not specified")
+            }
+            //3 Prop_LocationClsSection
+            if (pms.getLong("idLocationClsSection") > 0) {
+                if (pms.getLong("objLocationClsSection") > 0)
+                    updateProperties("Prop_LocationClsSection", pms)
+                else
+                    throw new XError("[objLocationClsSection] not specified")
+            }
+            //5 Prop_UpdatedAt
+            if (pms.getLong("idUpdatedAt") > 0) {
+                if (pms.getString("UpdatedAt") != "")
+                    updateProperties("Prop_UpdatedAt", pms)
+                else
+                    throw new XError("[UpdatedAt] not specified")
+            }
+            //6 Prop_User
+            if (pms.getLong("idUser") > 0) {
+                if (pms.getLong("objUser") > 0)
+                    updateProperties("Prop_User", pms)
+                else
+                    throw new XError("[objUser] not specified")
+            }
+            //7 Prop_Description
+            if (pms.getLong("idDescription") > 0) {
+                updateProperties("Prop_Description", pms)
+            } else {
+                if (!pms.getString("Description").isEmpty())
+                    fillProperties(true, "Prop_Description", pms)
             }
         } else {
             throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
@@ -358,33 +479,72 @@ class DataDao extends BaseMdbUtils {
             whe = "o.cls=${map.get("Cls_Tool")}"
 
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
-
         mdb.loadQuery(st, """
             select o.id, o.cls, v.name,
                 v1.id as idTypTool, v1.propVal as pvTypTool, null as fvTypTool,
-                v2.id as idDescription, v2.multiStrVal as Description
+                v2.id as idLocationClsSection, v2.propVal as pvLocationClsSection, 
+                    v2.obj as objLocationClsSection, null as nameLocationClsSection,
+                v3.id as idUser, v3.propVal as pvUser, v3.obj as objUser, null as fullNameUser,
+                v4.id as idCreatedAt, v4.dateTimeVal as CreatedAt,
+                v5.id as idUpdatedAt, v5.dateTimeVal as UpdatedAt,
+                v6.id as idDescription, v6.multiStrVal as Description,
+                v7.id as idNumber, v7.strVal as Number
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_TypTool
                 left join DataPropVal v1 on d1.id=v1.dataprop
-                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Description
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_LocationClsSection
                 left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_User
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_CreatedAt
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_UpdatedAt
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_Description
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_Number
+                left join DataPropVal v7 on d7.id=v7.dataprop
             where ${whe}
         """, map)
+        //... Пересечение
+        Set<Object> idsObjLocation = st.getUniqueValues("objLocationClsSection")
+        Store stObjLocation = loadSqlService("""
+            select o.id, v.name
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsObjLocation.join(",")})
+        """, "", "orgstructuredata")
+        StoreIndex indLocation = stObjLocation.getIndex("id")
         //
-        Set<Object> pvsTypTool = st.getUniqueValues("pvTypTool")
+        Set<Object> idsUser = st.getUniqueValues("objUser")
+        Store stUser = loadSqlService("""
+            select o.id, o.cls, v.fullName
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsUser.join(",")})
+        """, "", "personnaldata")
+        StoreIndex indUser = stUser.getIndex("id")
+        //
+        Set<Object> pvs = st.getUniqueValues("pvTypTool")
         Store stFV = loadSqlMeta("""
             select pv.id, pv.factorVal, f.name
             from PropVal pv, Factor f
-            where pv.factorVal=f.id and pv.id in (0${pvsTypTool.join(",")})
+            where pv.factorVal=f.id and pv.id in (0${pvs.join(",")})
         """, "")
         StoreIndex indFV = stFV.getIndex("id")
+        //
         for (StoreRecord r in st) {
             StoreRecord rec = indFV.get(r.getLong("pvTypTool"))
             if (rec != null) {
                 r.set("fvTypTool", rec.getLong("factorVal"))
                 r.set("nameTypTool", rec.getString("name"))
             }
+            //
+            rec = indLocation.get(r.getLong("objLocationClsSection"))
+            if (rec != null)
+                r.set("nameLocationClsSection", rec.getLong("name"))
+            //
+            rec = indUser.get(r.getLong("objUser"))
+            if (rec != null)
+                r.set("fullNameUser", rec.getLong("fullName"))
         }
         //
         return st
@@ -417,16 +577,39 @@ class DataDao extends BaseMdbUtils {
             own = eu.insertEntity(par)
             pms.put("own", own)
 
-            //1 Prop_Description
-            if (pms.containsKey("Description")) {
-                if (!pms.getString("Description").isEmpty())
-                    fillProperties(true, "Prop_Description", pms)
-            }
+            //1 Prop_Number
+            if (!pms.getString("Number").isEmpty())
+                fillProperties(true, "Prop_Number", pms)
+            else
+                throw new XError("[Number] not specified")
             //2 Prop_TypTool
             if (pms.getLong("fvTypTool") > 0)
                 fillProperties(true, "Prop_TypTool", pms)
             else
-                throw new XError("[TypTool] не указан")
+                throw new XError("[TypTool] not specified")
+            //3 Prop_LocationClsSection
+            if (pms.getLong("objLocationClsSection") > 0)
+                fillProperties(true, "Prop_LocationClsSection", pms)
+            else
+                throw new XError("[objLocationClsSection] not specified")
+            //4 Prop_CreatedAt
+            if (pms.getString("CreatedAt") != "")
+                fillProperties(true, "Prop_CreatedAt", pms)
+            else
+                throw new XError("[CreatedAt] not specified")
+            //5 Prop_UpdatedAt
+            if (pms.getString("UpdatedAt") != "")
+                fillProperties(true, "Prop_UpdatedAt", pms)
+            else
+                throw new XError("[UpdatedAt] not specified")
+            //6 Prop_User
+            if (pms.getLong("objUser") > 0)
+                fillProperties(true, "Prop_User", pms)
+            else
+                throw new XError("[objUser] not specified")
+            //7 Prop_Description
+            if (!pms.getString("Description").isEmpty())
+                fillProperties(true, "Prop_Description", pms)
         } else if (mode.equalsIgnoreCase("upd")) {
             String nm = pms.getString("name").trim().toLowerCase()
             Store st = mdb.loadQuery("""
@@ -443,21 +626,47 @@ class DataDao extends BaseMdbUtils {
             //
             pms.put("own", own)
 
-            //1 Prop_Description
-            if (pms.getLong("idDescription") > 0) {
-                updateProperties("Prop_Description", pms)
-            } else {
-                if (pms.containsKey("Description")) {
-                    if (!pms.getString("Description").isEmpty())
-                        fillProperties(true, "Prop_Description", pms)
-                }
+            //1 Prop_Number
+            if (pms.getLong("idNumber") > 0) {
+                if (!pms.getString("Number").isEmpty())
+                    updateProperties("Prop_Number", pms)
+                else
+                    throw new XError("[Number] not specified")
             }
             //2 Prop_TypTool
             if (pms.getLong("idTypTool") > 0) {
                 if (pms.getLong("fvTypTool") > 0)
                     updateProperties("Prop_TypTool", pms)
                 else
-                    throw new XError("[TypTool] не указан")
+                    throw new XError("[TypTool] not specified")
+            }
+            //3 Prop_LocationClsSection
+            if (pms.getLong("idLocationClsSection") > 0) {
+                if (pms.getLong("objLocationClsSection") > 0)
+                    updateProperties("Prop_LocationClsSection", pms)
+                else
+                    throw new XError("[objLocationClsSection] not specified")
+            }
+            //5 Prop_UpdatedAt
+            if (pms.getLong("idUpdatedAt") > 0) {
+                if (pms.getString("UpdatedAt") != "")
+                    updateProperties("Prop_UpdatedAt", pms)
+                else
+                    throw new XError("[UpdatedAt] not specified")
+            }
+            //6 Prop_User
+            if (pms.getLong("idUser") > 0) {
+                if (pms.getLong("objUser") > 0)
+                    updateProperties("Prop_User", pms)
+                else
+                    throw new XError("[objUser] not specified")
+            }
+            //7 Prop_Description
+            if (pms.getLong("idDescription") > 0) {
+                updateProperties("Prop_Description", pms)
+            } else {
+                if (!pms.getString("Description").isEmpty())
+                    fillProperties(true, "Prop_Description", pms)
             }
         } else {
             throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
@@ -732,7 +941,8 @@ class DataDao extends BaseMdbUtils {
         }
 
         if ([FD_AttribValType_consts.dt].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_CreatedAt")) {
+            if (cod.equalsIgnoreCase("Prop_CreatedAt") ||
+                    cod.equalsIgnoreCase("Prop_UpdatedAt")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
                 }
@@ -777,7 +987,8 @@ class DataDao extends BaseMdbUtils {
             }
         }
         if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_LocationClsSection")) {
+            if (cod.equalsIgnoreCase("Prop_User") ||
+                    cod.equalsIgnoreCase("Prop_LocationClsSection")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
@@ -870,7 +1081,8 @@ class DataDao extends BaseMdbUtils {
         }
 
         if ([FD_AttribValType_consts.dt].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_CreatedAt")) {
+            if (cod.equalsIgnoreCase("Prop_CreatedAt")||
+                cod.equalsIgnoreCase("Prop_UpdatedAt")) {
                 if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
                     sql = """
                         delete from DataPropVal where id=${idVal};
@@ -951,7 +1163,8 @@ class DataDao extends BaseMdbUtils {
         }
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_User")) {
+            if (cod.equalsIgnoreCase("Prop_User") ||
+                    cod.equalsIgnoreCase("Prop_LocationClsSection")) {
                 if (objRef > 0)
                     sql = "update DataPropval set propVal=${propVal}, obj=${objRef}, timeStamp='${tmst}' where id=${idVal}"
                 else {
