@@ -3,6 +3,7 @@ package dtj.report.dao
 
 import groovy.transform.CompileStatic
 import jandcode.commons.UtCnv
+import jandcode.commons.UtDateTime
 import jandcode.commons.UtFile
 import jandcode.commons.datetime.XDate
 import jandcode.commons.error.XError
@@ -125,24 +126,33 @@ class ReportDao extends BaseMdbUtils {
         copier.copyRange(sourceRange, destRange, true, true)
 
         // Шапка
-        String dte = pms.getString("date")
+        String dte = pms.getDate("date").toString(UtDateTime.createFormatter("dd.MM.yyyy"))
+        String nameClient = pms.getString("nameClient")
         String nameLocation = pms.getString("nameLocation")
 
-        Row row = destSheet.getRow(4)
-        Cell cell = row.getCell(6)
+        Row row = destSheet.getRow(0)
+        Cell cell = row.getCell(0)
+        cell.setCellValue(nameClient)
+        row = destSheet.getRow(1)
+        cell = row.getCell(0)
         cell.setCellValue(nameLocation)
-        //
+        // Data
         row = destSheet.getRow(5)
-        cell = row.getCell(5)
+        cell = row.getCell(4)
         cell.setCellValue(dte)
+
         destSheet.getRow(7).setHeightInPoints(3 * destSheet.getDefaultRowHeightInPoints() as float)
 
         // Данные
         final XSSFCellStyle cellStyle = targetWorkbook.createCellStyle()
         final XSSFCellStyle cellStyleFont = targetWorkbook.createCellStyle()
+        final XSSFCellStyle cellStyleFont8 = targetWorkbook.createCellStyle()
         XSSFFont fontBold = targetWorkbook.createFont()
+        XSSFFont font8 = targetWorkbook.createFont()
         fontBold.setBold(true)
         cellStyleFont.setFont(fontBold)
+        font8.setFontHeightInPoints((short) 8)
+        cellStyleFont8.setFont(font8)
 
         cellStyleFont.setBorderTop(BorderStyle.THIN)
         cellStyleFont.setBorderRight(BorderStyle.THIN)
@@ -261,10 +271,27 @@ class ReportDao extends BaseMdbUtils {
         //
         row = destSheet.createRow(rowEnd+3)
         cell = row.createCell(0)
-        cell.setCellValue("Начальник дистанции пути")
+        cell.setCellValue(pms.getString("nameDirectorPosition"))
         cell.setCellStyle(cellStyleBold)
-        cell = row.createCell(3)
+        row = destSheet.createRow(rowEnd+4)
+        cell = row.createCell(0)
+        cell.setCellValue(pms.getString("nameDirectorLocation"))
+        cell.setCellStyle(cellStyleBold)
+        cell = row.createCell(8)
         cell.setCellValue(pms.getString("fullNameDirector"))
+        cell.setCellStyle(cellStyleBold)
+        //
+        String isp = "Исп. " + pms.getString("nameUserPosition").toLowerCase() + " " + pms.getString("fulNameUser") +
+                " тел. " + pms.getString("UserPhone")
+        //String tel = "тел. " + pms.getString("UserPhone")
+        row = destSheet.createRow(rowEnd+6)
+        cell = row.createCell(0)
+        cell.setCellValue(isp)
+        cell.setCellStyle(cellStyleFont8)
+        //row = destSheet.createRow(rowEnd+7)
+        //cell = row.createCell(0)
+        //cell.setCellValue(tel)
+        //cell.setCellStyle(cellStyleFont8)
         //
         try (FileOutputStream fileOut = new FileOutputStream(pathexel)) {
             targetWorkbook.write(fileOut)
