@@ -32,6 +32,21 @@ class Obj_Test extends Apx_Test {
     }
 
     @Test
+    void test_loadSizeIncidentOfMonth() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map<String, Object> map = new HashMap<>()
+//        map.put("periodType", 11)
+        map.put("date", "2025-11-13")
+        //map.put("objLocation", 1071)
+        map.put("open", 1)
+//        map.put("event", 1157)
+        double dif = dao.loadSizeIncidentOfMonth(map)
+        System.out.println(dif)
+
+
+    }
+
+    @Test
     void test_loadIncident() {
         DataDao dao = mdb.createDao(DataDao.class)
         Map<String, Object> map = new HashMap<>()

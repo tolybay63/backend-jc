@@ -2,6 +2,7 @@ package dtj.incident.dao
 
 import groovy.transform.CompileStatic
 import jandcode.commons.UtCnv
+import jandcode.commons.UtDateTime
 import jandcode.commons.datetime.XDate
 import jandcode.commons.datetime.XDateTime
 import jandcode.commons.datetime.XDateTimeFormatter
@@ -24,39 +25,52 @@ import tofi.api.mdl.model.consts.FD_PropType_consts
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
 
+import java.time.Duration
+import java.time.Instant
+
 @CompileStatic
 class DataDao extends BaseMdbUtils {
 
     ApinatorApi apiAdm() {
         return app.bean(ApinatorService).getApi("adm")
     }
+
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
     }
+
     ApinatorApi apiUserData() {
         return app.bean(ApinatorService).getApi("userdata")
     }
+
     ApinatorApi apiNSIData() {
         return app.bean(ApinatorService).getApi("nsidata")
     }
+
     ApinatorApi apiObjectData() {
         return app.bean(ApinatorService).getApi("objectdata")
     }
+
     ApinatorApi apiPlanData() {
         return app.bean(ApinatorService).getApi("plandata")
     }
+
     ApinatorApi apiPersonnalData() {
         return app.bean(ApinatorService).getApi("personnaldata")
     }
+
     ApinatorApi apiOrgStructureData() {
         return app.bean(ApinatorService).getApi("orgstructuredata")
     }
+
     ApinatorApi apiInspectionData() {
         return app.bean(ApinatorService).getApi("inspectiondata")
     }
+
     ApinatorApi apiClientData() {
         return app.bean(ApinatorService).getApi("clientdata")
     }
+
     ApinatorApi apiIncidentData() {
         return app.bean(ApinatorService).getApi("incidentdata")
     }
@@ -142,6 +156,131 @@ class DataDao extends BaseMdbUtils {
             throw new XError("Не известный режим записи (mode = ins | upd) в БД")
         //
         return loadEvent(own)
+    }
+
+    @DaoMethod
+    double loadSizeIncidentOfMonth(Map<String, Object> params) {
+        Store stCls = apiMeta().get(ApiMeta).loadCls("Typ_Incident")
+        String whe
+        String wheV1 = "left join DataPropVal v1 on d1.id=v1.dataprop"
+        String wheV17 = ""
+        String wheV19 = "left join DataPropVal v19 on d19.id=v19.dataprop"
+        String wheV22 = ""
+        Map<String, Long> map
+        whe = "o.cls in (0${stCls.getUniqueValues("id").join(",")})"
+        //
+        String dte = UtCnv.toString(params.get("date"))
+        String d1 = UtCnv.toDate(dte).toJavaLocalDate().minusMonths(1).toString()
+        String d2 = dte
+        wheV17 = "and v17.dateTimeVal between '${d1}' and '${d2}'"
+        //
+        Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_LocationSection", "")
+        Store stTmp = loadSqlService("""
+                    select cls from Obj where id=${UtCnv.toLong(params.get("objLocation"))}
+                """, "", "orgstructuredata")
+        long clsLocation = stTmp.size() > 0 ? stTmp.get(0).getLong("cls") : 0
+        if (clsLocation == mapCls.get("Cls_LocationSection")) {
+            Set<Object> idsObjLocation = getIdsObjLocation(UtCnv.toLong(params.get("objLocation")))
+            wheV19 = "inner join DataPropVal v19 on d19.id=v19.dataprop and v19.obj in (0${idsObjLocation.join(",")})"
+        }
+        //
+        if (UtCnv.toLong(params.get("event")) > 0) {
+            wheV1 = "inner join DataPropVal v1 on d1.id=v1.dataprop and v1.obj=${params.get("event")}"
+        }
+        //
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        String sql = """
+            select o.id,
+                v1.obj as objEvent,
+                v17.dateTimeVal as RegistrationDateTime,
+                v19.obj as objLocationClsSection,
+                v22.dateTimeVal as CloseDateTime
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Event")}
+                ${wheV1}
+                left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=${map.get("Prop_RegistrationDateTime")}
+                inner join DataPropVal v17 on d17.id=v17.dataprop ${wheV17}
+                left join DataProp d19 on d19.objorrelobj=o.id and d19.prop=${map.get("Prop_LocationClsSection")}
+                ${wheV19}
+                left join DataProp d22 on d22.objorrelobj=o.id and d22.prop=${map.get("Prop_CloseDateTime")}
+                left join DataPropVal v22 on d22.id=v22.dataprop
+            where ${whe}
+        """
+        Store st = mdb.loadQuery(sql, map)
+        //
+        int diffDay = UtCnv.toDate(d2).diffDays(UtCnv.toDate(d1)) - 1
+        //
+        if (UtCnv.toLong(params.get("event")) > 0) {
+            long count=0
+            for (int k = 0; k < diffDay; k++) {
+                XDate dt = UtCnv.toDate(UtCnv.toDate(d1).toJavaLocalDate().plusDays(k))
+                for (StoreRecord r in st) {
+                    if (r.getString("CloseDateTime") == "0000-01-01")
+                        if (dt >= r.getDate("RegistrationDateTime"))
+                            count++
+                    else if (dt >= r.getDate("RegistrationDateTime") && dt <= r.getDate("CloseDateTime")) {
+                        count++
+                    }
+                }
+            }
+            return count / diffDay
+        }
+        //
+        if (params.containsKey("open")) {
+            wheV22 = "and v22.dateTimeVal between '${d1}' and '${d2}'"
+            sql = """
+                select o.id,
+                    null as objEvent,
+                    v17.dateTimeVal as RegistrationDateTime,
+                    v19.obj as objLocationClsSection,
+                    v22.dateTimeVal as CloseDateTime
+                from Obj o
+                    left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=${map.get("Prop_RegistrationDateTime")}
+                    inner join DataPropVal v17 on d17.id=v17.dataprop ${wheV17}
+                    left join DataProp d19 on d19.objorrelobj=o.id and d19.prop=${map.get("Prop_LocationClsSection")}
+                    ${wheV19}
+                    left join DataProp d22 on d22.objorrelobj=o.id and d22.prop=${map.get("Prop_CloseDateTime")}
+                    inner join DataPropVal v22 on d22.id=v22.dataprop ${wheV22}
+                where ${whe}
+            """
+            Store st1 = mdb.loadQuery(sql, map)
+            //
+            sql = """
+                select o.id,
+                    null as objEvent,
+                    v17.dateTimeVal as RegistrationDateTime,
+                    v19.obj as objLocationClsSection,
+                    v22.dateTimeVal as CloseDateTime
+                from Obj o
+                    left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=${map.get("Prop_RegistrationDateTime")}
+                    left join DataPropVal v17 on d17.id=v17.dataprop
+                    left join DataProp d19 on d19.objorrelobj=o.id and d19.prop=${map.get("Prop_LocationClsSection")}
+                    ${wheV19}
+                    left join DataProp d22 on d22.objorrelobj=o.id and d22.prop=${map.get("Prop_CloseDateTime")}
+                    inner join DataPropVal v22 on d22.id=v22.dataprop ${wheV22}
+                where ${whe}
+            """
+            Store st2 = mdb.loadQuery(sql, map)
+            //
+            st.add(st1)
+            st.add(st2)
+            //
+            long count=0
+            for (int k = 0; k < diffDay; k++) {
+                XDate dt = UtCnv.toDate(UtCnv.toDate(d1).toJavaLocalDate().plusDays(k))
+                for (StoreRecord r in st) {
+                    if (r.getString("CloseDateTime") == "0000-01-01")
+                        if (dt >= r.getDate("RegistrationDateTime"))
+                            count++
+                        else if (dt >= r.getDate("RegistrationDateTime") && dt <= r.getDate("CloseDateTime")) {
+                            count++
+                        }
+                }
+            }
+            return count / diffDay
+        }
+        //
+        return st.size() / diffDay
     }
 
     @DaoMethod
