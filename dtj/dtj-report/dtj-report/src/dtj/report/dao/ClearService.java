@@ -30,7 +30,7 @@ public class ClearService implements Runnable {
         // 0L      -> начальная задержка (запускается немедленно при старте)
         // 1L      -> интервал между выполнениями
         // TimeUnit.HOURS -> единица измерения интервала (часы)
-        scheduler.scheduleAtFixedRate(cleanupTask, 0L, 1L, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(cleanupTask, 0L, 1L, TimeUnit.HOURS);
     }
 
     private static void cleanUpFiles(String directoryPath) {
