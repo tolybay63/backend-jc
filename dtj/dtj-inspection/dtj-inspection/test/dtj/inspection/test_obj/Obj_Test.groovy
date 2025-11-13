@@ -3,7 +3,6 @@ package dtj.inspection.test_obj
 import dtj.inspection.dao.DataDao
 import jandcode.core.apx.test.Apx_Test
 import jandcode.core.store.Store
-
 import org.junit.jupiter.api.Test
 
 class Obj_Test extends Apx_Test {
