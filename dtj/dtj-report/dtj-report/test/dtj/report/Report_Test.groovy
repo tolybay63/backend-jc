@@ -2,8 +2,6 @@ package dtj.report
 
 import dtj.report.dao.ReportDao
 import jandcode.commons.UtCnv
-import jandcode.commons.UtDateTime
-import jandcode.commons.datetime.XDateTime
 import jandcode.core.apx.test.Apx_Test
 import jandcode.core.store.Store
 import org.junit.jupiter.api.Test
