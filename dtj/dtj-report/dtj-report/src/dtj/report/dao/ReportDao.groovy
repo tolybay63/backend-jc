@@ -127,8 +127,8 @@ class ReportDao extends BaseMdbUtils {
 
         // Шапка
         String dte = pms.getDate("date").toString(UtDateTime.createFormatter("dd.MM.yyyy"))
-        String nameClient = pms.getString("nameClient")
-        String nameLocation = pms.getString("nameLocation")
+        String nameClient = pms.getString("fullNameClient")
+        String nameLocation = pms.getString("nameDirectorLocation")
 
         Row row = destSheet.getRow(0)
         Cell cell = row.getCell(0)
