@@ -2,6 +2,7 @@ package dtj.report.dao;
 
 import com.documents4j.api.IConverter;
 import com.documents4j.job.LocalConverter;
+import org.apache.poi.ss.usermodel.PageMargin;
 import org.apache.poi.ss.usermodel.PrintSetup;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -33,11 +34,14 @@ public class Convertor {
 
                 // Самое главное: уместить все колонки на 1 страницу по ширине
                 ps.setPaperSize((short) 9);
-                sheet.setMargin((short) 0, 0.5);
-                sheet.setMargin((short) 1, 0.5);
-                sheet.setMargin((short) 2, 0.5);
-                sheet.setMargin((short) 3, 0.5);
-                //sheet.setAutobreaks(true);
+
+
+                sheet.setMargin(PageMargin.LEFT, 0.5);
+                sheet.setMargin(PageMargin.TOP, 0.5);
+                sheet.setMargin(PageMargin.RIGHT, 0.5);
+                sheet.setMargin(PageMargin.BOTTOM, 0.5);
+
+                sheet.setAutobreaks(true);
 
                 ps.setFitWidth((short) 1);
                 ps.setFitHeight((short) 0); // Высота может занимать сколько угодно страниц

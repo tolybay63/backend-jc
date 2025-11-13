@@ -365,9 +365,18 @@ class DataDao extends BaseMdbUtils {
         String wheV8 = "and v8.relObj = ${params.get('relobj')}"
         //
         String dte = UtCnv.toString(params.get("date"))
-        String d1 = UtCnv.toDate(dte).toJavaLocalDate().minusMonths(1) as String
-        String d2 = UtCnv.toDate(dte).toJavaLocalDate().plusDays(1) as String
+        String d1, d2
+        if (params.containsKey("periodType")) {
+            long pt = UtCnv.toLong(params.get("periodType"))
+            UtPeriod utPeriod = new UtPeriod()
+            d1 = utPeriod.calcDbeg(UtCnv.toDate(dte), pt, 0)
+            d2 = utPeriod.calcDend(UtCnv.toDate(dte), pt, 0)
+            d2 =  UtCnv.toDate(d2).toJavaLocalDate().plusDays(1) as String
 
+        } else {
+            d1 = UtCnv.toDate(dte).toJavaLocalDate().minusMonths(1) as String
+            d2 = UtCnv.toDate(dte).toJavaLocalDate().plusDays(1) as String
+        }
         String wheV7 = "and v7.dateTimeVal between '${d1}' and '${d2}'"
         //
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
@@ -411,18 +420,21 @@ class DataDao extends BaseMdbUtils {
             order by v7.dateTimeVal desc
         """, map)
         //
-        XDate d22 = UtCnv.toDate(st.get(0).getDate("CreationDateTime").toJavaLocalDate().plusDays(1))
-        XDate d11 = UtCnv.toDate(d22.toJavaLocalDate().minusDays(3))
+        if (params.containsKey("periodType"))
+            return st
+        else {
+            XDate d22 = UtCnv.toDate(st.get(0).getDate("CreationDateTime").toJavaLocalDate().plusDays(1))
+            XDate d11 = UtCnv.toDate(d22.toJavaLocalDate().minusDays(3))
 
-        Store stRez = mdb.createStore("Obj.ParameterLog")
-        for (StoreRecord r in st) {
-            if (r.getDate("CreationDateTime").toJavaLocalDate().isAfter(d11.toJavaLocalDate()) &&
-                    r.getDate("CreationDateTime").toJavaLocalDate().isBefore(d22.toJavaLocalDate())) {
-                stRez.add(r)
+            Store stRez = mdb.createStore("Obj.ParameterLog")
+            for (StoreRecord r in st) {
+                if (r.getDate("CreationDateTime").toJavaLocalDate().isAfter(d11.toJavaLocalDate()) &&
+                        r.getDate("CreationDateTime").toJavaLocalDate().isBefore(d22.toJavaLocalDate())) {
+                    stRez.add(r)
+                }
             }
+            return stRez
         }
-
-        return stRez
     }
 
     @DaoMethod

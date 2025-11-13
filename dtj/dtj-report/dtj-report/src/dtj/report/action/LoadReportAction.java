@@ -19,6 +19,8 @@ public class LoadReportAction extends BaseAction {
                     fon = "ПО-4.pdf";
                 } else if (params.getString("tml").equalsIgnoreCase("по-6")) {
                     fon = "ПО-6.pdf";
+                } else if (params.getString("tml").equalsIgnoreCase("по-1")) {
+                    fon = "ПО-1.pdf";
                 } else {
                     throw new XError("Not found [tml]");
                 }
@@ -28,6 +30,8 @@ public class LoadReportAction extends BaseAction {
                     fon = "ПО-4.xlsx";
                 } else if (params.getString("tml").equalsIgnoreCase("по-6")) {
                     fon = "ПО-6.xlsx";
+                } else if (params.getString("tml").equalsIgnoreCase("по-1")) {
+                    fon = "ПО-1.xlsx";
                 } else {
                     throw new XError("Not found [tml]");
                 }

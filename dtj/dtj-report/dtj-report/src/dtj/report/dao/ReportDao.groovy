@@ -90,10 +90,99 @@ class ReportDao extends BaseMdbUtils {
             generateReportPO_4(params)
         else if (UtCnv.toString(params.get("tml")).equalsIgnoreCase("по-6"))
             generateReportPO_6(params)
+        else if (UtCnv.toString(params.get("tml")).equalsIgnoreCase("по-1"))
+            generateReportPO_1(params)
         else
             throw new XError("Не известный шаблон")
         return id
 
+    }
+
+    void generateReportPO_1(Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        String pathtml = mdb.getApp().appdir + File.separator + "tml" + File.separator + "ПО-1.xlsx"
+        String pathexel = mdb.getApp().appdir + File.separator + "reports" + File.separator + pms.getString("fout")
+        String pathpdf = pathexel.replace(UtFile.ext(pathexel), "pdf")
+
+        // 1. Загрузка исходной книги
+        InputStream inputStream = new FileInputStream(pathtml)
+        XSSFWorkbook sourceWorkbook = new XSSFWorkbook(inputStream)
+
+        // 2. Создание целевой книги и листа
+        XSSFWorkbook targetWorkbook = new XSSFWorkbook()
+
+        XSSFSheet sourceSheet = sourceWorkbook.getSheetAt(0)
+        XSSFSheet destSheet = targetWorkbook.createSheet("Лист1")
+
+        // Итерируем по всем столбцам от 0 до последнего используемого
+        for (int i = 0; i < 10; i++) {
+            // Получаем ширину столбца из исходного листа
+            int columnWidth = sourceSheet.getColumnWidth(i)
+            // Устанавливаем ту же ширину для соответствующего столбца в целевом листе
+            destSheet.setColumnWidth(i, columnWidth)
+        }
+
+        RangeCopier copier = new XSSFRangeCopier(sourceSheet, destSheet)
+        CellRangeAddress sourceRange = new CellRangeAddress(0, 44, 0, 9)
+        CellRangeAddress destRange = new CellRangeAddress(0, 44, 0, 9)
+        //
+        copier.copyRange(sourceRange, destRange, true, true)
+        //
+        // Шапка
+        String dte = pms.getDate("date").toString(UtDateTime.createFormatter("dd.MM.yyyy"))
+        String nameClient = pms.getString("fullNameClient")
+        String nameLocation = pms.getString("nameDirectorLocation")
+
+        Row row = destSheet.getRow(0)
+        Cell cell = row.getCell(0)
+        cell.setCellValue(nameClient)
+        row = destSheet.getRow(1)
+        cell = row.getCell(0)
+        cell.setCellValue(nameLocation)
+        // Date
+        row = destSheet.getRow(5)
+        cell = row.getCell(4)
+        cell.setCellValue(dte)
+        //
+        row = destSheet.getRow(40)
+        cell = row.getCell(0)
+        cell.setCellValue(pms.getString("nameDirectorPosition"))
+        row = destSheet.getRow(41)
+        cell = row.getCell(0)
+        cell.setCellValue(pms.getString("nameDirectorLocation"))
+        cell = row.getCell(8)
+        cell.setCellValue(pms.getString("fullNameDirector"))
+        //
+        String isp = "Исп. " + pms.getString("nameUserPosition").toLowerCase() + " " + pms.getString("fulNameUser")
+        String tel = "тел. " + pms.getString("UserPhone")
+        row = destSheet.getRow(43)
+        cell = row.getCell(0)
+        cell.setCellValue(isp)
+        row = destSheet.getRow(44)
+        cell = row.getCell(0)
+        cell.setCellValue(tel)
+        //
+
+
+
+        //
+        try (FileOutputStream fileOut = new FileOutputStream(pathexel)) {
+            targetWorkbook.write(fileOut)
+        } catch (Exception e) {
+            e.printStackTrace()
+        } finally {
+            try {
+                targetWorkbook.close()
+            } catch (Exception e) {
+                e.printStackTrace()
+            }
+            Convertor.cnv2pdf(pathexel, pathpdf, false)
+        }
+    }
+
+    Map<String, Object> loadDataPO_1(Map<String, Object> params) {
+
+        return null
     }
 
     void generateReportPO_6(Map<String, Object> params) {
