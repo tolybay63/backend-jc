@@ -9,6 +9,19 @@ import org.junit.jupiter.api.Test
 class Obj_Test extends Apx_Test {
 
     @Test
+    void loadSizePlanOfMonth_test() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        double d = dao.loadSizePlanOfMonth(Map.of(
+                "date", "2025-11-10",
+//                "periodType", 71,
+                "objLocation", 1073,
+                "codCls", "Cls_WorkPlanCorrectional"
+        ))
+
+        System.println(d)
+    }
+
+    @Test
     void loadPlanCorrectional_test() {
         DataDao dao = mdb.createDao(DataDao.class)
         Store st = dao.loadPlanCorrectional(Map.of(

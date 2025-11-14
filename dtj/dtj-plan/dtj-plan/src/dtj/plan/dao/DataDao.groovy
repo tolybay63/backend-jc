@@ -39,30 +39,39 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
     }
+
     ApinatorApi apiUserData() {
         return app.bean(ApinatorService).getApi("userdata")
     }
+
     ApinatorApi apiNSIData() {
         return app.bean(ApinatorService).getApi("nsidata")
     }
+
     ApinatorApi apiPersonnalData() {
         return app.bean(ApinatorService).getApi("personnaldata")
     }
+
     ApinatorApi apiOrgStructureData() {
         return app.bean(ApinatorService).getApi("orgstructuredata")
     }
+
     ApinatorApi apiObjectData() {
         return app.bean(ApinatorService).getApi("objectdata")
     }
+
     ApinatorApi apiPlanData() {
         return app.bean(ApinatorService).getApi("plandata")
     }
+
     ApinatorApi apiInspectionData() {
         return app.bean(ApinatorService).getApi("inspectiondata")
     }
+
     ApinatorApi apiIncidentData() {
         return app.bean(ApinatorService).getApi("incidentdata")
     }
+
     ApinatorApi apiRepairData() {
         return app.bean(ApinatorService).getApi("repairdata")
     }
@@ -299,11 +308,11 @@ class DataDao extends BaseMdbUtils {
         """, "", "orgstructuredata")
         StoreIndex indLocation = stLocation.getIndex("id")
         //
-       /* map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Work", "")
-        stCls = loadSqlMeta("""
-            select c.id, v.name from Cls c, ClsVer v where c.id=v.ownerVer and v.lastVer=1 and typ=${map.get("Typ_Work")}
-        """, "")
-        StoreIndex indCls = stCls.getIndex("id")*/
+        /* map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Work", "")
+         stCls = loadSqlMeta("""
+             select c.id, v.name from Cls c, ClsVer v where c.id=v.ownerVer and v.lastVer=1 and typ=${map.get("Typ_Work")}
+         """, "")
+         StoreIndex indCls = stCls.getIndex("id")*/
         //
         Set<Object> idsWork = st.getUniqueValues("objWork")
         Store stWork = loadSqlService("""
@@ -381,6 +390,167 @@ class DataDao extends BaseMdbUtils {
         return st
     }
 
+    @DaoMethod
+    double loadSizePlanOfMonth(Map<String, Object> params) {
+        Store st = mdb.createStore("Obj.plan")
+        Store st1 = mdb.createStore("Obj.plan")
+        Store st2 = mdb.createStore("Obj.plan")
+        Store st3 = mdb.createStore("Obj.plan")
+        Map<String, Long> map
+        String wheClsOrTyp
+        if (params.containsKey("codCls")) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", UtCnv.toString(params.get("codCls")), "")
+            wheClsOrTyp = "c.id=${map.get(UtCnv.toString(params.get("codCls")))}"
+        } else {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_WorkPlan", "")
+            wheClsOrTyp = "typ=${map.get('Typ_WorkPlan')}"
+        }
+
+        Store stCls = loadSqlMeta("""
+                select c.id , v.name
+                from Cls c, ClsVer v
+                where c.id=v.ownerVer and v.lastVer=1 and ${wheClsOrTyp}
+            """, "")
+        Set<Object> idsCls = stCls.getUniqueValues("id")
+        StoreIndex indClsWork = stCls.getIndex("id")
+
+        String whe
+        String wheV1 = ""
+        String wheV7 = ""
+        String wheV12 = ""
+        whe = "o.cls in (${idsCls.join(",")})"
+        //
+        Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_LocationSection", "")
+
+        Store stTmp = loadSqlService("""
+                select cls from Obj where id=${UtCnv.toLong(params.get("objLocation"))}
+            """, "", "orgstructuredata")
+
+        long clsLocation = stTmp.size() > 0 ? stTmp.get(0).getLong("cls") : 0
+
+        if (clsLocation == mapCls.get("Cls_LocationSection")) {
+            Set<Object> idsObjLocation = getIdsObjLocation(UtCnv.toLong(params.get("objLocation")))
+            wheV1 = "and v1.obj in (${idsObjLocation.join(",")})"
+        }
+        String dte = UtCnv.toString(params.get("date"))
+        String d1 = UtCnv.toDate(dte).toJavaLocalDate().minusMonths(1).toString()
+        String d2 = UtCnv.toString(UtCnv.toDate(dte).toJavaLocalDate().minusDays(1))
+        wheV7 = "and v7.dateTimeVal between '${d1}' and '${d2}'"
+        wheV12 = "and v12.dateTimeVal between '${d1}' and '${d2}'"
+/*        wheV12 = """
+             and o.id not in (
+                select o.id
+                from Obj o
+                    left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                    left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_PlanDateEnd
+                    inner join DataPropVal v7 on d7.id=v7.dataprop ${wheV7}
+                    left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_FactDateEnd
+                    inner join DataPropVal v12 on d12.id=v12.dataprop and v12.dateTimeVal is not null
+                where ${whe}
+                )
+            """*/
+
+        //
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        mdb.loadQuery(st, """
+            select o.id,
+                v7.dateTimeVal as PlanDateEnd,
+                v12.dateTimeVal as FactDateEnd
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
+                inner join DataPropVal v1 on d1.id=v1.dataprop ${wheV1}
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_PlanDateEnd
+                inner join DataPropVal v7 on d7.id=v7.dataprop ${wheV7}
+                left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_FactDateEnd
+                inner join DataPropVal v12 on d12.id=v12.dataprop ${wheV12}
+            where ${whe}
+        """, map)
+        //
+        String d3 = UtCnv.toString(UtCnv.toDate(d1).toJavaLocalDate().minusDays(1))
+        wheV7 = "and v7.dateTimeVal between '1800-01-01' and '${d3}'"
+        mdb.loadQuery(st1, """
+            select o.id,
+                v7.dateTimeVal as PlanDateEnd,
+                v12.dateTimeVal as FactDateEnd
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
+                inner join DataPropVal v1 on d1.id=v1.dataprop ${wheV1}
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_PlanDateEnd
+                inner join DataPropVal v7 on d7.id=v7.dataprop ${wheV7}
+                left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_FactDateEnd
+                inner join DataPropVal v12 on d12.id=v12.dataprop ${wheV12}
+            where ${whe}
+        """, map)
+        //
+        d3 = UtCnv.toString(UtCnv.toDate(d2).toJavaLocalDate().plusDays(1))
+        wheV7 = "and v7.dateTimeVal between '${d1}' and '${d2}'"
+        wheV12 = "and v12.dateTimeVal between '${d3}' and '3333-12-31'"
+        mdb.loadQuery(st2, """
+            select o.id,
+                v7.dateTimeVal as PlanDateEnd,
+                v12.dateTimeVal as FactDateEnd
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
+                inner join DataPropVal v1 on d1.id=v1.dataprop ${wheV1}
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_PlanDateEnd
+                inner join DataPropVal v7 on d7.id=v7.dataprop ${wheV7}
+                left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_FactDateEnd
+                inner join DataPropVal v12 on d12.id=v12.dataprop ${wheV12}
+            where ${whe}
+        """, map)
+        //
+        wheV12 = "and v12.dateTimeVal between '${d1}' and '3333-12-31'"
+        mdb.loadQuery(st3, """
+            select o.id,
+                v7.dateTimeVal as PlanDateEnd,
+                v12.dateTimeVal as FactDateEnd
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
+                inner join DataPropVal v1 on d1.id=v1.dataprop ${wheV1}
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_PlanDateEnd
+                inner join DataPropVal v7 on d7.id=v7.dataprop ${wheV7}
+                left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_FactDateEnd
+                left join DataPropVal v12 on d12.id=v12.dataprop
+            where ${whe} and o.id not in (
+                select o.id
+                from Obj o 
+                    left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                    left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
+                    inner join DataPropVal v1 on d1.id=v1.dataprop ${wheV1}
+                    left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_PlanDateEnd
+                    inner join DataPropVal v7 on d7.id=v7.dataprop ${wheV7}
+                    left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_FactDateEnd
+                    inner join DataPropVal v12 on d12.id=v12.dataprop ${wheV12}
+                where ${whe}
+            )
+        """, map)
+        //
+        st.add(st1)
+        st.add(st2)
+        st.add(st3)
+        //
+        int diffDay = UtCnv.toDate(d2).diffDays(UtCnv.toDate(d1))
+        long count=0
+        for (int k = 0; k < diffDay; k++) {
+            XDate dt = UtCnv.toDate(UtCnv.toDate(d1).toJavaLocalDate().plusDays(k))
+            for (StoreRecord r in st) {
+                if (r.getString("FactDateEnd") == "0000-01-01") {
+                    if (dt >= r.getDate("PlanDateEnd"))
+                        count++
+                } else if (dt >= r.getDate("PlanDateEnd") && dt <= r.getDate("FactDateEnd")) {
+                    count++
+                }
+            }
+        }
+        //
+        count = count == 0 ? 1 : count
+        //...
+        return st.size()/count
+    }
 
     @DaoMethod
     Store loadPlan(Map<String, Object> params) {
