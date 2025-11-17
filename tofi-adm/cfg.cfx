@@ -91,9 +91,15 @@
                   username="pg"
                   password="1q2w3e4R"
         />
-
-
     </cfg>
+
+
+    <keycloak url="http://localhost:9090"
+              realm="dtj"
+              clientId="dtj-client"
+              clientSecret="XWb2xQycddf1Kc8Fy3X6i3MVm6ECX7Lr"
+    />
+
 
 
     <datadir>
@@ -101,15 +107,18 @@
 
 
 
-<!--
-        <minio
-                url="http://localhost:9000"
-                bucketName = "nsidata"
-                accessKey = "O9kIqOQfBobkdPZ7LOb1"
-                secretKey = "YoVr0eZNMnfpSP4SSBHQNtB67qUorZZEB0M2zqrB">
+        <!--
 
-        </minio>
--->
+clientSecret="B8rCGxtgTNV3dL4UBvZnZ8SMGsSQsQmN"
+
+                <minio
+                        url="http://localhost:9000"
+                        bucketName = "nsidata"
+                        accessKey = "O9kIqOQfBobkdPZ7LOb1"
+                        secretKey = "YoVr0eZNMnfpSP4SSBHQNtB67qUorZZEB0M2zqrB">
+
+                </minio>
+        -->
 
 
     </datadir>

@@ -25,7 +25,7 @@
 
 
         <auth>
-            <autologin username="sysadmin" password="SysAdmin"/>
+            <autologin username="sysadmin" password="111"/>
         </auth>
 
     </web>

@@ -6,6 +6,9 @@ import jandcode.commons.error.XError;
 import jandcode.core.BaseComp;
 import jandcode.core.auth.*;
 import jandcode.commons.variant.VariantMap;
+import jandcode.core.dbm.ModelService;
+import jandcode.core.dbm.mdb.Mdb;
+import tofi.adm.model.dao.auth.AuthDao;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -51,16 +54,17 @@ public class KeycloakAuthProcessor extends BaseComp implements AuthProcessor {
 
         // Получаем информацию о пользователе из Keycloak
         Map<String, Object> userInfo = getUserInfoFromKeycloak(keycloakUrl, realm, accessToken);
+
         if (userInfo == null || userInfo.isEmpty()) {
             throw new XErrorAuth(XErrorAuth.msg_invalid_user_passwd);
         }
-
         // Преобразуем информацию из Keycloak в формат AuthUser
         VariantMap attrs = new VariantMap();
         attrs.put("id", userInfo.get("sub"));
         attrs.put("username", userInfo.get("preferred_username"));
         attrs.put("email", userInfo.get("email"));
-        attrs.put("name", userInfo.get("name"));
+        //attrs.put("name", userInfo.get("name"));
+        attrs.put("fullname", userInfo.get("preferred_username"));
         
         // Добавляем дополнительные атрибуты из Keycloak
         if (userInfo.containsKey("given_name")) {
@@ -69,6 +73,13 @@ public class KeycloakAuthProcessor extends BaseComp implements AuthProcessor {
         if (userInfo.containsKey("family_name")) {
             attrs.put("lastName", userInfo.get("family_name"));
         }
+        ModelService modelSvc = getApp().bean(ModelService.class);
+        Mdb mdb =  modelSvc.getModel().createMdb();
+        AuthDao dao = mdb.createDao(AuthDao.class);
+        Map<String, Object> attrsjc = dao.getUserInfo(token.getUsername(), token.getPasswd());
+
+        //VariantMap attrs = new VariantMap();
+        attrs.putAll(attrsjc);
 
         AuthUser usr = new DefaultAuthUser(attrs);
 
@@ -87,7 +98,8 @@ public class KeycloakAuthProcessor extends BaseComp implements AuthProcessor {
         String requestBody = "grant_type=password"
                 + "&client_id=" + java.net.URLEncoder.encode(clientId, StandardCharsets.UTF_8)
                 + "&username=" + java.net.URLEncoder.encode(username, StandardCharsets.UTF_8)
-                + "&password=" + java.net.URLEncoder.encode(password, StandardCharsets.UTF_8);
+                + "&password=" + java.net.URLEncoder.encode(password, StandardCharsets.UTF_8)
+                + "&scope=openid profile email";
         
         if (clientSecret != null && !clientSecret.isEmpty()) {
             requestBody += "&client_secret=" + java.net.URLEncoder.encode(clientSecret, StandardCharsets.UTF_8);
@@ -103,6 +115,23 @@ public class KeycloakAuthProcessor extends BaseComp implements AuthProcessor {
 
         int responseCode = conn.getResponseCode();
         if (responseCode != HttpURLConnection.HTTP_OK) {
+            // Читаем ошибку от Keycloak для отладки
+            String errorResponse = "";
+            try (BufferedReader br = new BufferedReader(
+                    new InputStreamReader(conn.getErrorStream(), StandardCharsets.UTF_8))) {
+                StringBuilder error = new StringBuilder();
+                String errorLine;
+                while ((errorLine = br.readLine()) != null) {
+                    error.append(errorLine);
+                }
+                errorResponse = error.toString();
+            } catch (Exception e) {
+                // Игнорируем ошибки чтения error stream
+            }
+            System.err.println("Keycloak token request failed. Response code: " + responseCode);
+            System.err.println("URL: " + tokenUrl);
+            System.err.println("Request body: " + requestBody.replaceAll("password=[^&]*", "password=***"));
+            System.err.println("Error response: " + errorResponse);
             return null;
         }
 
