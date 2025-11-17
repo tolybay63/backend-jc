@@ -97,7 +97,7 @@
     <keycloak url="http://localhost:9090"
               realm="dtj"
               clientId="dtj-client"
-              clientSecret="XWb2xQycddf1Kc8Fy3X6i3MVm6ECX7Lr"
+              clientSecret="GgQgs4soQ2BuakhaL4U7E9Jh2HxYbKoS"
     />
 
 

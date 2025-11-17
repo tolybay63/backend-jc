@@ -12,21 +12,25 @@
                 class="jandcode.core.apx.auth.AuthAction"/>
 
 
+<!--
         <x-if env.dev="true">
-            <!-- автологин подключаем только в режиме dev -->
+            &lt;!&ndash; автологин подключаем только в режиме dev &ndash;&gt;
             <filter name="auth-autologin"
                     class="jandcode.core.apx.auth.AuthAutoLoginFilter"
                     type="startRequest" weight="-100"/>
         </x-if>
+-->
 
         <filter name="auth"
                 class="jandcode.core.apx.auth.AuthFilter"
                 type="*" weight="-100"/>
 
 
+<!--
         <auth>
-            <autologin username="sysadmin" password="111"/>
+            <autologin username="sysadmin" password="SysAdmin"/>
         </auth>
+-->
 
     </web>
 
