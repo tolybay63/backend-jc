@@ -77,12 +77,9 @@ public class KeycloakAuthProcessor extends BaseComp implements AuthProcessor {
         Mdb mdb =  modelSvc.getModel().createMdb();
         AuthDao dao = mdb.createDao(AuthDao.class);
         Map<String, Object> attrsjc = dao.getUserInfo(token.getUsername(), token.getPasswd());
-
-        //VariantMap attrs = new VariantMap();
         attrs.putAll(attrsjc);
 
         AuthUser usr = new DefaultAuthUser(attrs);
-
         AuthService authSvc = getApp().bean(AuthService.class);
         authSvc.setCurrentUser(usr);
         return usr;
