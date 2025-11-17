@@ -231,8 +231,8 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
         long own = UtCnv.toLong(params.get("id"))
         params.put("own", own)
         if (params.get("idStatus") > 0) {
-            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_StatusAtWork", "")
-            long fvStatus = map.get("FV_StatusAtWork")
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_StatusWorkAssigned", "")
+            long fvStatus = map.get("FV_StatusWorkAssigned")
             long pvStatus = apiMeta().get(ApiMeta).idPV("factorVal", fvStatus, "Prop_Status")
             params.put("pvStatus", pvStatus)
             params.put("fvStatus", fvStatus)

@@ -638,7 +638,8 @@ class DataDao extends BaseMdbUtils {
                 v10.id as idUpdatedAt, v10.dateTimeVal as UpdatedAt,
                 v11.id as idWork, v11.propVal as pvWork, v11.obj as objWork,
                     null as nameClsWork, null as fullNameWork,
-                v12.id as idFactDateEnd, v12.dateTimeVal as FactDateEnd
+                v12.id as idFactDateEnd, v12.dateTimeVal as FactDateEnd,
+                v13.id as idIncident, v13.propVal as pvIncident, v13.obj as objIncident
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
@@ -665,6 +666,8 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v11 on d11.id=v11.dataprop
                 left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_FactDateEnd
                 left join DataPropVal v12 on d12.id=v12.dataprop
+                left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_Incident
+                left join DataPropVal v13 on d13.id=v13.dataprop
             where ${whe} ${wheV12}
         """, map)
         //
@@ -756,7 +759,7 @@ class DataDao extends BaseMdbUtils {
         Map<String, Object> par = new HashMap<>(pms)
         if (mode.equalsIgnoreCase("ins")) {
             if (pms.getLong("id") > 0) {
-                pms.put("objIncident", pms.getLong("id"))
+                pms.put("obc", pms.getLong("id"))
                 long pv = apiMeta().get(ApiMeta).idPV("cls", pms.getLong("cls"), "Prop_Incident")
                 pms.put("pvIncident", pv)
             }
@@ -821,17 +824,14 @@ class DataDao extends BaseMdbUtils {
                 fillProperties(true, "Prop_StartKm", pms)
             else
                 throw new XError("[StartKm] not specified")
-
             //6 Prop_FinishKm
             if (pms.getString("FinishKm") != "")
                 fillProperties(true, "Prop_FinishKm", pms)
             else
                 throw new XError("[FinishKm] not specified")
-
             //7 Prop_StartPicket
             if (pms.getString("StartPicket") != "")
                 fillProperties(true, "Prop_StartPicket", pms)
-
             //8 Prop_FinishPicket
             if (pms.getString("FinishPicket") != "")
                 fillProperties(true, "Prop_FinishPicket", pms)
@@ -841,16 +841,20 @@ class DataDao extends BaseMdbUtils {
                 fillProperties(true, "Prop_PlanDateEnd", pms)
             else
                 throw new XError("[PlanDateEnd] not specified")
-
             //10 Prop_CreatedAt
             if (pms.getString("CreatedAt") != "")
                 fillProperties(true, "Prop_CreatedAt", pms)
+            else
+                throw new XError("[CreatedAt] not specified")
             //11 Prop_UpdatedAt
             if (pms.getString("UpdatedAt") != "")
                 fillProperties(true, "Prop_UpdatedAt", pms)
+            else
+                throw new XError("[UpdatedAt] not specified")
             //12 Prop_Inspection
             if (pms.getLong("objIncident") > 0)
                 fillProperties(true, "Prop_Incident", pms)
+            //
         } else if (mode.equalsIgnoreCase("upd")) {
             own = pms.getLong("id")
             par.put("fullName", par.get("name"))
@@ -869,17 +873,47 @@ class DataDao extends BaseMdbUtils {
             pms.put("own", own)
 
             //1 Prop_ObjectType
-            updateProperties("Prop_LocationClsSection", pms)
+            if (pms.containsKey("idLocationClsSection")) {
+                if (pms.getLong("objLocationClsSection") > 0)
+                    updateProperties("Prop_LocationClsSection", pms)
+                else
+                    throw new XError("[objLocationClsSection] not specified")
+            }
             //2 Prop_Work
-            updateProperties("Prop_Work", pms)
+            if (pms.containsKey("idWork")) {
+                if (pms.getLong("objWork") > 0)
+                    updateProperties("Prop_Work", pms)
+                else
+                    throw new XError("[objWork] not specified")
+            }
             //3 Prop_Object
-            updateProperties("Prop_Object", pms)
+            if (pms.containsKey("idObject")) {
+                if (pms.getLong("objObject") > 0)
+                    updateProperties("Prop_Object", pms)
+                else
+                    throw new XError("[objObject] not specified")
+            }
             //4 Prop_User
-            updateProperties("Prop_User", pms)
+            if (pms.containsKey("idUser")) {
+                if (pms.getLong("objUser") > 0)
+                    updateProperties("Prop_User", pms)
+                else
+                    throw new XError("[objUser] not specified")
+            }
             //5 Prop_StartKm
-            updateProperties("Prop_StartKm", pms)
+            if (pms.containsKey("idStartKm")) {
+                if (pms.getString("StartKm") != "")
+                    updateProperties("Prop_StartKm", pms)
+                else
+                    throw new XError("[StartKm] not specified")
+            }
             //6 Prop_FinishKm
-            updateProperties("Prop_FinishKm", pms)
+            if (pms.containsKey("idFinishKm")) {
+                if (pms.getString("FinishKm") != "")
+                    updateProperties("Prop_FinishKm", pms)
+                else
+                    throw new XError("[FinishKm] not specified")
+            }
             //7 Prop_StartPicket
             if (pms.containsKey("idStartPicket")) {
                 updateProperties("Prop_StartPicket", pms)
@@ -895,20 +929,18 @@ class DataDao extends BaseMdbUtils {
                     fillProperties(true, "Prop_FinishPicket", pms)
             }
             //9 Prop_PlanDateEnd
-            updateProperties("Prop_PlanDateEnd", pms)
-            //10 Prop_CreatedAt
-            if (pms.containsKey("idCreatedAt"))
-                updateProperties("Prop_CreatedAt", pms)
-            else {
-                if (pms.getString("CreatedAt") != "")
-                    fillProperties(true, "Prop_CreatedAt", pms)
+            if (pms.containsKey("idPlanDateEnd")) {
+                if (pms.getString("PlanDateEnd") != "")
+                    updateProperties("Prop_PlanDateEnd", pms)
+                else
+                    throw new XError("[PlanDateEnd] not specified")
             }
-            //11 Prop_UpdatedAt
-            if (pms.containsKey("idUpdatedAt"))
-                updateProperties("Prop_UpdatedAt", pms)
-            else {
+            //10 Prop_UpdatedAt
+            if (pms.containsKey("idUpdatedAt")) {
                 if (pms.getString("UpdatedAt") != "")
-                    fillProperties(true, "Prop_UpdatedAt", pms)
+                    updateProperties("Prop_UpdatedAt", pms)
+                else
+                    throw new XError("[UpdatedAt] not specified")
             }
         } else {
             throw new XError("Нейзвестный режим сохранения ('ins', 'upd')")
@@ -922,7 +954,7 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     long assignPlan(Map<String, Object> params) {
         //Prop_WorkPlan
-        savePlan("ins", params).get(0)
+        savePlan("ins", params)
         return apiIncidentData().get(ApiIncidentData).updateIncident(params)
     }
 

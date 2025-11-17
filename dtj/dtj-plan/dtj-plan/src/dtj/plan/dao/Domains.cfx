@@ -51,6 +51,9 @@
         <field name="objLocationClsSection" parent="long"/>
         <field name="nameLocationClsSection" parent="string"/>
 
+        <field name="idIncident" parent="long"/>
+        <field name="pvIncident" parent="long"/>
+        <field name="objIncident" parent="long"/>
     </domain>
 
     <domain name="Obj.plan.correctional" parent="base">

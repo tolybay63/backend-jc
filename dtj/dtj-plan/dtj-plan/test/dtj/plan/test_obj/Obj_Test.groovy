@@ -71,10 +71,10 @@ class Obj_Test extends Apx_Test {
     void testPlanLoad() {
         DataDao dao = mdb.createDao(DataDao.class)
         Store st = dao.loadPlan(Map.of(
-                "date", "2025-11-10",
-//                "periodType", 71,
-                "objLocation", 1073,
-                "codCls", "Cls_WorkPlanCorrectional"
+                "date", "2025-11-17",
+                "periodType", 41,
+                "objLocation", 1073
+//                "codCls", "Cls_WorkPlanCorrectional"
         ))
         mdb.outTable(st)
     }
@@ -115,28 +115,29 @@ class Obj_Test extends Apx_Test {
         DataDao dao = mdb.createDao(DataDao.class)
         Map<String, Object> map = new HashMap<>()
 
-        map.put("CreatedAt", "2025-10-15")
+        map.put("CreatedAt", "2025-11-17")
         map.put("FinishKm", 19)
         map.put("FinishPicket", 2)
-        map.put("PlanDateEnd", "2025-10-15")
+        map.put("PlanDateEnd", "2025-11-25")
         map.put("StartKm", 19)
         map.put("StartPicket", 2)
-        map.put("UpdatedAt", "2025-10-15")
-        map.put("cls", 1133)
+        map.put("UpdatedAt", "2025-11-17")
+        map.put("cls", 1134)
         map.put("fvCriticality", 1174)
-        map.put("id", 1114)
-        map.put("idStatus", 2433)
+        map.put("id", 1158)
+        map.put("idStatus", 3064)
         map.put("linkCls", 1002)
-        map.put("name", "1107-2025-10-15")
+        map.put("name", "1107-2025-11-17")
         map.put("objLocationClsSection", 1077)
         map.put("objObject", 1521)
         map.put("objUser", 1003)
         map.put("objWork", 2345)
         map.put("pvCriticality", 1315)
-        map.put("pvLocationClsSection", "1241")
+        map.put("pvLocationClsSection", 1241)
         map.put("pvObject", 1082)
         map.put("pvUser", 1087)
         map.put("pvWork", 1069)
+        map.put("AssignDateTime", "2025-11-17T00:00:00.000")
 
         Long own = dao.assignPlan(map)
         System.out.println(own)
