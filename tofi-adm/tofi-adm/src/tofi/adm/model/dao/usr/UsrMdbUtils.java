@@ -143,17 +143,17 @@ public class UsrMdbUtils extends BaseMdbUtils {
     public Store insert(Map<String, Object> rec) throws Exception {
         Store st = getMdb().createStore("AuthUser");
         StoreRecord record = st.add(rec);
+        String p = record.getString("passwd");
         record.set("passwd", UtString.md5Str(record.getString("passwd")));
         record.set("id", null);
         long id = getMdb().insertRec("AuthUser", record, true);
         //
         var kc = new tofi.adm.auth.KeycloakAdminClient(getMdb().getApp());
-// 1) создать пользователя в Keycloak
+        //создать пользователя в Keycloak
         String kcUserId = kc.createUser(record.getString("login"),
                 record.getString("email"), true); // true => Email verified
-// 2) задать пароль (не временный)
-        kc.setUserPassword(kcUserId, record.getString("passwd"), false);
-
+        //задать пароль (не временный)
+        kc.setUserPassword(kcUserId, p, false);
         //
         st = getMdb().createStore("AuthUser");
         getMdb().loadQuery(st, "select * from AuthUser where id=:id", Map.of("id", id));

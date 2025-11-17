@@ -98,6 +98,8 @@
               realm="dtj"
               clientId="dtj-client"
               clientSecret="GgQgs4soQ2BuakhaL4U7E9Jh2HxYbKoS"
+              adminUsername="admin"
+              adminPassword="admin"
     />
 
 
