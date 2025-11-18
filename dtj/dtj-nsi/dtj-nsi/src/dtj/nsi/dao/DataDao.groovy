@@ -1029,6 +1029,8 @@ class DataDao extends BaseMdbUtils {
         if (params.get("mode") == "ins") {
             fillProperties(false, UtCnv.toString(params.get("codProp")), params)
         } else {
+            params.put("id"+UtCnv.toString(params.get("codProp")).split("_")[1], UtCnv.toLong(params.get("idVal")))
+
             updateProperties(UtCnv.toString(params.get("codProp")), params)
         }
         return UtCnv.toDouble(params.get("val"))
