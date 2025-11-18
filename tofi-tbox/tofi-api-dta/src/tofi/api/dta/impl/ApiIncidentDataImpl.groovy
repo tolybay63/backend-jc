@@ -227,26 +227,41 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
     }
 
     @Override
-    long updateIncident(Map<String, Object> params) {
+    long updateIncident(String mode, Map<String, Object> params) {
         long own = UtCnv.toLong(params.get("id"))
         params.put("own", own)
-        if (params.get("idStatus") > 0) {
-            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_StatusWorkAssigned", "")
-            long fvStatus = map.get("FV_StatusWorkAssigned")
-            long pvStatus = apiMeta().get(ApiMeta).idPV("factorVal", fvStatus, "Prop_Status")
-            params.put("pvStatus", pvStatus)
-            params.put("fvStatus", fvStatus)
-            updateProperties("Prop_Status", params)
+
+        if (mode.equalsIgnoreCase("ins")) {
+            if (params.get("idStatus") > 0) {
+                Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_StatusWorkAssigned", "")
+                long fvStatus = map.get("FV_StatusWorkAssigned")
+                long pvStatus = apiMeta().get(ApiMeta).idPV("factorVal", fvStatus, "Prop_Status")
+                params.put("pvStatus", pvStatus)
+                params.put("fvStatus", fvStatus)
+                updateProperties("Prop_Status", params)
+            }
+
+            if (params.get("AssignDateTime") != "")
+                fillProperties(true, "Prop_AssignDateTime", params)
+
+            if (params.get("objLocationClsSection") > 0)
+                fillProperties(true, "Prop_LocationClsSection", params)
+
+            if (params.get("fvCriticality") > 0)
+                fillProperties(true, "Prop_Criticality", params)
+        } else if (mode.equalsIgnoreCase("upd")) {
+            if (params.containsKey("idStatus")) {
+                if (UtCnv.toLong(params.get("fvStatus")) > 0)
+                    updateProperties("Prop_Status", params)
+                else
+                    throw new XError("[Status] не указан")
+            } else {
+                throw new XError("[Status] не указан")
+            }
+
+        } else {
+            throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
         }
-
-        if (params.get("AssignDateTime") != "")
-            fillProperties(true, "Prop_AssignDateTime", params)
-
-        if (params.get("objLocationClsSection") > 0)
-            fillProperties(true, "Prop_LocationClsSection", params)
-
-        if (params.get("fvCriticality") > 0)
-            fillProperties(true, "Prop_Criticality", params)
 
         return own
     }

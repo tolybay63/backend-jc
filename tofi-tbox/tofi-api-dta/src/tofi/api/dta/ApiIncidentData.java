@@ -48,5 +48,5 @@ public interface ApiIncidentData {
 
     long saveIncident(String mode, Map<String, Object> params);
 
-    long updateIncident(Map<String, Object> params);
+    long updateIncident(String mode, Map<String, Object> params);
 }
