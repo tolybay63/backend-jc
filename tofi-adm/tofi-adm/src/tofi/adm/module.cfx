@@ -18,14 +18,11 @@
           class="jandcode.core.auth.impl.AuthServiceImpl">
 
         <!-- AuthProcessor. Keycloak авторизация -->
-        <auth-processor name="default"
-                        class="tofi.adm.auth.KeycloakAuthProcessor"/>
+        <auth-processor name="default" class="tofi.adm.auth.KeycloakAuthProcessor"/>
 
 
-        <!-- AuthProcessor. По умолчанию - заглушка для admin/111, user1/111
-        <auth-processor name="default"
-                        class="tofi.adm.auth.TofiAuthProcessor"/>
-	-->
+         AuthProcessor. По умолчанию - заглушка для admin/111, user1/111
+        <!--<auth-processor name="default" class="tofi.adm.auth.TofiAuthProcessor"/>-->
 
     </bean>
 

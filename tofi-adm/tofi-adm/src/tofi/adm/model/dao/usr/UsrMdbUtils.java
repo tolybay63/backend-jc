@@ -148,12 +148,15 @@ public class UsrMdbUtils extends BaseMdbUtils {
         record.set("id", null);
         long id = getMdb().insertRec("AuthUser", record, true);
         //
-        var kc = new tofi.adm.auth.KeycloakAdminClient(getMdb().getApp());
-        //создать пользователя в Keycloak
-        String kcUserId = kc.createUser(record.getString("login"),
-                record.getString("email"), true); // true => Email verified
-        //задать пароль (не временный)
-        kc.setUserPassword(kcUserId, p, false);
+        var bKC = getApp().getConf().getConf("keycloak").getBoolean("enabled");
+        if (bKC) {
+            var kc = new tofi.adm.auth.KeycloakAdminClient(getMdb().getApp());
+            //создать пользователя в Keycloak
+            String kcUserId = kc.createUser(record.getString("login"),
+                    record.getString("email"), true); // true => Email verified
+            //задать пароль (не временный)
+            kc.setUserPassword(kcUserId, p, false);
+        }
         //
         st = getMdb().createStore("AuthUser");
         getMdb().loadQuery(st, "select * from AuthUser where id=:id", Map.of("id", id));

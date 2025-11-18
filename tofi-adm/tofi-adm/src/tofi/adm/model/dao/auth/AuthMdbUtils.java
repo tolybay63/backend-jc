@@ -105,12 +105,6 @@ public class AuthMdbUtils {
         }
     }
 
-/*
-    public void checkTarget(String target) throws Exception {
-        AuthService authSvc = mdb.getApp().bean(AuthService.class);
-        AuthUser au = authSvc.getCurrentUser();
-        long usr = au.getAttrs().getLong("id");
-    }
-*/
+
 
 }

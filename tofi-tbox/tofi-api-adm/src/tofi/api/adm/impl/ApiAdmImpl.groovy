@@ -93,13 +93,16 @@ class ApiAdmImpl extends BaseMdbUtils implements ApiAdm {
         r.set("authUserGr", 2)
         r.set("locked", 0)
         long idUsr = mdb.insertRec("AuthUser", r, true)
-
-        var kc = new KeycloakAdminClient(getMdb().getApp())
-        //создать пользователя в Keycloak
-        String kcUserId = kc.createUser(UtCnv.toString(rec.get("login")),
-                UtCnv.toString(rec.get("email")), true)
-        //задать пароль (не временный)
-        kc.setUserPassword(kcUserId, p, false)
+        //
+        var bKC = getApp().getConf().getConf("keycloak").getBoolean("enabled")
+        if (bKC) {
+            var kc = new KeycloakAdminClient(getMdb().getApp())
+            //создать пользователя в Keycloak
+            String kcUserId = kc.createUser(UtCnv.toString(rec.get("login")),
+                    UtCnv.toString(rec.get("email")), true)
+            //задать пароль (не временный)
+            kc.setUserPassword(kcUserId, p, false)
+        }
         //
         return idUsr
     }
