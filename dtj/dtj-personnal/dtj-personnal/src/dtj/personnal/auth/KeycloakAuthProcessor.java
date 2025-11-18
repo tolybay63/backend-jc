@@ -79,6 +79,7 @@ public class KeycloakAuthProcessor extends BaseComp implements AuthProcessor {
         var admApi = getApp().bean(ApinatorService.class).getApi("adm");
         var z = admApi.get(ApiAdm.class);
         var attrsjc = z.getUserInfo(token.getUsername(), token.getPasswd(), "dtj");
+        attrsjc.remove("passwd");
         attrs.putAll(attrsjc);
 
         AuthUser usr = new DefaultAuthUser(attrs);
