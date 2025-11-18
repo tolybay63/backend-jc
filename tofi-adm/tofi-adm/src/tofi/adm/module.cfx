@@ -1,37 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-
     <web>
         <mount-module/>
         <action name="root"
                 class = "tofi.adm.action.RootAction"
         />
 
-
         <action name="auth"
                 class="jandcode.core.apx.auth.AuthAction"/>
-
-
-<!--
-        <x-if env.dev="true">
-            &lt;!&ndash; автологин подключаем только в режиме dev &ndash;&gt;
-            <filter name="auth-autologin"
-                    class="jandcode.core.apx.auth.AuthAutoLoginFilter"
-                    type="startRequest" weight="-100"/>
-        </x-if>
--->
 
         <filter name="auth"
                 class="jandcode.core.apx.auth.AuthFilter"
                 type="*" weight="-100"/>
-
-
-<!--
-        <auth>
-            <autologin username="sysadmin" password="SysAdmin"/>
-        </auth>
--->
-
     </web>
 
     <bean name="jandcode.core.auth.AuthService"

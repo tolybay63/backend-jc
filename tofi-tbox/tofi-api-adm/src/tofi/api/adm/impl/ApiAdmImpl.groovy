@@ -7,6 +7,7 @@ import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
 import jandcode.core.store.StoreRecord
 import tofi.api.adm.ApiAdm
+import tofi.api.adm.model.utils.KeycloakAdminClient
 
 class ApiAdmImpl extends BaseMdbUtils implements ApiAdm {
     @Override
@@ -75,6 +76,7 @@ class ApiAdmImpl extends BaseMdbUtils implements ApiAdm {
     @Override
     long regUser(Map<String, Object> rec) {
         String psw = UtString.md5Str(UtCnv.toString(rec.get("passwd")))
+        String p = UtCnv.toString(rec.get("passwd"))
         String login = UtString.toString(rec.get("login")).trim()
         Store st = mdb.loadQuery("""
                     select id from AuthUser where login like :l
@@ -90,7 +92,16 @@ class ApiAdmImpl extends BaseMdbUtils implements ApiAdm {
         StoreRecord r = st.add(rec)
         r.set("authUserGr", 2)
         r.set("locked", 0)
-        return mdb.insertRec("AuthUser", r, true)
+        long idUsr = mdb.insertRec("AuthUser", r, true)
+
+        var kc = new KeycloakAdminClient(getMdb().getApp())
+        //создать пользователя в Keycloak
+        String kcUserId = kc.createUser(UtCnv.toString(rec.get("login")),
+                UtCnv.toString(rec.get("email")), true)
+        //задать пароль (не временный)
+        kc.setUserPassword(kcUserId, p, false)
+        //
+        return idUsr
     }
 
     @Override

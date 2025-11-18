@@ -7,33 +7,35 @@
         <action name="root"
                 class = "dtj.personnal.action.RootAction"
         />
-
         <action name="auth"
                 class="jandcode.core.apx.auth.AuthAction"/>
+        <filter name="auth"
+                class="jandcode.core.apx.auth.AuthFilter"
+                type="*" weight="-100"/>
+
         <action name="download"
                 class = "dtj.personnal.action.DownloadAction"
         />
-
         <action name="deletefile"
                 class = "dtj.personnal.action.DeletefileAction"
         />
-
         <action name="upload"
                 class = "dtj.personnal.action.UploadAction"
         />
         <type name="dtj.personnal.action.DownFile"
               render="downfile"/>
         <render name="downfile" class="dtj.personnal.action.DownFileRender"/>
-
-
     </web>
 
     <bean name="jandcode.core.auth.AuthService"
           class="jandcode.core.auth.impl.AuthServiceImpl">
 
-        <!-- AuthProcessor. По умолчанию - заглушка для admin/111, user1/111 -->
+        <!-- AuthProcessor. Keycloak авторизация -->
         <auth-processor name="default"
-                        class="dtj.personnal.auth.TofiAuthProcessor"/>
+                        class="tofi.adm.auth.KeycloakAuthProcessor"/>
+
+        <!-- AuthProcessor. По умолчанию - заглушка для admin/111, user1/111 -->
+        <!--<auth-processor name="default" class="dtj.personnal.auth.TofiAuthProcessor"/>-->
 
     </bean>
 
