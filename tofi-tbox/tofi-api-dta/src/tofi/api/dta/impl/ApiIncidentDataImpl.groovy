@@ -240,15 +240,16 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
                 params.put("fvStatus", fvStatus)
                 updateProperties("Prop_Status", params)
             }
-
-            if (params.get("AssignDateTime") != "")
-                fillProperties(true, "Prop_AssignDateTime", params)
-
-            if (params.get("objLocationClsSection") > 0)
-                fillProperties(true, "Prop_LocationClsSection", params)
-
-            if (params.get("fvCriticality") > 0)
-                fillProperties(true, "Prop_Criticality", params)
+            //
+            if (!params.containsKey("idAssignDateTime"))
+                if (params.get("AssignDateTime") != "")
+                    fillProperties(true, "Prop_AssignDateTime", params)
+            if (!params.containsKey("idLocationClsSection"))
+                if (params.get("objLocationClsSection") > 0)
+                    fillProperties(true, "Prop_LocationClsSection", params)
+            if (!params.containsKey("idCriticality"))
+                if (params.get("fvCriticality") > 0)
+                    fillProperties(true, "Prop_Criticality", params)
         } else if (mode.equalsIgnoreCase("upd")) {
             if (params.containsKey("idStatus")) {
                 if (UtCnv.toLong(params.get("fvStatus")) > 0)
