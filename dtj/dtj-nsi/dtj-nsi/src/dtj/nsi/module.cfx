@@ -7,9 +7,13 @@
         <action name="root"
                 class = "dtj.nsi.action.RootAction"
         />
-
         <action name="auth"
                 class="jandcode.core.apx.auth.AuthAction"/>
+        <filter name="auth"
+                class="jandcode.core.apx.auth.AuthFilter"
+                type="*" weight="-100"/>
+
+
         <action name="download"
                 class = "dtj.nsi.action.DownloadAction"
         />
@@ -33,9 +37,12 @@
     <bean name="jandcode.core.auth.AuthService"
           class="jandcode.core.auth.impl.AuthServiceImpl">
 
-        <!-- AuthProcessor. По умолчанию - заглушка для admin/111, user1/111 -->
+        <!-- AuthProcessor. Keycloak авторизация -->
         <auth-processor name="default"
-                        class="dtj.nsi.auth.TofiAuthProcessor"/>
+                        class="tofi.adm.auth.KeycloakAuthProcessor"/>
+
+        <!-- AuthProcessor. По умолчанию - заглушка для admin/111, user1/111 -->
+        <!--<auth-processor name="default" class="dtj.nsi.auth.TofiAuthProcessor"/>-->
 
     </bean>
 

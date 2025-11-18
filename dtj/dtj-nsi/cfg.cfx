@@ -95,6 +95,15 @@
     </cfg>
 
 
+    <keycloak url="http://localhost:9090"
+              realm="dtj"
+              clientId="dtj-client"
+              clientSecret="GgQgs4soQ2BuakhaL4U7E9Jh2HxYbKoS"
+              adminUsername="admin"
+              adminPassword="admin"
+    />
+
+
     <datadir>
         <path name="dbfilestorage" path="C:/dbfilestorage_dtj"/>
 
