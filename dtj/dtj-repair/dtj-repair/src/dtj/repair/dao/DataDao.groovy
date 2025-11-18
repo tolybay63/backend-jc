@@ -70,9 +70,7 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiRepairData() {
         return app.bean(ApinatorService).getApi("repairdata")
     }
-    ApinatorApi apiIncidentData() {
-        return app.bean(ApinatorService).getApi("incidentdata")
-    }
+    ApinatorApi apiIncidentData() {return app.bean(ApinatorService).getApi("incidentdata")}
 
     @DaoMethod
     List<Map<String, Object>> loadResourceMaterialFact(long objTaskLog) {
@@ -2354,7 +2352,7 @@ class DataDao extends BaseMdbUtils {
         Map<String, Object> par = new HashMap<>(pms)
         if (mode.equalsIgnoreCase("ins")) {
             //Проверка статуса Incident
-            checkStotusOfIncident(pms.getLong("objWorkPlan"), "FV_StatusWorkAssigned", "FV_StatusInPlanning")
+            apiRepairData().get(ApiRepairData).checkStotusOfIncident(pms.getLong("objWorkPlan"), "FV_StatusWorkAssigned", "FV_StatusInPlanning")
             //
             map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_TaskLog", "")
             par.put("cls", map.get("Cls_TaskLog"))
@@ -2506,7 +2504,7 @@ class DataDao extends BaseMdbUtils {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Fact", "")
         pms.put("fvStatus", map.get("FV_Fact"))
         //Проверка статуса Incident
-        checkStotusOfIncident(pms.getLong("objWorkPlan"), "FV_StatusInPlanning", "FV_StatusAtWork")
+        apiRepairData().get(ApiRepairData).checkStotusOfIncident(pms.getLong("objWorkPlan"), "FV_StatusInPlanning", "FV_StatusAtWork")
         //1 Prop_User
         if (pms.containsKey("idUser")) {
             if (pms.getLong("objUser") == 0)
@@ -2561,43 +2559,6 @@ class DataDao extends BaseMdbUtils {
         //
         return loadObjTaskLog(own)
     }
-
-    private void checkStotusOfIncident(long objWorkPlan, String codStatusFrom, String codStatusTo) {
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Incident", "")
-        Store stPlan = loadSqlService("""
-                select v1.obj
-                from Obj o
-                    left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Incident")}
-                    inner join DataPropVal v1 on d1.id=v1.dataProp
-                where o.id=${objWorkPlan}    
-            """, "", "plandata")
-        if (stPlan.size()>0) {
-            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Status", "")
-            Store stIncident = loadSqlService("""
-                    select v1.id, v1.propVal
-                    from Obj o
-                        left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Status")}
-                        inner join DataPropVal v1 on d1.id=v1.dataProp
-                    where o.id=${stPlan.get(0).getLong("obj")}    
-                """, "", "incidentdata")
-            //
-            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "", "FV_Status%")
-            long fvStatus = map.get(codStatusFrom)
-            long pvStatus = apiMeta().get(ApiMeta).idPV("factorVal", fvStatus, "Prop_Status")
-            if (pvStatus == stIncident.get(0).getLong("propVal")) {
-                fvStatus = map.get(codStatusTo)
-                pvStatus = apiMeta().get(ApiMeta).idPV("factorVal", fvStatus, "Prop_Status")
-                //
-                Map<String, Object> mapPar = new HashMap<>()
-                mapPar.put("id", stPlan.get(0).getLong("obj"))
-                mapPar.put("idStatus", stIncident.get(0).getLong("id"))
-                mapPar.put("fvStatus", fvStatus)
-                mapPar.put("pvStatus", pvStatus)
-                apiIncidentData().get(ApiIncidentData).updateIncident("upd", mapPar)
-            }
-        }
-    }
-
 
     /**
      *

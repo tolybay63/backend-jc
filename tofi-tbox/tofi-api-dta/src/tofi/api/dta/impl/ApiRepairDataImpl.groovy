@@ -3,7 +3,18 @@ package tofi.api.dta.impl
 import jandcode.commons.error.XError
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
+import tofi.api.dta.ApiClientData
+import tofi.api.dta.ApiIncidentData
+import tofi.api.dta.ApiInspectionData
+import tofi.api.dta.ApiNSIData
+import tofi.api.dta.ApiObjectData
+import tofi.api.dta.ApiOrgStructureData
+import tofi.api.dta.ApiPersonnalData
+import tofi.api.dta.ApiPlanData
 import tofi.api.dta.ApiRepairData
+import tofi.api.dta.ApiResourceData
+import tofi.api.dta.ApiUserData
+import tofi.api.mdl.ApiMeta
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
 
@@ -12,7 +23,10 @@ class ApiRepairDataImpl extends BaseMdbUtils implements ApiRepairData {
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
     }
-
+    ApinatorApi apiIncidentData() {return app.bean(ApinatorService).getApi("incidentdata")}
+    ApinatorApi apiPlanData() {
+        return app.bean(ApinatorService).getApi("plandata")
+    }
 
     @Override
     Store loadSql(String sql, String domain) {
@@ -110,5 +124,52 @@ class ApiRepairDataImpl extends BaseMdbUtils implements ApiRepairData {
                 select id from RelObj where relcls=${clsORrelcls} limit 1
             """).size() > 0
     }
+
+    @Override
+    void checkStotusOfIncident(long objWorkPlan, String codStatusFrom, String codStatusTo) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Incident", "")
+        Store stPlan = loadSqlService("""
+                select v1.obj
+                from Obj o
+                    left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Incident")}
+                    inner join DataPropVal v1 on d1.id=v1.dataProp
+                where o.id=${objWorkPlan}    
+            """, "", "plandata")
+        if (stPlan.size()>0) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Status", "")
+            Store stIncident = loadSqlService("""
+                    select v1.id, v1.propVal
+                    from Obj o
+                        left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Status")}
+                        inner join DataPropVal v1 on d1.id=v1.dataProp
+                    where o.id=${stPlan.get(0).getLong("obj")}    
+                """, "", "incidentdata")
+            //
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "", "FV_Status%")
+            long fvStatus = map.get(codStatusFrom)
+            long pvStatus = apiMeta().get(ApiMeta).idPV("factorVal", fvStatus, "Prop_Status")
+            if (pvStatus == stIncident.get(0).getLong("propVal")) {
+                fvStatus = map.get(codStatusTo)
+                pvStatus = apiMeta().get(ApiMeta).idPV("factorVal", fvStatus, "Prop_Status")
+                //
+                Map<String, Object> mapPar = new HashMap<>()
+                mapPar.put("id", stPlan.get(0).getLong("obj"))
+                mapPar.put("idStatus", stIncident.get(0).getLong("id"))
+                mapPar.put("fvStatus", fvStatus)
+                mapPar.put("pvStatus", pvStatus)
+                apiIncidentData().get(ApiIncidentData).updateIncident("upd", mapPar)
+            }
+        }
+    }
+    ////////
+    private Store loadSqlService(String sql, String domain, String model) {
+        if (model.equalsIgnoreCase("plandata"))
+            return apiPlanData().get(ApiPlanData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("incidentdata"))
+            return apiIncidentData().get(ApiIncidentData).loadSql(sql, domain)
+        else
+            throw new XError("Unknown model [${model}]")
+    }
+
 
 }

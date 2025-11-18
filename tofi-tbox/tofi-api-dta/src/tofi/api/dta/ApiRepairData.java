@@ -46,4 +46,5 @@ public interface ApiRepairData {
      */
     boolean checkExistOwners(long clsORrelcls, boolean isObj);
 
+    void checkStotusOfIncident(long objWorkPlan, String codStatusFrom, String codStatusTo);
 }
