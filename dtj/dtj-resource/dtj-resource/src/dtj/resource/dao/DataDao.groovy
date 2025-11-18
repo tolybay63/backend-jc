@@ -397,8 +397,6 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("[UpdatedAt] not specified")
             //6 Prop_User
             if (pms.getLong("objUser") > 0) {
-                long pv = apiMeta().get(ApiMeta).idPV("cls", pms.getLong("clsUser"), "Prop_User")
-                pms.put("pvUser", pv)
                 fillProperties(true, "Prop_User", pms)
             } else
                 throw new XError("[objUser] not specified")
@@ -606,8 +604,6 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("[UpdatedAt] not specified")
             //6 Prop_User
             if (pms.getLong("objUser") > 0) {
-                long pv = apiMeta().get(ApiMeta).idPV("cls", pms.getLong("clsUser"), "Prop_User")
-                pms.put("pvUser", pv)
                 fillProperties(true, "Prop_User", pms)
             } else
                 throw new XError("[objUser] not specified")

@@ -97,9 +97,15 @@ class Material_Test extends Apx_Test {
         DataDao dao = mdb.createDao(DataDao.class)
         Map <String, Object> map = Map.of(
                 "name", "Test 1",
-                "fvTypTool", 1257,
-                "pvTypTool", 1463,
-                "Description", "test")
+                "Number", "1265",
+                "fvTypTool", 1265,
+                "pvTypTool", 1482,
+                "objUser", 1003,
+                "pvUser", 1087,
+                "objLocationClsSection", 1077,
+                "pvLocationClsSection", 1241,
+                "CreatedAt", "2025-11-18",
+                "UpdatedAt", "2025-11-18")
         Store st = dao.saveTool("ins", map)
         mdb.outTable(st)
     }
