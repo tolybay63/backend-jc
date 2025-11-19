@@ -52,6 +52,38 @@ public class KeycloakAdminClient {
         return String.valueOf(first.get("id"));
     }
 
+    /**
+     * Удаляет пользователя из Keycloak
+     */
+    public void deleteUser(String userId) throws Exception {
+        String adminToken = getAdminToken();
+        String base = app.getConf().getConf("keycloak").getString("url");
+        String realm = app.getConf().getConf("keycloak").getString("realm");
+        String url = base + "/admin/realms/" + realm + "/users/" + userId;
+        HttpURLConnection conn = deleteJson(url, adminToken);
+        int code = conn.getResponseCode();
+        if (code != 204) {
+            throw new RuntimeException("Keycloak delete user failed: " + code + " " + readError(conn));
+        }
+    }
+
+    /**
+     * Проверяет существование пользователя в Keycloak
+     */
+    public boolean userExists(String username) throws Exception {
+        String adminToken = getAdminToken();
+        String base = app.getConf().getConf("keycloak").getString("url");
+        String realm = app.getConf().getConf("keycloak").getString("realm");
+        String url = base + "/admin/realms/" + realm + "/users?username=" + java.net.URLEncoder.encode(username, StandardCharsets.UTF_8);
+        HttpURLConnection get = getJson(url, adminToken);
+        if (get.getResponseCode() != 200) {
+            return false;
+        }
+        String json = readOk(get);
+        List list = (List) UtJson.fromJson(json, List.class);
+        return !list.isEmpty();
+    }
+
     public void setUserPassword(String userId, String password, boolean temporary) throws Exception {
         String adminToken = getAdminToken();
         String base = app.getConf().getConf("keycloak").getString("url");
@@ -131,6 +163,14 @@ public class KeycloakAdminClient {
 
     private static HttpURLConnection getJson(String url, String bearer) throws Exception {
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+        conn.setRequestProperty("Accept", "application/json");
+        conn.setRequestProperty("Authorization", "Bearer " + bearer);
+        return conn;
+    }
+
+    private static HttpURLConnection deleteJson(String url, String bearer) throws Exception {
+        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+        conn.setRequestMethod("DELETE");
         conn.setRequestProperty("Accept", "application/json");
         conn.setRequestProperty("Authorization", "Bearer " + bearer);
         return conn;
