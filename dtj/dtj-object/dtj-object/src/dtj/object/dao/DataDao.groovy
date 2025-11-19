@@ -10,19 +10,10 @@ import jandcode.commons.variant.VariantMap
 import jandcode.core.auth.AuthService
 import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.mdb.BaseMdbUtils
-import jandcode.core.std.CfgService
 import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
-import tofi.api.dta.ApiClientData
-import tofi.api.dta.ApiIncidentData
-import tofi.api.dta.ApiInspectionData
-import tofi.api.dta.ApiNSIData
-import tofi.api.dta.ApiObjectData
-import tofi.api.dta.ApiOrgStructureData
-import tofi.api.dta.ApiPersonnalData
-import tofi.api.dta.ApiPlanData
-import tofi.api.dta.ApiUserData
+import tofi.api.dta.*
 import tofi.api.dta.model.utils.EntityMdbUtils
 import tofi.api.dta.model.utils.UtPeriod
 import tofi.api.mdl.ApiMeta
@@ -889,7 +880,6 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v5 on d5.id=v5.dataprop
             where ${whe} and v2.numberVal * 1000 + v4.numberVal*100 <= ${beg} and v3.numberVal * 1000 + v5.numberVal *100 >= ${end}
         """
-        //Store st = loadSqlServiceWithParams(sql, params, "", "nsidata")
         Store st = mdb.loadQuery(sql)
         //mdb.outTable(st)
         if (st.size()==1) {
