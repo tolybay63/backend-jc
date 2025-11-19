@@ -97,7 +97,7 @@ class DataDao extends BaseMdbUtils {
         par.put("FactDateEnd", FactDateEnd)
         fillProperties(true, "Prop_FactDateEnd", par)
         //Проверка статуса Incident
-        apiRepairData().get(ApiRepairData).checkStotusOfIncident(own, "FV_StatusAtWork", "FV_StatusEliminated")
+        apiRepairData().get(ApiRepairData).checkStatusOfIncident(own, "FV_StatusAtWork", "FV_StatusEliminated")
     }
 
     @DaoMethod

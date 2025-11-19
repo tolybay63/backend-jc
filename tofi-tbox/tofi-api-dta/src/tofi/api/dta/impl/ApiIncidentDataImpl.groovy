@@ -259,6 +259,10 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
             } else {
                 throw new XError("[Status] не указан")
             }
+            //
+            if (!params.containsKey("idCloseDateTime"))
+                if (params.get("CloseDateTime") != "")
+                    fillProperties(true, "Prop_CloseDateTime", params)
 
         } else {
             throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
@@ -364,7 +368,8 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
         // Attrib str dttm
         if ([FD_AttribValType_consts.dttm].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_RegistrationDateTime") ||
-                    cod.equalsIgnoreCase("Prop_AssignDateTime")) {
+                    cod.equalsIgnoreCase("Prop_AssignDateTime") ||
+                    cod.equalsIgnoreCase("Prop_CloseDateTime")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
                 }

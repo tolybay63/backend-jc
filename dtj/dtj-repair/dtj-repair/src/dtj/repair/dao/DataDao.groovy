@@ -2352,7 +2352,7 @@ class DataDao extends BaseMdbUtils {
         Map<String, Object> par = new HashMap<>(pms)
         if (mode.equalsIgnoreCase("ins")) {
             //Проверка статуса Incident
-            apiRepairData().get(ApiRepairData).checkStotusOfIncident(pms.getLong("objWorkPlan"), "FV_StatusWorkAssigned", "FV_StatusInPlanning")
+            apiRepairData().get(ApiRepairData).checkStatusOfIncident(pms.getLong("objWorkPlan"), "FV_StatusWorkAssigned", "FV_StatusInPlanning")
             //
             map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_TaskLog", "")
             par.put("cls", map.get("Cls_TaskLog"))
@@ -2504,7 +2504,7 @@ class DataDao extends BaseMdbUtils {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Fact", "")
         pms.put("fvStatus", map.get("FV_Fact"))
         //Проверка статуса Incident
-        apiRepairData().get(ApiRepairData).checkStotusOfIncident(pms.getLong("objWorkPlan"), "FV_StatusInPlanning", "FV_StatusAtWork")
+        apiRepairData().get(ApiRepairData).checkStatusOfIncident(pms.getLong("objWorkPlan"), "FV_StatusInPlanning", "FV_StatusAtWork")
         //1 Prop_User
         if (pms.containsKey("idUser")) {
             if (pms.getLong("objUser") == 0)

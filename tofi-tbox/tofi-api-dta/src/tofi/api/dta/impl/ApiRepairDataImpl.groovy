@@ -1,5 +1,6 @@
 package tofi.api.dta.impl
 
+import jandcode.commons.datetime.XDateTime
 import jandcode.commons.error.XError
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
@@ -126,7 +127,7 @@ class ApiRepairDataImpl extends BaseMdbUtils implements ApiRepairData {
     }
 
     @Override
-    void checkStotusOfIncident(long objWorkPlan, String codStatusFrom, String codStatusTo) {
+    void checkStatusOfIncident(long objWorkPlan, String codStatusFrom, String codStatusTo) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Incident", "")
         Store stPlan = loadSqlService("""
                 select v1.obj
@@ -136,12 +137,14 @@ class ApiRepairDataImpl extends BaseMdbUtils implements ApiRepairData {
                 where o.id=${objWorkPlan}    
             """, "", "plandata")
         if (stPlan.size()>0) {
-            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Status", "")
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
             Store stIncident = loadSqlService("""
-                    select v1.id, v1.propVal
+                    select v1.id, v1.propVal, v2.dateTimeVal
                     from Obj o
                         left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Status")}
                         inner join DataPropVal v1 on d1.id=v1.dataProp
+                        left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_CloseDateTime")}
+                        left join DataPropVal v2 on d2.id=v2.dataProp
                     where o.id=${stPlan.get(0).getLong("obj")}    
                 """, "", "incidentdata")
             //
@@ -149,10 +152,14 @@ class ApiRepairDataImpl extends BaseMdbUtils implements ApiRepairData {
             long fvStatus = map.get(codStatusFrom)
             long pvStatus = apiMeta().get(ApiMeta).idPV("factorVal", fvStatus, "Prop_Status")
             if (pvStatus == stIncident.get(0).getLong("propVal")) {
+                Map<String, Object> mapPar = new HashMap<>()
+                if (codStatusTo == "FV_StatusEliminated" && stIncident.get(0).getString("dateTimeVal").startsWith("0000-01-01"))
+                    mapPar.put("CloseDateTime", XDateTime.now())
+                //
                 fvStatus = map.get(codStatusTo)
                 pvStatus = apiMeta().get(ApiMeta).idPV("factorVal", fvStatus, "Prop_Status")
                 //
-                Map<String, Object> mapPar = new HashMap<>()
+
                 mapPar.put("id", stPlan.get(0).getLong("obj"))
                 mapPar.put("idStatus", stIncident.get(0).getLong("id"))
                 mapPar.put("fvStatus", fvStatus)
