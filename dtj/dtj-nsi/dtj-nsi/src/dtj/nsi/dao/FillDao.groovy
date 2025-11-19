@@ -215,21 +215,33 @@ class FillDao extends BaseMdbUtils {
             //
             reader.eachRow(eachLine)
         } else {
-            mdb.execQueryNative("""
-                CREATE TABLE IF NOT EXISTS log (
-                    id int8 NOT NULL,
-                    msg varchar(800) NULL,
-                    cnt int8 NULL,
-                    err int2 NULL,
-                    CONSTRAINT pk_log PRIMARY KEY (id)
-                );                
-                ALTER TABLE log OWNER TO pg;
-                GRANT ALL ON TABLE log TO pg; 
-                INSERT INTO log (id, msg, cnt, err)
-                    SELECT 1 AS id, '' AS msg, 0 as cnt, 0 as err FROM log
-                    WHERE NOT EXISTS ( SELECT id FROM log WHERE id = 1 );
-                update log set err=0, msg='', cnt=0 where id=1;
-            """)
+            try {
+                mdb.execQueryNative("""
+                    CREATE TABLE IF NOT EXISTS log (
+                        id int8 NOT NULL,
+                        msg varchar(800) NULL,
+                        cnt int8 NULL,
+                        err int2 NULL,
+                        CONSTRAINT pk_log PRIMARY KEY (id)
+                    );
+                    ALTER TABLE log OWNER TO pg;
+                    GRANT ALL ON TABLE log TO pg; 
+                """)
+                Store stLog = mdb.loadQuery("select * from log")
+                if (stLog.size()==0) {
+                    mdb.execQueryNative("""
+                        INSERT INTO log (id, msg, cnt, err) VALUES (1, '', 0, 0);
+                    """)
+                } else {
+                    mdb.execQueryNative("""
+                        UPDATE log SET msg='', cnt=0, err=0 WHERE id=1;
+                    """)
+                }
+            } catch (Exception e) {
+                e.printStackTrace()
+            } finally {
+                mdb.commit()
+            }
             //
             reader.eachRow(eachLineTest)
             //
