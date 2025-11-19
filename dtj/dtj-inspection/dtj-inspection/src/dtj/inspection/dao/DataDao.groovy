@@ -1712,8 +1712,8 @@ class DataDao extends BaseMdbUtils {
 
             stTmp = mdb.loadQuery("""
                 select o.id,
-                    v3.numberVal * 1000 + coalesce(v5.numberVal,0) * 100 + coalesce(v12.numberVal,0) * 12.5 as beg,
-                    v4.numberVal * 1000 + coalesce(v6.numberVal,0) * 100 + coalesce(v13.numberVal,0) * 12.5 as end
+                    v3.numberVal * 1000 + coalesce(v5.numberVal,0) * 100 + coalesce(v12.numberVal,0) * 25 as beg,
+                    v4.numberVal * 1000 + coalesce(v6.numberVal,0) * 100 + coalesce(v13.numberVal,0) * 25 as end
                 from Obj o 
                     left join ObjVer v on o.id=v.ownerver and v.lastver=1
                    left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartKm
