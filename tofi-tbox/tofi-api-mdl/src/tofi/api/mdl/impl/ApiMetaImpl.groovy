@@ -241,8 +241,8 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
         Map<Long, Long> res = [:]
 
         Store st = mdb.loadQuery("""
-            select pv.id, ${entity} from PropVal pv, Prop p
-            where pv.prop=p.id and p.cod='${codProp}' and ${entity} is not null
+            select pv.id, pv.${entity} from PropVal pv, Prop p
+            where pv.prop=p.id and p.cod='${codProp}' and pv.${entity} is not null
         """)
         for (StoreRecord r in st) {
             if (keyIsPropVal)

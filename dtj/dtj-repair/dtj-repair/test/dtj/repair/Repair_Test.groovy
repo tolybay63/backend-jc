@@ -378,7 +378,7 @@ class Repair_Test extends Apx_Test {
     void loadTaskLog_test () {
         DataDao dao = mdb.createDao(DataDao.class)
         Map<String, Object> params =  Map.of(
-                "notResource", 1,
+//                "notResource", 1,
                 "date", "2025-07-29",
                 "periodType", 11,
                 "objLocation", 1071
