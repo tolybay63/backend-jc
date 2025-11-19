@@ -186,7 +186,11 @@ class DataDao extends BaseMdbUtils {
 
         if (mode.equalsIgnoreCase("ins")) {
             //
-            long userId = regUser(params)
+            long userId = 0
+            if (UtCnv.toBoolean(params.get("isUser"))) {
+                userId = regUser(params)
+            }
+
             //
             try {
                 Map<String, Object> par = new HashMap<>(params)
@@ -227,8 +231,10 @@ class DataDao extends BaseMdbUtils {
                     fillProperties(true, "Prop_UpdatedAt", params)
 
                 //12 Prop_UserId
-                params.put("UserId", userId)
-                fillProperties(true, "Prop_UserId", params)
+                if (userId > 0) {
+                    params.put("UserId", userId)
+                    fillProperties(true, "Prop_UserId", params)
+                }
 
                 //13 Prop_UserSex
                 fillProperties(true, "Prop_UserSex", params)
