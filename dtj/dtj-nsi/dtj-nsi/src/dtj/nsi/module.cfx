@@ -27,6 +27,9 @@
               render="downfile"/>
         <render name="downfile" class="dtj.nsi.action.DownFileRender"/>
 
+        <action name="filldata"
+                class = "dtj.nsi.action.FillDataAction"
+        />
 
     </web>
 

@@ -98,7 +98,7 @@ class DataDao extends BaseMdbUtils {
         """, map)
         //
 
-        Map<Long, Long> mapMea = apiMeta().get(ApiMeta).mapEntityIdFromPV("measure", true)
+        Map<Long, Long> mapMea = apiMeta().get(ApiMeta).mapEntityIdFromPV("measure", "Prop_Measure", true)
 
         Store stMea = loadSqlMeta("""
             select id, name from Measure where 0=0
@@ -526,7 +526,7 @@ class DataDao extends BaseMdbUtils {
             where ${whe}
         """, map)
 
-        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
+        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", "Prop_DefectsCategory", true)
 
         for (StoreRecord record in st) {
             record.set("fvDefectsCategory", mapPV.get(record.getLong("pvDefectsCategory")))
@@ -581,7 +581,7 @@ class DataDao extends BaseMdbUtils {
             order by o.id
         """, map)
 
-        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("measure", true)
+        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("measure", "Prop_ParamsMeasure", true)
 
         for (StoreRecord record in st) {
             record.set("meaParamsMeasure", mapPV.get(record.getLong("pvParamsMeasure")))
@@ -719,7 +719,7 @@ class DataDao extends BaseMdbUtils {
         Map<String, Object> pms = new HashMap<>()
         pms.put("own", UtCnv.toLong(params.get("obj")))
         //cls ?
-        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("cls", false)
+        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("cls", "Prop_LocationMulti", false)
         //
         for (long obj in idsNewLong) {
             if (!idsOld.contains(obj)) {
@@ -908,7 +908,7 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v2 on d2.id=v2.dataprop
             where ${whe}
         """, map)
-        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
+        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", "Prop_Shape", true)
 
         Store stCls = loadSqlMeta("""
             select c.id, v.name
@@ -965,7 +965,7 @@ class DataDao extends BaseMdbUtils {
             order by o.id
         """, map)
 
-        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
+        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", "Prop_PeriodType", true)
 
         for (StoreRecord record in st) {
             record.set("fvPeriodType", mapPV.get(record.getLong("pvPeriodType")))
@@ -2166,7 +2166,6 @@ class DataDao extends BaseMdbUtils {
         """, "")
     }
 
-
     @DaoMethod
     Store loadDepartments(String codTyp, String codProp) {
         //return loadObjTreeForSelect(codCls, codProp)
@@ -2208,7 +2207,6 @@ class DataDao extends BaseMdbUtils {
     Store loadFvOt(String codFactor) {
         return loadFvForSelect(codFactor)
     }
-
 
     @DaoMethod
     Store loadFvForSelect(String codFactor) {

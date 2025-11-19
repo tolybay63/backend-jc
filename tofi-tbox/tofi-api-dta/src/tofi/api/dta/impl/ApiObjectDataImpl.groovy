@@ -1,6 +1,7 @@
 package tofi.api.dta.impl
 
 import jandcode.commons.UtCnv
+import jandcode.commons.datetime.XDate
 import jandcode.commons.datetime.XDateTime
 import jandcode.commons.datetime.XDateTimeFormatter
 import jandcode.commons.error.XError
@@ -20,7 +21,12 @@ import tofi.api.dta.ApiRepairData
 import tofi.api.dta.ApiResourceData
 import tofi.api.dta.ApiUserData
 import tofi.api.dta.model.utils.EntityMdbUtils
+import tofi.api.dta.model.utils.UtPeriod
 import tofi.api.mdl.ApiMeta
+import tofi.api.mdl.model.consts.FD_AttribValType_consts
+import tofi.api.mdl.model.consts.FD_InputType_consts
+import tofi.api.mdl.model.consts.FD_PeriodType_consts
+import tofi.api.mdl.model.consts.FD_PropType_consts
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
 
@@ -291,6 +297,175 @@ class ApiObjectDataImpl extends BaseMdbUtils implements ApiObjectData {
                 res.add(r)
         }
         return res
+    }
+
+    @Override
+    void fillProperties(boolean isObj, String cod, Map<String, Object> params) {
+        long own = UtCnv.toLong(params.get("own"))
+        String keyValue = cod.split("_")[1]
+        def objRef = UtCnv.toLong(params.get("obj"+keyValue))
+        def propVal = UtCnv.toLong(params.get("pv"+keyValue))
+
+        Store stProp = apiMeta().get(ApiMeta).getPropInfo(cod)
+        //
+        long prop = stProp.get(0).getLong("id")
+        long propType = stProp.get(0).getLong("propType")
+        long attribValType = stProp.get(0).getLong("attribValType")
+        Integer digit = null
+        double koef = stProp.get(0).getDouble("koef")
+        if (koef == 0) koef = 1
+        if (!stProp.get(0).isValueNull("digit"))
+            digit = stProp.get(0).getInt("digit")
+
+        //
+        long idDP
+        StoreRecord recDP = mdb.createStoreRecord("DataProp")
+        String whe = isObj ? "and isObj=1 " : "and isObj=0 "
+        if (stProp.get(0).getLong("statusFactor") > 0) {
+            long fv = apiMeta().get(ApiMeta).getDefaultStatus(prop)
+            whe += "and status = ${fv} "
+        } else {
+            whe += "and status is null "
+        }
+        whe += "and provider is null "
+        //todo if (stProp.get(0).getLong("providerTyp") > 0)
+
+        if (stProp.get(0).getLong("providerTyp") > 0) {
+            whe += "and periodType is not null "
+        } else {
+            whe += "and periodType is null"
+        }
+        Store stDP = mdb.loadQuery("""
+            select * from DataProp
+            where objOrRelObj=${own} and prop=${prop} ${whe}
+        """)
+        if (stDP.size() > 0) {
+            idDP = stDP.get(0).getLong("id")
+        } else {
+            recDP.set("isObj", isObj)
+            recDP.set("objOrRelObj", own)
+            recDP.set("prop", prop)
+            if (stProp.get(0).getLong("statusFactor") > 0) {
+                long fv = apiMeta().get(ApiMeta).getDefaultStatus(prop)
+                recDP.set("status", fv)
+            }
+            if (stProp.get(0).getLong("providerTyp") > 0) {
+                //todo
+                // provider
+                //
+            }
+            if (stProp.get(0).getBoolean("dependperiod")) {
+                recDP.set("periodType", FD_PeriodType_consts.year)
+            }
+            idDP = mdb.insertRec("DataProp", recDP, true)
+        }
+        //
+        StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
+        recDPV.set("dataProp", idDP)
+        // Attrib
+        if ([FD_AttribValType_consts.str].contains(attribValType)) {
+            if ( cod.equalsIgnoreCase("Prop_Specs") ||
+                    cod.equalsIgnoreCase("Prop_LocationDetails") ||
+                    cod.equalsIgnoreCase("Prop_Number")) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
+                    recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        //
+        if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
+            if ( cod.equalsIgnoreCase("Prop_Description")) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
+                    recDPV.set("multiStrVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        if ([FD_AttribValType_consts.dt].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_InstallationDate")) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
+                    recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+        }
+
+        // For FV
+        if ([FD_PropType_consts.factor].contains(propType)) {
+            if ( cod.equalsIgnoreCase("Prop_Side") ) {
+                if (propVal > 0) {
+                    recDPV.set("propVal", propVal)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
+        // For Measure
+        if ([FD_PropType_consts.measure].contains(propType)) {
+            if ( cod.equalsIgnoreCase("Prop_ParamsMeasure")) {
+                if (propVal > 0) {
+                    recDPV.set("propVal", propVal)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
+        // For Meter
+        if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_StartKm") ||
+                    cod.equalsIgnoreCase("Prop_StartPicket") ||
+                    cod.equalsIgnoreCase("Prop_FinishKm") ||
+                    cod.equalsIgnoreCase("Prop_FinishPicket") ||
+                    cod.equalsIgnoreCase("Prop_PeriodicityReplacement")) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
+                    double v = UtCnv.toDouble(params.get(keyValue))
+                    v = v / koef
+                    if (digit) v = v.round(digit)
+                    recDPV.set("numberval", v)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // For Typ
+        if ([FD_PropType_consts.typ].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_ObjectType") ||
+                    cod.equalsIgnoreCase("Prop_Section")) {
+                if (objRef > 0) {
+                    recDPV.set("propVal", propVal)
+                    recDPV.set("obj", objRef)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        //
+        if (recDP.getLong("periodType") > 0) {
+            if (!params.containsKey("dte"))
+                params.put("dte", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE))
+            UtPeriod utPeriod = new UtPeriod()
+            XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(params.get("dte")), recDP.getLong("periodType"), 0)
+            XDate d2 = utPeriod.calcDend(UtCnv.toDate(params.get("dte")), recDP.getLong("periodType"), 0)
+            recDPV.set("dbeg", d1.toString(XDateTimeFormatter.ISO_DATE))
+            recDPV.set("dend", d2.toString(XDateTimeFormatter.ISO_DATE))
+        } else {
+            recDPV.set("dbeg", "1800-01-01")
+            recDPV.set("dend", "3333-12-31")
+        }
+
+        //long au = getUser()
+        recDPV.set("authUser", 1)
+        recDPV.set("inputType", FD_InputType_consts.app)
+        long idDPV = mdb.getNextId("DataPropVal")
+        recDPV.set("id", idDPV)
+        recDPV.set("ord", idDPV)
+        recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
+        mdb.insertRec("DataPropVal", recDPV, false)
     }
 
     void validateForDeleteOwner(long owner, int isObj) {

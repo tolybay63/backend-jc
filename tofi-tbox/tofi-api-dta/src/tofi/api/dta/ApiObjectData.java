@@ -77,4 +77,5 @@ public interface ApiObjectData {
 
     Store loadObjList(String codClsOrTyp, String codProp, String model);
 
+    void fillProperties(boolean isObj, String cod, Map<String, Object> params);
 }

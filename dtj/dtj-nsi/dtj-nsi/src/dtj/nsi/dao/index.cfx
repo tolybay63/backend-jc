@@ -8,6 +8,8 @@
             <item name="data" method="*" invoker="model:default"
                   class="dtj.nsi.dao.DataDao"/>
 
+            <item name="fill" method="*" invoker="model:default"
+                  class="dtj.nsi.dao.FillDao"/>
 
         </holder>
 

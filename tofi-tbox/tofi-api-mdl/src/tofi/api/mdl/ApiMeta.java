@@ -73,7 +73,7 @@ public interface ApiMeta {
      * @param keyIsPropVal: {true, false}
      * @return if keyIsPropVal is true [idPropVal: idEntity], else [idEntity: idPropVal]
      */
-    Map<Long, Long> mapEntityIdFromPV(String entity, boolean keyIsPropVal);
+    Map<Long, Long> mapEntityIdFromPV(String entity, String codProp, boolean keyIsPropVal);
 
     Map<Long, String> mapPropValArrFromCls(String clsORrelcls);
 

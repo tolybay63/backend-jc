@@ -237,12 +237,13 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
     }
 
     @Override
-    Map<Long, Long> mapEntityIdFromPV(String entity, boolean keyIsPropVal) {
+    Map<Long, Long> mapEntityIdFromPV(String entity, String codProp, boolean keyIsPropVal) {
         Map<Long, Long> res = [:]
 
         Store st = mdb.loadQuery("""
-                select id, ${entity} from PropVal where ${entity} is not null
-            """)
+            select pv.id, ${entity} from PropVal pv, Prop p
+            where pv.prop=p.id and p.cod='${codProp}' and ${entity} is not null
+        """)
         for (StoreRecord r in st) {
             if (keyIsPropVal)
                 res.put(r.getLong("id"), r.getLong(entity))

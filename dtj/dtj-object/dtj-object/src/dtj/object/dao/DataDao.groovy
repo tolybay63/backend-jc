@@ -431,7 +431,7 @@ class DataDao extends BaseMdbUtils {
             where ${whe}
         """, map)
 
-        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
+        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", "Prop_Side", true)
 
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_ObjectTyp", "")
         Store stTmp = loadSqlMeta("""
