@@ -79,11 +79,15 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     void completeThePlanWork(Map<String, Object> params) {
         long own = UtCnv.toLong(params.get("id"))
+        long cls = UtCnv.toLong(params.get("cls"))
         String FactDateEnd = UtCnv.toString(params.get("date"))
         if (own <= 0)
             throw new XError("Не указан параметр [id]")
         if (FactDateEnd.isEmpty())
             throw new XError("Не указан параметр [date]")
+        if (cls <= 0)
+            throw new XError("Не указан параметр [cls]")
+        //
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_FactDateEnd", "")
         Store st = mdb.loadQuery("""
             select v.dateTimeVal
@@ -92,6 +96,34 @@ class DataDao extends BaseMdbUtils {
         """)
         if (st.size() > 0)
             throw new XError("Фактическая дата завершения [{0}] уже существует", st.get(0).getString("dateTimeVal"))
+        //
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_WorkPlanCorrectional", "")
+        if (cls == map.get("Cls_WorkPlanCorrectional")) {
+            Map<String, Object> mapSql = new HashMap<>()
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_FactDateEnd", "")
+            mapSql.put("Prop_FactDateEnd", map.get("Prop_FactDateEnd"))
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_WorkPlan", "")
+            mapSql.put("Prop_WorkPlan", map.get("Prop_WorkPlan"))
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_TaskLog", "")
+            mapSql.put("cls", map.get("Cls_TaskLog"))
+            mapSql.put("own", own)
+
+            Store stRepair = loadSqlServiceWithParams("""
+                select o.id, v2.dateTimeVal as FactDateEnd
+                    from Obj o
+                    left join DataProp d1 on d1.objOrRelObj=o.id and d1.prop=:Prop_WorkPlan
+                    inner join DataPropVal v1 on d1.id=v1.dataProp and v1.obj=:own
+                    left join DataProp d2 on d2.objOrRelObj=o.id and d2.prop=:Prop_FactDateEnd
+                    left join DataPropVal v2 on d2.id=v2.dataProp
+                where o.cls=:cls
+            """, mapSql, "", "repairdata")
+            for (StoreRecord r in stRepair) {
+                if (r.getString("FactDateEnd").startsWith("0000-01-01")) {
+                    throw new XError("Задача [{0}] еще не завершена", r.getString("id"))
+                }
+            }
+        }
+        //
         Map<String, Object> par = new HashMap<>()
         par.put("own", own)
         par.put("FactDateEnd", FactDateEnd)
@@ -1654,6 +1686,11 @@ class DataDao extends BaseMdbUtils {
             return apiOrgStructureData().get(ApiOrgStructureData).loadSqlWithParams(sql, params, domain)
         else if (model.equalsIgnoreCase("inspectiondata"))
             return apiInspectionData().get(ApiInspectionData).loadSqlWithParams(sql, params, domain)
+        else if (model.equalsIgnoreCase("incidentdata"))
+            return apiIncidentData().get(ApiIncidentData).loadSqlWithParams(sql, params, domain)
+        else if (model.equalsIgnoreCase("repairdata"))
+            return apiRepairData().get(ApiRepairData).loadSqlWithParams(sql, params, domain)
+
         else
             throw new XError("Unknown model [${model}]")
     }
