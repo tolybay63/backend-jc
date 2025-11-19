@@ -222,7 +222,9 @@ class ApiPersonnalDataImpl extends BaseMdbUtils implements ApiPersonnalData {
 
         StoreIndex indUser = stUser.getIndex("id")
         //
-        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
+        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", "Prop_Position", true)
+        Map<Long, Long> mapPV2 = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", "Prop_UserSex", true)
+        mapPV.putAll(mapPV2)
 
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "Factor_Sex", "")
         String wheFV = "${map.get("Factor_Sex")}"
