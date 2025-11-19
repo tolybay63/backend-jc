@@ -87,8 +87,8 @@ class DataDao extends BaseMdbUtils {
             where o.cls=:Cls_Personnel    
         """, map2)
 
-        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
-        Map<Long, Long> mapPV2 = apiMeta().get(ApiMeta).mapEntityIdFromPV("cls", false)
+        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", "Prop_Position", true)
+        Map<Long, Long> mapPV2 = apiMeta().get(ApiMeta).mapEntityIdFromPV("cls", codProp, false)
         for (StoreRecord r in st) {
             r.set("fvPosition", mapPV.get(r.getLong("pvPosition")))
             r.set("pv", mapPV2.get(r.getLong("cls")))
@@ -140,7 +140,7 @@ class DataDao extends BaseMdbUtils {
         """, map)
 
         //
-        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
+        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", "Prop_Position", true)
 
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "Factor_Position", "")
 

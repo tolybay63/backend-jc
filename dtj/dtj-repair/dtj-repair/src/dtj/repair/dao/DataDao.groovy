@@ -131,7 +131,7 @@ class DataDao extends BaseMdbUtils {
         """, "", "personnaldata")
         StoreIndex indUser = stUser.getIndex("id")
         //
-        Map<Long, Long> mapMea = apiMeta().get(ApiMeta).mapEntityIdFromPV("measure", true)
+        Map<Long, Long> mapMea = apiMeta().get(ApiMeta).mapEntityIdFromPV("measure", "Prop_Measure", true)
         Store stMea = loadSqlMeta("""
             select id, name from Measure where 0=0
         """, "")
@@ -932,7 +932,7 @@ class DataDao extends BaseMdbUtils {
         """, "", "personnaldata")
         StoreIndex indUser = stUser.getIndex("id")
         //
-        Map<Long, Long> mapFV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
+        Map<Long, Long> mapFV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", "Prop_Position", true)
         for (StoreRecord r in st) {
             StoreRecord recUser = indUser.get(r.getLong("objUser"))
             if (recUser != null)
@@ -1136,7 +1136,7 @@ class DataDao extends BaseMdbUtils {
             where o.cls=:cls
         """, map)
         //Пересечение
-        Map<Long, Long> mapFV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
+        Map<Long, Long> mapFV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", "Prop_TypEquipment", true)
         //
         Set<Object> idsUser = st.getUniqueValues("objUser")
         Store stUser = loadSqlService("""
@@ -1345,7 +1345,7 @@ class DataDao extends BaseMdbUtils {
             where o.cls=:cls
         """, map)
         //Пересечение
-        Map<Long, Long> mapFV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
+        Map<Long, Long> mapFV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", "Prop_TypTool", true)
         //
         Set<Object> idsUser = st.getUniqueValues("objUser")
         Store stUser = loadSqlService("""
@@ -1559,7 +1559,7 @@ class DataDao extends BaseMdbUtils {
         """, "", "personnaldata")
         StoreIndex indUser = stUser.getIndex("id")
         //
-        Map<Long, Long> mapMea = apiMeta().get(ApiMeta).mapEntityIdFromPV("measure", true)
+        Map<Long, Long> mapMea = apiMeta().get(ApiMeta).mapEntityIdFromPV("measure", "Prop_Measure", true)
         Store stMea = loadSqlMeta("""
             select id, name from Measure where 0=0
         """, "")
@@ -2066,13 +2066,17 @@ class DataDao extends BaseMdbUtils {
         """, "", "resourcedata")
         StoreIndex indMaterialAndTpService = stMaterialAndTpService.getIndex("id")
         //
-        Map<Long, Long> mapMea = apiMeta().get(ApiMeta).mapEntityIdFromPV("measure", true)
+        Map<Long, Long> mapMea = apiMeta().get(ApiMeta).mapEntityIdFromPV("measure", "Prop_Measure", true)
         Store stMea = loadSqlMeta("""
             select id, name from Measure where 0=0
         """, "")
         StoreIndex indMea = stMea.getIndex("id")
         //
-        Map<Long, Long> mapFV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
+        Map<Long, Long> mapFV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", "Prop_Position", true)
+        Map<Long, Long> mapFV2 = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", "Prop_TypTool", true)
+        Map<Long, Long> mapFV3 = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", "Prop_TypEquipment", true)
+        mapFV.putAll(mapFV2)
+        mapFV.putAll(mapFV3)
         for (StoreRecord r in st) {
             StoreRecord recUser = indUser.get(r.getLong("objUser"))
             if (recUser != null)

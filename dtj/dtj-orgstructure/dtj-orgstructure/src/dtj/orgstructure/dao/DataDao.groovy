@@ -264,8 +264,9 @@ class DataDao extends BaseMdbUtils {
             group by o.id
         """, map)
         StoreIndex indMulti = stMulti.getIndex("id")
-        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
-
+        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", "Prop_Region", true)
+        Map<Long, Long> mapPV2 = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", "Prop_IsActive", true)
+        mapPV.putAll(mapPV2)
         for (StoreRecord record in st) {
             StoreRecord rec = indMulti.get(record.getLong("id"))
             List<Long> lstMulti = new ArrayList<>()

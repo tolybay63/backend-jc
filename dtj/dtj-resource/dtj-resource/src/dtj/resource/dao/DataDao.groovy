@@ -161,7 +161,7 @@ class DataDao extends BaseMdbUtils {
         """, map)
         //
 
-        Map<Long, Long> mapMea = apiMeta().get(ApiMeta).mapEntityIdFromPV("measure", true)
+        Map<Long, Long> mapMea = apiMeta().get(ApiMeta).mapEntityIdFromPV("measure", "Prop_Measure", true)
 
         Store stMea = loadSqlMeta("""
             select id, name from Measure where 0=0
@@ -699,7 +699,7 @@ class DataDao extends BaseMdbUtils {
         """, map)
         //
 
-        Map<Long, Long> mapMea = apiMeta().get(ApiMeta).mapEntityIdFromPV("measure", true)
+        Map<Long, Long> mapMea = apiMeta().get(ApiMeta).mapEntityIdFromPV("measure", "Prop_Measure", true)
 
         Store stMea = loadSqlMeta("""
             select id, name from Measure where 0=0
