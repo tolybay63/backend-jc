@@ -28,6 +28,15 @@ class FillDao extends BaseMdbUtils {
         return app.bean(ApinatorService).getApi("objectdata")
     }
 
+    protected static boolean isInteger(String s) {
+        if (s == null || s.isEmpty()) return false
+        for (int i = 0; i < s.length(); i++) {
+            if (!Character.isDigit(s.charAt(i))) {
+                return false
+            }
+        }
+        return true
+    }
 
     @DaoMethod
     Store loadLog() {
@@ -169,16 +178,28 @@ class FillDao extends BaseMdbUtils {
         //
         Set<String> reqFields = new HashSet<>()
         Set<String> emptyFields = new HashSet<>()
-        Set<String> setDubleObj = new HashSet<>()
         int count = 0
         def eachLineTest = { Map m ->
             count++
             if (count == 1) {
                 if (!m.keySet().contains("cls")) reqFields.add("cls")
                 if (!m.keySet().contains("name")) reqFields.add("name")
+                if (!m.keySet().contains("fullName")) reqFields.add("fullName")
                 if (!m.keySet().contains("Prop_ObjectType")) reqFields.add("Prop_ObjectType")
                 if (!m.keySet().contains("Prop_Section")) reqFields.add("Prop_Section")
             }
+
+
+            if (!isInteger(UtCnv.toString(m.get("cls"))))
+                emptyFields.add("cls: Строка-${count+1}")
+            if (!m.get("name"))
+                emptyFields.add("name: Строка-${count+1}")
+            if (!m.get("fullName"))
+                emptyFields.add("fullName: Строка-${count+1}")
+            if (!isInteger(UtCnv.toString(m.get("Prop_ObjectType"))))
+                emptyFields.add("Prop_ObjectType: Строка-${count+1}")
+            if (!isInteger(UtCnv.toString(m.get("Prop_Section"))))
+                emptyFields.add("Prop_Section: Строка-${count+1}")
         }
 
 
@@ -245,7 +266,7 @@ class FillDao extends BaseMdbUtils {
             //
             reader.eachRow(eachLineTest)
             //
-            if (reqFields.isEmpty() && emptyFields.isEmpty() && setDubleObj.isEmpty()) {
+            if (reqFields.isEmpty() && emptyFields.isEmpty()) {
                 mdb.execQuery("""
                     update log set err=0, msg='', cnt=${count} where id=1
                 """)
@@ -258,12 +279,7 @@ class FillDao extends BaseMdbUtils {
                 } else if (!emptyFields.isEmpty()) {
                     String msg = "Некоторые значения обязательных полей отсутствует: [${emptyFields.join(', ')}]"
                     mdb.execQuery("""
-                        update log set err=1, msg='${msg}' where id=1
-                    """)
-                } else if (!setDubleObj.isEmpty()) {
-                    String msg = "Повтор [" + setDubleObj.join("; ") + "]"
-                    mdb.execQuery("""
-                        update log set err=1, msg='${msg}' where id=1
+                        update log set err=1, msg='${msg}', cnt=${count} where id=1
                     """)
                 }
             }
