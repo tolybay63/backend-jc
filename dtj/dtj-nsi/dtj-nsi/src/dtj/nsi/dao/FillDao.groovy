@@ -11,7 +11,6 @@ import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
 import tofi.api.dta.ApiNSIData
 import tofi.api.dta.ApiObjectData
-import tofi.api.dta.model.utils.EntityMdbUtils
 import tofi.api.mdl.ApiMeta
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
