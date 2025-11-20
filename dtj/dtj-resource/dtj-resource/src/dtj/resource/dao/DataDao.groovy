@@ -427,11 +427,21 @@ class DataDao extends BaseMdbUtils {
                     updateProperties("Prop_Number", pms)
                 else
                     throw new XError("[Number] not specified")
+            } else {
+                if (!pms.getString("Number").isEmpty())
+                    fillProperties(true, "Prop_Number", pms)
+                else
+                    throw new XError("[Number] not specified")
             }
             //2 Prop_TypEquipment
             if (pms.getLong("idTypEquipment") > 0) {
                 if (pms.getLong("fvTypEquipment") > 0)
                     updateProperties("Prop_TypEquipment", pms)
+                else
+                    throw new XError("[TypEquipment] not specified")
+            } else {
+                if (pms.getLong("fvTypEquipment") > 0)
+                    fillProperties(true, "Prop_TypEquipment", pms)
                 else
                     throw new XError("[TypEquipment] not specified")
             }
@@ -441,11 +451,21 @@ class DataDao extends BaseMdbUtils {
                     updateProperties("Prop_LocationClsSection", pms)
                 else
                     throw new XError("[objLocationClsSection] not specified")
+            } else {
+                if (pms.getLong("objLocationClsSection") > 0)
+                    fillProperties(true, "Prop_LocationClsSection", pms)
+                else
+                    throw new XError("[objLocationClsSection] not specified")
             }
             //5 Prop_UpdatedAt
             if (pms.getLong("idUpdatedAt") > 0) {
                 if (pms.getString("UpdatedAt") != "")
                     updateProperties("Prop_UpdatedAt", pms)
+                else
+                    throw new XError("[UpdatedAt] not specified")
+            } else {
+                if (pms.getString("UpdatedAt") != "")
+                    fillProperties(true, "Prop_UpdatedAt", pms)
                 else
                     throw new XError("[UpdatedAt] not specified")
             }
@@ -454,6 +474,11 @@ class DataDao extends BaseMdbUtils {
                 if (pms.getLong("objUser") > 0)
                     updateProperties("Prop_User", pms)
                 else
+                    throw new XError("[objUser] not specified")
+            } else {
+                if (pms.getLong("objUser") > 0) {
+                    fillProperties(true, "Prop_User", pms)
+                } else
                     throw new XError("[objUser] not specified")
             }
             //7 Prop_Description
@@ -632,11 +657,21 @@ class DataDao extends BaseMdbUtils {
                     updateProperties("Prop_Number", pms)
                 else
                     throw new XError("[Number] not specified")
+            } else {
+                if (!pms.getString("Number").isEmpty())
+                    fillProperties(true, "Prop_Number", pms)
+                else
+                    throw new XError("[Number] not specified")
             }
             //2 Prop_TypTool
             if (pms.getLong("idTypTool") > 0) {
                 if (pms.getLong("fvTypTool") > 0)
                     updateProperties("Prop_TypTool", pms)
+                else
+                    throw new XError("[TypTool] not specified")
+            } else {
+                if (pms.getLong("fvTypTool") > 0)
+                    fillProperties(true, "Prop_TypTool", pms)
                 else
                     throw new XError("[TypTool] not specified")
             }
@@ -646,11 +681,21 @@ class DataDao extends BaseMdbUtils {
                     updateProperties("Prop_LocationClsSection", pms)
                 else
                     throw new XError("[objLocationClsSection] not specified")
+            } else {
+                if (pms.getLong("objLocationClsSection") > 0)
+                    fillProperties(true, "Prop_LocationClsSection", pms)
+                else
+                    throw new XError("[objLocationClsSection] not specified")
             }
             //5 Prop_UpdatedAt
             if (pms.getLong("idUpdatedAt") > 0) {
                 if (pms.getString("UpdatedAt") != "")
                     updateProperties("Prop_UpdatedAt", pms)
+                else
+                    throw new XError("[UpdatedAt] not specified")
+            } else {
+                if (pms.getString("UpdatedAt") != "")
+                    fillProperties(true, "Prop_UpdatedAt", pms)
                 else
                     throw new XError("[UpdatedAt] not specified")
             }
@@ -659,6 +704,11 @@ class DataDao extends BaseMdbUtils {
                 if (pms.getLong("objUser") > 0)
                     updateProperties("Prop_User", pms)
                 else
+                    throw new XError("[objUser] not specified")
+            } else {
+                if (pms.getLong("objUser") > 0) {
+                    fillProperties(true, "Prop_User", pms)
+                } else
                     throw new XError("[objUser] not specified")
             }
             //7 Prop_Description
