@@ -186,33 +186,33 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store savePersonnal(String mode, Map<String, Object> params) {
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Personnel", "")
-        if (map.isEmpty())
-            throw new XError("Not found [Cls_Personnel]")
-
+        Map<String, Object> par = new HashMap<>(params)
         validatePersonal(mode, params)
 
         long own = 0
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
 
+        String nm = UtCnv.toString(par.get("UserSecondName")) + " " + UtCnv.toString(par.get("UserFirstName")).charAt(0) + "."
+        String fn = UtCnv.toString(par.get("UserSecondName")) + " " + UtCnv.toString(par.get("UserFirstName"))
+        if (!UtCnv.toString(par.get("UserMiddleName")).isEmpty()) {
+            nm += "" + UtCnv.toString(par.get("UserMiddleName")).charAt(0) + "."
+            fn += " " + UtCnv.toString(par.get("UserMiddleName"))
+        }
+        par.put("name", nm)
+        par.put("fullName", fn)
+
         if (mode.equalsIgnoreCase("ins")) {
             //
             long userId = 0
             if (UtCnv.toBoolean(params.get("isUser"))) {
-                userId = regUser(params)
+                userId = regUser(par)
             }
             //
             try {
-                Map<String, Object> par = new HashMap<>(params)
+                Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Personnel", "")
+                if (map.isEmpty())
+                    throw new XError("Not found [Cls_Personnel]")
                 par.put("cls", map.get("Cls_Personnel"))
-                String nm = UtCnv.toString(par.get("UserSecondName")) + " " + UtCnv.toString(par.get("UserFirstName")).charAt(0) + "."
-                String fn = UtCnv.toString(par.get("UserSecondName")) + " " + UtCnv.toString(par.get("UserFirstName"))
-                if (!UtCnv.toString(par.get("UserMiddleName")).isEmpty()) {
-                    nm += "" + UtCnv.toString(par.get("UserMiddleName")).charAt(0) + "."
-                    fn += " " + UtCnv.toString(par.get("UserMiddleName"))
-                }
-                par.put("name", nm)
-                par.put("fullName", fn)
                 own = eu.insertEntity(par)
                 params.put("own", own)
                 //1 Prop_TabNumber
@@ -265,7 +265,7 @@ class DataDao extends BaseMdbUtils {
 
         } else if (mode.equalsIgnoreCase("upd")) {
             own = UtCnv.toLong(params.get("id"))
-            eu.updateEntity(params)
+            eu.updateEntity(par)
             //
             params.put("own", own)
             //1 Prop_TabNumber
@@ -328,9 +328,6 @@ class DataDao extends BaseMdbUtils {
                 if (!params.get("UpdatedAt").toString().isEmpty())
                     fillProperties(true, "Prop_UpdatedAt", params)
             }
-
-            //12 Prop_UserId
-
             //13 Prop_UserSex
             updateProperties("Prop_UserSex", params)
             //14 Prop_Position
@@ -457,6 +454,8 @@ class DataDao extends BaseMdbUtils {
             if (params.get("passwd").toString().isEmpty())
                 throw new XError("[passwd] not specified")
         }
+        if (params.get("UserEmail").toString().isEmpty())
+            throw new XError("[UserEmail] not specified")
         if (params.get("TabNumber").toString().isEmpty())
             throw new XError("[TabNumber] not specified")
         if (params.get("UserSecondName").toString().isEmpty())
@@ -481,9 +480,8 @@ class DataDao extends BaseMdbUtils {
         rec.put("email", params.get("UserEmail"))
         if (params.containsKey("UserPhone"))
             rec.put("phone", params.get("UserPhone"))
-        rec.put("name", params.get("UserFirstName"))
-        String fn = params.get("UserSecondName").toString() + " " + params.get("UserFirstName").toString()
-        rec.put("fullName", fn)
+        rec.put("name", params.get("name"))
+        rec.put("fullName", params.get("fullName"))
         return apiAdm().get(ApiAdm).regUser(rec)
     }
 
