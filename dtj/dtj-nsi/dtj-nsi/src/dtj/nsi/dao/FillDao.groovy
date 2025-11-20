@@ -187,15 +187,23 @@ class FillDao extends BaseMdbUtils {
                 if (!m.keySet().contains("fullName")) reqFields.add("fullName")
                 if (!m.keySet().contains("Prop_ObjectType")) reqFields.add("Prop_ObjectType")
                 if (!m.keySet().contains("Prop_Section")) reqFields.add("Prop_Section")
+                if (!m.keySet().contains("Prop_StartKm")) reqFields.add("Prop_StartKm")
+                if (!m.keySet().contains("Prop_StartPicket")) reqFields.add("Prop_StartPicket")
+                if (!m.keySet().contains("Prop_FinishKm")) reqFields.add("Prop_FinishKm")
+                if (!m.keySet().contains("Prop_FinishPicket")) reqFields.add("Prop_FinishPicket")
+                if (!m.keySet().contains("Prop_PeriodicityReplacement")) reqFields.add("Prop_PeriodicityReplacement")
+                if (!m.keySet().contains("Prop_Specs")) reqFields.add("Prop_Specs")
+                if (!m.keySet().contains("Prop_LocationDetails")) reqFields.add("Prop_LocationDetails")
+                if (!m.keySet().contains("Prop_Number")) reqFields.add("Prop_Number")
+                if (!m.keySet().contains("Prop_InstallationDate")) reqFields.add("Prop_InstallationDate")
             }
 
-
-            if (!isInteger(UtCnv.toString(m.get("cls"))))
-                emptyFields.add("cls: Строка-${count+1}")
             if (!m.get("name"))
                 emptyFields.add("name: Строка-${count+1}")
             if (!m.get("fullName"))
                 emptyFields.add("fullName: Строка-${count+1}")
+            if (!isInteger(UtCnv.toString(m.get("cls"))))
+                emptyFields.add("cls: Строка-${count+1}")
             if (!isInteger(UtCnv.toString(m.get("Prop_ObjectType"))))
                 emptyFields.add("Prop_ObjectType: Строка-${count+1}")
             if (!isInteger(UtCnv.toString(m.get("Prop_Section"))))
@@ -272,12 +280,12 @@ class FillDao extends BaseMdbUtils {
                 """)
             } else {
                 if (!reqFields.isEmpty()) {
-                    String msg = "Наименования обязательных полей отсутствует: [${reqFields.join(', ')}]"
+                    String msg = "Наименования полей отсутствуют: [${reqFields.join(', ')}]"
                     mdb.execQuery("""
                         update log set err=1, msg='${msg}' where id=1
                     """)
                 } else if (!emptyFields.isEmpty()) {
-                    String msg = "Некоторые значения обязательных полей отсутствует: [${emptyFields.join(', ')}]"
+                    String msg = "Некоторые значения обязательных полей отсутствуют: [${emptyFields.join(', ')}]"
                     mdb.execQuery("""
                         update log set err=1, msg='${msg}', cnt=${count} where id=1
                     """)
