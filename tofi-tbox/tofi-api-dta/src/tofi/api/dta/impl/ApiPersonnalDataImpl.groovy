@@ -168,7 +168,8 @@ class ApiPersonnalDataImpl extends BaseMdbUtils implements ApiPersonnalData {
                 v12.id as idUpdatedAt, v12.dateTimeVal as UpdatedAt,
                 v13.id as idUserSex, v13.propVal as pvUserSex, null as fvUserSex, null as nameUserSex,
                 v14.id as idPosition, v14.propVal as pvPosition, null as fvPosition, null as namePosition,
-                v15.id as idLocation, v15.obj as objLocation, v15.propVal as pvLocation, null as nameLocation
+                v15.id as idLocation, v15.obj as objLocation, v15.propVal as pvLocation, null as nameLocation,
+                v16.id as idIsActive, v16.propVal as pvIsActive, null as fvIsActive, null as nameIsActive
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_TabNumber
@@ -199,6 +200,8 @@ class ApiPersonnalDataImpl extends BaseMdbUtils implements ApiPersonnalData {
                 left join DataPropVal v14 on d14.id=v14.dataprop     
                 left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_Location
                 left join DataPropVal v15 on d15.id=v15.dataprop
+                left join DataProp d16 on d16.objorrelobj=o.id and d16.prop=:Prop_IsActive
+                left join DataPropVal v16 on d16.id=v16.dataprop
             where ${whe}
         """, map)
         // UserId
@@ -224,12 +227,16 @@ class ApiPersonnalDataImpl extends BaseMdbUtils implements ApiPersonnalData {
         //
         Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", "Prop_Position", true)
         Map<Long, Long> mapPV2 = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", "Prop_UserSex", true)
+        Map<Long, Long> mapPV3 = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", "Prop_IsActive", true)
         mapPV.putAll(mapPV2)
+        mapPV.putAll(mapPV3)
 
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "Factor_Sex", "")
         String wheFV = "${map.get("Factor_Sex")}"
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "Factor_Position", "")
         wheFV = wheFV + ",${map.get("Factor_Position")}"
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "Factor_IsActive", "")
+        wheFV = wheFV + ",${map.get("Factor_IsActive")}"
 
         Store stFV = apiMeta().get(ApiMeta).loadSql("""
             select id, name from Factor where parent in (${wheFV}) 
@@ -244,13 +251,18 @@ class ApiPersonnalDataImpl extends BaseMdbUtils implements ApiPersonnalData {
         for (StoreRecord record in st) {
             record.set("fvUserSex", mapPV.get(record.getLong("pvUserSex")))
             record.set("fvPosition", mapPV.get(record.getLong("pvPosition")))
+            record.set("fvIsActive", mapPV.get(record.getLong("pvIsActive")))
+            //
             StoreRecord rFV = indFV.get(record.getLong("fvUserSex"))
             if (rFV != null)
                 record.set("nameUserSex", rFV.getString("name"))
             rFV = indFV.get(record.getLong("fvPosition"))
             if (rFV != null)
                 record.set("namePosition", rFV.getString("name"))
-
+            rFV = indFV.get(record.getLong("fvIsActive"))
+            if (rFV != null)
+                record.set("nameIsActive", rFV.getString("name"))
+            //
             StoreRecord rObj = indObj.get(record.getLong("objLocation"))
             if (rObj != null)
                 record.set("nameLocation", rObj.getString("name"))

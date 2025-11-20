@@ -257,6 +257,8 @@ class DataDao extends BaseMdbUtils {
                 fillProperties(true, "Prop_Position", params)
                 //15 Prop_Location
                 fillProperties(true, "Prop_Location", params)
+                //16 Prop_IsActive
+                fillProperties(true, "Prop_IsActive", params)
             } catch (Exception e) {
                 e.printStackTrace()
                 if (userId > 0)
@@ -334,10 +336,17 @@ class DataDao extends BaseMdbUtils {
             updateProperties("Prop_Position", params)
             //15 Prop_Location
             updateProperties("Prop_Location", params)
+            //16 Prop_IsActive
+            if (params.containsKey("idIsActive"))
+                updateProperties("Prop_IsActive", params)
+            else {
+                if (UtCnv.toLong(params.get("fvIsActive")) > 0)
+                    fillProperties(true, "Prop_IsActive", params)
+            }
         } else {
             throw new XError("Unknown mode")
         }
-        loadPersonnal(own)
+        return loadPersonnal(own)
     }
 
     @DaoMethod
@@ -595,7 +604,8 @@ class DataDao extends BaseMdbUtils {
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_UserSex") ||
-                    cod.equalsIgnoreCase("Prop_Position")) {
+                    cod.equalsIgnoreCase("Prop_Position") ||
+                    cod.equalsIgnoreCase("Prop_IsActive")) {
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
                 }
@@ -753,7 +763,8 @@ class DataDao extends BaseMdbUtils {
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_UserSex") ||
-                    cod.equalsIgnoreCase("Prop_Position")) {
+                    cod.equalsIgnoreCase("Prop_Position") ||
+                    cod.equalsIgnoreCase("Prop_IsActive")) {
                 if (propVal > 0)
                     sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
                 else {

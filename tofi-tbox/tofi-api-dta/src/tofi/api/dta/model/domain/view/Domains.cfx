@@ -59,7 +59,6 @@
         <field name="fullName" parent="string"/>
 
         <field name="login" parent="string"/>
-        <field name="passwd" parent="string"/>
 
         <field name="idTabNumber" parent="long"/>
         <field name="TabNumber" parent="string"/>
@@ -94,6 +93,11 @@
         <field name="fvPosition" parent="long"/>
         <field name="pvPosition" parent="long"/>
         <field name="namePosition" parent="string"/>
+
+        <field name="idIsActive" parent="long"/>
+        <field name="fvIsActive" parent="long"/>
+        <field name="pvIsActive" parent="long"/>
+        <field name="nameIsActive" parent="string"/>
 
         <field name="idLocation" parent="long"/>
         <field name="pvLocation" parent="long"/>

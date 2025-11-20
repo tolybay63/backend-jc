@@ -28,7 +28,7 @@ class Obj_Test extends Apx_Test {
     @Test
     void loadPersonnal() {
         DataDao dao = mdb.createDao(DataDao.class)
-        Store st = dao.loadPersonnal(0)
+        Store st = dao.loadPersonnal(1119)
         mdb.outTable(st)
     }
 
@@ -36,7 +36,7 @@ class Obj_Test extends Apx_Test {
     void savePersonnalIns() {
         Map<String, Object> map = new HashMap<>()
         map.put("login", "user_test1")
-        map.put("passwd", "")
+        map.put("passwd", "123")
         map.put("isUser", false)
         map.put("UserEmail", "user_test1@gmail.com")
         map.put("UserPhone", "7773334455")
@@ -79,7 +79,7 @@ class Obj_Test extends Apx_Test {
     @Test
     void delectPersonnal() {
         DataDao dao = mdb.createDao(DataDao.class)
-        dao.deleteObjWithProperties(1010)
+        dao.deleteObjWithProperties(1120, false)
     }
 
 
