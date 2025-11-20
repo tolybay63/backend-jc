@@ -188,14 +188,7 @@ class FillDao extends BaseMdbUtils {
                 if (!m.keySet().contains("Prop_ObjectType")) reqFields.add("Prop_ObjectType")
                 if (!m.keySet().contains("Prop_Section")) reqFields.add("Prop_Section")
                 if (!m.keySet().contains("Prop_StartKm")) reqFields.add("Prop_StartKm")
-                if (!m.keySet().contains("Prop_StartPicket")) reqFields.add("Prop_StartPicket")
                 if (!m.keySet().contains("Prop_FinishKm")) reqFields.add("Prop_FinishKm")
-                if (!m.keySet().contains("Prop_FinishPicket")) reqFields.add("Prop_FinishPicket")
-                if (!m.keySet().contains("Prop_PeriodicityReplacement")) reqFields.add("Prop_PeriodicityReplacement")
-                if (!m.keySet().contains("Prop_Specs")) reqFields.add("Prop_Specs")
-                if (!m.keySet().contains("Prop_LocationDetails")) reqFields.add("Prop_LocationDetails")
-                if (!m.keySet().contains("Prop_Number")) reqFields.add("Prop_Number")
-                if (!m.keySet().contains("Prop_InstallationDate")) reqFields.add("Prop_InstallationDate")
             }
 
             if (!m.get("name"))
@@ -256,7 +249,6 @@ class FillDao extends BaseMdbUtils {
                     ALTER TABLE log OWNER TO pg;
                     GRANT ALL ON TABLE log TO pg; 
                 """)
-                mdb.commit()
                 Store stLog = mdb.loadQuery("select * from log")
                 if (stLog.size()==0) {
                     mdb.execQueryNative("""
@@ -269,8 +261,6 @@ class FillDao extends BaseMdbUtils {
                 }
             } catch (Exception e) {
                 e.printStackTrace()
-            } finally {
-                mdb.commit()
             }
             //
             reader.eachRow(eachLineTest)
