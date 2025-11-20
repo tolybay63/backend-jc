@@ -256,6 +256,7 @@ class FillDao extends BaseMdbUtils {
                     ALTER TABLE log OWNER TO pg;
                     GRANT ALL ON TABLE log TO pg; 
                 """)
+                mdb.commit()
                 Store stLog = mdb.loadQuery("select * from log")
                 if (stLog.size()==0) {
                     mdb.execQueryNative("""

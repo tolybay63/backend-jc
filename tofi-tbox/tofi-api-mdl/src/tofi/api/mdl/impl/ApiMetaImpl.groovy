@@ -421,21 +421,16 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
     @Override
     Store loadFactorValsWithPV(String codFactor) {
         Store st = mdb.loadQuery("""
-            select fv.id, fv.name, 0 as pv
+            select fv.id, fv.name, pv.id as pv
             from Factor fv
                 inner join Factor f on fv.parent=f.id
+                left join PropVal pv on fv.id=pv.factorVal
             where f.cod like '${codFactor}'
             order by fv.ord
         """)
 
         if (st.size()==0)
             throw new XError("NotFoundCod@${codFactor}")
-
-        Map<Long, Long> map = mapEntityIdFromPV("factorVal", false)
-
-        for (StoreRecord rec in st) {
-            rec.set("pv", map.get(rec.getLong("id")))
-        }
         return st
     }
 
