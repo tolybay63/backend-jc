@@ -62,7 +62,12 @@ class Material_Test extends Apx_Test {
                 "Number", "002OOO02",
                 "fvTypEquipment", 1253,
                 "pvTypEquipment", 1460,
-                "Description", "test")
+                "objUser", 1003,
+                "pvUser", 1087,
+                "objLocationClsSection", 1077,
+                "pvLocationClsSection", 1241,
+                "CreatedAt", "2025-11-18",
+                "UpdatedAt", "2025-11-18")
         Store st = dao.saveEquipment("ins", map)
         mdb.outTable(st)
     }
@@ -70,17 +75,23 @@ class Material_Test extends Apx_Test {
     @Test
     void saveEquipment_upd_test () {
         DataDao dao = mdb.createDao(DataDao.class)
-        Map <String, Object> map = Map.of(
-                "id", 1028,
-                "cls", 1258,
-                "name", "Test 1 upd",
-                "idNumber", 1041,
-                "Number", "002OOO02",
-                "idTypEquipment", 1043,
-                "fvTypEquipment", 1254,
-                "pvTypEquipment", 1461,
-                "idDescription", 1042,
-                "Description", "t")
+        Map <String, Object> map = new HashMap<>()
+        map.put("id", 1183)
+        map.put("name", "Test 3")
+        map.put("cls", 1258)
+        map.put("idTypEquipment", 1295)
+        map.put("fvTypEquipment", 1258)
+        map.put("pvTypEquipment", 1460)
+        map.put("idNumber", 1294)
+        map.put("Number", 1265)
+        map.put("idLocationClsSection", 1248)
+        map.put("objLocationClsSection", 1077)
+        map.put("pvLocationClsSection", 1241)
+        map.put("idUpdatedAt", 1250)
+        map.put("UpdatedAt", "2025-11-18")
+        map.put("idUser", 1251)
+        map.put("objUser", 1003)
+        map.put("pvUser", 1087)
         Store st = dao.saveEquipment("upd", map)
         mdb.outTable(st)
     }
@@ -113,15 +124,23 @@ class Material_Test extends Apx_Test {
     @Test
     void saveTool_upd_test () {
         DataDao dao = mdb.createDao(DataDao.class)
-        Map <String, Object> map = Map.of(
-                "id", 1025,
-                "name", "Test 2",
-                "cls", 1257,
-                "idTypTool", 1037,
-                "fvTypTool", 1258,
-                "pvTypTool", 1464,
-                "idDescription", 1036,
-                "Description", "t")
+        Map <String, Object> map = new HashMap<>()
+                map.put("id", 1181)
+                map.put("name", "Test 2")
+                map.put("cls", 1257)
+                map.put("idTypTool", 1287)
+                map.put("fvTypTool", 1258)
+                map.put("pvTypTool", 1464)
+                map.put("idNumber", 1286)
+                map.put("Number", 1265)
+                map.put("idLocationClsSection", 1288)
+                map.put("objLocationClsSection", 1077)
+                map.put("pvLocationClsSection", 1241)
+                map.put("idUpdatedAt", 1290)
+                map.put("UpdatedAt", "2025-11-18")
+                map.put("idUser", 1291)
+                map.put("objUser", 1003)
+                map.put("pvUser", 1087)
         Store st = dao.saveTool("upd", map)
         mdb.outTable(st)
     }
@@ -129,7 +148,7 @@ class Material_Test extends Apx_Test {
     @Test
     void deleteObjWithProperties_test() {
         DataDao dao = mdb.createDao(DataDao.class)
-        dao.deleteObjWithProperties(1000)
+        dao.deleteObjWithProperties(1183)
 
     }
 

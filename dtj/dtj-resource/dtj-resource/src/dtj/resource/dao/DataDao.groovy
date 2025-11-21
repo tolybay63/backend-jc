@@ -352,7 +352,7 @@ class DataDao extends BaseMdbUtils {
             Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Equipment", "")
             Map<String, Long> map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Number", "")
             pms.put("Number", pms.getString("Number").trim())
-            String num = pms.getString("Number").toLowerCase()
+            String num = pms.getString("Number").trim().toLowerCase()
             Store st = mdb.loadQuery("""
                 select v.strVal 
                 from Obj o
@@ -406,11 +406,13 @@ class DataDao extends BaseMdbUtils {
 
         } else if (mode.equalsIgnoreCase("upd")) {
             Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Number", "")
+            pms.put("Number", pms.getString("Number").trim())
+            String num = pms.getString("Number").trim().toLowerCase()
             Store st = mdb.loadQuery("""
                 select v.strVal 
                 from Obj o
                     left join DataProp d on d.objorrelobj=o.id and d.prop=${map.get("Prop_Number")}
-                    inner join DataPropval v on d.id=v.dataProp and v.strVal='${pms.getString("Number")}'
+                    inner join DataPropval v on d.id=v.dataProp and lower(v.strVal)='${num}'
                 where o.cls=${pms.getLong("cls")} and o.id<>${pms.getLong("id")} 
             """)
             if (st.size() > 0)
@@ -584,16 +586,20 @@ class DataDao extends BaseMdbUtils {
         if (UtCnv.toString(params.get("name")).trim().isEmpty())
             throw new XError("[name] не указан")
         Map<String, Object> par = new HashMap<>(pms)
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Tool", "")
+        Map<String, Long> map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Number", "")
         if (mode.equalsIgnoreCase("ins")) {
-            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Tool", "")
-            pms.put("name", pms.getString("name").trim())
-            String nm = pms.getString("name").toLowerCase()
+            pms.put("Number", pms.getString("Number").trim())
+            String num = pms.getString("Number").trim().toLowerCase()
             Store st = mdb.loadQuery("""
-                select v.name from Obj o, ObjVer v
-                where o.id=v.ownerVer and v.lastVer=1 and o.cls=${map.get("Cls_Tool")} and lower(v.name)='${nm}' 
+                select o.id 
+                from Obj o
+                    left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map2.get("Prop_Number")}
+                    inner join DataPropVal v1 on d1.id=v1.dataProp and lower(v1.strVal)='${num}'
+                where o.cls=${map.get("Cls_Tool")} 
             """)
             if (st.size() > 0)
-                throw new XError("[{0}] уже существует", nm)
+                throw new XError("[{0}] уже существует", pms.getString("Number"))
 
             par.put("cls", map.get("Cls_Tool"))
             //
@@ -636,14 +642,18 @@ class DataDao extends BaseMdbUtils {
             if (!pms.getString("Description").isEmpty())
                 fillProperties(true, "Prop_Description", pms)
         } else if (mode.equalsIgnoreCase("upd")) {
-            String nm = pms.getString("name").trim().toLowerCase()
+            pms.put("Number", pms.getString("Number").trim())
+            String num = pms.getString("Number").trim().toLowerCase()
             Store st = mdb.loadQuery("""
-                select v.name from Obj o, ObjVer v
-                where o.id=v.ownerVer and o.id<>${pms.getLong("id")} and 
-                    v.lastVer=1 and o.cls=${pms.getLong("cls")} and lower(v.name)='${nm}' 
+                select o.id 
+                from Obj o
+                    left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map2.get("Prop_Number")}
+                    inner join DataPropVal v1 on d1.id=v1.dataProp and lower(v1.strVal)='${num}'
+                where o.cls=${pms.getLong("cls")} and o.id <> ${pms.getLong("id")}
             """)
+
             if (st.size() > 0)
-                throw new XError("[{0}] уже существует", nm)
+                throw new XError("[{0}] уже существует", pms.getString("Number"))
 
             own = pms.getLong("id")
             par.putIfAbsent("fullName", pms.getString("name"))

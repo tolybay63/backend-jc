@@ -14,7 +14,7 @@ class Obj_Test extends Apx_Test {
         Map<String, Object> map = new HashMap<>()
         map.put("relobj", 2525)
         map.put("date", "2025-11-11")
-        map.put("periodType", 31)
+//        map.put("periodType", 31)
         Store st = dao.loadParameterLogByComponentParameter(map)
         mdb.outTable(st)
     }

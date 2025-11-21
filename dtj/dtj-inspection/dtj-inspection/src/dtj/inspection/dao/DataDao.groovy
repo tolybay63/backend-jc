@@ -411,7 +411,7 @@ class DataDao extends BaseMdbUtils {
             order by v7.dateTimeVal desc
         """, map)
         //
-        if (params.containsKey("periodType"))
+        if (params.containsKey("periodType") || st.size() == 0)
             return st
         else {
             XDate d22 = UtCnv.toDate(st.get(0).getDate("CreationDateTime").toJavaLocalDate().plusDays(1))
