@@ -2026,7 +2026,7 @@ class DataDao extends BaseMdbUtils {
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Position
                 left join DataPropVal v1 on d1.id=v1.dataprop
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_TaskLog
-                inner join DataPropVal v2 on d2.id=v2.dataprop and v2.propVal=:pvTaskLog and v2.obj in (${ids.join(",")}) 
+                inner join DataPropVal v2 on d2.id=v2.dataprop and v2.propVal=:pvTaskLog and v2.obj in (0${ids.join(",")}) 
                 left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_User
                 left join DataPropVal v3 on d3.id=v3.dataprop
                 left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Value and d4.status=:FV_Plan
@@ -2047,7 +2047,7 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v12 on d12.id=v12.dataprop
                 left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_Measure
                 left join DataPropVal v13 on d13.id=v13.dataprop                
-            where o.cls in (${idsCls.join(",")})
+            where o.cls in (0${idsCls.join(",")})
         """, map)
         //Пересечение
         Set<Object> idsUser = st.getUniqueValues("objUser")
