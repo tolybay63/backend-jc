@@ -28,7 +28,7 @@ class Obj_Test extends Apx_Test {
     @Test
     void loadPersonnal() {
         DataDao dao = mdb.createDao(DataDao.class)
-        Store st = dao.loadPersonnal(1119)
+        Store st = dao.loadPersonnal(1004)
         mdb.outTable(st)
     }
 

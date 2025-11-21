@@ -163,7 +163,7 @@ class ApiPersonnalDataImpl extends BaseMdbUtils implements ApiPersonnalData {
                 v7.id as idUserPhone, v7.strVal as UserPhone,
                 v8.id as idUserDateBirth, v8.dateTimeVal as UserDateBirth,
                 v9.id as idDateEmployment, v9.dateTimeVal as DateEmployment,
-                v10.id as idDateDateDismissal, v10.dateTimeVal as DateDismissal,
+                v10.id as idDateDismissal, v10.dateTimeVal as DateDismissal,
                 v11.id as idCreatedAt, v11.dateTimeVal as CreatedAt,
                 v12.id as idUpdatedAt, v12.dateTimeVal as UpdatedAt,
                 v13.id as idUserSex, v13.propVal as pvUserSex, null as fvUserSex, null as nameUserSex,
