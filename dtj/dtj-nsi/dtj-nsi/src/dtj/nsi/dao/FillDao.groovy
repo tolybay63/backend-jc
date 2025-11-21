@@ -50,6 +50,8 @@ class FillDao extends BaseMdbUtils {
         Store st = mdb.createStore()
         Domain d = mdb.createDomain(st)
         XLSXReader_withoutDescription reader = new XLSXReader_withoutDescription(mdb, file, d, st)
+        int countRows = reader.getCountRows()
+        List<String> fields = reader.getFields()
 
         //свойства типа атрибут
         def props_atrib = [
@@ -178,18 +180,16 @@ class FillDao extends BaseMdbUtils {
         Set<String> reqFields = new HashSet<>()
         Set<String> emptyFields = new HashSet<>()
         int count = 0
+        if (!fields.contains("cls")) reqFields.add("cls")
+        if (!fields.contains("name")) reqFields.add("name")
+        if (!fields.contains("fullName")) reqFields.add("fullName")
+        if (!fields.contains("Prop_ObjectType")) reqFields.add("Prop_ObjectType")
+        if (!fields.contains("Prop_Section")) reqFields.add("Prop_Section")
+        if (!fields.contains("Prop_StartKm")) reqFields.add("Prop_StartKm")
+        if (!fields.contains("Prop_FinishKm")) reqFields.add("Prop_FinishKm")
+
         def eachLineTest = { Map m ->
             count++
-            if (count == 1) {
-                if (!m.keySet().contains("cls")) reqFields.add("cls")
-                if (!m.keySet().contains("name")) reqFields.add("name")
-                if (!m.keySet().contains("fullName")) reqFields.add("fullName")
-                if (!m.keySet().contains("Prop_ObjectType")) reqFields.add("Prop_ObjectType")
-                if (!m.keySet().contains("Prop_Section")) reqFields.add("Prop_Section")
-                if (!m.keySet().contains("Prop_StartKm")) reqFields.add("Prop_StartKm")
-                if (!m.keySet().contains("Prop_FinishKm")) reqFields.add("Prop_FinishKm")
-            }
-
             if (!m.get("name"))
                 emptyFields.add("name: Строка-${count+1}")
             if (!m.get("fullName"))
@@ -282,6 +282,7 @@ class FillDao extends BaseMdbUtils {
                 }
             }
         }
+        int o=0
     }
 
 
