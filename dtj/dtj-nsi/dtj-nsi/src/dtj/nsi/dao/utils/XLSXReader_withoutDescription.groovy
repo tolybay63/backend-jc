@@ -34,15 +34,15 @@ class XLSXReader_withoutDescription {
         this.store = store
     }
 
-    public void setFile(File f) {
-        file = f;
+    void setFile(File f) {
+        file = f
     }
 
-    public File getFile() {
+    File getFile() {
         if (file == null) {
-            throw new XError("Не указан файл");
+            throw new XError("Не указан файл")
         }
-        return file;
+        return file
     }
 
     XLSXReader_withoutDescription(Mdb mdb, File f, Domain d, Store s){
@@ -50,10 +50,10 @@ class XLSXReader_withoutDescription {
         setFile(f)
         setDomain(d)
         setStore(s)
-        createDomain();
+        createDomain()
     }
 
-    public void eachRow(Object eachFN){
+    void eachRow(Object eachFN){
         InputStream xls_file = new FileInputStream( getFile() )
         try {
             XSSFWorkbook workbook = new XSSFWorkbook( xls_file )
@@ -62,11 +62,11 @@ class XLSXReader_withoutDescription {
             Row row = rowIterator.next()
 
             Iterator < Cell > cellIterator = row.iterator()
-            Map fields = [:];
+            Map fields = [:]
             while ( cellIterator.hasNext() ) {
                 Cell cell = cellIterator.next()
-                String field_name =  cell.getStringCellValue();
-                String key_ci = cell.columnIndex.toString();
+                String field_name =  cell.getStringCellValue()
+                String key_ci = cell.columnIndex.toString()
                 fields.put( key_ci, field_name )
             }
             while ( rowIterator.hasNext() ) {
@@ -74,8 +74,8 @@ class XLSXReader_withoutDescription {
                 cellIterator = row.iterator()
                 Map map = [:]
                 while ( cellIterator.hasNext() ) {
-                    Cell cell = cellIterator.next();
-                    String key_ci = cell.columnIndex.toString();
+                    Cell cell = cellIterator.next()
+                    String key_ci = cell.columnIndex.toString()
                     switch ( cell.getCellType() ) {
 
                         case CellType.BOOLEAN : map.put( fields.get(key_ci), cell.getBooleanCellValue() )
@@ -83,7 +83,7 @@ class XLSXReader_withoutDescription {
                         case CellType.NUMERIC :
                             double v = cell.getNumericCellValue()
                             long l = UtCnv.toLong(cell.getNumericCellValue())
-                            double r = v - l;
+                            double r = v - l
                             if (r != 0)
                                 map.put( fields.get(key_ci), UtCnv.toDouble(cell.getNumericCellValue()) )
                             else
@@ -104,8 +104,6 @@ class XLSXReader_withoutDescription {
     }
 
     private void createDomain() {
-        //Domain d = getDomain()
-
         InputStream xls_file = new FileInputStream( getFile() )
         try {
 
@@ -122,7 +120,7 @@ class XLSXReader_withoutDescription {
                     throw new XError( "Error in header" )
             }
         } finally {
-            xls_file.close();
+            xls_file.close()
         }
     }
 
