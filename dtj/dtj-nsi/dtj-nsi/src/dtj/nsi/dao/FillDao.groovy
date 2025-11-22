@@ -50,9 +50,7 @@ class FillDao extends BaseMdbUtils {
         Store st = mdb.createStore()
         Domain d = mdb.createDomain(st)
         XLSXReader_withoutDescription reader = new XLSXReader_withoutDescription(mdb, file, d, st)
-        int countRows = reader.getCountRows()
         List<String> fields = reader.getFields()
-
         //свойства типа атрибут
         def props_atrib = [
                 "Prop_Specs": 1089L,
@@ -179,7 +177,8 @@ class FillDao extends BaseMdbUtils {
         //
         Set<String> reqFields = new HashSet<>()
         Set<String> emptyFields = new HashSet<>()
-        int count = 0
+        def count = 0
+        def countVal = 0
         if (!fields.contains("cls")) reqFields.add("cls")
         if (!fields.contains("name")) reqFields.add("name")
         if (!fields.contains("fullName")) reqFields.add("fullName")
@@ -200,8 +199,8 @@ class FillDao extends BaseMdbUtils {
                 emptyFields.add("Prop_ObjectType: Строка-${count+1}")
             if (!isInteger(UtCnv.toString(m.get("Prop_Section"))))
                 emptyFields.add("Prop_Section: Строка-${count+1}")
+            countVal += m.size()
         }
-
 
         //*******************************************************
         // Основное тело алгоритма
@@ -217,8 +216,13 @@ class FillDao extends BaseMdbUtils {
             for (StoreRecord r in stReg) {
                 if (mapPV.get(r.getLong("cls")) > 0)
                     r.set("pv", mapPV.get(r.getLong("cls")))
-                else
-                    throw new XError("Не указан возможное значение класса [" + r.getString("cls") + "]")
+                else {
+                    String msg = "Не указан возможное значение класса [" + r.getString("cls") + "]"
+                    mdb.execQuery("""
+                        update log set err=1, msg='${msg}', count=${count}, countval=${countVal} where id=1
+                    """)
+                    throw new XError(msg)
+                }
             }
             indexObjectType = stReg.getIndex("id")
             //
@@ -229,8 +233,13 @@ class FillDao extends BaseMdbUtils {
             for (StoreRecord r in stReg) {
                 if (mapPV.get(r.getLong("cls")) > 0)
                     r.set("pv", mapPV.get(r.getLong("cls")))
-                else
-                    throw new XError("Не указан возможное значение класса [" + r.getString("cls") + "]")
+                else {
+                    String msg = "Не указан возможное значение класса [" + r.getString("cls") + "]"
+                    mdb.execQuery("""
+                        update log set err=1, msg='${msg}', count=${count}, countval=${countVal} where id=1
+                    """)
+                    throw new XError(msg)
+                }
             }
             indexSection = stReg.getIndex("id")
             //
@@ -241,21 +250,22 @@ class FillDao extends BaseMdbUtils {
                     CREATE TABLE IF NOT EXISTS log (
                         id int8 NOT NULL,
                         msg varchar(800) NULL,
-                        cnt int8 NULL,
+                        count int8 NULL,
+                        countval int8 NULL,
                         err int2 NULL,
                         CONSTRAINT pk_log PRIMARY KEY (id)
                     );
                     ALTER TABLE log OWNER TO pg;
-                    GRANT ALL ON TABLE log TO pg; 
+                    GRANT ALL ON TABLE log TO pg;
                 """)
                 Store stLog = mdb.loadQuery("select * from log")
                 if (stLog.size()==0) {
                     mdb.execQueryNative("""
-                        INSERT INTO log (id, msg, cnt, err) VALUES (1, '', 0, 0);
+                        INSERT INTO log (id, msg, count, countval, err) VALUES (1, '', 0, 0, 0);
                     """)
                 } else {
                     mdb.execQueryNative("""
-                        UPDATE log SET msg='', cnt=0, err=0 WHERE id=1;
+                        UPDATE log SET msg='', count=0, countval=0, err=0 WHERE id=1;
                     """)
                 }
             } catch (Exception e) {
@@ -263,26 +273,24 @@ class FillDao extends BaseMdbUtils {
             }
             //
             reader.eachRow(eachLineTest)
+            countVal = countVal - 3*count
             //
-            if (reqFields.isEmpty() && emptyFields.isEmpty()) {
-                mdb.execQuery("""
-                    update log set err=0, msg='', cnt=${count} where id=1
-                """)
+            String msg
+            def err = 0
+            if (!reqFields.isEmpty()) {
+                err = 1
+                msg = "Наименования полей отсутствуют: [${reqFields.join(', ')}]"
+            } else if (!emptyFields.isEmpty()) {
+                err = 1
+                msg = "Некоторые значения обязательных полей отсутствуют: [${emptyFields.join(', ')}]"
             } else {
-                if (!reqFields.isEmpty()) {
-                    String msg = "Наименования полей отсутствуют: [${reqFields.join(', ')}]"
-                    mdb.execQuery("""
-                        update log set err=1, msg='${msg}' where id=1
-                    """)
-                } else if (!emptyFields.isEmpty()) {
-                    String msg = "Некоторые значения обязательных полей отсутствуют: [${emptyFields.join(', ')}]"
-                    mdb.execQuery("""
-                        update log set err=1, msg='${msg}', cnt=${count} where id=1
-                    """)
-                }
+                err = 0
+                msg = ""
             }
+            mdb.execQuery("""
+                update log set err='${err}', msg='${msg}', count=${count}, countval=${countVal} where id=1
+            """)
         }
-        int o=0
     }
 
 

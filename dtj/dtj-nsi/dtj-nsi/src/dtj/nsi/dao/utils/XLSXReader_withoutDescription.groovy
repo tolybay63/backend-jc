@@ -17,12 +17,7 @@ class XLSXReader_withoutDescription {
     protected File file
     private Domain domain
     private Store store
-    private int countRows
     private List<String> fields = new ArrayList<>()
-
-    int getCountRows() {
-        return countRows
-    }
 
     List<String> getFields() {
         return fields
@@ -120,7 +115,6 @@ class XLSXReader_withoutDescription {
 
             XSSFWorkbook workbook = new XSSFWorkbook( xls_file )
             XSSFSheet sheet = workbook.getSheetAt(0)
-            countRows = sheet.getLastRowNum()
             Row row = sheet.getRow(0)
             Iterator < Cell > cellIterator = row.iterator()
             while ( cellIterator.hasNext() ) {
