@@ -23,13 +23,15 @@ public class KeycloakAdminClient {
         this.app = app;
     }
 
-    public String createUser(String username, String email, boolean emailVerified) throws Exception {
+    public String createUser(String username, String name, String fullName, String email, boolean emailVerified) throws Exception {
         String adminToken = getAdminToken();
         String base = app.getConf().getConf("keycloak").getString("url");
         String realm = app.getConf().getConf("keycloak").getString("realm");
         String url = base + "/admin/realms/" + realm + "/users";
         String body = UtJson.toJson(Map.of(
                 "username", username,
+                "firstName", name,
+                "lastName", fullName,
                 "email", email,
                 "enabled", true,
                 "emailVerified", emailVerified
@@ -83,6 +85,20 @@ public class KeycloakAdminClient {
         List list = (List) UtJson.fromJson(json, List.class);
         return !list.isEmpty();
     }
+
+    public List getUserInfo(String username) throws Exception {
+        String adminToken = getAdminToken();
+        String base = app.getConf().getConf("keycloak").getString("url");
+        String realm = app.getConf().getConf("keycloak").getString("realm");
+        String url = base + "/admin/realms/" + realm + "/users?username=" + java.net.URLEncoder.encode(username, StandardCharsets.UTF_8);
+        HttpURLConnection get = getJson(url, adminToken);
+        if (get.getResponseCode() != 200) {
+            throw new RuntimeException("User not found - " +username);
+        }
+        String json = readOk(get);
+        return UtJson.fromJson(json, List.class);
+    }
+
 
     public void setUserPassword(String userId, String password, boolean temporary) throws Exception {
         String adminToken = getAdminToken();

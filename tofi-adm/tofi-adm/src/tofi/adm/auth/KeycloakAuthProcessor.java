@@ -1,6 +1,7 @@
 package tofi.adm.auth;
 
 import jandcode.commons.UtJson;
+import jandcode.commons.UtString;
 import jandcode.commons.conf.Conf;
 import jandcode.commons.error.XError;
 import jandcode.core.BaseComp;
@@ -47,7 +48,8 @@ public class KeycloakAuthProcessor extends BaseComp implements AuthProcessor {
         }
 
         // Получаем токен от Keycloak
-        String accessToken = getKeycloakToken(keycloakUrl, realm, clientId, clientSecret, token.getUsername(), token.getPasswd());
+        String accessToken = getKeycloakToken(keycloakUrl, realm, clientId, clientSecret,
+                token.getUsername(), UtString.md5Str(token.getPasswd()));
         if (accessToken == null) {
             throw new XErrorAuth(XErrorAuth.msg_invalid_user_passwd);
         }

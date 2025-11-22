@@ -75,9 +75,9 @@ class Obj_Test extends Apx_Test {
     }
 
     @Test
-    void delectPersonnal() {
+    void deletePersonnal() {
         DataDao dao = mdb.createDao(DataDao.class)
-        dao.deleteObjWithProperties(1010)
+        dao.deleteObjWithProperties(1003)
     }
 
 

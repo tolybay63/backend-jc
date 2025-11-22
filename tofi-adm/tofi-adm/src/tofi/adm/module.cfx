@@ -18,11 +18,14 @@
           class="jandcode.core.auth.impl.AuthServiceImpl">
 
         <!-- AuthProcessor. Keycloak авторизация -->
-        <auth-processor name="default" class="tofi.adm.auth.KeycloakAuthProcessor"/>
-
+        <x-if env.keycloak="true">
+            <auth-processor name="default" class="tofi.adm.auth.KeycloakAuthProcessor"/>
+        </x-if>
 
          AuthProcessor. По умолчанию - заглушка для admin/111, user1/111
-        <!--<auth-processor name="default" class="tofi.adm.auth.TofiAuthProcessor"/>-->
+        <x-if env.keycloak="false">
+            <auth-processor name="default" class="tofi.adm.auth.TofiAuthProcessor"/>
+        </x-if>
 
     </bean>
 
@@ -44,6 +47,7 @@
         <model name="default" instance="tofi.adm.model"/>
         <model name="meta" instance="tofi.api.mdl.model"/>
         <model name="userdata" instance="tofi.api.dta.model"/>
+        <model name="personnaldata" instance="tofi.api.dta.model"/>
     </dbm>
 
     <x-include path="dao.cfx"/>

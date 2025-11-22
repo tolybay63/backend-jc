@@ -76,7 +76,6 @@ class ApiAdmImpl extends BaseMdbUtils implements ApiAdm {
     @Override
     long regUser(Map<String, Object> rec) {
         String psw = UtString.md5Str(UtCnv.toString(rec.get("passwd")))
-        String p = UtCnv.toString(rec.get("passwd"))
         String login = UtString.toString(rec.get("login")).trim()
         Store st = mdb.loadQuery("""
                     select id from AuthUser where login like :l
@@ -86,7 +85,6 @@ class ApiAdmImpl extends BaseMdbUtils implements ApiAdm {
         }
 
         rec.put("passwd", psw)
-
         //
         st = mdb.createStore("AuthUser")
         StoreRecord r = st.add(rec)
@@ -94,14 +92,13 @@ class ApiAdmImpl extends BaseMdbUtils implements ApiAdm {
         r.set("locked", 0)
         long idUsr = mdb.insertRec("AuthUser", r, true)
         //
-        var bKC = getApp().getConf().getConf("keycloak").getBoolean("enabled")
-        if (bKC) {
+        if (getApp().getEnv().getProperties().getBoolean("keycloak")) {
             var kc = new KeycloakAdminClient(getMdb().getApp())
             //создать пользователя в Keycloak
-            String kcUserId = kc.createUser(UtCnv.toString(rec.get("login")),
-                    UtCnv.toString(rec.get("email")), true)
+            String kcUserId = kc.createUser(r.getString("login"), r.getString("name"),
+                    r.getString("fullName"), r.getString("email"), true)
             //задать пароль (не временный)
-            kc.setUserPassword(kcUserId, p, false)
+            kc.setUserPassword(kcUserId, r.getString("passwd"), false)
         }
         //
         return idUsr

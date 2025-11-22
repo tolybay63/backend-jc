@@ -10,7 +10,7 @@ import jandcode.core.dbm.mdb.BaseMdbUtils;
 import jandcode.core.std.CfgService;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
-import org.apache.tools.ant.taskdefs.Sleep;
+import tofi.api.dta.ApiPersonnalData;
 import tofi.api.dta.ApiUserData;
 import tofi.api.mdl.ApiMeta;
 import tofi.api.mdl.model.consts.FD_AccessLevel_consts;
@@ -24,9 +24,11 @@ public class UsrMdbUtils extends BaseMdbUtils {
     ApinatorApi apiMeta() {
         return getApp().bean(ApinatorService.class).getApi("meta");
     }
-
     ApinatorApi apiUserData() {
         return getApp().bean(ApinatorService.class).getApi("userdata");
+    }
+    ApinatorApi apiPersonnalData() {
+        return getApp().bean(ApinatorService.class).getApi("personnaldata");
     }
 
     String checkAccount(long id) throws Exception {
@@ -143,19 +145,17 @@ public class UsrMdbUtils extends BaseMdbUtils {
     public Store insert(Map<String, Object> rec) throws Exception {
         Store st = getMdb().createStore("AuthUser");
         StoreRecord record = st.add(rec);
-        String p = record.getString("passwd");
         record.set("passwd", UtString.md5Str(record.getString("passwd")));
         record.set("id", null);
         long id = getMdb().insertRec("AuthUser", record, true);
         //
-        var bKC = getApp().getConf().getConf("keycloak").getBoolean("enabled");
-        if (bKC) {
+        if (getApp().getEnv().getProperties().getString("keycloak").equals("true")) {
             var kc = new tofi.adm.auth.KeycloakAdminClient(getMdb().getApp());
             //создать пользователя в Keycloak
-            String kcUserId = kc.createUser(record.getString("login"),
-                    record.getString("email"), true); // true => Email verified
+            String kcUserId = kc.createUser(record.getString("login"), record.getString("name"),
+                    record.getString("fullName"), record.getString("email"), true);
             //задать пароль (не временный)
-            kc.setUserPassword(kcUserId, p, false);
+            kc.setUserPassword(kcUserId, record.getString("passwd"), false);
         }
         //
         st = getMdb().createStore("AuthUser");
@@ -165,12 +165,6 @@ public class UsrMdbUtils extends BaseMdbUtils {
 
     @DaoMethod
     public Store update(Map<String, Object> rec) throws Exception {
-
-/*
-         Sleep sss = new Sleep();
-         sss.doSleep(3000);
-*/
-
         Store st = getMdb().createStore("AuthUser");
         StoreRecord record = st.add(rec);
         long id = UtCnv.toLong(rec.get("id"));
@@ -178,9 +172,19 @@ public class UsrMdbUtils extends BaseMdbUtils {
             throw new XError("Поле id должно иметь не нулевое значение");
         }
         getMdb().updateRec("AuthUser", record);
+        //
+        if (getApp().getEnv().getProperties().getString("keycloak").equals("true")) {
+            var kc = new tofi.adm.auth.KeycloakAdminClient(getMdb().getApp());
+            if (!kc.userExists(record.getString("login"))) {
+                //создать пользователя в Keycloak
+                String kcUserId = kc.createUser(record.getString("login"),record.getString("name"),
+                        record.getString("fullName"), record.getString("email"), true);
+                kc.setUserPassword(kcUserId, record.getString("passwd"), false);
+            }
+        }
+        //
         st = getMdb().createStore("AuthUser");
         getMdb().loadQuery(st, "select * from AuthUser where id=:id", Map.of("id", id));
-        getMdb().resolveDicts(st);
         return st;
     }
 
@@ -195,9 +199,40 @@ public class UsrMdbUtils extends BaseMdbUtils {
             if (!str.isEmpty()) {
                 throw new XError("Существует аккаунт пользователя [" + str + "]");
             }
+            String userName = getMdb().loadQuery("select login from AuthUser where id=:id", Map.of("id", id))
+                    .get(0)
+                    .getString("login");
+            //
+            validatePersonnel(id);
+            //
             getMdb().deleteRec("AuthUser", id);
+            //
+            if (getApp().getEnv().getProperties().getString("keycloak").equals("true")) {
+                var kc = new tofi.adm.auth.KeycloakAdminClient(getMdb().getApp());
+                if (kc.userExists(userName)) {
+                    List userInfo = kc.getUserInfo(userName);
+                    String idUserKC = UtCnv.toString(((Map) userInfo.get(0)).get("id"));
+                    kc.deleteUser(idUserKC);
+                }
+            }
         }
+    }
 
+    private void validatePersonnel(long id) {
+        Map<String, Long> map = apiMeta().get(ApiMeta.class).getIdFromCodOfEntity("Prop", "Prop_UserId", "");
+        Map<String, Object> par = new HashMap<>();
+        par.put("id", id);
+        par.put("Prop_UserId", map.get("Prop_UserId"));
+
+        Store st = apiPersonnalData().get(ApiPersonnalData.class).loadSqlWithParams("""
+           select o.id
+           from Obj o
+           left join DataProp d1 on d1.objOrRelObj=o.id and d1.prop=:Prop_UserId
+           inner join DataPropVal v1 on d1.id=v1.dataProp and v1.strVal=:id
+        """, par, "");
+        if (st.size() > 0) {
+            throw new XError("[User] используется в personnel");
+        }
     }
 
     @DaoMethod

@@ -36,6 +36,18 @@ public class RegMdbUtils extends BaseModelDao {
         r.set("authUserGr", 2);
         r.set("locked", 0);
         mdb.insertRec("AuthUser", r, true);
+        //
+        if (getApp().getEnv().getProperties().getString("keycloak").equals("true")) {
+            var kc = new tofi.adm.auth.KeycloakAdminClient(getMdb().getApp());
+            //создать пользователя в Keycloak
+            String kcUserId = kc.createUser(r.getString("login"), r.getString("name"),
+                    r.getString("fullName"), r.getString("email"), true);
+            //задать пароль (не временный)
+            kc.setUserPassword(kcUserId, r.getString("passwd"), false);
+        }
+        //
+
+
     }
 
 

@@ -23,13 +23,15 @@ public class KeycloakAdminClient {
         this.app = app;
     }
 
-    public String createUser(String username, String email, boolean emailVerified) throws Exception {
+    public String createUser(String username, String name, String fullName, String email, boolean emailVerified) throws Exception {
         String adminToken = getAdminToken();
         String base = app.getConf().getConf("keycloak").getString("url");
         String realm = app.getConf().getConf("keycloak").getString("realm");
         String url = base + "/admin/realms/" + realm + "/users";
         String body = UtJson.toJson(Map.of(
                 "username", username,
+                "firstName", name,
+                "lastName", fullName,
                 "email", email,
                 "enabled", true,
                 "emailVerified", emailVerified
