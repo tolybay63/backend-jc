@@ -354,7 +354,7 @@ class DataDao extends BaseMdbUtils {
             throw new XError("NotCreatedProfile")
         }
 
-        long fv = getFactorValFromPropVal(st.get(0).getLong("UserSexPropval"))
+        long fv = getFactorValFromPropVal(st.get(0).getLong("UserSexPropval"), "Prop_UserSex")
         st.get(0).set("UserSex", fv)
         //
         return st
@@ -401,8 +401,8 @@ class DataDao extends BaseMdbUtils {
         return apiMeta().get(ApiMeta).getIdFromCodOfEntity(entity, cod, prefix)
     }
 
-    private long getFactorValFromPropVal(long propVal) {
-        Map<Long, Long> mapPV_Entity = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
+    private long getFactorValFromPropVal(long propVal, String codProp) {
+        Map<Long, Long> mapPV_Entity = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", codProp, true)
         return mapPV_Entity.get(propVal)
     }
 
