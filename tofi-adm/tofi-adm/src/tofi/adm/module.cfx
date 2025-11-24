@@ -22,7 +22,7 @@
             <auth-processor name="default" class="tofi.adm.auth.KeycloakAuthProcessor"/>
         </x-if>
 
-         AuthProcessor. По умолчанию - заглушка для admin/111, user1/111
+         AuthProcessor. Tofi авторизация
         <x-if env.keycloak="false">
             <auth-processor name="default" class="tofi.adm.auth.TofiAuthProcessor"/>
         </x-if>
