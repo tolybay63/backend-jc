@@ -68,6 +68,511 @@ class ReportDao extends BaseMdbUtils {
     }
     //=========================================================================
 
+    @DaoMethod
+    Store reportTaskLog(Map<String, Object> params) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelTyp", "RT_ParamsComponent", "")
+        long reltypParamsComponent = map.get("RT_ParamsComponent")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_TaskLog", "")
+
+        String whe
+        String wheV6 = ""
+        if (params.containsKey("id"))
+            whe = "o.id=${UtCnv.toLong(params.get("id"))}"
+        else {
+            whe = "o.cls = ${map.get("Cls_TaskLog")}"
+            //
+            long pt = UtCnv.toLong(params.get("periodType"))
+            String dte = UtCnv.toString(params.get("date"))
+            UtPeriod utPeriod = new UtPeriod()
+            XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(dte), pt, 0)
+            XDate d2 = utPeriod.calcDend(UtCnv.toDate(dte), pt, 0)
+            wheV6 = "and v6.dateTimeVal between '${d1}' and '${d2}'"
+        }
+
+        Map<String, Long> mapFV = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "", "FV_%")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        map.put("FV_Plan", mapFV.get("FV_Plan"))
+        map.put("FV_Fact", mapFV.get("FV_Fact"))
+
+        Store st = loadSqlService("""
+            select o.id,
+                v1.obj as objWorkPlan,
+                v2.obj as objTask, null as fullNameTask,
+                v4.numberVal as ValuePlan,
+                v5.numberVal as ValueFact,
+                v6.dateTimeVal as PlanDateStart,
+                v7.dateTimeVal as PlanDateEnd,
+                v8.dateTimeVal as FactDateStart,
+                v9.dateTimeVal as FactDateEnd,
+                v12.obj as objLocationClsSection, null as nameLocationClsSection,
+                null as plan_objWork, null as plan_fullNameWork, null as plan_objObject, null as plan_fullNameObject,
+                null as plan_StartKm, null as plan_FinishKm, null as plan_StartPicket, null as plan_FinishPicket,
+                null as plan_PlanDateEnd, null as plan_FactDateEnd,
+                null as plan_objSection, null as plan_nameSection, null as plan_objIncident, null as objEvent,
+                null as nameEvent, null as objParameterLog, null as objFault,
+                null as pvStatus, null as fvStatus, null as nameStatus,
+                null as pvCriticality, null as fvCriticality, null as nameCriticality,
+                null as StartLink, null as FinishLink, null as RegistrationDateTime, null as AssignDateTime,
+                null as objInspection, null as par_CreationDateTime, null as def_CreationDateTime,
+                null as relobjComponentParams, null as nameComponentParams,
+                null as objDefect, null as nameDefect,
+                null as objComponent, null as nameComponent,
+                null as ParamsLimit, null as ParamsLimitMax, null as ParamsLimitMin,
+                null as ins_objWorkPlan, null as ins_FactDateEnd,
+                null as ins_plan_objWork, null as ins_plan_fullNameWork,
+                null as ins_plan_PlanDateEnd, null as ins_plan_FactDateEnd, 
+                null as ins_plan_objIncident
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_WorkPlan")}
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_Task")}
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_Value")} and d4.status=${map.get("FV_Plan")}
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_Value")} and d5.status=${map.get("FV_Fact")}
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=${map.get("Prop_PlanDateStart")}
+                inner join DataPropVal v6 on d6.id=v6.dataprop ${wheV6}
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=${map.get("Prop_PlanDateEnd")}
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=${map.get("Prop_FactDateStart")}
+                left join DataPropVal v8 on d8.id=v8.dataprop
+                left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=${map.get("Prop_FactDateEnd")}
+                left join DataPropVal v9 on d9.id=v9.dataprop
+                left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=${map.get("Prop_LocationClsSection")}
+                left join DataPropVal v12 on d12.id=v12.dataprop
+            where ${whe}
+        """, "", "repairdata")
+
+        //... Пересечение
+        Set<Object> idsTask = st.getUniqueValues("objTask")
+        Store stTask = loadSqlService("""
+            select o.id, v.fullName
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsTask.join(",")})
+        """, "", "nsidata")
+        StoreIndex indTask = stTask.getIndex("id")
+        //
+        Set<Object> idsLocation = st.getUniqueValues("objLocationClsSection")
+        Store stLocation = loadSqlService("""
+            select o.id, v.name
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsLocation.join(",")})
+        """, "", "orgstructuredata")
+        StoreIndex indLocation = stLocation.getIndex("id")
+        //
+        Set<Object> idsWorkPlan = st.getUniqueValues("objWorkPlan")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        Store stWP = loadSqlService("""
+            select o.id,
+                v1.obj as objWork, null as fullNameWork,
+                v2.obj as objObject, null as fullNameObject,
+                v3.numberVal as StartKm,
+                v4.numberVal as FinishKm,
+                v5.numberVal as StartPicket,
+                v6.numberVal as FinishPicket,
+                v7.dateTimeVal as PlanDateEnd,
+                v8.dateTimeVal as FactDateEnd,
+                v9.obj as objIncident,
+                null as objSection, null as nameSection
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Work")}
+                left join DataPropVal v1 on d1.id=v1.dataProp
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_Object")}
+                left join DataPropVal v2 on d2.id=v2.dataProp
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_StartKm")}
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_FinishKm")}
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_StartPicket")}
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=${map.get("Prop_FinishPicket")}
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=${map.get("Prop_PlanDateEnd")}
+                left join DataPropVal v7 on d7.id=v7.dataProp
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=${map.get("Prop_FactDateEnd")}
+                left join DataPropVal v8 on d8.id=v8.dataProp
+                left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=${map.get("Prop_Incident")}
+                left join DataPropVal v9 on d9.id=v9.dataProp          
+            where o.id in (0${idsWorkPlan.join(",")})
+        """, "", "plandata")
+        //
+        Set<Object> idsWork = stWP.getUniqueValues("objWork")
+        Store stWork = loadSqlService("""
+            select o.id, v.fullName
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsWork.join(",")})
+        """, "", "nsidata")
+        StoreIndex indWork = stWork.getIndex("id")
+        //
+        Set<Object> idsObject = stWP.getUniqueValues("objObject")
+        Store stObject = loadSqlService("""
+            select o.id, ov.fullName, v1.obj as objSection, ov1.name as nameSection
+            from Obj o
+                left join ObjVer ov on o.id=ov.ownerVer and ov.lastVer=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Section")}
+                left join DataPropVal v1 on d1.id=v1.dataProp
+                left join ObjVer ov1 on v1.obj=ov1.ownerVer and ov1.lastVer=1
+            where o.id in (0${idsObject.join(",")})
+        """, "", "objectdata")
+        StoreIndex indObject = stObject.getIndex("id")
+        //
+        for (StoreRecord r in stWP) {
+            StoreRecord rWork = indWork.get(r.getLong("objWork"))
+            if (rWork != null)
+                r.set("fullNameWork", rWork.getString("fullName"))
+            StoreRecord rObject = indObject.get(r.getLong("objObject"))
+            if (rObject != null)
+                r.set("fullNameObject", rObject.getString("fullName"))
+                r.set("objSection", rObject.getLong("objSection"))
+                r.set("nameSection", rObject.getString("nameSection"))
+        }
+        StoreIndex indWP = stWP.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord recTask = indTask.get(r.getLong("objTask"))
+            if (recTask != null)
+                r.set("fullNameTask", recTask.getString("fullName"))
+
+            StoreRecord rLocation = indLocation.get(r.getLong("objLocationClsSection"))
+            if (rLocation != null)
+                r.set("nameLocationClsSection", rLocation.getString("name"))
+
+            StoreRecord rWP = indWP.get(r.getLong("objWorkPlan"))
+            if (rWP != null) {
+                r.set("plan_objWork", rWP.getLong("objWork"))
+                r.set("plan_fullNameWork", rWP.getString("fullNameWork"))
+                r.set("plan_objObject", rWP.getLong("objObject"))
+                r.set("plan_fullNameObject", rWP.getString("fullNameObject"))
+                r.set("plan_objSection", rWP.getLong("objSection"))
+                r.set("plan_nameSection", rWP.getString("nameSection"))
+                r.set("plan_StartKm", rWP.getDouble("StartKm"))
+                r.set("plan_FinishKm", rWP.getDouble("FinishKm"))
+                r.set("plan_StartPicket", rWP.getDouble("StartPicket"))
+                r.set("plan_FinishPicket", rWP.getDouble("FinishPicket"))
+                r.set("plan_PlanDateEnd", rWP.getString("PlanDateEnd"))
+                r.set("plan_FactDateEnd", rWP.getString("FactDateEnd"))
+                r.set("plan_objIncident", rWP.getLong("objIncident"))
+            }
+        }
+        //
+        Set<Object> idsIncident = st.getUniqueValues("plan_objIncident")
+        Store stIncident = loadSqlService("""
+            select o.id,
+                v1.obj as objEvent, ov1.name as nameEvent,
+                v4.obj as objParameterLog,
+                v5.obj as objFault,
+                v6.propVal as pvStatus, null as fvStatus, null as nameStatus,
+                v7.propVal as pvCriticality, null as fvCriticality, null as nameCriticality,
+                v12.numberVal as StartLink,
+                v13.numberVal as FinishLink,
+                --v14.multiStrVal as Description,
+                v17.dateTimeVal as RegistrationDateTime,
+                v18.strVal as InfoApplicant,
+                v21.dateTimeVal as AssignDateTime,
+                null as objInspection, null as par_CreationDateTime, null as relobjComponentParams, 
+                null as nameComponentParams, null as ParamsLimit, null as ParamsLimitMax, null as ParamsLimitMin,
+                null as objDefect, null as nameDefect, null as objComponent, null as nameComponent, 
+                null as def_CreationDateTime, null as ins_objWorkPlan, null as ins_FactDateEnd, null as ins_plan_objWork, 
+                null as ins_plan_fullNameWork, null as ins_plan_PlanDateEnd, null as ins_plan_FactDateEnd, 
+                null as ins_plan_objIncident
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Event")}
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join ObjVer ov1 on ov1.ownerVer=v1.obj and ov1.lastVer=1
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_ParameterLog")}
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_Fault")}
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=${map.get("Prop_Status")}
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=${map.get("Prop_Criticality")}
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=${map.get("Prop_StartLink")}
+                left join DataPropVal v12 on d12.id=v12.dataprop
+                left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=${map.get("Prop_FinishLink")}
+                left join DataPropVal v13 on d13.id=v13.dataprop
+                left join DataProp d14 on d14.objorrelobj=o.id and d14.prop=${map.get("Prop_Description")}
+                left join DataPropVal v14 on d14.id=v14.dataprop
+                left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=${map.get("Prop_RegistrationDateTime")}
+                left join DataPropVal v17 on d17.id=v17.dataprop
+                left join DataProp d18 on d18.objorrelobj=o.id and d18.prop=${map.get("Prop_InfoApplicant")}
+                left join DataPropVal v18 on d18.id=v18.dataprop
+                left join DataProp d21 on d21.objorrelobj=o.id and d21.prop=${map.get("Prop_AssignDateTime")}
+                left join DataPropVal v21 on d21.id=v21.dataprop
+            where o.id in (0${idsIncident.join(",")})
+        ""","","incidentdata")
+        //
+        Set<Object> pvsStatus = stIncident.getUniqueValues("pvStatus")
+        Store stPV = apiMeta().get(ApiMeta).loadSql("""
+            select p.id, p.factorVal, f.name
+            from Propval p, Factor f
+            where p.id in (0${pvsStatus.join(",")}) and p.factorVal=f.id            
+        """, "")
+        StoreIndex indStatus = stPV.getIndex("id")
+        //
+        Set<Object> pvsCriticality = stIncident.getUniqueValues("pvCriticality")
+        stPV = apiMeta().get(ApiMeta).loadSql("""
+            select p.id, p.factorVal, f.name
+            from Propval p, Factor f
+            where p.id in (0${pvsCriticality.join(",")}) and p.factorVal=f.id            
+        """, "")
+        StoreIndex indCriticality = stPV.getIndex("id")
+        //
+        Set<Object> idsParameterLog = stIncident.getUniqueValues("objParameterLog")
+        Store stParameterLog = loadSqlService("""
+            select o.id,
+                v2.obj as objInspection, 
+                v7.dateTimeVal as CreationDateTime,
+                v8.relobj as relobjComponentParams, null as nameComponentParams,
+                        null as objComponent, null as nameComponent,
+                --v14.multiStrVal as Description,
+                v15.numberVal as ParamsLimit,
+                v16.numberVal as ParamsLimitMax,
+                v17.numberVal as ParamsLimitMin
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_Inspection")}
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=${map.get("Prop_CreationDateTime")}
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=${map.get("Prop_ComponentParams")}
+                left join DataPropVal v8 on d8.id=v8.dataprop
+                left join DataProp d14 on d14.objorrelobj=o.id and d14.prop=${map.get("Prop_Description")}
+                left join DataPropVal v14 on d14.id=v14.dataprop
+                left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=${map.get("Prop_ParamsLimit")}
+                left join DataPropVal v15 on d15.id=v15.dataprop
+                left join DataProp d16 on d16.objorrelobj=o.id and d16.prop=${map.get("Prop_ParamsLimitMax")}
+                left join DataPropVal v16 on d16.id=v16.dataprop
+                left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=${map.get("Prop_ParamsLimitMin")}
+                left join DataPropVal v17 on d17.id=v17.dataprop
+            where o.id in (0${idsParameterLog.join(",")})
+        """, "", "inspectiondata")
+        //
+        Set<Object> idsRelObjComponentParams = stParameterLog.getUniqueValues("relObjComponentParams")
+        Store stMemb = apiMeta().get(ApiMeta).loadSql("""
+            select id from relclsmember 
+            where relcls in (select id from Relcls where reltyp=${reltypParamsComponent})
+            order by id
+        """, "")
+        Store stRO = loadSqlService("""
+            select o.id, r1.obj as obj1, ov1.name as name1, r2.obj as obj2, ov2.name as name2
+            from Relobj o
+                left join relobjmember r1 on o.id = r1.relobj and r1.relclsmember=${stMemb.get(0).getLong("id")}
+                left join objver ov1 on ov1.ownerVer=r1.obj and ov1.lastVer=1
+                left join relobjmember r2 on o.id = r2.relobj and r2.relclsmember=${stMemb.get(1).getLong("id")}
+                left join objver ov2 on ov2.ownerVer=r2.obj and ov2.lastVer=1
+            where o.id in (0${idsRelObjComponentParams.join(",")})
+        """, "", "nsidata")
+        StoreIndex indRO = stRO.getIndex("id")
+        for (StoreRecord r in stParameterLog) {
+            StoreRecord rec = indRO.get(r.getLong("relobjComponentParams"))
+            if (rec != null) {
+                r.set("nameComponentParams", rec.getString("name1"))
+                r.set("nameComponent", rec.getString("name2"))
+                r.set("objComponent", rec.getLong("obj2"))
+            }
+        }
+        StoreIndex indParameterLog = stParameterLog.getIndex("id")
+        //
+        Set<Object> idsFault = stIncident.getUniqueValues("objFault")
+        Store stFault = loadSqlService("""
+            select o.id,
+                v2.obj as objInspection,
+                v7.dateTimeVal as CreationDateTime,
+                v8.obj as objDefect, null as nameDefect, null as objComponent, null as nameComponent
+                --v14.multiStrVal as Description
+            from Obj o
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_Inspection")}
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=${map.get("Prop_CreationDateTime")}
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=${map.get("Prop_Defect")}
+                left join DataPropVal v8 on d8.id=v8.dataprop
+                left join DataProp d14 on d14.objorrelobj=o.id and d14.prop=${map.get("Prop_Description")}
+                left join DataPropVal v14 on d14.id=v14.dataprop
+            where o.id in (0${idsFault.join(",")})
+        """, "", "inspectiondata")
+        //
+        Set<Object> idsDefect = stFault.getUniqueValues("objDefect")
+        Store stDefect = loadSqlService("""
+            select o.id, v.name,
+                v1.obj as objDefectsComponent, ov1.name as nameDefectsComponent 
+            from Obj o
+                left join ObjVer v on o.id=v.ownerVer and v.lastVer=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_DefectsComponent")}
+                left join DataPropval v1 on d1.id=v1.dataProp
+                left join ObjVer ov1 on v1.obj=ov1.ownerVer and ov1.lastVer=1
+            where o.id in (0${idsDefect.join(",")})
+        """, "", "nsidata")
+        StoreIndex indDefect = stDefect.getIndex("id")
+        //
+        for (StoreRecord r in stFault) {
+            StoreRecord rec = indDefect.get(r.getLong("objDefect"))
+            if (rec != null) {
+                r.set("nameDefect", rec.getString("name"))
+                r.set("objComponent", rec.getLong("objDefectsComponent"))
+                r.set("nameComponent", rec.getString("nameDefectsComponent"))
+            }
+        }
+        StoreIndex indFault = stFault.getIndex("id")
+        //
+        for (StoreRecord r in stIncident) {
+            StoreRecord rStatus = indStatus.get(r.getLong("pvStatus"))
+            if (rStatus != null) {
+                r.set("fvStatus", rStatus.getLong("factorVal"))
+                r.set("nameStatus", rStatus.getString("name"))
+            }
+            StoreRecord rCriticality = indCriticality.get(r.getLong("pvCriticality"))
+            if (rCriticality != null) {
+                r.set("fvCriticality", rCriticality.getLong("factorVal"))
+                r.set("nameCriticality", rCriticality.getString("name"))
+            }
+            StoreRecord rParameterLog = indParameterLog.get(r.getLong("objParameterLog"))
+            if (rParameterLog != null) {
+                r.set("objInspection", rParameterLog.getLong("objInspection"))
+                r.set("par_CreationDateTime", rParameterLog.getString("CreationDateTime"))
+                r.set("relobjComponentParams", rParameterLog.getLong("relobjComponentParams"))
+                r.set("nameComponentParams", rParameterLog.getString("nameComponentParams"))
+                r.set("objComponent", rParameterLog.getLong("objComponent"))
+                r.set("nameComponent", rParameterLog.getString("nameComponent"))
+                r.set("ParamsLimit", rParameterLog.getDouble("ParamsLimit"))
+                r.set("ParamsLimitMax", rParameterLog.getDouble("ParamsLimitMax"))
+                r.set("ParamsLimitMin", rParameterLog.getDouble("ParamsLimitMin"))
+                //r.set("Description", rParameterLog.getLong("Description"))
+            }
+            StoreRecord rFault = indFault.get(r.getLong("objFault"))
+            if (rFault != null) {
+                r.set("objInspection", rFault.getLong("objInspection"))
+                r.set("def_CreationDateTime", rFault.getString("CreationDateTime"))
+                r.set("objDefect", rFault.getLong("objDefect"))
+                r.set("nameDefect", rFault.getString("nameDefect"))
+                r.set("objComponent", rFault.getLong("objComponent"))
+                r.set("nameComponent", rFault.getString("nameComponent"))
+                //r.set("Description", rFault.getLong("Description"))
+            }
+        }
+        //
+        Set<Object> idsInspection = stIncident.getUniqueValues("objInspection")
+        Store stInspection = loadSqlService("""
+            select o.id,
+                v1.obj as objWorkPlan,
+                v2.dateTimeVal as FactDateEnd,
+                null as objWork, null as fullNameWork,
+                null as ins_plan_PlanDateEnd, null as ins_plan_FactDateEnd, 
+                null as objIncident
+            from Obj o 
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_WorkPlan")}
+                left join DataPropval v1 on d1.id=v1.dataProp 
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_FactDateEnd")}
+                left join DataPropval v2 on d2.id=v2.dataProp
+            where o.id in (0${idsInspection.join(",")})
+        """, "", "inspectiondata")
+        //
+        idsWorkPlan = stInspection.getUniqueValues("objWorkPlan")
+        stWP = loadSqlService("""
+            select o.id,
+                v1.obj as objWork, null as fullNameWork,
+                v7.dateTimeVal as PlanDateEnd,
+                v8.dateTimeVal as FactDateEnd,
+                v9.obj as objIncident
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Work")}
+                left join DataPropVal v1 on d1.id=v1.dataProp
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=${map.get("Prop_PlanDateEnd")}
+                left join DataPropVal v7 on d7.id=v7.dataProp
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=${map.get("Prop_FactDateEnd")}
+                left join DataPropVal v8 on d8.id=v8.dataProp
+                left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=${map.get("Prop_Incident")}
+                left join DataPropVal v9 on d9.id=v9.dataProp          
+            where o.id in (0${idsWorkPlan.join(",")})
+        """, "", "plandata")
+        //
+        idsWork = stWP.getUniqueValues("objWork")
+        stWork = loadSqlService("""
+            select o.id, v.fullName
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsWork.join(",")})
+        """, "", "nsidata")
+        indWork = stWork.getIndex("id")
+        //
+        for (StoreRecord r in stWP) {
+            StoreRecord rWork = indWork.get(r.getLong("objWork"))
+            if (rWork != null)
+                r.set("fullNameWork", rWork.getString("fullName"))
+        }
+        indWP = stWP.getIndex("id")
+        for (StoreRecord r in stInspection) {
+            StoreRecord rec = indWP.get(r.getLong("objWorkPlan"))
+            if (rec != null) {
+                r.set("fullNameWork", rec.getString("fullNameWork"))
+                r.set("ins_plan_FactDateEnd", rec.getString("FactDateEnd"))
+                r.set("ins_plan_PlanDateEnd", rec.getString("PlanDateEnd"))
+                r.set("objWork", rec.getLong("objWork"))
+                r.set("objIncident", rec.getLong("objIncident"))
+            }
+        }
+        StoreIndex indInspection = stInspection.getIndex("id")
+        //
+        for (StoreRecord r in stIncident) {
+            StoreRecord rec = indInspection.get(r.getLong("objInspection"))
+            if (rec != null) {
+                r.set("ins_objWorkPlan", rec.getLong("objWorkPlan"))
+                r.set("ins_FactDateEnd", rec.getString("FactDateEnd"))
+                r.set("ins_plan_objWork", rec.getLong("objWork"))
+                r.set("ins_plan_fullNameWork", rec.getString("fullNameWork"))
+                r.set("ins_plan_PlanDateEnd", rec.getString("ins_plan_PlanDateEnd"))
+                r.set("ins_plan_FactDateEnd", rec.getString("ins_plan_FactDateEnd"))
+                r.set("ins_plan_objIncident", rec.getLong("objIncident"))
+            }
+        }
+        StoreIndex indIncident = stIncident.getIndex("id")
+        //...
+        for (StoreRecord r in st) {
+            StoreRecord rec = indIncident.get(r.getLong("plan_objIncident"))
+            if (rec != null) {
+                r.set("objEvent", rec.getLong("objEvent"))
+                r.set("nameEvent", rec.getString("nameEvent"))
+                r.set("objParameterLog", rec.getLong("objParameterLog"))
+                r.set("objFault", rec.getLong("objFault"))
+                r.set("pvStatus", rec.getLong("pvStatus"))
+                r.set("pvCriticality", rec.getLong("pvCriticality"))
+                r.set("StartLink", rec.getLong("StartLink"))
+                r.set("FinishLink", rec.getLong("FinishLink"))
+                r.set("RegistrationDateTime", rec.getString("RegistrationDateTime"))
+                r.set("AssignDateTime", rec.getString("AssignDateTime"))
+                r.set("fvStatus", rec.getLong("fvStatus"))
+                r.set("nameStatus", rec.getString("nameStatus"))
+                r.set("fvCriticality", rec.getLong("fvCriticality"))
+                r.set("nameCriticality", rec.getString("nameCriticality"))
+                r.set("objInspection", rec.getLong("objInspection"))
+                r.set("par_CreationDateTime", rec.getString("par_CreationDateTime"))
+                r.set("relobjComponentParams", rec.getLong("relobjComponentParams"))
+                r.set("nameComponentParams", rec.getString("nameComponentParams"))
+                r.set("objComponent", rec.getLong("objComponent"))
+                r.set("nameComponent", rec.getString("nameComponent"))
+                r.set("ParamsLimit", rec.getDouble("ParamsLimit"))
+                r.set("ParamsLimitMax", rec.getDouble("ParamsLimitMax"))
+                r.set("ParamsLimitMin", rec.getDouble("ParamsLimitMin"))
+                r.set("objInspection", rec.getLong("objInspection"))
+                r.set("def_CreationDateTime", rec.getString("def_CreationDateTime"))
+                r.set("objDefect", rec.getLong("objDefect"))
+                r.set("nameDefect", rec.getString("nameDefect"))
+                r.set("objComponent", rec.getLong("objComponent"))
+                r.set("nameComponent", rec.getString("nameComponent"))
+                //
+                r.set("ins_objWorkPlan", rec.getLong("ins_objWorkPlan"))
+                r.set("ins_FactDateEnd", rec.getString("ins_FactDateEnd"))
+                r.set("ins_plan_objWork", rec.getLong("ins_plan_objWork"))
+                r.set("ins_plan_fullNameWork", rec.getString("ins_plan_fullNameWork"))
+                r.set("ins_plan_PlanDateEnd", rec.getString("ins_plan_PlanDateEnd"))
+                r.set("ins_plan_FactDateEnd", rec.getString("ins_plan_FactDateEnd"))
+                r.set("ins_plan_objIncident", rec.getLong("ins_plan_objIncident"))
+            }
+        }
+        //
+        return st
+    }
 
     @DaoMethod
     String generateReport(Map<String, Object> params) {

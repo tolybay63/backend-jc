@@ -9,6 +9,18 @@ import org.junit.jupiter.api.Test
 class Report_Test extends Apx_Test {
 
     @Test
+    void reportTaskLog_test () {
+        ReportDao dao = mdb.createDao(ReportDao.class)
+        Map<String, Object> params =  Map.of(
+//                "notResource", 1,
+                "date", "2025-07-29",
+                "periodType", 11
+        )
+        Store st = dao.reportTaskLog(params)
+        mdb.outTable(st)
+    }
+
+    @Test
     void report_PO_1_test() {
         ReportDao dao = mdb.createDao(ReportDao.class)
         Map<String, Object> map = new HashMap<>()
