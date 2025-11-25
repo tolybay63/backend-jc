@@ -18,18 +18,10 @@
     <apinator>
 
         <api name="meta" invoker="model" model="meta">
-            <item name="tofi.api.mdl.ExampleApiMeta"
-                  class="tofi.api.mdl.impl.ExampleApiMetaImpl"/>
 
             //Model
             <item name="tofi.api.mdl.ApiMeta"
                   class="tofi.api.mdl.impl.ApiMetaImpl"/>
-
-            <item name="tofi.api.mdl.ApiMetaIndicator"
-                  class="tofi.api.mdl.impl.ApiMetaIndicatorImpl"/>
-
-            <item name="tofi.api.mdl.ApiMetaKPI"
-                  class="tofi.api.mdl.impl.ApiMetaKPIImpl"/>
 
             <item name="tofi.api.mdl.ApiMetaFish"
                   class="tofi.api.mdl.impl.ApiMetaFishImpl"/>
