@@ -208,12 +208,14 @@ class DataDao extends BaseMdbUtils {
             inner join DataProp d on d.id=v.dataProp and d.isObj=1 and d.prop=${map.get("Prop_UserId")}
             where v.strVal='${userId}'
         """, "", "personnaldata")
-
         if (st.size() == 0)
             throw new XError("Not found")
         long own = st.get(0).getLong("id")
-        return apiPersonnalData().get(ApiPersonnalData).loadPersonnal(own)
-
+        st = apiPersonnalData().get(ApiPersonnalData).loadPersonnal(own)
+        long pv = apiMeta().get(ApiMeta).idPV("cls",st.get(0).getLong("cls"),"Prop_User")
+        st.get(0).set("pv", pv)
+        //
+        return st
     }
 
     private Set<Object> getIdsObjLocation(long obj) {
