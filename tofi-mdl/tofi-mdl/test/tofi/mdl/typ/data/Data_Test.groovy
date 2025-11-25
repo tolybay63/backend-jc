@@ -2,22 +2,28 @@ package tofi.mdl.typ.data
 
 import jandcode.core.apx.test.Apx_Test
 import jandcode.core.store.Store
+import jandcode.core.store.StoreRecord
 import org.junit.jupiter.api.Test
-import tofi.api.dta.ApiKPIData
-import tofi.apinator.ApinatorApi
-import tofi.apinator.ApinatorService
 
 class Data_Test extends Apx_Test {
 
-    ApinatorApi apiKPIData() {
-        return app.bean(ApinatorService).getApi("kpidata")
-    }
-
     @Test
     void test1() {
-        Store stObj = apiKPIData().get(ApiKPIData).getObj(1017)
+        String clsORrelcls = "cls"
 
-        mdb.outTable(stObj)
+        Map<Long, String> res = new HashMap<>()
+        Store st = getMdb().loadQuery("""
+            select ${clsORrelcls}, string_agg (cast(id as varchar(3000)), ',' order by id) as lst
+            from PropVal
+            where ${clsORrelcls} is not null
+            group by ${clsORrelcls}
+        """)
+
+        for (StoreRecord r : st) {
+            res.put(r.getLong(clsORrelcls), r.getString("lst"))
+        }
+
+        getMdb().outMap(res)
 
     }
 

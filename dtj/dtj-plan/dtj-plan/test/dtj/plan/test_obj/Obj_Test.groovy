@@ -80,10 +80,10 @@ class Obj_Test extends Apx_Test {
     }
 
     @Test
-    void testCompleteThePlanWork() {
+    void completeThePlanWork_test() {
         DataDao dao = mdb.createDao(DataDao.class)
         Store st = dao.completeThePlanWork(Map.of(
-                "id", 1290, "cls", 1063,"date", "2025-11-19"
+                "id", 1323, "cls", 1063,"date", "2025-11-19"
         ))
     }
 
