@@ -169,7 +169,8 @@ class ApiPersonnalDataImpl extends BaseMdbUtils implements ApiPersonnalData {
                 v13.id as idUserSex, v13.propVal as pvUserSex, null as fvUserSex, null as nameUserSex,
                 v14.id as idPosition, v14.propVal as pvPosition, null as fvPosition, null as namePosition,
                 v15.id as idLocation, v15.obj as objLocation, v15.propVal as pvLocation, null as nameLocation,
-                v16.id as idIsActive, v16.propVal as pvIsActive, null as fvIsActive, null as nameIsActive
+                v16.id as idIsActive, v16.propVal as pvIsActive, null as fvIsActive, null as nameIsActive,
+                v17.id as idUser, v17.obj as objUser, v17.propVal as pvUser, null as nameUser
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_TabNumber
@@ -202,13 +203,16 @@ class ApiPersonnalDataImpl extends BaseMdbUtils implements ApiPersonnalData {
                 left join DataPropVal v15 on d15.id=v15.dataprop
                 left join DataProp d16 on d16.objorrelobj=o.id and d16.prop=:Prop_IsActive
                 left join DataPropVal v16 on d16.id=v16.dataprop
+                left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=:Prop_User
+                left join DataPropVal v17 on d17.id=v17.dataprop
             where ${whe}
         """, map)
         // UserId
         Map<String, Long> mapUId = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_UserId", "")
         Store stUser = mdb.loadQuery("""
-            select o.id, v.strVal as userId, null as login
+            select o.id, ov.fullname, v.strVal as userId, null as login
             from Obj o
+            left join ObjVer ov on ov.ownerVer=o.id and ov.lastVer=1
             left join DataProp d on d.isObj=1 and d.objorrelobj=o.id and d.prop=${mapUId.get("Prop_UserId")}
             left join DataPropVal v on d.id=v.dataprop
             where ${whe}
@@ -267,8 +271,11 @@ class ApiPersonnalDataImpl extends BaseMdbUtils implements ApiPersonnalData {
             if (rObj != null)
                 record.set("nameLocation", rObj.getString("name"))
             StoreRecord rUsr = indUser.get(record.getLong("id"))
-            if (rUsr != null)
+            if (rUsr != null && !rUsr.getString("login").isEmpty())
                 record.set("login", rUsr.getString("login"))
+            rUsr = indUser.get(record.getLong("objUser"))
+            if (rUsr != null)
+                record.set("fullNameUser", rUsr.getString("fullname"))
         }
         //
         return st

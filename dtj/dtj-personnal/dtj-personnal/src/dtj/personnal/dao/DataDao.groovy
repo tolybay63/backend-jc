@@ -32,47 +32,36 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiAdm() {
         return app.bean(ApinatorService).getApi("adm")
     }
-
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
     }
-
     ApinatorApi apiUserData() {
         return app.bean(ApinatorService).getApi("userdata")
     }
-
     ApinatorApi apiNSIData() {
         return app.bean(ApinatorService).getApi("nsidata")
     }
-
     ApinatorApi apiObjectData() {
         return app.bean(ApinatorService).getApi("objectdata")
     }
-
     ApinatorApi apiPlanData() {
         return app.bean(ApinatorService).getApi("plandata")
     }
-
     ApinatorApi apiPersonnalData() {
         return app.bean(ApinatorService).getApi("personnaldata")
     }
-
     ApinatorApi apiOrgStructureData() {
         return app.bean(ApinatorService).getApi("orgstructuredata")
     }
-
     ApinatorApi apiInspectionData() {
         return app.bean(ApinatorService).getApi("inspectiondata")
     }
-
     ApinatorApi apiIncidentData() {
         return app.bean(ApinatorService).getApi("incidentdata")
     }
-
     ApinatorApi apiResourceData() {
         return app.bean(ApinatorService).getApi("resourcedata")
     }
-
     ApinatorApi apiRepairData() {
         return app.bean(ApinatorService).getApi("repairdata")
     }
@@ -204,7 +193,8 @@ class DataDao extends BaseMdbUtils {
         if (mode.equalsIgnoreCase("ins")) {
             //
             long userId = 0
-            if (UtCnv.toBoolean(params.get("isUser"))) {
+            if (params.containsKey("login")) {
+                par.put("passwd", "123456")
                 userId = regUser(par)
             }
             //
@@ -222,49 +212,47 @@ class DataDao extends BaseMdbUtils {
                 //3 Prop_UserFirstName
                 fillProperties(true, "Prop_UserFirstName", params)
                 //4 Prop_UserMiddleName
-                if (!params.get("UserMiddleName").toString().isEmpty())
+                if (!UtCnv.toString(params.get("UserMiddleName")).isEmpty())
                     fillProperties(true, "Prop_UserMiddleName", params)
                 //5 Prop_UserDateBirth
                 fillProperties(true, "Prop_UserDateBirth", params)
                 //6 Prop_UserEmail
-                if (!params.get("UserEmail").toString().isEmpty())
-                    fillProperties(true, "Prop_UserEmail", params)
+                fillProperties(true, "Prop_UserEmail", params)
                 //7 Prop_UserPhone
-                if (!params.get("UserPhone").toString().isEmpty())
-                    fillProperties(true, "Prop_UserPhone", params)
+                fillProperties(true, "Prop_UserPhone", params)
                 //8 Prop_DateEmployment
-                if (!params.get("DateEmployment").toString().isEmpty())
+                if (!UtCnv.toString(params.get("DateEmployment")).isEmpty())
                     fillProperties(true, "Prop_DateEmployment", params)
                 //9 Prop_DateDismissal
-                if (!params.get("DateDismissal").toString().isEmpty())
+                if (!UtCnv.toString(params.get("DateDismissal")).isEmpty())
                     fillProperties(true, "Prop_DateDismissal", params)
                 //10 Prop_CreatedAt
-                if (!params.get("CreatedAt").toString().isEmpty())
+                if (!UtCnv.toString(params.get("CreatedAt")).isEmpty())
                     fillProperties(true, "Prop_CreatedAt", params)
+                else
+                    throw new XError("[CreatedAt] not specified")
                 //11 Prop_UpdatedAt
-                if (!params.get("UpdatedAt").toString().isEmpty())
-                    fillProperties(true, "Prop_UpdatedAt", params)
-
+                fillProperties(true, "Prop_UpdatedAt", params)
                 //12 Prop_UserId
                 if (userId > 0) {
                     params.put("UserId", userId)
                     fillProperties(true, "Prop_UserId", params)
                 }
-
                 //13 Prop_UserSex
                 fillProperties(true, "Prop_UserSex", params)
                 //14 Prop_Position
                 fillProperties(true, "Prop_Position", params)
                 //15 Prop_Location
                 fillProperties(true, "Prop_Location", params)
-                //16 Prop_IsActive
-                fillProperties(true, "Prop_IsActive", params)
+                //16 Prop_Location
+                fillProperties(true, "Prop_Location", params)
+                //17 Prop_User
+                fillProperties(true, "Prop_User", params)
             } catch (Exception e) {
                 e.printStackTrace()
                 if (userId > 0)
                     deleteAuthUser(userId)
             }
-
         } else if (mode.equalsIgnoreCase("upd")) {
             own = UtCnv.toLong(params.get("id"))
             eu.updateEntity(par)
@@ -272,72 +260,52 @@ class DataDao extends BaseMdbUtils {
             params.put("own", own)
             //1 Prop_TabNumber
             updateProperties("Prop_TabNumber", params)
-
             //2 Prop_UserSecondName
             updateProperties("Prop_UserSecondName", params)
-
             //3 Prop_UserFirstName
             updateProperties("Prop_UserFirstName", params)
-
             //4 Prop_UserMiddleName
-            if (params.containsKey("idUserMiddleName")) {
+            if (UtCnv.toLong(params.get("idUserMiddleName")) > 0) {
                 updateProperties("Prop_UserMiddleName", params)
             } else {
-                if (!params.get("UserMiddleName").toString().isEmpty())
+                if (!UtCnv.toString(params.get("UserMiddleName")).isEmpty())
                     fillProperties(true, "Prop_UserMiddleName", params)
             }
             //5 Prop_UserDateBirth
             updateProperties("Prop_UserDateBirth", params)
             //6 Prop_UserEmail
-            if (params.containsKey("idUserEmail"))
-                updateProperties("Prop_UserEmail", params)
-            else {
-                if (!params.get("UserEmail").toString().isEmpty())
-                    fillProperties(true, "Prop_UserEmail", params)
-            }
+            updateProperties("Prop_UserEmail", params)
             //7 Prop_UserPhone
-            if (params.containsKey("idUserPhone"))
-                updateProperties("Prop_UserPhone", params)
-            else {
-                if (!params.get("UserPhone").toString().isEmpty())
-                    fillProperties(true, "Prop_UserPhone", params)
-            }
+            updateProperties("Prop_UserPhone", params)
             //8 Prop_DateEmployment
-            if (params.containsKey("idDateEmployment"))
+            if (UtCnv.toLong(params.get("idDateEmployment")) > 0)
                 updateProperties("Prop_DateEmployment", params)
             else {
-                if (!params.get("DateEmployment").toString().isEmpty())
+                if (!UtCnv.toString(params.get("DateEmployment")).isEmpty())
                     fillProperties(true, "Prop_DateEmployment", params)
             }
             //9 Prop_DateDismissal
-            if (params.containsKey("idDateDismissal"))
+            if (UtCnv.toLong(params.get("idDateDismissal")) > 0)
                 updateProperties("Prop_DateDismissal", params)
             else {
-                if (!params.get("DateDismissal").toString().isEmpty())
+                if (!UtCnv.toString(params.get("DateDismissal")).isEmpty())
                     fillProperties(true, "Prop_DateDismissal", params)
             }
-            //10 Prop_CreatedAt
-            if (params.containsKey("idCreatedAt"))
-                updateProperties("Prop_CreatedAt", params)
-            else {
-                if (!params.get("CreatedAt").toString().isEmpty())
-                    fillProperties(true, "Prop_CreatedAt", params)
-            }
             //11 Prop_UpdatedAt
-            if (params.containsKey("idUpdatedAt"))
-                updateProperties("Prop_UpdatedAt", params)
-            else {
-                if (!params.get("UpdatedAt").toString().isEmpty())
-                    fillProperties(true, "Prop_UpdatedAt", params)
-            }
+            updateProperties("Prop_UpdatedAt", params)
             //13 Prop_UserSex
             updateProperties("Prop_UserSex", params)
             //14 Prop_Position
             updateProperties("Prop_Position", params)
             //15 Prop_Location
             updateProperties("Prop_Location", params)
+            //15 Prop_User
+            if (UtCnv.toLong(params.get("idUser")) > 0)
+                updateProperties("Prop_User", params)
+            else
+                fillProperties(true, "Prop_User", params)
             //16 Prop_IsActive
-            if (params.containsKey("idIsActive"))
+            if (UtCnv.toLong(params.get("idIsActive")) > 0)
                 updateProperties("Prop_IsActive", params)
             else {
                 if (UtCnv.toLong(params.get("fvIsActive")) > 0)
@@ -457,28 +425,30 @@ class DataDao extends BaseMdbUtils {
     }
 
     private static void validatePersonal(String mode, Map<String, Object> params) {
-        if (mode == "ins" && UtCnv.toBoolean(params.get("isUser"))) {
-            if (params.get("login").toString().isEmpty())
+        if (mode == "ins" && params.containsKey("login")) {
+            if (UtCnv.toString(params.get("login")).isEmpty())
                 throw new XError("[login] not specified")
-            if (params.get("passwd").toString().isEmpty())
-                throw new XError("[passwd] not specified")
         }
-        if (params.get("UserEmail").toString().isEmpty())
+        if (UtCnv.toString(params.get("UserEmail")).isEmpty())
             throw new XError("[UserEmail] not specified")
-        if (params.get("TabNumber").toString().isEmpty())
+        if (UtCnv.toString(params.get("TabNumber")).isEmpty())
             throw new XError("[TabNumber] not specified")
-        if (params.get("UserSecondName").toString().isEmpty())
+        if (UtCnv.toString(params.get("UserSecondName")).isEmpty())
             throw new XError("[UserSecondName] not specified")
-        if (params.get("UserFirstName").toString().isEmpty())
+        if (UtCnv.toString(params.get("UserFirstName")).isEmpty())
             throw new XError("[UserFirstName] not specified")
-        if (params.get("UserDateBirth").toString().isEmpty())
+        if (UtCnv.toString(params.get("UserDateBirth")).isEmpty())
             throw new XError("[UserDateBirth] not specified")
+        if (UtCnv.toString(params.get("UpdatedAt")).isEmpty())
+            throw new XError("[UpdatedAt] not specified")
         if (UtCnv.toLong(params.get("fvUserSex")) == 0)
             throw new XError("[UserSex] not specified")
         if (UtCnv.toLong(params.containsKey("fvPosition")) == 0)
             throw new XError("[Position] not specified")
         if (UtCnv.toLong(params.containsKey("objLocation")) == 0)
             throw new XError("[Location] not specified")
+        if (UtCnv.toLong(params.containsKey("objUser")) == 0)
+            throw new XError("[User] not specified")
     }
 
     private long regUser(Map<String, Object> params) {
@@ -640,7 +610,8 @@ class DataDao extends BaseMdbUtils {
         }
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_Location")) {
+            if (cod.equalsIgnoreCase("Prop_Location") ||
+                    cod.equalsIgnoreCase("Prop_User")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
@@ -826,7 +797,8 @@ class DataDao extends BaseMdbUtils {
         }
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_Location")) {
+            if (cod.equalsIgnoreCase("Prop_Location") ||
+                    cod.equalsIgnoreCase("Prop_User")) {
                 if (objRef > 0)
                     sql = "update DataPropval set propVal=${propVal}, obj=${objRef}, timeStamp='${tmst}' where id=${idVal}"
                 else {
@@ -848,7 +820,6 @@ class DataDao extends BaseMdbUtils {
     }
 
     //-------------------------
-
 
     private Store loadSqlMeta(String sql, String domain) {
         return apiMeta().get(ApiMeta).loadSql(sql, domain)
@@ -888,7 +859,6 @@ class DataDao extends BaseMdbUtils {
         }
         return au.getAttrs()
     }
-
 
     private long getUser() throws Exception {
         AuthService authSvc = mdb.getApp().bean(AuthService.class)

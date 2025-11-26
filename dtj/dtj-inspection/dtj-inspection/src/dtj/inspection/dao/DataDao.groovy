@@ -988,7 +988,7 @@ class DataDao extends BaseMdbUtils {
             mapIncident.put("RegistrationDateTime", mapIncident.get("CreationDateTime"))
             mapIncident.put("CreatedAt", UtCnv.toString(mapIncident.get("CreationDateTime")).substring(0, 10))
             mapIncident.put("UpdatedAt", UtCnv.toString(mapIncident.get("CreationDateTime")).substring(0, 10))
-            mapIncident.put("InfoApplicant", "" + mapIncident.get("nameLocationClsSection") + ", " + pms.get("fullNameUser"))
+            mapIncident.put("InfoApplicant", "" + pms.get("nameLocation") + ", " + pms.get("fullNameUser"))
             mapIncident.remove("id")
             mapIncident.remove("cls")
 
@@ -1129,7 +1129,7 @@ class DataDao extends BaseMdbUtils {
         mapIncident.put("RegistrationDateTime", mapIncident.get("CreationDateTime"))
         mapIncident.put("CreatedAt", UtCnv.toString(mapIncident.get("CreationDateTime")).substring(0,10))
         mapIncident.put("UpdatedAt", UtCnv.toString(mapIncident.get("CreationDateTime")).substring(0,10))
-        mapIncident.put("InfoApplicant", "" + mapIncident.get("nameLocationClsSection") + ", " + pms.get("fullNameUser"))
+        mapIncident.put("InfoApplicant", "" + pms.get("nameLocation") + ", " + pms.get("fullNameUser"))
         mapIncident.remove("id")
         mapIncident.remove("cls")
 

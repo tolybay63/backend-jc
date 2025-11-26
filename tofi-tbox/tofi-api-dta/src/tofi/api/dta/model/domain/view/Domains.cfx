@@ -104,6 +104,11 @@
         <field name="pvLocation" parent="long"/>
         <field name="objLocation" parent="long"/>
         <field name="nameLocation" parent="string"/>
+
+        <field name="idUser" parent="long"/>
+        <field name="objUser" parent="long"/>
+        <field name="pvUser" parent="long"/>
+        <field name="fullNameUser" parent="string"/>
     </domain>
 
     <domain name="Obj.objectServedForSelect" parent="base">
