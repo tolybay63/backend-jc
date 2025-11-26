@@ -9,6 +9,46 @@ import org.junit.jupiter.api.Test
 class Report_Test extends Apx_Test {
 
     @Test
+    void loadReportSource_test () {
+        ReportDao dao = mdb.createDao(ReportDao.class)
+        Store st = dao.loadReportSource(0)
+        mdb.outTable(st)
+    }
+
+    @Test
+    void saveReportSource_ins_test () {
+        ReportDao dao = mdb.createDao(ReportDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("name", "Test")
+        map.put("URL", "url")
+        map.put("Method", "1021")
+        map.put("fvMethodTyp", 1345)
+        map.put("pvMethodTyp", 1562)
+        map.put("MethodBody", "Body")
+        map.put("CreatedAt", "2025-11-27")
+        map.put("UpdatedAt", "2025-11-27")
+        map.put("objUser", 1003)
+        map.put("pvUser", 1087)
+        Store st = dao.saveReportSource("ins", map)
+        mdb.outTable(st)
+    }
+
+    @Test
+    void saveReportSource_upd_test () {
+        ReportDao dao = mdb.createDao(ReportDao.class)
+        Store st = dao.loadReportSource(1000)
+        Map<String, Object> map = st.get(0).getValues()
+        map.put("name", "New Name")
+        map.put("fvMethodTyp", 1345)
+        map.put("pvMethodTyp", 1562)
+        map.put("objUser", 1003)
+        map.put("pvUser", 1087)
+        //...
+        st = dao.saveReportSource("upd", map)
+        mdb.outTable(st)
+    }
+
+    @Test
     void reportTaskLog_test () {
         ReportDao dao = mdb.createDao(ReportDao.class)
         Map<String, Object> params =  Map.of(

@@ -6,6 +6,8 @@ import jandcode.commons.UtCnv
 import jandcode.commons.UtDateTime
 import jandcode.commons.UtFile
 import jandcode.commons.datetime.XDate
+import jandcode.commons.datetime.XDateTime
+import jandcode.commons.datetime.XDateTimeFormatter
 import jandcode.commons.error.XError
 import jandcode.commons.variant.VariantMap
 import jandcode.core.auth.AuthService
@@ -21,7 +23,12 @@ import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.util.CellRangeAddress
 import org.apache.poi.xssf.usermodel.*
 import tofi.api.dta.*
+import tofi.api.dta.model.utils.EntityMdbUtils
 import tofi.api.mdl.ApiMeta
+import tofi.api.mdl.model.consts.FD_AttribValType_consts
+import tofi.api.mdl.model.consts.FD_InputType_consts
+import tofi.api.mdl.model.consts.FD_PeriodType_consts
+import tofi.api.mdl.model.consts.FD_PropType_consts
 import tofi.api.mdl.utils.UtPeriod
 import tofi.api.mdl.utils.dimPeriod.PeriodGenerator
 import tofi.apinator.ApinatorApi
@@ -67,6 +74,183 @@ class ReportDao extends BaseMdbUtils {
         return app.bean(ApinatorService).getApi("resourcedata")
     }
     //=========================================================================
+
+    @DaoMethod
+    Store loadReportSource(long id) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ReportSource", "")
+        Store st = mdb.createStore("Report.ReportSource")
+
+        String whe
+        if (id > 0)
+            whe = "o.id=${id}"
+        else {
+            whe = "o.cls = ${map.get("Cls_ReportSource")}"
+        }
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        mdb.loadQuery(st, """
+            select o.id, o.cls, v.name,
+                v1.id as idURL, v1.strVal as URL,
+                v2.id as idMethod, v2.strVal as Method,
+                v3.id as idMethodTyp, v3.propVal as pvMethodTyp, null as fvMethodTyp, null as nameMethodTyp,
+                v4.id as idMethodBody, v4.multiStrVal as MethodBody,
+                v5.id as idUser, v5.obj as objUser, v5.propVal as pvUser, null as fullNameUser,
+                v7.id as idCreatedAt, v7.dateTimeVal as CreatedAt,
+                v8.id as idUpdatedAt, v8.dateTimeVal as UpdatedAt
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_URL
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Method
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_MethodTyp
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_MethodBody
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_User
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_CreatedAt
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_UpdatedAt
+                left join DataPropVal v8 on d8.id=v8.dataprop
+            where ${whe}
+        """, map)
+        //Пересечение
+        Map<Long, Long> mapFV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", "Prop_MethodTyp", true)
+        //
+        Set<Object> idsUser = st.getUniqueValues("objUser")
+        Store stUser = loadSqlService("""
+            select o.id, o.cls, v.fullName
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsUser.join(",")})
+        """, "", "personnaldata")
+        StoreIndex indUser = stUser.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord recUser = indUser.get(r.getLong("objUser"))
+            if (recUser != null)
+                r.set("fullNameUser", recUser.getString("fullName"))
+            r.set("fvMethodTyp", mapFV.get(r.getLong("pvMethodTyp")))
+        }
+        //
+        Set<Object> fvs = st.getUniqueValues("fvMethodTyp")
+        Store stFV = apiMeta().get(ApiMeta).loadSql("""
+            select id, name from Factor where id in (0${fvs.join(",")}) 
+        """, "")
+        StoreIndex indFV = stFV.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord rec = indFV.get(r.getLong("fvMethodTyp"))
+            if (rec != null)
+                r.set("nameMethodTyp", rec.getString("name"))
+        }
+        //
+        return st
+    }
+
+    @DaoMethod
+    Store saveReportSource(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        if (UtCnv.toString(params.get("name")).trim().isEmpty())
+            throw new XError("[name] не указан")
+        Map<String, Object> par = new HashMap<>(pms)
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ReportSource", "")
+        if (mode.equalsIgnoreCase("ins")) {
+            par.put("cls", map.get("Cls_ReportSource"))
+            //
+            par.putIfAbsent("fullName", pms.getString("name"))
+            //
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+            //
+            //1 Prop_URL
+            if (pms.getString("URL").isEmpty())
+                throw new XError("[URL] не указан")
+            else
+                fillProperties(true, "Prop_URL", pms)
+            //2 Prop_Method
+            if (pms.getString("Method").isEmpty())
+                throw new XError("[Method] не указан")
+            else
+                fillProperties(true, "Prop_Method", pms)
+            //3 Prop_MethodTyp
+            if (pms.getLong("fvMethodTyp") == 0)
+                throw new XError("[MethodTyp] не указан")
+            else
+                fillProperties(true, "Prop_MethodTyp", pms)
+            //4 Prop_MethodBody
+            if (pms.getString("MethodBody").isEmpty())
+                throw new XError("[MethodBody] не указан")
+            else
+                fillProperties(true, "Prop_MethodBody", pms)
+            //5 Prop_User
+            if (pms.getLong("objUser") == 0)
+                throw new XError("[User] не указан")
+            else
+                fillProperties(true, "Prop_User", pms)
+            //6 Prop_CreatedAt
+            if (pms.getString("CreatedAt").isEmpty())
+                throw new XError("[CreatedAt] не указан")
+            else
+                fillProperties(true, "Prop_CreatedAt", pms)
+            //7 Prop_UpdatedAt
+            if (pms.getString("UpdatedAt").isEmpty())
+                throw new XError("[UpdatedAt] не указан")
+            else
+                fillProperties(true, "Prop_UpdatedAt", pms)
+        } else if (mode.equalsIgnoreCase("upd")) {
+            own = pms.getLong("id")
+            par.putIfAbsent("fullName", pms.getString("name"))
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+            //
+            //1 Prop_URL
+            if (pms.containsKey("idURL")) {
+                if (pms.getString("URL").isEmpty())
+                    throw new XError("[URL] не указан")
+                else
+                    updateProperties("Prop_URL", pms)
+            }
+            //2 Prop_Method
+            if (pms.containsKey("idMethod")) {
+                if (pms.getString("Method").isEmpty())
+                    throw new XError("[Method] не указан")
+                else
+                    updateProperties("Prop_Method", pms)
+            }
+            //3 Prop_MethodTyp
+            if (pms.containsKey("idMethodTyp")) {
+                if (pms.getLong("fvMethodTyp") == 0)
+                    throw new XError("[MethodTyp] не указан")
+                else
+                    updateProperties("Prop_MethodTyp", pms)
+            }
+            //4 Prop_MethodBody
+            if (pms.containsKey("idMethodBody")) {
+                if (pms.getString("MethodBody").isEmpty())
+                    throw new XError("[MethodBody] не указан")
+                else
+                    updateProperties("Prop_MethodBody", pms)
+            }
+            //5 Prop_User
+            if (pms.containsKey("idUser"))
+                if (pms.getLong("objUser") == 0)
+                    throw new XError("[User] не указан")
+                else
+                    updateProperties("Prop_User", pms)
+            //6 Prop_UpdatedAt
+            if (pms.containsKey("idUpdatedAt"))
+                if (pms.getString("UpdatedAt").isEmpty())
+                    throw new XError("[UpdatedAt] не указан")
+                else
+                    updateProperties("Prop_UpdatedAt", pms)
+        } else {
+            throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
+        }
+        //
+        return loadReportSource(own)
+    }
 
     @DaoMethod
     Store reportTaskLog(Map<String, Object> params) {
@@ -2207,6 +2391,358 @@ class ReportDao extends BaseMdbUtils {
     }
 
     //-------------------------
+
+    private void fillProperties(boolean isObj, String cod, Map<String, Object> params) {
+        long own = UtCnv.toLong(params.get("own"))
+        String keyValue = cod.split("_")[1]
+        def objRef = UtCnv.toLong(params.get("obj" + keyValue))
+        def propVal = UtCnv.toLong(params.get("pv" + keyValue))
+
+        Store stProp = apiMeta().get(ApiMeta).getPropInfo(cod)
+        //
+        long prop = stProp.get(0).getLong("id")
+        long propType = stProp.get(0).getLong("propType")
+        long attribValType = stProp.get(0).getLong("attribValType")
+        Integer digit = null
+        double koef = stProp.get(0).getDouble("koef")
+        if (koef == 0) koef = 1
+        if (!stProp.get(0).isValueNull("digit"))
+            digit = stProp.get(0).getInt("digit")
+
+        //
+        long idDP
+        StoreRecord recDP = mdb.createStoreRecord("DataProp")
+        String whe = isObj ? "and isObj=1 " : "and isObj=0 "
+        if (stProp.get(0).getLong("statusFactor") > 0) {
+            long fv = UtCnv.toLong(params.get("fvStatus"))
+            if (fv == 0)
+                fv = apiMeta().get(ApiMeta).getDefaultStatus(prop)
+            whe += "and status = ${fv} "
+        } else {
+            whe += "and status is null "
+        }
+        whe += "and provider is null "
+        //todo if (stProp.get(0).getLong("providerTyp") > 0)
+
+        if (stProp.get(0).getLong("providerTyp") > 0) {
+            whe += "and periodType is not null "
+        } else {
+            whe += "and periodType is null"
+        }
+        Store stDP = mdb.loadQuery("""
+            select * from DataProp
+            where objOrRelObj=${own} and prop=${prop} ${whe}
+        """)
+        if (stDP.size() > 0) {
+            idDP = stDP.get(0).getLong("id")
+        } else {
+            recDP.set("isObj", isObj)
+            recDP.set("objOrRelObj", own)
+            recDP.set("prop", prop)
+            if (stProp.get(0).getLong("statusFactor") > 0) {
+                long fv = UtCnv.toLong(params.get("fvStatus"))
+                if (fv == 0)
+                    fv = apiMeta().get(ApiMeta).getDefaultStatus(prop)
+                recDP.set("status", fv)
+            }
+            if (stProp.get(0).getLong("providerTyp") > 0) {
+                //todo
+                // provider
+                //
+            }
+            if (stProp.get(0).getBoolean("dependperiod")) {
+                recDP.set("periodType", FD_PeriodType_consts.year)
+            }
+            idDP = mdb.insertRec("DataProp", recDP, true)
+        }
+        //
+        StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
+        recDPV.set("dataProp", idDP)
+        //Complex
+        if ([FD_PropType_consts.complex].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_PerformerComplex") ||
+                    cod.equalsIgnoreCase("Prop_ToolComplex") ||
+                    cod.equalsIgnoreCase("Prop_EquipmentComplex")) {
+                recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
+        // Attrib str
+        if ([FD_AttribValType_consts.str].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_URL") ||
+                    cod.equalsIgnoreCase("Prop_Method")) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
+                    recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // Attrib multistr
+        if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_MethodBody")) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
+                    recDPV.set("multiStrVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // Attrib date
+        if ([FD_AttribValType_consts.dt].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_CreatedAt") ||
+                    cod.equalsIgnoreCase("Prop_UpdatedAt")) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
+                    recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+        }
+
+        // For FV
+        if ([FD_PropType_consts.factor].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_MethodTyp")) {
+                if (propVal > 0) {
+                    recDPV.set("propVal", propVal)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
+        // For Measure
+        if ([FD_PropType_consts.measure].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_Measure")) {
+                if (propVal > 0) {
+                    recDPV.set("propVal", propVal)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
+        // For Meter
+        if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_Value")) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
+                    double v = UtCnv.toDouble(params.get(keyValue))
+                    v = v / koef
+                    if (digit) v = v.round(digit)
+                    recDPV.set("numberval", v)
+                    if (UtCnv.toLong(params.get("idComplex")) > 0)
+                        recDPV.set("parent", params.get("idComplex"))
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        //Typ
+        if ([FD_PropType_consts.typ].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_User")) {
+                if (objRef > 0) {
+                    recDPV.set("propVal", propVal)
+                    recDPV.set("obj", objRef)
+                    if (UtCnv.toLong(params.get("idComplex")) > 0)
+                        recDPV.set("parent", params.get("idComplex"))
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        //
+        if (recDP.getLong("periodType") > 0) {
+            if (!params.containsKey("dte"))
+                params.put("dte", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE))
+            UtPeriod utPeriod = new UtPeriod()
+            XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(params.get("dte")), recDP.getLong("periodType"), 0)
+            XDate d2 = utPeriod.calcDend(UtCnv.toDate(params.get("dte")), recDP.getLong("periodType"), 0)
+            recDPV.set("dbeg", d1.toString(XDateTimeFormatter.ISO_DATE))
+            recDPV.set("dend", d2.toString(XDateTimeFormatter.ISO_DATE))
+        } else {
+            recDPV.set("dbeg", "1800-01-01")
+            recDPV.set("dend", "3333-12-31")
+        }
+
+        long au = getUser()
+        recDPV.set("authUser", au)
+        recDPV.set("inputType", FD_InputType_consts.app)
+        long idDPV = mdb.getNextId("DataPropVal")
+        recDPV.set("id", idDPV)
+        recDPV.set("ord", idDPV)
+        recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
+        mdb.insertRec("DataPropVal", recDPV, false)
+        if ([FD_PropType_consts.complex].contains(propType)) {
+            params.put("idComplex", idDPV)
+        }
+    }
+
+    private void updateProperties(String cod, Map<String, Object> params) {
+        VariantMap mapProp = new VariantMap(params)
+        String keyValue = cod.split("_")[1]
+        long idVal = mapProp.getLong("id" + keyValue)
+        long propVal = mapProp.getLong("pv" + keyValue)
+        long objRef = mapProp.getLong("obj" + keyValue)
+        Store stProp = apiMeta().get(ApiMeta).getPropInfo(cod)
+        //
+        long propType = stProp.get(0).getLong("propType")
+        long attribValType = stProp.get(0).getLong("attribValType")
+        Integer digit = null
+        double koef = stProp.get(0).getDouble("koef")
+        if (koef == 0) koef = 1
+        if (!stProp.get(0).isValueNull("digit"))
+            digit = stProp.get(0).getInt("digit")
+
+        String sql = ""
+        def tmst = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
+        def strValue = mapProp.getString(keyValue)
+        // Attrib str
+        if ([FD_AttribValType_consts.str].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_URL") ||
+                    cod.equalsIgnoreCase("Prop_Method")) {
+                if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
+                    sql = """
+                        delete from DataPropVal where id=${idVal};
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        );
+                    """
+                } else {
+                    sql = "update DataPropval set strVal='${strValue}', timeStamp='${tmst}' where id=${idVal}"
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // Attrib multistr
+        if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_MethodBody")) {
+                if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
+                    sql = """
+                        delete from DataPropVal where id=${idVal};
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        );
+                    """
+                } else {
+                    sql = "update DataPropval set multiStrVal='${strValue}', timeStamp='${tmst}' where id=${idVal}"
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // Attrib date
+        if ([FD_AttribValType_consts.dt].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_CreatedAt") ||
+                    cod.equalsIgnoreCase("Prop_UpdatedAt")) {
+                if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
+                    sql = """
+                        delete from DataPropVal where id=${idVal};
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        );
+                    """
+                } else {
+                    sql = "update DataPropval set dateTimeVal='${strValue}', timeStamp='${tmst}' where id=${idVal}"
+                }
+            } else
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+        }
+
+        // For FV
+        if ([FD_PropType_consts.factor].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_MethodTyp")) {
+                if (propVal > 0)
+                    sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
+                else {
+                    sql = """
+                        delete from DataPropVal where id=${idVal};
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        );
+                    """
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
+        // For Measure
+        if ([FD_PropType_consts.measure].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_Measure")) {
+                if (propVal > 0)
+                    sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
+                else {
+                    sql = """
+                        delete from DataPropVal where id=${idVal};
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        );
+                    """
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // For Meter
+        if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_Value")) {
+                if (mapProp[keyValue] != "") {
+                    def v = mapProp.getDouble(keyValue)
+                    v = v / koef
+                    if (digit) v = v.round(digit)
+                    sql = "update DataPropval set numberVal=${v}, timeStamp='${tmst}' where id=${idVal}"
+                } else {
+                    sql = """
+                        delete from DataPropVal where id=${idVal};
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        );
+                    """
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // For Typ
+        if ([FD_PropType_consts.typ].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_User")) {
+                if (objRef > 0)
+                    sql = "update DataPropval set propVal=${propVal}, obj=${objRef}, timeStamp='${tmst}' where id=${idVal}"
+                else {
+                    sql = """
+                        delete from DataPropVal where id=${idVal};
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        );
+                    """
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
+        mdb.execQueryNative(sql)
+    }
+
+
+
+
     private Store loadSqlService(String sql, String domain, String model) {
         if (model.equalsIgnoreCase("userdata"))
             return apiUserData().get(ApiUserData).loadSql(sql, domain)
