@@ -206,6 +206,7 @@ class ApiPersonnalDataImpl extends BaseMdbUtils implements ApiPersonnalData {
                 left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=:Prop_User
                 left join DataPropVal v17 on d17.id=v17.dataprop
             where ${whe}
+            order by o.id
         """, map)
         // UserId
         Map<String, Long> mapUId = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_UserId", "")

@@ -58,13 +58,15 @@ class Obj_Test extends Apx_Test {
     @Test
     void savePersonnalUpd() {
         DataDao dao = mdb.createDao(DataDao.class)
-        Store st = dao.loadPersonnal(1128)
+        Store st = dao.loadPersonnal(1132)
         Map<String, Object> map = st.get(0).getValues()
         map.put("UserSecondName", "NewValue")
         map.put("UserMiddleName", "UserMiddleNameupdate")
         map.put("TabNumber", "987654321upd")
         map.put("objUser", 1003)
         map.put("pvUser", 1087)
+        map.put("fvIsActive", 1074)
+        map.put("pvIsActive", 1237)
         //...
 
         savePersonnal("upd", map)
@@ -79,7 +81,7 @@ class Obj_Test extends Apx_Test {
     @Test
     void delectPersonnal() {
         DataDao dao = mdb.createDao(DataDao.class)
-        dao.deleteObjWithProperties(1130, false)
+        dao.deleteObjWithProperties(1005, true)
     }
 
     @Test
