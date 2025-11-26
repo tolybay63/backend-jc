@@ -32,8 +32,8 @@ class Obj_Test extends Apx_Test {
     @Test
     void savePersonnalIns() {
         Map<String, Object> map = new HashMap<>()
-//        map.put("login", "user_test2")
-        map.put("UserEmail", "user_test2@gmail.com")
+//        map.put("login", "user_test")
+        map.put("UserEmail", "user_test@gmail.com")
         map.put("UserPhone", "7773334455")
         map.put("UserFirstName", "Иван")
         map.put("UserSecondName", "Иванов")
@@ -48,6 +48,8 @@ class Obj_Test extends Apx_Test {
         map.put("pvPosition", 1246)
         map.put("objLocation", 1071)
         map.put("pvLocation", 1127)
+        map.put("objUser", 1003)
+        map.put("pvUser", 1087)
 
         //
         savePersonnal("ins", map)
@@ -77,7 +79,7 @@ class Obj_Test extends Apx_Test {
     @Test
     void delectPersonnal() {
         DataDao dao = mdb.createDao(DataDao.class)
-        dao.deleteObjWithProperties(1127, true)
+        dao.deleteObjWithProperties(1130, false)
     }
 
     @Test

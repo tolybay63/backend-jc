@@ -244,10 +244,11 @@ class DataDao extends BaseMdbUtils {
                 fillProperties(true, "Prop_Position", params)
                 //15 Prop_Location
                 fillProperties(true, "Prop_Location", params)
-                //16 Prop_Location
-                fillProperties(true, "Prop_Location", params)
-                //17 Prop_User
+                //16 Prop_User
                 fillProperties(true, "Prop_User", params)
+                //17 Prop_IsActive
+                if (UtCnv.toLong(params.get("fvIsActive")) > 0)
+                    fillProperties(true, "Prop_IsActive", params)
             } catch (Exception e) {
                 e.printStackTrace()
                 if (userId > 0)
@@ -291,20 +292,20 @@ class DataDao extends BaseMdbUtils {
                 if (!UtCnv.toString(params.get("DateDismissal")).isEmpty())
                     fillProperties(true, "Prop_DateDismissal", params)
             }
-            //11 Prop_UpdatedAt
+            //10 Prop_UpdatedAt
             updateProperties("Prop_UpdatedAt", params)
-            //13 Prop_UserSex
+            //11 Prop_UserSex
             updateProperties("Prop_UserSex", params)
-            //14 Prop_Position
+            //12 Prop_Position
             updateProperties("Prop_Position", params)
-            //15 Prop_Location
+            //13 Prop_Location
             updateProperties("Prop_Location", params)
-            //15 Prop_User
+            //14 Prop_User
             if (UtCnv.toLong(params.get("idUser")) > 0)
                 updateProperties("Prop_User", params)
             else
                 fillProperties(true, "Prop_User", params)
-            //16 Prop_IsActive
+            //15 Prop_IsActive
             if (UtCnv.toLong(params.get("idIsActive")) > 0)
                 updateProperties("Prop_IsActive", params)
             else {
