@@ -9,6 +9,19 @@ import org.junit.jupiter.api.Test
 class Report_Test extends Apx_Test {
 
     @Test
+    void saveComplexMetrics_ins_test () {
+        ReportDao dao = mdb.createDao(ReportDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("id", 1019)
+        // Complex
+        map.put("FieldName", "FieldName 2")
+        map.put("fvFieldVal", 1349)
+        map.put("pvFieldVal", 1569)
+        Store st = dao.saveComplexMetrics("ins", map)
+//        mdb.outTable(st)
+    }
+
+    @Test
     void loadReportConfiguration_test () {
         ReportDao dao = mdb.createDao(ReportDao.class)
         Store st = dao.loadReportConfiguration(0)

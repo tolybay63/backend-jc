@@ -76,10 +76,9 @@ class ReportDao extends BaseMdbUtils {
     //=========================================================================
 
     @DaoMethod
-    Store loadReportConfiguration(long id) {
+    List<Map<String, Object>> loadReportConfiguration(long id) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ReportConfiguration", "")
         Store st = mdb.createStore("Report.ReportConfiguration")
-
         String whe
         if (id > 0)
             whe = "o.id=${id}"
@@ -97,9 +96,6 @@ class ReportDao extends BaseMdbUtils {
                 v7.id as idColVal, v7.multiStrVal as ColVal,
                 v8.id as idRowTotal, v8.propVal as pvRowTotal, null as fvRowTotal, null as nameRowTotal,
                 v9.id as idColTotal, v9.propVal as pvColTotal, null as fvColTotal, null as nameColTotal,
-                v10.id as idMetricsComplex, v10.strVal as MetricsComplex,
-                v11.id as idFieldName, v11.strVal as FieldName,
-                v12.id as idFieldVal, v12.propVal as pvFieldVal, null as fvFieldVal, null as nameFieldVal,
                 v13.id as idUser, v13.obj as objUser, v13.propVal as pvUser, null as fullNameUser,
                 v14.id as idCreatedAt, v14.dateTimeVal as CreatedAt,
                 v15.id as idUpdatedAt, v15.dateTimeVal as UpdatedAt
@@ -121,12 +117,6 @@ class ReportDao extends BaseMdbUtils {
                 left join DataPropVal v8 on d8.id=v8.dataprop
                 left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=:Prop_ColTotal
                 left join DataPropVal v9 on d9.id=v9.dataprop
-                left join DataProp d10 on d10.objorrelobj=o.id and d10.prop=:Prop_MetricsComplex
-                left join DataPropVal v10 on d10.id=v10.dataprop
-                left join DataProp d11 on d11.objorrelobj=o.id and d11.prop=:Prop_FieldName
-                left join DataPropVal v11 on d11.id=v11.dataprop
-                left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_FieldVal
-                left join DataPropVal v12 on d12.id=v12.dataprop
                 left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_User
                 left join DataPropVal v13 on d13.id=v13.dataprop
                 left join DataProp d14 on d14.objorrelobj=o.id and d14.prop=:Prop_CreatedAt
@@ -135,14 +125,14 @@ class ReportDao extends BaseMdbUtils {
                 left join DataPropVal v15 on d15.id=v15.dataprop
             where ${whe}
         """, map)
+        if (st.size() == 0)
+            return null
         //Пересечение
         Set<Object> pvsRowTotal = st.getUniqueValues("pvRowTotal")
         Set<Object> pvsColTotal = st.getUniqueValues("pvColTotal")
-        Set<Object> pvsFieldVal = st.getUniqueValues("pvFieldVal")
         Set<Object> pvs = new HashSet<>()
         pvs.addAll(pvsRowTotal)
         pvs.addAll(pvsColTotal)
-        pvs.addAll(pvsFieldVal)
 
         Store stPV = apiMeta().get(ApiMeta).loadSql("""
             select fv.id as fv, pv.id as pv, fv.name from Factor fv, PropVal pv 
@@ -171,18 +161,14 @@ class ReportDao extends BaseMdbUtils {
                 r.set("fvColTotal", rec.getLong("fv"))
                 r.set("nameColTotal", rec.getString("name"))
             }
-            rec = indPV.get(r.getLong("pvFieldVal"))
-            if (rec != null) {
-                r.set("fvFieldVal", rec.getLong("fv"))
-                r.set("nameFieldVal", rec.getString("name"))
-            }
         }
+        List<Map<String, Object>> listSt = loadComplexMetrics(st)
         //
-        return st
+        return listSt
     }
 
     @DaoMethod
-    Store saveReportConfiguration(String mode, Map<String, Object> params) {
+    List<Map<String, Object>> saveReportConfiguration(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         long own
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
@@ -246,26 +232,6 @@ class ReportDao extends BaseMdbUtils {
                 throw new XError("[UpdatedAt] не указан")
             else
                 fillProperties(true, "Prop_UpdatedAt", pms)
-            //12 Complex
-            pms.remove("idComplex")
-            pms.put("MetricsComplex", "MetricsComplex-" + own + "-" + pms.getString("FieldName"))
-            mdb.startTran()
-            try {
-                fillProperties(true, "Prop_MetricsComplex", pms)
-                //
-                if (!pms.getString("FieldName").isEmpty())
-                    fillProperties(true, "Prop_FieldName", pms)
-                else
-                    throw new XError("[FieldName] не указан")
-                //
-                if (pms.getLong("fvFieldVal") > 0)
-                    fillProperties(true, "Prop_FieldVal", pms)
-                else
-                    throw new XError("[FieldVal] не указан")
-                mdb.commit()
-            } catch (Exception e) {
-                mdb.rollback(e)
-            }
         } else if (mode.equalsIgnoreCase("upd")) {
             own = pms.getLong("id")
             par.putIfAbsent("fullName", pms.getString("name"))
@@ -341,13 +307,113 @@ class ReportDao extends BaseMdbUtils {
                     throw new XError("[UpdatedAt] не указан")
                 else
                     updateProperties("Prop_UpdatedAt", pms)
-            //11 Prop_FieldName
+        } else {
+            throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
+        }
+        //
+        return loadReportConfiguration(own)
+    }
+
+    @DaoMethod
+    List<Map<String, Object>> loadComplexMetrics(Store stOn) {
+        List<Map<String, Object>> lstRes = new ArrayList<>()
+        Store st = mdb.createStore("Report.Complex.Metrics")
+        Set<Object> ids = stOn.getUniqueValues("id")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        mdb.loadQuery(st, """
+            select o.id,
+                v1.id as idMetricsComplex, v1.strVal as MetricsComplex,
+                v2.id as idFieldVal, v2.propVal as pvFieldVal, null as fvFieldVal, null as nameFieldVal,
+                v3.id as idFieldName, v3.strVal as FieldName
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_MetricsComplex
+                inner join DataPropVal v1 on d1.id=v1.dataProp
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_FieldVal
+                inner join DataPropVal v2 on d2.id=v2.dataProp and v2.parent=v1.id
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_FieldName
+                inner join DataPropVal v3 on d3.id=v3.dataProp and v3.parent=v1.id
+            where o.id in (0${ids.join(",")})
+        """, map)
+        //
+        if (st.size() > 0) {
+            //Пересечение
+            Set<Object> pvs = st.getUniqueValues("pvFieldVal")
+            Store stPV = apiMeta().get(ApiMeta).loadSql("""
+                select fv.id as fv, pv.id as pv, fv.name from Factor fv, PropVal pv 
+                where pv.factorval=fv.id and pv.id in (0${pvs.join(",")})
+            """, "")
+            StoreIndex indPV = stPV.getIndex("pv")
+            //
+            for (StoreRecord r in st) {
+                StoreRecord rec = indPV.get(r.getLong("pvFieldVal"))
+                if (rec != null){
+                    r.set("fvFieldVal", rec.getLong("fv"))
+                    r.set("nameFieldVal", rec.getString("name"))
+                }
+            }
+            //
+            for (StoreRecord r in stOn) {
+                Map<String, Object> mapR = new HashMap<>()
+                List<Map<String, Object>> lst = new ArrayList<>()
+                mapR.putAll(r.getValues())
+                //
+                for (StoreRecord p in st) {
+                    if (r.getLong("id") == p.getLong("id")) {
+                        Map<String, Object> mapP = new HashMap<>()
+                        p.set("id", null)
+                        mapP.putAll(p.getValues())
+                        lst.add(mapP)
+                    }
+                }
+                mapR.put("complex", lst)
+                //
+                lstRes.add(mapR)
+            }
+        } else {
+            for (StoreRecord r in stOn) {
+                Map<String, Object> mapR = new HashMap<>()
+                mapR.putAll(r.getValues())
+                //
+                lstRes.add(mapR)
+            }
+        }
+        //
+        return lstRes
+    }
+
+    @DaoMethod
+    void saveComplexMetrics(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own = pms.getLong("id")
+        pms.put("own", own)
+        if (mode.equalsIgnoreCase("ins")) {
+            pms.remove("idComplex")
+            pms.put("MetricsComplex", "MetricsComplex-" + own + "-" + pms.getString("FieldName"))
+            mdb.startTran()
+            try {
+                fillProperties(true, "Prop_MetricsComplex", pms)
+                //
+                if (!pms.getString("FieldName").isEmpty())
+                    fillProperties(true, "Prop_FieldName", pms)
+                else
+                    throw new XError("[FieldName] не указан")
+                //
+                if (pms.getLong("fvFieldVal") > 0)
+                    fillProperties(true, "Prop_FieldVal", pms)
+                else
+                    throw new XError("[FieldVal] не указан")
+                mdb.commit()
+            } catch (Exception e) {
+                mdb.rollback(e)
+            }
+        } else if (mode.equalsIgnoreCase("upd")) {
+            //1 Prop_FieldName
             if (pms.containsKey("idFieldName"))
                 if (pms.getString("FieldName").isEmpty())
                     throw new XError("[FieldName] не указан")
                 else
                     updateProperties("Prop_FieldName", pms)
-            //12 Prop_FieldVal
+            //2 Prop_FieldVal
             if (pms.containsKey("idFieldVal"))
                 if (pms.getLong("fvFieldVal") == 0)
                     throw new XError("[FieldVal] не указан")
@@ -357,7 +423,20 @@ class ReportDao extends BaseMdbUtils {
             throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
         }
         //
-        return loadReportConfiguration(own)
+    }
+
+    @DaoMethod
+    void deleteComplexData(long id) {
+        mdb.execQuery("""
+            delete from DataPropVal where parent=${id};
+            delete from DataPropVal where id=${id};
+            delete from DataProp 
+            where id in (
+                select id from DataProp
+                except
+                select dataProp as id from DataPropVal
+            );
+        """)
     }
 
     @DaoMethod
