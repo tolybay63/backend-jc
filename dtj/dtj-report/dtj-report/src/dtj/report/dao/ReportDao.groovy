@@ -76,6 +76,112 @@ class ReportDao extends BaseMdbUtils {
     //=========================================================================
 
     @DaoMethod
+    Store loadReportConfiguration(long id) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ReportConfiguration", "")
+        Store st = mdb.createStore("Report.ReportConfiguration")
+
+        String whe
+        if (id > 0)
+            whe = "o.id=${id}"
+        else {
+            whe = "o.cls = ${map.get("Cls_ReportConfiguration")}"
+        }
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        mdb.loadQuery(st, """
+            select o.id, o.cls, v.name, v.objparent as parent,
+                v1.id as idFilter, v1.multiStrVal as Filter,
+                v2.id as idRow, v2.multiStrVal as Row,
+                v3.id as idCol, v3.multiStrVal as Col,
+                v4.id as idFilterVal, v4.multiStrVal as FilterVal,
+                v5.id as idRowVal, v5.multiStrVal as RowVal,
+                v7.id as idColVal, v7.multiStrVal as ColVal,
+                v8.id as idRowTotal, v8.propVal as pvRowTotal, null as fvRowTotal, null as nameRowTotal,
+                v9.id as idColTotal, v9.propVal as pvColTotal, null as fvColTotal, null as nameColTotal,
+                v10.id as idMetricsComplex, v10.strVal as MetricsComplex,
+                v11.id as idFieldName, v11.strVal as FieldName,
+                v12.id as idFieldVal, v12.propVal as pvFieldVal, null as fvFieldVal, null as nameFieldVal,
+                v13.id as idUser, v13.obj as objUser, v13.propVal as pvUser, null as fullNameUser,
+                v14.id as idCreatedAt, v14.dateTimeVal as CreatedAt,
+                v15.id as idUpdatedAt, v15.dateTimeVal as UpdatedAt
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Filter
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Row
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Col
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FilterVal
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_RowVal
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_ColVal
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_RowTotal
+                left join DataPropVal v8 on d8.id=v8.dataprop
+                left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=:Prop_ColTotal
+                left join DataPropVal v9 on d9.id=v9.dataprop
+                left join DataProp d10 on d10.objorrelobj=o.id and d10.prop=:Prop_MetricsComplex
+                left join DataPropVal v10 on d10.id=v10.dataprop
+                left join DataProp d11 on d11.objorrelobj=o.id and d11.prop=:Prop_FieldName
+                left join DataPropVal v11 on d11.id=v11.dataprop
+                left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_FieldVal
+                left join DataPropVal v12 on d12.id=v12.dataprop
+                left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_User
+                left join DataPropVal v13 on d13.id=v13.dataprop
+                left join DataProp d14 on d14.objorrelobj=o.id and d14.prop=:Prop_CreatedAt
+                left join DataPropVal v14 on d14.id=v14.dataprop
+                left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_UpdatedAt
+                left join DataPropVal v15 on d15.id=v15.dataprop
+            where ${whe}
+        """, map)
+        //Пересечение
+        Set<Object> pvsRowTotal = st.getUniqueValues("pvRowTotal")
+        Set<Object> pvsColTotal = st.getUniqueValues("pvColTotal")
+        Set<Object> pvsFieldVal = st.getUniqueValues("pvFieldVal")
+        Set<Object> pvs = new HashSet<>()
+        pvs.addAll(pvsRowTotal)
+        pvs.addAll(pvsColTotal)
+        pvs.addAll(pvsFieldVal)
+
+        Store stPV = apiMeta().get(ApiMeta).loadSql("""
+            select fv.id as fv, pv.id as pv, fv.name from Factor fv, PropVal pv 
+            where pv.factorval=fv.id and pv.id in (0${pvs.join(",")})
+        """, "")
+        StoreIndex indPV = stPV.getIndex("pv")
+        //
+        Set<Object> idsUser = st.getUniqueValues("objUser")
+        Store stUser = loadSqlService("""
+            select o.id, o.cls, v.fullName
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsUser.join(",")})
+        """, "", "personnaldata")
+        StoreIndex indUser = stUser.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord recUser = indUser.get(r.getLong("objUser"))
+            if (recUser != null)
+                r.set("fullNameUser", recUser.getString("fullName"))
+            StoreRecord rec = indPV.get(r.getLong("pvRowTotal"))
+            if (rec != null) {
+                r.set("fvRowTotal", rec.getLong("fv"))
+                r.set("nameRowTotal", rec.getString("name"))
+            }
+            rec = indPV.get(r.getLong("pvColTotal"))
+            if (rec != null) {
+                r.set("fvColTotal", rec.getLong("fv"))
+                r.set("nameColTotal", rec.getString("name"))
+            }
+            rec = indPV.get(r.getLong("pvFieldVal"))
+            if (rec != null) {
+                r.set("fvFieldVal", rec.getLong("fv"))
+                r.set("nameFieldVal", rec.getString("name"))
+            }
+        }
+        //
+        return st
+    }
+
+    @DaoMethod
     Store saveReportConfiguration(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         long own
@@ -251,7 +357,7 @@ class ReportDao extends BaseMdbUtils {
             throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
         }
         //
-        return null
+        return loadReportConfiguration(own)
     }
 
     @DaoMethod
@@ -2654,6 +2760,8 @@ class ReportDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_FieldName")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
+                    if (UtCnv.toLong(params.get("idComplex")) > 0)
+                        recDPV.set("parent", params.get("idComplex"))
                 }
             } else {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
@@ -2696,6 +2804,8 @@ class ReportDao extends BaseMdbUtils {
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
                 }
+                if (UtCnv.toLong(params.get("idComplex")) > 0)
+                    recDPV.set("parent", params.get("idComplex"))
             } else {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
             }
@@ -2940,7 +3050,40 @@ class ReportDao extends BaseMdbUtils {
         mdb.execQueryNative(sql)
     }
 
-
+    private void validateForDeleteOwner(long owner) {
+        //
+        Store stObj = mdb.loadQuery("""
+            select v.name
+            from Obj o
+                inner join ObjVer v on o.id=v.ownerver and v.lastver=1 and v.objparent=${owner}
+            where 0=0
+        """)
+        if (stObj.size() > 0)
+            throw new XError("Существуют дочерние объекты ["+ stObj.getUniqueValues("name").join(", ") + "]")
+    }
+    /**
+     *
+     * @param id Id Obj
+     * Delete object with properties
+     */
+    @DaoMethod
+    void deleteObjWithProperties(long id) {
+        //
+        validateForDeleteOwner(id)
+        //
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        mdb.execQueryNative("""
+            delete from DataPropVal
+            where dataProp in (select id from DataProp where isobj=1 and objorrelobj=${id});
+            delete from DataProp where id in (
+                select id from dataprop
+                except
+                select dataProp as id from DataPropVal
+            );
+        """)
+        //
+        eu.deleteEntity(id)
+    }
 
 
     private Store loadSqlService(String sql, String domain, String model) {

@@ -9,10 +9,34 @@ import org.junit.jupiter.api.Test
 class Report_Test extends Apx_Test {
 
     @Test
+    void loadReportConfiguration_test () {
+        ReportDao dao = mdb.createDao(ReportDao.class)
+        Store st = dao.loadReportConfiguration(0)
+        mdb.outTable(st)
+    }
+
+    @Test
+    void saveReportConfiguration_upd_test () {
+        ReportDao dao = mdb.createDao(ReportDao.class)
+        Store st = dao.loadReportConfiguration(1017)
+        Map<String, Object> map = st.get(0).getValues()
+        map.put("name", "Configuration Test 1 upd")
+        map.put("parent", 1007)
+        map.put("RowVal", "RowVal")
+        map.put("ColVal", "ColVal")
+        map.put("FilterVal", "FilterVal")
+        map.put("objUser", 1003)
+        map.put("pvUser", 1087)
+        //...
+        st = dao.saveReportConfiguration("upd", map)
+        mdb.outTable(st)
+    }
+
+    @Test
     void saveReportConfiguration_ins_test () {
         ReportDao dao = mdb.createDao(ReportDao.class)
         Map<String, Object> map = new HashMap<>()
-        map.put("name", "Configuration Test 2")
+        map.put("name", "Configuration Test 3")
         map.put("parent", 1006)
         map.put("Filter", "Filter")
         map.put("Row", "Row")
@@ -33,9 +57,8 @@ class Report_Test extends Apx_Test {
         map.put("UpdatedAt", "2025-11-27")
         map.put("objUser", 1003)
         map.put("pvUser", 1087)
-//        Store st =
-                dao.saveReportConfiguration("ins", map)
-//        mdb.outTable(st)
+        Store st = dao.saveReportConfiguration("ins", map)
+        mdb.outTable(st)
     }
 
     @Test
@@ -176,5 +199,9 @@ class Report_Test extends Apx_Test {
 
     }
 
-
+    @Test
+    void deleteObjWithProperties_test () {
+        ReportDao dao = mdb.createDao(ReportDao.class)
+        dao.deleteObjWithProperties(1017)
+    }
 }
