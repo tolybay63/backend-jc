@@ -53,6 +53,35 @@
         <field name="fullNameUser" parent="string"/>
     </domain>
 
+    <domain name="Report.ReportPresentation" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="parent" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idVisualTyp" parent="long"/>
+        <field name="fvVisualTyp" parent="long"/>
+        <field name="pvVisualTyp" parent="long"/>
+        <field name="nameVisualTyp" parent="string"/>
+
+        <field name="idDescription" parent="long"/>
+        <field name="Description" parent="string"/>
+
+        <field name="idCreationDateTime" parent="long"/>
+        <field name="CreationDateTime" parent="string"/>
+
+        <field name="idCreatedAt" parent="long"/>
+        <field name="CreatedAt" parent="string"/>
+
+        <field name="idUpdatedAt" parent="long"/>
+        <field name="UpdatedAt" parent="string"/>
+
+        <field name="idUser" parent="long"/>
+        <field name="objUser" parent="long"/>
+        <field name="pvUser" parent="long"/>
+        <field name="fullNameUser" parent="string"/>
+    </domain>
+
     <domain name="Report.ReportConfiguration" parent="base">
         <field name="id" parent="long"/>
         <field name="parent" parent="long"/>

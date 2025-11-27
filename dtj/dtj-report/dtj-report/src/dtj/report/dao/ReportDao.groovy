@@ -76,6 +76,156 @@ class ReportDao extends BaseMdbUtils {
     //=========================================================================
 
     @DaoMethod
+    Store loadReportPresentation(long id) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ReportPresentation", "")
+        Store st = mdb.createStore("Report.ReportPresentation")
+
+        String whe
+        if (id > 0)
+            whe = "o.id=${id}"
+        else {
+            whe = "o.cls = ${map.get("Cls_ReportPresentation")}"
+        }
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        mdb.loadQuery(st, """
+            select o.id, v.objparent as parent, o.cls, v.name,
+                v1.id as idCreationDateTime, v1.dateTimeVal as CreationDateTime,
+                v3.id as idVisualTyp, v3.propVal as pvVisualTyp, null as fvVisualTyp, null as nameVisualTyp,
+                v4.id as idDescription, v4.multiStrVal as Description,
+                v5.id as idUser, v5.obj as objUser, v5.propVal as pvUser, null as fullNameUser,
+                v7.id as idCreatedAt, v7.dateTimeVal as CreatedAt,
+                v8.id as idUpdatedAt, v8.dateTimeVal as UpdatedAt
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_CreationDateTime
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_VisualTyp
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Description
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_User
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_CreatedAt
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_UpdatedAt
+                left join DataPropVal v8 on d8.id=v8.dataprop
+            where ${whe}
+        """, map)
+        //Пересечение
+        Set<Object> pvs = st.getUniqueValues("pvVisualTyp")
+        Store stPV = apiMeta().get(ApiMeta).loadSql("""
+                select fv.id as fv, pv.id as pv, fv.name from Factor fv, PropVal pv 
+                where pv.factorval=fv.id and pv.id in (0${pvs.join(",")})
+            """, "")
+        StoreIndex indPV = stPV.getIndex("pv")
+        //
+        Set<Object> idsUser = st.getUniqueValues("objUser")
+        Store stUser = loadSqlService("""
+            select o.id, o.cls, v.fullName
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsUser.join(",")})
+        """, "", "personnaldata")
+        StoreIndex indUser = stUser.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord recUser = indUser.get(r.getLong("objUser"))
+            if (recUser != null)
+                r.set("fullNameUser", recUser.getString("fullName"))
+            StoreRecord rec = indPV.get(r.getLong("pvVisualTyp"))
+            if (rec != null) {
+                r.set("fvVisualTyp", rec.getLong("fv"))
+                r.set("nameVisualTyp", rec.getString("name"))
+            }
+        }
+        //
+        return st
+    }
+
+    @DaoMethod
+    Store saveReportPresentation(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        if (UtCnv.toString(params.get("name")).trim().isEmpty())
+            throw new XError("[name] не указан")
+        Map<String, Object> par = new HashMap<>(pms)
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ReportPresentation", "")
+        if (mode.equalsIgnoreCase("ins")) {
+            par.put("cls", map.get("Cls_ReportPresentation"))
+            //
+            par.putIfAbsent("fullName", pms.getString("name"))
+            //
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+            //
+            //1 Prop_VisualTyp
+            if (pms.getLong("fvVisualTyp") == 0)
+                throw new XError("[VisualTyp] не указан")
+            else
+                fillProperties(true, "Prop_VisualTyp", pms)
+            //2 Prop_CreationDateTime
+            if (pms.getString("CreationDateTime").isEmpty())
+                throw new XError("[CreationDateTime] не указан")
+            else
+                fillProperties(true, "Prop_CreationDateTime", pms)
+            //3 Prop_Description
+            if (!pms.getString("Description").isEmpty())
+                fillProperties(true, "Prop_Description", pms)
+            //4 Prop_User
+            if (pms.getLong("objUser") == 0)
+                throw new XError("[User] не указан")
+            else
+                fillProperties(true, "Prop_User", pms)
+            //5 Prop_CreatedAt
+            if (pms.getString("CreatedAt").isEmpty())
+                throw new XError("[CreatedAt] не указан")
+            else
+                fillProperties(true, "Prop_CreatedAt", pms)
+            //6 Prop_UpdatedAt
+            if (pms.getString("UpdatedAt").isEmpty())
+                throw new XError("[UpdatedAt] не указан")
+            else
+                fillProperties(true, "Prop_UpdatedAt", pms)
+        } else if (mode.equalsIgnoreCase("upd")) {
+            own = pms.getLong("id")
+            par.putIfAbsent("fullName", pms.getString("name"))
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+            //
+            //1 Prop_VisualTyp
+            if (pms.containsKey("idVisualTyp")) {
+                if (pms.getLong("fvVisualTyp") == 0)
+                    throw new XError("[VisualTyp] не указан")
+                else
+                    updateProperties("Prop_VisualTyp", pms)
+            }
+            //3 Prop_Description
+            if (pms.containsKey("idDescription"))
+                updateProperties("Prop_Description", pms)
+            else {
+                if (!pms.getString("Description").isEmpty())
+                    fillProperties(true, "Prop_Description", pms)
+            }
+            //4 Prop_User
+            if (pms.containsKey("idUser"))
+                if (pms.getLong("objUser") == 0)
+                    throw new XError("[User] не указан")
+                else
+                    updateProperties("Prop_User", pms)
+            //5 Prop_UpdatedAt
+            if (pms.containsKey("idUpdatedAt"))
+                if (pms.getString("UpdatedAt").isEmpty())
+                    throw new XError("[UpdatedAt] не указан")
+                else
+                    updateProperties("Prop_UpdatedAt", pms)
+        } else {
+            throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
+        }
+        //
+        return loadReportPresentation(own)
+    }
+
+    @DaoMethod
     List<Map<String, Object>> loadReportConfiguration(long id) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ReportConfiguration", "")
         Store st = mdb.createStore("Report.ReportConfiguration")
@@ -2855,7 +3005,8 @@ class ReportDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_Col") ||
                     cod.equalsIgnoreCase("Prop_FilterVal") ||
                     cod.equalsIgnoreCase("Prop_RowVal") ||
-                    cod.equalsIgnoreCase("Prop_ColVal")) {
+                    cod.equalsIgnoreCase("Prop_ColVal") ||
+                    cod.equalsIgnoreCase("Prop_Description")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("multiStrVal", UtCnv.toString(params.get(keyValue)))
                 }
@@ -2874,12 +3025,23 @@ class ReportDao extends BaseMdbUtils {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
         }
 
+        // Attrib date time
+        if ([FD_AttribValType_consts.dttm].contains(attribValType)) {
+            if ( cod.equalsIgnoreCase("Prop_CreationDateTime")) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
+                    recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+        }
+
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_MethodTyp") ||
                     cod.equalsIgnoreCase("Prop_RowTotal") ||
                     cod.equalsIgnoreCase("Prop_ColTotal") ||
-                    cod.equalsIgnoreCase("Prop_FieldVal")) {
+                    cod.equalsIgnoreCase("Prop_FieldVal") ||
+                    cod.equalsIgnoreCase("Prop_VisualTyp")) {
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
                 }
@@ -3005,7 +3167,8 @@ class ReportDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_Col") ||
                     cod.equalsIgnoreCase("Prop_FilterVal") ||
                     cod.equalsIgnoreCase("Prop_RowVal") ||
-                    cod.equalsIgnoreCase("Prop_ColVal")) {
+                    cod.equalsIgnoreCase("Prop_ColVal") ||
+                    cod.equalsIgnoreCase("Prop_Description")) {
                 if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
                     sql = """
                         delete from DataPropVal where id=${idVal};
@@ -3042,12 +3205,32 @@ class ReportDao extends BaseMdbUtils {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
         }
 
+        // Attrib date time
+        if ([FD_AttribValType_consts.dttm].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_CreationDateTime")) {
+                if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
+                    sql = """
+                        delete from DataPropVal where id=${idVal};
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        );
+                    """
+                } else {
+                    sql = "update DataPropval set dateTimeVal='${strValue}', timeStamp='${tmst}' where id=${idVal}"
+                }
+            } else
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+        }
+
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_MethodTyp") ||
                     cod.equalsIgnoreCase("Prop_RowTotal") ||
                     cod.equalsIgnoreCase("Prop_ColTotal") ||
-                    cod.equalsIgnoreCase("Prop_FieldVal")) {
+                    cod.equalsIgnoreCase("Prop_FieldVal") ||
+                    cod.equalsIgnoreCase("Prop_VisualTyp")) {
                 if (propVal > 0)
                     sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
                 else {

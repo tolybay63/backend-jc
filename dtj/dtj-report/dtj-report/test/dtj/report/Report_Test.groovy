@@ -9,6 +9,51 @@ import org.junit.jupiter.api.Test
 class Report_Test extends Apx_Test {
 
     @Test
+    void loadReportPresentation_test () {
+        ReportDao dao = mdb.createDao(ReportDao.class)
+        Store st = dao.loadReportPresentation(0)
+        mdb.outTable(st)
+    }
+
+    @Test
+    void saveReportPresentation_ins_test () {
+        ReportDao dao = mdb.createDao(ReportDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("name", "Test 2")
+        map.put("parent", 1021)
+        map.put("CreationDateTime", "2025-11-27T12:13:14.000")
+        map.put("fvVisualTyp", 1353)
+        map.put("pvVisualTyp", 1572)
+        map.put("Description", "Description")
+        map.put("CreatedAt", "2025-11-27")
+        map.put("UpdatedAt", "2025-11-27")
+        map.put("objUser", 1003)
+        map.put("pvUser", 1087)
+        Store st = dao.saveReportPresentation("ins", map)
+        mdb.outTable(st)
+    }
+
+    @Test
+    void saveReportPresentation_upd_test () {
+        ReportDao dao = mdb.createDao(ReportDao.class)
+        Store st = dao.loadReportPresentation(1022)
+        Map<String, Object> map = st.get(0).getValues()
+        map.put("name", "Test upd")
+        map.put("parent", 1021)
+        map.put("CreationDateTime", "2025-11-27T12:13:14.000")
+        map.put("fvVisualTyp", 1353)
+        map.put("pvVisualTyp", 1572)
+        map.put("Description", "Description")
+        map.put("CreatedAt", "2025-11-27")
+        map.put("UpdatedAt", "2025-11-27")
+        map.put("objUser", 1003)
+        map.put("pvUser", 1087)
+        //...
+        st = dao.saveReportPresentation("upd", map)
+        mdb.outTable(st)
+    }
+
+    @Test
     void saveComplexMetrics_ins_test () {
         ReportDao dao = mdb.createDao(ReportDao.class)
         Map<String, Object> map = new HashMap<>()
@@ -24,25 +69,25 @@ class Report_Test extends Apx_Test {
     @Test
     void loadReportConfiguration_test () {
         ReportDao dao = mdb.createDao(ReportDao.class)
-        Store st = dao.loadReportConfiguration(0)
+        List<Map<String, Object>> st = dao.loadReportConfiguration(0)
         mdb.outTable(st)
     }
 
     @Test
     void saveReportConfiguration_upd_test () {
         ReportDao dao = mdb.createDao(ReportDao.class)
-        Store st = dao.loadReportConfiguration(1017)
-        Map<String, Object> map = st.get(0).getValues()
-        map.put("name", "Configuration Test 1 upd")
-        map.put("parent", 1007)
-        map.put("RowVal", "RowVal")
-        map.put("ColVal", "ColVal")
-        map.put("FilterVal", "FilterVal")
-        map.put("objUser", 1003)
-        map.put("pvUser", 1087)
+//        Store st = dao.loadReportConfiguration(1017)
+//        Map<String, Object> map = st.get(0).getValues()
+//        map.put("name", "Configuration Test 1 upd")
+//        map.put("parent", 1007)
+//        map.put("RowVal", "RowVal")
+//        map.put("ColVal", "ColVal")
+//        map.put("FilterVal", "FilterVal")
+//        map.put("objUser", 1003)
+//        map.put("pvUser", 1087)
         //...
-        st = dao.saveReportConfiguration("upd", map)
-        mdb.outTable(st)
+        dao.saveReportConfiguration("upd", map)
+//        mdb.outTable(st)
     }
 
     @Test
@@ -70,8 +115,8 @@ class Report_Test extends Apx_Test {
         map.put("UpdatedAt", "2025-11-27")
         map.put("objUser", 1003)
         map.put("pvUser", 1087)
-        Store st = dao.saveReportConfiguration("ins", map)
-        mdb.outTable(st)
+        dao.saveReportConfiguration("ins", map)
+//        mdb.outTable(st)
     }
 
     @Test
