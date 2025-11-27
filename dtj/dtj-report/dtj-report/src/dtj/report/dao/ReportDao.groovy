@@ -76,6 +76,185 @@ class ReportDao extends BaseMdbUtils {
     //=========================================================================
 
     @DaoMethod
+    Store saveReportConfiguration(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        if (UtCnv.toString(params.get("name")).trim().isEmpty())
+            throw new XError("[name] не указан")
+        Map<String, Object> par = new HashMap<>(pms)
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ReportConfiguration", "")
+        if (mode.equalsIgnoreCase("ins")) {
+            par.put("cls", map.get("Cls_ReportConfiguration"))
+            //
+            par.putIfAbsent("fullName", pms.getString("name"))
+            //
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+            //1 Prop_Filter
+            if (pms.getString("Filter").isEmpty())
+                throw new XError("[Filter] не указан")
+            else
+                fillProperties(true, "Prop_Filter", pms)
+            //2 Prop_Row
+            if (pms.getString("Row").isEmpty())
+                throw new XError("[Row] не указан")
+            else
+                fillProperties(true, "Prop_Row", pms)
+            //3 Prop_Col
+            if (pms.getString("Col").isEmpty())
+                throw new XError("[Col] не указан")
+            else
+                fillProperties(true, "Prop_Col", pms)
+            //4 Prop_FilterVal
+            if (!pms.getString("FilterVal").isEmpty())
+                fillProperties(true, "Prop_FilterVal", pms)
+            //5 Prop_RowVal
+            if (!pms.getString("RowVal").isEmpty())
+                fillProperties(true, "Prop_RowVal", pms)
+            //6 Prop_ColVal
+            if (!pms.getString("ColVal").isEmpty())
+                fillProperties(true, "Prop_ColVal", pms)
+            //7 Prop_RowTotal
+            if (pms.getLong("fvRowTotal") == 0)
+                throw new XError("[RowTotal] не указан")
+            else
+                fillProperties(true, "Prop_RowTotal", pms)
+            //8 Prop_ColTotal
+            if (pms.getLong("fvColTotal") == 0)
+                throw new XError("[ColTotal] не указан")
+            else
+                fillProperties(true, "Prop_ColTotal", pms)
+            //9 Prop_User
+            if (pms.getLong("objUser") == 0)
+                throw new XError("[User] не указан")
+            else
+                fillProperties(true, "Prop_User", pms)
+            //10 Prop_CreatedAt
+            if (pms.getString("CreatedAt").isEmpty())
+                throw new XError("[CreatedAt] не указан")
+            else
+                fillProperties(true, "Prop_CreatedAt", pms)
+            //11 Prop_UpdatedAt
+            if (pms.getString("UpdatedAt").isEmpty())
+                throw new XError("[UpdatedAt] не указан")
+            else
+                fillProperties(true, "Prop_UpdatedAt", pms)
+            //12 Complex
+            pms.remove("idComplex")
+            pms.put("MetricsComplex", "MetricsComplex-" + own + "-" + pms.getString("FieldName"))
+            mdb.startTran()
+            try {
+                fillProperties(true, "Prop_MetricsComplex", pms)
+                //
+                if (!pms.getString("FieldName").isEmpty())
+                    fillProperties(true, "Prop_FieldName", pms)
+                else
+                    throw new XError("[FieldName] не указан")
+                //
+                if (pms.getLong("fvFieldVal") > 0)
+                    fillProperties(true, "Prop_FieldVal", pms)
+                else
+                    throw new XError("[FieldVal] не указан")
+                mdb.commit()
+            } catch (Exception e) {
+                mdb.rollback(e)
+            }
+        } else if (mode.equalsIgnoreCase("upd")) {
+            own = pms.getLong("id")
+            par.putIfAbsent("fullName", pms.getString("name"))
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+            //
+            //1 Prop_Filter
+            if (pms.containsKey("idFilter")) {
+                if (pms.getString("Filter").isEmpty())
+                    throw new XError("[Filter] не указан")
+                else
+                    updateProperties("Prop_Filter", pms)
+            }
+            //2 Prop_Row
+            if (pms.containsKey("idRow")) {
+                if (pms.getString("Row").isEmpty())
+                    throw new XError("[Row] не указан")
+                else
+                    updateProperties("Prop_Row", pms)
+            }
+            //3 Prop_Col
+            if (pms.containsKey("idCol")) {
+                if (pms.getString("Col").isEmpty())
+                    throw new XError("[Col] не указан")
+                else
+                    updateProperties("Prop_Col", pms)
+            }
+            //4 Prop_FilterVal
+            if (pms.containsKey("idFilterVal")) {
+                updateProperties("Prop_FilterVal", pms)
+            } else {
+                if (!pms.getString("FilterVal").isEmpty())
+                    fillProperties(true, "Prop_FilterVal", pms)
+            }
+            //5 Prop_RowVal
+            if (pms.containsKey("idRowVal")) {
+                updateProperties("Prop_RowVal", pms)
+            } else {
+                if (!pms.getString("RowVal").isEmpty())
+                    fillProperties(true, "Prop_RowVal", pms)
+            }
+            //6 Prop_ColVal
+            if (pms.containsKey("idColVal")) {
+                updateProperties("Prop_ColVal", pms)
+            } else {
+                if (!pms.getString("ColVal").isEmpty())
+                    fillProperties(true, "Prop_ColVal", pms)
+            }
+            //7 Prop_RowTotal
+            if (pms.containsKey("idRowTotal")) {
+                if (pms.getLong("fvRowTotal") == 0)
+                    throw new XError("[RowTotal] не указан")
+                else
+                    updateProperties("Prop_RowTotal", pms)
+            }
+            //8 Prop_ColTotal
+            if (pms.containsKey("idColTotal")) {
+                if (pms.getLong("fvColTotal") == 0)
+                    throw new XError("[ColTotal] не указан")
+                else
+                    updateProperties("Prop_ColTotal", pms)
+            }
+            //9 Prop_User
+            if (pms.containsKey("idUser"))
+                if (pms.getLong("objUser") == 0)
+                    throw new XError("[User] не указан")
+                else
+                    updateProperties("Prop_User", pms)
+            //10 Prop_UpdatedAt
+            if (pms.containsKey("idUpdatedAt"))
+                if (pms.getString("UpdatedAt").isEmpty())
+                    throw new XError("[UpdatedAt] не указан")
+                else
+                    updateProperties("Prop_UpdatedAt", pms)
+            //11 Prop_FieldName
+            if (pms.containsKey("idFieldName"))
+                if (pms.getString("FieldName").isEmpty())
+                    throw new XError("[FieldName] не указан")
+                else
+                    updateProperties("Prop_FieldName", pms)
+            //12 Prop_FieldVal
+            if (pms.containsKey("idFieldVal"))
+                if (pms.getLong("fvFieldVal") == 0)
+                    throw new XError("[FieldVal] не указан")
+                else
+                    updateProperties("Prop_FieldVal", pms)
+        } else {
+            throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
+        }
+        //
+        return null
+    }
+
+    @DaoMethod
     Store loadReportSource(long id) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ReportSource", "")
         Store st = mdb.createStore("Report.ReportSource")
@@ -2460,9 +2639,8 @@ class ReportDao extends BaseMdbUtils {
         recDPV.set("dataProp", idDP)
         //Complex
         if ([FD_PropType_consts.complex].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_PerformerComplex") ||
-                    cod.equalsIgnoreCase("Prop_ToolComplex") ||
-                    cod.equalsIgnoreCase("Prop_EquipmentComplex")) {
+            if (cod.equalsIgnoreCase("Prop_MetricsComplex") ||
+                    cod.equalsIgnoreCase("Prop_PageContainerComplex")) {
                 recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
             } else {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
@@ -2472,7 +2650,8 @@ class ReportDao extends BaseMdbUtils {
         // Attrib str
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_URL") ||
-                    cod.equalsIgnoreCase("Prop_Method")) {
+                    cod.equalsIgnoreCase("Prop_Method") ||
+                    cod.equalsIgnoreCase("Prop_FieldName")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
                 }
@@ -2482,7 +2661,14 @@ class ReportDao extends BaseMdbUtils {
         }
         // Attrib multistr
         if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_MethodBody")) {
+            if (cod.equalsIgnoreCase("Prop_MethodBody") ||
+                    cod.equalsIgnoreCase("Prop_Method") ||
+                    cod.equalsIgnoreCase("Prop_Filter") ||
+                    cod.equalsIgnoreCase("Prop_Row") ||
+                    cod.equalsIgnoreCase("Prop_Col") ||
+                    cod.equalsIgnoreCase("Prop_FilterVal") ||
+                    cod.equalsIgnoreCase("Prop_RowVal") ||
+                    cod.equalsIgnoreCase("Prop_ColVal")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("multiStrVal", UtCnv.toString(params.get(keyValue)))
                 }
@@ -2503,7 +2689,10 @@ class ReportDao extends BaseMdbUtils {
 
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_MethodTyp")) {
+            if (cod.equalsIgnoreCase("Prop_MethodTyp") ||
+                    cod.equalsIgnoreCase("Prop_RowTotal") ||
+                    cod.equalsIgnoreCase("Prop_ColTotal") ||
+                    cod.equalsIgnoreCase("Prop_FieldVal")) {
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
                 }
@@ -2600,7 +2789,8 @@ class ReportDao extends BaseMdbUtils {
         // Attrib str
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_URL") ||
-                    cod.equalsIgnoreCase("Prop_Method")) {
+                    cod.equalsIgnoreCase("Prop_Method") ||
+                    cod.equalsIgnoreCase("Prop_FieldName")) {
                 if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
                     sql = """
                         delete from DataPropVal where id=${idVal};
@@ -2619,7 +2809,14 @@ class ReportDao extends BaseMdbUtils {
         }
         // Attrib multistr
         if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_MethodBody")) {
+            if (cod.equalsIgnoreCase("Prop_MethodBody") ||
+                    cod.equalsIgnoreCase("Prop_Method") ||
+                    cod.equalsIgnoreCase("Prop_Filter") ||
+                    cod.equalsIgnoreCase("Prop_Row") ||
+                    cod.equalsIgnoreCase("Prop_Col") ||
+                    cod.equalsIgnoreCase("Prop_FilterVal") ||
+                    cod.equalsIgnoreCase("Prop_RowVal") ||
+                    cod.equalsIgnoreCase("Prop_ColVal")) {
                 if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
                     sql = """
                         delete from DataPropVal where id=${idVal};
@@ -2658,7 +2855,10 @@ class ReportDao extends BaseMdbUtils {
 
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_MethodTyp")) {
+            if (cod.equalsIgnoreCase("Prop_MethodTyp") ||
+                    cod.equalsIgnoreCase("Prop_RowTotal") ||
+                    cod.equalsIgnoreCase("Prop_ColTotal") ||
+                    cod.equalsIgnoreCase("Prop_FieldVal")) {
                 if (propVal > 0)
                     sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
                 else {

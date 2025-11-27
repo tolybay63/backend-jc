@@ -2785,9 +2785,7 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_Personnel") ||
                     cod.equalsIgnoreCase("Prop_TpService") ||
                     cod.equalsIgnoreCase("Prop_TaskLog") ||
-                    cod.equalsIgnoreCase("Prop_Performer") ||
-                    cod.equalsIgnoreCase("Prop_Tool") ||
-                    cod.equalsIgnoreCase("Prop_Equipment")) {
+                    cod.equalsIgnoreCase("Prop_Performer")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
@@ -2984,9 +2982,7 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_Personnel") ||
                     cod.equalsIgnoreCase("Prop_TpService") ||
                     cod.equalsIgnoreCase("Prop_Equipment") ||
-                    cod.equalsIgnoreCase("Prop_Performer") ||
-                    cod.equalsIgnoreCase("Prop_Tool") ||
-                    cod.equalsIgnoreCase("Prop_Equipment")) {
+                    cod.equalsIgnoreCase("Prop_Performer")) {
                 if (objRef > 0)
                     sql = "update DataPropval set propVal=${propVal}, obj=${objRef}, timeStamp='${tmst}' where id=${idVal}"
                 else {

@@ -9,6 +9,36 @@ import org.junit.jupiter.api.Test
 class Report_Test extends Apx_Test {
 
     @Test
+    void saveReportConfiguration_ins_test () {
+        ReportDao dao = mdb.createDao(ReportDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("name", "Configuration Test 2")
+        map.put("parent", 1006)
+        map.put("Filter", "Filter")
+        map.put("Row", "Row")
+        map.put("Col", "Col")
+//        map.put("FilterVal", "FilterVal")
+//        map.put("RowVal", "RowVal")
+//        map.put("ColVal", "ColVal")
+        map.put("fvRowTotal", 1074)
+        map.put("pvRowTotal", 1565)
+        map.put("fvColTotal", 1075)
+        map.put("pvColTotal", 1568)
+        // Complex
+        map.put("FieldName", "FieldName")
+        map.put("fvFieldVal", 1349)
+        map.put("pvFieldVal", 1569)
+        //
+        map.put("CreatedAt", "2025-11-27")
+        map.put("UpdatedAt", "2025-11-27")
+        map.put("objUser", 1003)
+        map.put("pvUser", 1087)
+//        Store st =
+                dao.saveReportConfiguration("ins", map)
+//        mdb.outTable(st)
+    }
+
+    @Test
     void loadReportSource_test () {
         ReportDao dao = mdb.createDao(ReportDao.class)
         Store st = dao.loadReportSource(0)
