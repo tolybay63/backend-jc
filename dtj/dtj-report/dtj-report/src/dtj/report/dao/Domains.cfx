@@ -27,6 +27,9 @@
         <field name="cls" parent="long"/>
         <field name="name" parent="string"/>
 
+        <field name="idURL" parent="long"/>
+        <field name="URL" parent="string"/>
+
         <field name="idMethod" parent="long"/>
         <field name="Method" parent="string"/>
 
