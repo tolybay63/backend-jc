@@ -76,6 +76,338 @@ class ReportDao extends BaseMdbUtils {
     //=========================================================================
 
     @DaoMethod
+    List<Map<String, Object>> loadReportPage(long id) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ReportPage", "")
+        Store st = mdb.createStore("Report.ReportPage")
+        String whe
+        if (id > 0)
+            whe = "o.id=${id}"
+        else {
+            whe = "o.cls = ${map.get("Cls_ReportPage")}"
+        }
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        mdb.loadQuery(st, """
+            select o.id, o.cls, v.name, v.objparent as parent,
+                v1.id as idMenuItem, v1.strVal as MenuItem,
+                v2.id as idPageTitle, v2.strVal as PageTitle,
+                v3.id as idDescription, v3.multiStrVal as Description,
+                v4.id as idGlobalFilter, v4.multiStrVal as GlobalFilter,
+                v5.id as idLayout, v5.propVal as pvLayout, null as fvLayout, null as nameLayout,
+                v6.id as idUser, v6.obj as objUser, v6.propVal as pvUser, null as fullNameUser,
+                v7.id as idCreatedAt, v7.dateTimeVal as CreatedAt,
+                v8.id as idUpdatedAt, v8.dateTimeVal as UpdatedAt
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_MenuItem
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_PageTitle
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Description
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_GlobalFilter
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_Layout
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_User
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_CreatedAt
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_UpdatedAt
+                left join DataPropVal v8 on d8.id=v8.dataprop
+            where ${whe}
+        """, map)
+        if (st.size() == 0)
+            return null
+        //Пересечение
+        Set<Object> pvs = st.getUniqueValues("pvLayout")
+        Store stPV = apiMeta().get(ApiMeta).loadSql("""
+            select fv.id as fv, pv.id as pv, fv.name from Factor fv, PropVal pv 
+            where pv.factorval=fv.id and pv.id in (0${pvs.join(",")})
+        """, "")
+        StoreIndex indPV = stPV.getIndex("pv")
+        //
+        Set<Object> idsUser = st.getUniqueValues("objUser")
+        Store stUser = loadSqlService("""
+            select o.id, o.cls, v.fullName
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsUser.join(",")})
+        """, "", "personnaldata")
+        StoreIndex indUser = stUser.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord recUser = indUser.get(r.getLong("objUser"))
+            if (recUser != null)
+                r.set("fullNameUser", recUser.getString("fullName"))
+            StoreRecord rec = indPV.get(r.getLong("pvLayout"))
+            if (rec != null) {
+                r.set("fvLayout", rec.getLong("fv"))
+                r.set("nameLayout", rec.getString("name"))
+            }
+        }
+        mdb.outTable(st)
+        List<Map<String, Object>> listSt = loadComplexPageContainer(st)
+        //
+        return listSt
+    }
+
+    @DaoMethod
+    List<Map<String, Object>> saveReportPage(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        if (UtCnv.toString(params.get("name")).trim().isEmpty())
+            throw new XError("[name] не указан")
+        Map<String, Object> par = new HashMap<>(pms)
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ReportPage", "")
+        if (mode.equalsIgnoreCase("ins")) {
+            par.put("cls", map.get("Cls_ReportPage"))
+            //
+            par.putIfAbsent("fullName", pms.getString("name"))
+            //
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+            //1 Prop_MenuItem
+            if (pms.getString("MenuItem").isEmpty())
+                throw new XError("[MenuItem] не указан")
+            else
+                fillProperties(true, "Prop_MenuItem", pms)
+            //2 Prop_PageTitle
+            if (pms.getString("PageTitle").isEmpty())
+                throw new XError("[PageTitle] не указан")
+            else
+                fillProperties(true, "Prop_PageTitle", pms)
+            //3 Prop_Description
+            if (!pms.getString("Description").isEmpty())
+                fillProperties(true, "Prop_Description", pms)
+            //4 Prop_GlobalFilter
+            if (!pms.getString("GlobalFilter").isEmpty())
+                fillProperties(true, "Prop_GlobalFilter", pms)
+            //5 Prop_Layout
+            if (pms.getLong("fvLayout") == 0)
+                throw new XError("[Layout] не указан")
+            else
+                fillProperties(true, "Prop_Layout", pms)
+            //6 Prop_User
+            if (pms.getLong("objUser") == 0)
+                throw new XError("[User] не указан")
+            else
+                fillProperties(true, "Prop_User", pms)
+            //7 Prop_CreatedAt
+            if (pms.getString("CreatedAt").isEmpty())
+                throw new XError("[CreatedAt] не указан")
+            else
+                fillProperties(true, "Prop_CreatedAt", pms)
+            //8 Prop_UpdatedAt
+            if (pms.getString("UpdatedAt").isEmpty())
+                throw new XError("[UpdatedAt] не указан")
+            else
+                fillProperties(true, "Prop_UpdatedAt", pms)
+        } else if (mode.equalsIgnoreCase("upd")) {
+            own = pms.getLong("id")
+            par.putIfAbsent("fullName", pms.getString("name"))
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+            //
+            //1 Prop_MenuItem
+            if (pms.containsKey("idMenuItem")) {
+                if (pms.getString("MenuItem").isEmpty())
+                    throw new XError("[MenuItem] не указан")
+                else
+                    updateProperties("Prop_MenuItem", pms)
+            }
+            //2 Prop_PageTitle
+            if (pms.containsKey("idPageTitle")) {
+                if (pms.getString("PageTitle").isEmpty())
+                    throw new XError("[PageTitle] не указан")
+                else
+                    updateProperties("Prop_PageTitle", pms)
+            }
+            //3 Prop_Description
+            if (pms.containsKey("idDescription")) {
+                updateProperties("Prop_Description", pms)
+            } else {
+                if (!pms.getString("Description").isEmpty())
+                    fillProperties(true, "Prop_Description", pms)
+            }
+            //4 Prop_GlobalFilter
+            if (pms.containsKey("idGlobalFilter")) {
+                updateProperties("Prop_GlobalFilter", pms)
+            } else {
+                if (!pms.getString("GlobalFilter").isEmpty())
+                    fillProperties(true, "Prop_GlobalFilter", pms)
+            }
+            //5 Prop_Layout
+            if (pms.containsKey("idLayout")) {
+                if (pms.getLong("fvLayout") == 0)
+                    throw new XError("[Layout] не указан")
+                else
+                    updateProperties("Prop_Layout", pms)
+            }
+            //6 Prop_User
+            if (pms.containsKey("idUser"))
+                if (pms.getLong("objUser") == 0)
+                    throw new XError("[User] не указан")
+                else
+                    updateProperties("Prop_User", pms)
+            //7 Prop_UpdatedAt
+            if (pms.containsKey("idUpdatedAt"))
+                if (pms.getString("UpdatedAt").isEmpty())
+                    throw new XError("[UpdatedAt] не указан")
+                else
+                    updateProperties("Prop_UpdatedAt", pms)
+        } else {
+            throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
+        }
+        //
+        return loadReportPage(own)
+    }
+
+    @DaoMethod
+    List<Map<String, Object>> loadComplexPageContainer(Store stOn) {
+        List<Map<String, Object>> lstRes = new ArrayList<>()
+        Store st = mdb.createStore("Report.Complex.PageContainer")
+        Set<Object> ids = stOn.getUniqueValues("id")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        mdb.loadQuery(st, """
+            select o.id,
+                v1.id as idPageContainerComplex, v1.strVal as PageContainerComplex,
+                v2.id as idLinkToView, v2.propVal as pvLinkToView, v2.obj as objLinkToView, null as nameLinkToView,
+                v3.id as idWidth, v3.propVal as pvWidth, null as fvWidth, null as nameWidth,
+                v4.id as idHeight, v4.propVal as pvHeight, null as fvHeight, null as nameHeight
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_PageContainerComplex
+                inner join DataPropVal v1 on d1.id=v1.dataProp
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_LinkToView
+                inner join DataPropVal v2 on d2.id=v2.dataProp and v2.parent=v1.id
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Width
+                inner join DataPropVal v3 on d3.id=v3.dataProp and v3.parent=v1.id
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Height
+                inner join DataPropVal v4 on d4.id=v4.dataProp and v4.parent=v1.id
+            where o.id in (0${ids.join(",")})
+        """, map)
+        //
+        if (st.size() > 0) {
+            //Пересечение
+            Set<Object> pvsWidth = st.getUniqueValues("pvWidth")
+            Set<Object> pvsHeight = st.getUniqueValues("pvHeight")
+            Set<Object> pvs = new HashSet<>()
+            pvs.addAll(pvsWidth)
+            pvs.addAll(pvsHeight)
+            Store stPV = apiMeta().get(ApiMeta).loadSql("""
+                select fv.id as fv, pv.id as pv, fv.name from Factor fv, PropVal pv 
+                where pv.factorval=fv.id and pv.id in (0${pvs.join(",")})
+            """, "")
+            StoreIndex indPV = stPV.getIndex("pv")
+            //
+            Set<Object> idsLinkToView = st.getUniqueValues("objLinkToView")
+            Store stLinkToView = loadSqlService("""
+                select o.id, o.cls, v.name
+                from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsLinkToView.join(",")})
+            """, "", "personnaldata")
+            StoreIndex indLinkToView = stLinkToView.getIndex("id")
+            //
+            for (StoreRecord r in st) {
+                StoreRecord recLinkToView = indLinkToView.get(r.getLong("objLinkToView"))
+                if (recLinkToView != null)
+                    r.set("nameLinkToView", recLinkToView.getString("name"))
+                StoreRecord recWidth = indPV.get(r.getLong("fvWidth"))
+                if (recWidth != null){
+                    r.set("fvWidth", recWidth.getLong("fv"))
+                    r.set("nameWidth", recWidth.getString("name"))
+                }
+                StoreRecord recHeight = indPV.get(r.getLong("pvHeight"))
+                if (recHeight != null){
+                    r.set("fvHeight", recHeight.getLong("fv"))
+                    r.set("nameHeight", recHeight.getString("name"))
+                }
+            }
+            //
+            for (StoreRecord r in stOn) {
+                Map<String, Object> mapR = new HashMap<>()
+                List<Map<String, Object>> lst = new ArrayList<>()
+                mapR.putAll(r.getValues())
+                //
+                for (StoreRecord p in st) {
+                    if (r.getLong("id") == p.getLong("id")) {
+                        Map<String, Object> mapP = new HashMap<>()
+                        p.set("id", null)
+                        mapP.putAll(p.getValues())
+                        lst.add(mapP)
+                    }
+                }
+                mapR.put("complex", lst)
+                //
+                lstRes.add(mapR)
+            }
+        } else {
+            for (StoreRecord r in stOn) {
+                Map<String, Object> mapR = new HashMap<>()
+                mapR.putAll(r.getValues())
+                //
+                lstRes.add(mapR)
+            }
+        }
+        //
+        return lstRes
+    }
+
+    @DaoMethod
+    void saveComplexPageContainer(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own = pms.getLong("id")
+        pms.put("own", own)
+        if (mode.equalsIgnoreCase("ins")) {
+            pms.remove("idComplex")
+            pms.put("PageContainerComplex", "PageContainerComplex-" + own + "-" + pms.getString("objLinkToView"))
+            mdb.startTran()
+            try {
+                //0 Parent
+                fillProperties(true, "Prop_PageContainerComplex", pms)
+                //1 Prop_LinkToView
+                if (pms.getLong("objLinkToView") > 0)
+                    fillProperties(true, "Prop_LinkToView", pms)
+                else
+                    throw new XError("[LinkToView] не указан")
+                //2 Prop_Width
+                if (pms.getLong("fvWidth") > 0)
+                    fillProperties(true, "Prop_Width", pms)
+                else
+                    throw new XError("[Width] не указан")
+                //3 Prop_Height
+                if (pms.getLong("fvHeight") > 0)
+                    fillProperties(true, "Prop_Height", pms)
+                else
+                    throw new XError("[Height] не указан")
+                mdb.commit()
+            } catch (Exception e) {
+                mdb.rollback(e)
+            }
+        } else if (mode.equalsIgnoreCase("upd")) {
+            //1 Prop_LinkToView
+            if (pms.containsKey("idLinkToView"))
+                if (pms.getLong("objLinkToView") == 0)
+                    throw new XError("[LinkToView] не указан")
+                else
+                    updateProperties("Prop_LinkToView", pms)
+            //2 Prop_Width
+            if (pms.containsKey("idWidth"))
+                if (pms.getLong("fvWidth") == 0)
+                    throw new XError("[Width] не указан")
+                else
+                    updateProperties("Prop_Width", pms)
+            //3 Prop_Height
+            if (pms.containsKey("idHeight"))
+                if (pms.getLong("fvHeight") == 0)
+                    throw new XError("[Height] не указан")
+                else
+                    updateProperties("Prop_Height", pms)
+        } else {
+            throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
+        }
+        //
+    }
+
+    @DaoMethod
     Store loadReportPresentation(long id) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ReportPresentation", "")
         Store st = mdb.createStore("Report.ReportPresentation")
@@ -2975,6 +3307,7 @@ class ReportDao extends BaseMdbUtils {
         //Complex
         if ([FD_PropType_consts.complex].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_MetricsComplex") ||
+                    cod.equalsIgnoreCase("Prop_PageContainerComplex") ||
                     cod.equalsIgnoreCase("Prop_PageContainerComplex")) {
                 recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
             } else {
@@ -2986,7 +3319,9 @@ class ReportDao extends BaseMdbUtils {
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_URL") ||
                     cod.equalsIgnoreCase("Prop_Method") ||
-                    cod.equalsIgnoreCase("Prop_FieldName")) {
+                    cod.equalsIgnoreCase("Prop_FieldName") ||
+                    cod.equalsIgnoreCase("Prop_MenuItem") ||
+                    cod.equalsIgnoreCase("Prop_PageTitle")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
                     if (UtCnv.toLong(params.get("idComplex")) > 0)
@@ -3006,7 +3341,8 @@ class ReportDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_FilterVal") ||
                     cod.equalsIgnoreCase("Prop_RowVal") ||
                     cod.equalsIgnoreCase("Prop_ColVal") ||
-                    cod.equalsIgnoreCase("Prop_Description")) {
+                    cod.equalsIgnoreCase("Prop_Description") ||
+                    cod.equalsIgnoreCase("Prop_GlobalFilter")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("multiStrVal", UtCnv.toString(params.get(keyValue)))
                 }
@@ -3041,7 +3377,10 @@ class ReportDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_RowTotal") ||
                     cod.equalsIgnoreCase("Prop_ColTotal") ||
                     cod.equalsIgnoreCase("Prop_FieldVal") ||
-                    cod.equalsIgnoreCase("Prop_VisualTyp")) {
+                    cod.equalsIgnoreCase("Prop_VisualTyp") ||
+                    cod.equalsIgnoreCase("Prop_Layout") ||
+                    cod.equalsIgnoreCase("Prop_Width") ||
+                    cod.equalsIgnoreCase("Prop_Height")) {
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
                 }
@@ -3080,7 +3419,8 @@ class ReportDao extends BaseMdbUtils {
         }
         //Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_User")) {
+            if (cod.equalsIgnoreCase("Prop_User") ||
+                    cod.equalsIgnoreCase("Prop_LinkToView")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
@@ -3141,7 +3481,9 @@ class ReportDao extends BaseMdbUtils {
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_URL") ||
                     cod.equalsIgnoreCase("Prop_Method") ||
-                    cod.equalsIgnoreCase("Prop_FieldName")) {
+                    cod.equalsIgnoreCase("Prop_FieldName") ||
+                    cod.equalsIgnoreCase("Prop_MenuItem") ||
+                    cod.equalsIgnoreCase("Prop_PageTitle")) {
                 if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
                     sql = """
                         delete from DataPropVal where id=${idVal};
@@ -3168,7 +3510,8 @@ class ReportDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_FilterVal") ||
                     cod.equalsIgnoreCase("Prop_RowVal") ||
                     cod.equalsIgnoreCase("Prop_ColVal") ||
-                    cod.equalsIgnoreCase("Prop_Description")) {
+                    cod.equalsIgnoreCase("Prop_Description") ||
+                    cod.equalsIgnoreCase("Prop_GlobalFilter")) {
                 if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
                     sql = """
                         delete from DataPropVal where id=${idVal};
@@ -3230,7 +3573,10 @@ class ReportDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_RowTotal") ||
                     cod.equalsIgnoreCase("Prop_ColTotal") ||
                     cod.equalsIgnoreCase("Prop_FieldVal") ||
-                    cod.equalsIgnoreCase("Prop_VisualTyp")) {
+                    cod.equalsIgnoreCase("Prop_VisualTyp") ||
+                    cod.equalsIgnoreCase("Prop_Layout") ||
+                    cod.equalsIgnoreCase("Prop_Width") ||
+                    cod.equalsIgnoreCase("Prop_Height")) {
                 if (propVal > 0)
                     sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
                 else {
@@ -3291,7 +3637,8 @@ class ReportDao extends BaseMdbUtils {
         }
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_User")) {
+            if (cod.equalsIgnoreCase("Prop_User") ||
+                    cod.equalsIgnoreCase("Prop_LinkToView")) {
                 if (objRef > 0)
                     sql = "update DataPropval set propVal=${propVal}, obj=${objRef}, timeStamp='${tmst}' where id=${idVal}"
                 else {

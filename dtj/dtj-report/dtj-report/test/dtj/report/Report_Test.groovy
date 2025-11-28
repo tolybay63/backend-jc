@@ -9,6 +9,47 @@ import org.junit.jupiter.api.Test
 class Report_Test extends Apx_Test {
 
     @Test
+    void loadReportPage_test () {
+        ReportDao dao = mdb.createDao(ReportDao.class)
+        List<Map<String, Object>> st = dao.loadReportPage(0)
+//        mdb.outTable(st)
+    }
+
+    @Test
+    void saveReportPage_ins_test () {
+        ReportDao dao = mdb.createDao(ReportDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("name", "Test Page 3")
+        map.put("MenuItem", "MenuItem")
+        map.put("PageTitle", "PageTitle")
+        map.put("fvLayout", 1359)
+        map.put("pvLayout", 1577)
+        map.put("Description", "Description")
+        map.put("GlobalFilter", "GlobalFilter")
+        map.put("CreatedAt", "2025-11-27")
+        map.put("UpdatedAt", "2025-11-27")
+        map.put("objUser", 1003)
+        map.put("pvUser", 1087)
+        List<Map<String, Object>> st = dao.saveReportPage("ins", map)
+//        mdb.outTable(st)
+    }
+
+    @Test
+    void saveComplexPageContainer_ins_test () {
+        ReportDao dao = mdb.createDao(ReportDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("id", 1033)
+        // Complex
+        map.put("objLinkToView", 1022)
+        map.put("pvLinkToView", 1579)
+        map.put("fvWidth", 1362)
+        map.put("pvWidth", 1580)
+        map.put("fvHeight", 1368)
+        map.put("pvHeight", 1585)
+        dao.saveComplexPageContainer("ins", map)
+    }
+
+    @Test
     void loadReportPresentation_test () {
         ReportDao dao = mdb.createDao(ReportDao.class)
         Store st = dao.loadReportPresentation(0)

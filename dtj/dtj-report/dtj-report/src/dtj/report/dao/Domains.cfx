@@ -135,9 +135,6 @@
 
     <domain name="Report.Complex.Metrics" parent="base">
         <field name="id" parent="long"/>
-        <field name="parent" parent="long"/>
-        <field name="cls" parent="long"/>
-        <field name="name" parent="string"/>
 
         <field name="idMetricsComplex" parent="long"/>
         <field name="MetricsComplex" parent="string"/>
@@ -149,5 +146,61 @@
         <field name="pvFieldVal" parent="long"/>
         <field name="nameFieldVal" parent="string"/>
     </domain>
+
+    <domain name="Report.ReportPage" parent="base">
+            <field name="id" parent="long"/>
+            <field name="cls" parent="long"/>
+            <field name="name" parent="string"/>
+
+            <field name="idMenuItem" parent="long"/>
+            <field name="MenuItem" parent="string"/>
+
+            <field name="idPageTitle" parent="long"/>
+            <field name="PageTitle" parent="string"/>
+
+            <field name="idLayout" parent="long"/>
+            <field name="fvLayout" parent="long"/>
+            <field name="pvLayout" parent="long"/>
+            <field name="nameLayout" parent="string"/>
+
+            <field name="idDescription" parent="long"/>
+            <field name="Description" parent="string"/>
+
+            <field name="idGlobalFilter" parent="long"/>
+            <field name="GlobalFilter" parent="string"/>
+
+            <field name="idCreatedAt" parent="long"/>
+            <field name="CreatedAt" parent="string"/>
+
+            <field name="idUpdatedAt" parent="long"/>
+            <field name="UpdatedAt" parent="string"/>
+
+            <field name="idUser" parent="long"/>
+            <field name="objUser" parent="long"/>
+            <field name="pvUser" parent="long"/>
+            <field name="fullNameUser" parent="string"/>
+        </domain>
+
+        <domain name="Report.Complex.PageContainer" parent="base">
+                <field name="id" parent="long"/>
+
+                <field name="idPageContainerComplex" parent="long"/>
+                <field name="PageContainerComplex" parent="string"/>
+
+                <field name="idLinkToView" parent="long"/>
+                <field name="objLinkToView" parent="long"/>
+                <field name="pvLinkToView" parent="long"/>
+                <field name="nameLinkToView" parent="string"/>
+
+                <field name="idWidth" parent="long"/>
+                <field name="fvWidth" parent="long"/>
+                <field name="pvWidth" parent="long"/>
+                <field name="nameWidth" parent="string"/>
+
+                <field name="idHeight" parent="long"/>
+                <field name="fvHeight" parent="long"/>
+                <field name="pvHeight" parent="long"/>
+                <field name="nameHeight" parent="string"/>
+            </domain>
 </root>
 
