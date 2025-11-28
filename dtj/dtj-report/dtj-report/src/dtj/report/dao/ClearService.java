@@ -36,7 +36,6 @@ public class ClearService implements Runnable {
     private static void cleanUpFiles(String directoryPath) {
         File dir = new File(directoryPath);
         if (!dir.exists() || !dir.isDirectory()) {
-            System.err.println("Директория не найдена или не является директорией: " + directoryPath);
             return;
         }
 
