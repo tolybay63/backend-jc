@@ -39,39 +39,30 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
     }
-
     ApinatorApi apiUserData() {
         return app.bean(ApinatorService).getApi("userdata")
     }
-
     ApinatorApi apiNSIData() {
         return app.bean(ApinatorService).getApi("nsidata")
     }
-
     ApinatorApi apiPersonnalData() {
         return app.bean(ApinatorService).getApi("personnaldata")
     }
-
     ApinatorApi apiOrgStructureData() {
         return app.bean(ApinatorService).getApi("orgstructuredata")
     }
-
     ApinatorApi apiObjectData() {
         return app.bean(ApinatorService).getApi("objectdata")
     }
-
     ApinatorApi apiPlanData() {
         return app.bean(ApinatorService).getApi("plandata")
     }
-
     ApinatorApi apiInspectionData() {
         return app.bean(ApinatorService).getApi("inspectiondata")
     }
-
     ApinatorApi apiIncidentData() {
         return app.bean(ApinatorService).getApi("incidentdata")
     }
-
     ApinatorApi apiRepairData() {
         return app.bean(ApinatorService).getApi("repairdata")
     }
@@ -122,14 +113,16 @@ class DataDao extends BaseMdbUtils {
                     throw new XError("Задача [{0}] еще не завершена", r.getString("id"))
                 }
             }
+            if (stRepair.size() == 0)
+                throw new XError("Задача еще не добавлена")
+            //Проверка статуса Incident
+            apiRepairData().get(ApiRepairData).checkStatusOfIncident(own, "FV_StatusAtWork", "FV_StatusEliminated")
         }
         //
         Map<String, Object> par = new HashMap<>()
         par.put("own", own)
         par.put("FactDateEnd", FactDateEnd)
         fillProperties(true, "Prop_FactDateEnd", par)
-        //Проверка статуса Incident
-        apiRepairData().get(ApiRepairData).checkStatusOfIncident(own, "FV_StatusAtWork", "FV_StatusEliminated")
     }
 
     @DaoMethod
