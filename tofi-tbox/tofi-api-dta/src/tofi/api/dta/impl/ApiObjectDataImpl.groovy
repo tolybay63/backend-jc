@@ -18,6 +18,7 @@ import tofi.api.dta.ApiOrgStructureData
 import tofi.api.dta.ApiPersonnalData
 import tofi.api.dta.ApiPlanData
 import tofi.api.dta.ApiRepairData
+import tofi.api.dta.ApiReportData
 import tofi.api.dta.ApiResourceData
 import tofi.api.dta.ApiUserData
 import tofi.api.dta.model.utils.EntityMdbUtils
@@ -67,6 +68,9 @@ class ApiObjectDataImpl extends BaseMdbUtils implements ApiObjectData {
     }
     ApinatorApi apiRepairData() {
         return app.bean(ApinatorService).getApi("repairdata")
+    }
+    ApinatorApi apiReportData() {
+        return app.bean(ApinatorService).getApi("reportdata")
     }
 
 
@@ -617,6 +621,8 @@ class ApiObjectDataImpl extends BaseMdbUtils implements ApiObjectData {
             return apiResourceData().get(ApiResourceData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("repairdata"))
             return apiRepairData().get(ApiRepairData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("reportdata"))
+            return apiReportData().get(ApiReportData).loadSql(sql, domain)
         else
             throw new XError("Unknown model [${model}]")
     }
