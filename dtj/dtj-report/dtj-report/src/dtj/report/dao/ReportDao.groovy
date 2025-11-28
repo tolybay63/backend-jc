@@ -310,7 +310,7 @@ class ReportDao extends BaseMdbUtils {
                 StoreRecord recLinkToView = indLinkToView.get(r.getLong("objLinkToView"))
                 if (recLinkToView != null)
                     r.set("nameLinkToView", recLinkToView.getString("name"))
-                StoreRecord recWidth = indPV.get(r.getLong("fvWidth"))
+                StoreRecord recWidth = indPV.get(r.getLong("pvWidth"))
                 if (recWidth != null){
                     r.set("fvWidth", recWidth.getLong("fv"))
                     r.set("nameWidth", recWidth.getString("name"))
