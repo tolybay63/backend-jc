@@ -30,43 +30,33 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
     }
-
     ApinatorApi apiUserData() {
         return app.bean(ApinatorService).getApi("userdata")
     }
-
     ApinatorApi apiNSIData() {
         return app.bean(ApinatorService).getApi("nsidata")
     }
-
     ApinatorApi apiPersonnalData() {
         return app.bean(ApinatorService).getApi("personnaldata")
     }
-
     ApinatorApi apiOrgStructureData() {
         return app.bean(ApinatorService).getApi("orgstructuredata")
     }
-
     ApinatorApi apiObjectData() {
         return app.bean(ApinatorService).getApi("objectdata")
     }
-
     ApinatorApi apiPlanData() {
         return app.bean(ApinatorService).getApi("plandata")
     }
-
     ApinatorApi apiInspectionData() {
         return app.bean(ApinatorService).getApi("inspectiondata")
     }
-
     ApinatorApi apiClientData() {
         return app.bean(ApinatorService).getApi("clientdata")
     }
-
     ApinatorApi apiResourceData() {
         return app.bean(ApinatorService).getApi("resourcedata")
     }
-
     ApinatorApi apiRepairData() {
         return app.bean(ApinatorService).getApi("repairdata")
     }
@@ -1897,7 +1887,7 @@ class DataDao extends BaseMdbUtils {
         Set<Object> idsObject = st.getUniqueValues("objObject")
         Store stObject = loadSqlService("""
             select o.id, o.cls, v.fullName, null as nameClsObject
-            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (${idsObject.join(",")})
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsObject.join(",")})
         """, "", "objectdata")
 
         for (StoreRecord r in stObject) {
