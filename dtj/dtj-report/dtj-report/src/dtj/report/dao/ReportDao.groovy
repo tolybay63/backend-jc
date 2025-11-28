@@ -355,6 +355,8 @@ class ReportDao extends BaseMdbUtils {
     void saveComplexPageContainer(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         long own = pms.getLong("id")
+        if (own == 0)
+            throw new XError("[id] не указан")
         pms.put("own", own)
         if (mode.equalsIgnoreCase("ins")) {
             pms.remove("idComplex")
@@ -667,18 +669,12 @@ class ReportDao extends BaseMdbUtils {
             pms.put("own", own)
             //1 Prop_Filter
             if (pms.getString("Filter").isEmpty())
-                throw new XError("[Filter] не указан")
-            else
                 fillProperties(true, "Prop_Filter", pms)
             //2 Prop_Row
             if (pms.getString("Row").isEmpty())
-                throw new XError("[Row] не указан")
-            else
                 fillProperties(true, "Prop_Row", pms)
             //3 Prop_Col
             if (pms.getString("Col").isEmpty())
-                throw new XError("[Col] не указан")
-            else
                 fillProperties(true, "Prop_Col", pms)
             //4 Prop_FilterVal
             if (!pms.getString("FilterVal").isEmpty())
@@ -723,24 +719,24 @@ class ReportDao extends BaseMdbUtils {
             //
             //1 Prop_Filter
             if (pms.containsKey("idFilter")) {
-                if (pms.getString("Filter").isEmpty())
-                    throw new XError("[Filter] не указан")
-                else
-                    updateProperties("Prop_Filter", pms)
+                updateProperties("Prop_Filter", pms)
+            } else {
+                if (!pms.getString("Filter").isEmpty())
+                    fillProperties(true, "Prop_Filter", pms)
             }
             //2 Prop_Row
             if (pms.containsKey("idRow")) {
-                if (pms.getString("Row").isEmpty())
-                    throw new XError("[Row] не указан")
-                else
-                    updateProperties("Prop_Row", pms)
+                updateProperties("Prop_Row", pms)
+            } else {
+                if (!pms.getString("Row").isEmpty())
+                    fillProperties(true, "Prop_Row", pms)
             }
             //3 Prop_Col
             if (pms.containsKey("idCol")) {
-                if (pms.getString("Col").isEmpty())
-                    throw new XError("[Col] не указан")
-                else
-                    updateProperties("Prop_Col", pms)
+                updateProperties("Prop_Col", pms)
+            } else {
+                if (!pms.getString("Col").isEmpty())
+                    fillProperties(true, "Prop_Col", pms)
             }
             //4 Prop_FilterVal
             if (pms.containsKey("idFilterVal")) {
@@ -867,6 +863,8 @@ class ReportDao extends BaseMdbUtils {
     void saveComplexMetrics(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         long own = pms.getLong("id")
+        if (own == 0)
+            throw new XError("[id] не указан")
         pms.put("own", own)
         if (mode.equalsIgnoreCase("ins")) {
             pms.remove("idComplex")
