@@ -335,8 +335,12 @@ class DataDao extends BaseMdbUtils {
                 //Пересечение
                 Set<Object> idsTool = st.getUniqueValues("objTool")
                 Store stTool = loadSqlService("""
-                    select o.id, o.cls, v.name
-                    from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsTool.join(",")})
+                    select o.id, o.cls, '[№' || coalesce(v1.strVal, '') ||'] ' || v.name as name
+                    from Obj o
+                        left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                        left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Number
+                        left join DataPropVal v1 on d1.id=v1.dataprop
+                    where o.id in (0${idsTool.join(",")})
                 """, "", "resourcedata")
                 StoreIndex indTool = stTool.getIndex("id")
                 //
