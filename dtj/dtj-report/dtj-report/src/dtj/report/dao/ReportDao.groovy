@@ -668,13 +668,13 @@ class ReportDao extends BaseMdbUtils {
             own = eu.insertEntity(par)
             pms.put("own", own)
             //1 Prop_Filter
-            if (pms.getString("Filter").isEmpty())
+            if (!pms.getString("Filter").isEmpty())
                 fillProperties(true, "Prop_Filter", pms)
             //2 Prop_Row
-            if (pms.getString("Row").isEmpty())
+            if (!pms.getString("Row").isEmpty())
                 fillProperties(true, "Prop_Row", pms)
             //3 Prop_Col
-            if (pms.getString("Col").isEmpty())
+            if (!pms.getString("Col").isEmpty())
                 fillProperties(true, "Prop_Col", pms)
             //4 Prop_FilterVal
             if (!pms.getString("FilterVal").isEmpty())
