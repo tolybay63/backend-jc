@@ -333,6 +333,7 @@ class DataDao extends BaseMdbUtils {
             //
             if (st.size() > 0) {
                 //Пересечение
+                map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Number", "")
                 Set<Object> idsTool = st.getUniqueValues("objTool")
                 Store stTool = loadSqlService("""
                     select o.id, o.cls, '[№' || coalesce(v1.strVal, '') ||'] ' || v.name as name
