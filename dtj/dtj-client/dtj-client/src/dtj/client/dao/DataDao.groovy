@@ -153,6 +153,51 @@ class DataDao extends BaseMdbUtils {
         return loadClient(own)
     }
 
+    @DaoMethod
+    Store loadConstant() {
+        Store st = mdb.createStore("Obj.FieldDict")
+        Long own = 1014
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_FieldDict", "")
+
+        mdb.loadQuery(st, """
+            select o.id, o.cls, v.name,
+                v1.id as idFieldDict, v1.multiStrVal as FieldDict
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_FieldDict
+                left join DataPropVal v1 on d1.id=v1.dataprop
+            where o.id=${own}
+        """, map)
+        //
+        return st
+    }
+
+    @DaoMethod
+    Store saveConstant(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        //
+        pms.put("own", 1014)
+        if (mode.equalsIgnoreCase("ins")) {
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Client", "")
+            //1 Prop_BIN
+            if (!pms.getString("FieldDict").isEmpty())
+                fillProperties(true, "Prop_FieldDict", pms)
+            //
+        } else if (mode.equalsIgnoreCase("upd")) {
+            //1 Prop_FieldDict
+            if (pms.containsKey("idFieldDict"))
+                updateProperties("Prop_FieldDict", pms)
+            else {
+                if (!pms.getString("FieldDict").isEmpty())
+                    fillProperties(true, "Prop_FieldDict", pms)
+            }
+        } else {
+            throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
+        }
+        //
+        return loadConstant()
+    }
+
     /**
      *
      * @param id Id Obj
@@ -294,7 +339,8 @@ class DataDao extends BaseMdbUtils {
         }
         //
         if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_Description")) {
+            if (cod.equalsIgnoreCase("Prop_Description") ||
+                    cod.equalsIgnoreCase("Prop_FieldDict")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("multiStrVal", UtCnv.toString(params.get(keyValue)))
                 }
@@ -424,7 +470,8 @@ class DataDao extends BaseMdbUtils {
         }
 
         if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_Description")) {
+            if (cod.equalsIgnoreCase("Prop_Description") ||
+                    cod.equalsIgnoreCase("Prop_FieldDict")) {
                 if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
                     sql = """
                         delete from DataPropVal where id=${idVal};

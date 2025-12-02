@@ -29,6 +29,35 @@ class Client_Test extends Apx_Test {
     }
 
     @Test
+    void loadConstant_test () {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadConstant()
+        mdb.outTable(st)
+    }
+
+    @Test
+    void saveConstant_ins_test() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("id", 1014)
+        map.put("FieldDict", "1241414494")
+        Store st = dao.saveConstant("ins", map)
+        mdb.outTable(st)
+    }
+
+    @Test
+
+    void saveConstant_upd_test() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Map<String, Object> map = new HashMap<>()
+        map.put("id", 1014)
+        map.put("idFieldDict", 1039)
+        map.put("FieldDict", "1241414494 upd")
+        Store st = dao.saveConstant("upd", map)
+        mdb.outTable(st)
+    }
+
+    @Test
     void delete_test() {
         DataDao dao = mdb.createDao(DataDao.class)
         dao.deleteObjWithProperties(1002)
