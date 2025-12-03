@@ -300,10 +300,10 @@ class ReportDao extends BaseMdbUtils {
             StoreIndex indPV = stPV.getIndex("pv")
             //
             Set<Object> idsLinkToView = st.getUniqueValues("objLinkToView")
-            Store stLinkToView = loadSqlService("""
+            Store stLinkToView = mdb.loadQuery("""
                 select o.id, o.cls, v.name
                 from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsLinkToView.join(",")})
-            """, "", "personnaldata")
+            """, "")
             StoreIndex indLinkToView = stLinkToView.getIndex("id")
             //
             for (StoreRecord r in st) {
