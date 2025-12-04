@@ -2,9 +2,12 @@ package dtj.report
 
 import dtj.report.dao.ReportDao
 import jandcode.commons.UtCnv
+import jandcode.commons.UtJson
 import jandcode.core.apx.test.Apx_Test
 import jandcode.core.store.Store
 import org.junit.jupiter.api.Test
+
+import static jandcode.commons.UtJson.fromJson
 
 class Report_Test extends Apx_Test {
 
@@ -303,4 +306,24 @@ class Report_Test extends Apx_Test {
         ReportDao dao = mdb.createDao(ReportDao.class)
         dao.deleteObjWithProperties(1017)
     }
+
+    @Test
+    void test_map2str () {
+        Map<String, Object> map = new HashMap<>()
+        map.put("str", "Test")
+        map.put("number", 1000)
+        map.put("date", "2025-11-27")
+
+        String str = UtCnv.toString(map)
+        System.out.println(str)
+
+        Map<String, Object> m = UtCnv.toMap(fromJson(str))
+
+        mdb.outMap(m)
+
+
+
+
+    }
+
 }
