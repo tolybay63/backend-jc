@@ -1,12 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
 
+
     <cfg>
 
         <dbsource name="default"
                   dbdriver="postgresql"  
                   host="192.168.1.39"
                   database="dtj_orgstructuredata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="adm"
+                  dbdriver="postgresql"  
+                  host="192.168.1.39"
+                  database="dtj_admin"
                   username="pg"
                   password="1q2w3e4R"
         />
@@ -20,13 +29,6 @@
                   password="1q2w3e4R"
         />
 
-        <dbsource name="adm"
-                  dbdriver="postgresql"
-                  host="192.168.1.39"
-                  database="dtj_admin"
-                  username="pg"
-                  password="1q2w3e4R"
-        />
 
         <dbsource name="userdata"
                   dbdriver="postgresql"
@@ -43,6 +45,15 @@
                   username="pg"
                   password="1q2w3e4R"
         />
+
+        <dbsource name="clientdata"
+                  dbdriver="postgresql"  
+                  host="192.168.1.39"
+                  database="dtj_clientdata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
         <dbsource name="objectdata"
                   dbdriver="postgresql"  
                   host="192.168.1.39"
@@ -50,6 +61,7 @@
                   username="pg"
                   password="1q2w3e4R"
         />
+
         <dbsource name="plandata"
                   dbdriver="postgresql"  
                   host="192.168.1.39"
@@ -59,7 +71,7 @@
         />
 
         <dbsource name="personnaldata"
-                  dbdriver="postgresql"
+                  dbdriver="postgresql"  
                   host="192.168.1.39"
                   database="dtj_personnaldata"
                   username="pg"
@@ -81,31 +93,55 @@
                   username="pg"
                   password="1q2w3e4R"
         />
-
-        <dbsource name="clientdata"
-                  dbdriver="postgresql"
+                                            
+        <dbsource name="incidentdata"
+                  dbdriver="postgresql"  
                   host="192.168.1.39"
-                  database="dtj_clientdata"
+                  database="dtj_incidentdata"
                   username="pg"
                   password="1q2w3e4R"
         />
 
+        <dbsource name="repairdata"
+                  dbdriver="postgresql"  
+                  host="192.168.1.39"
+                  database="dtj_repairdata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="resourcedata"
+                  dbdriver="postgresql"  
+                  host="192.168.1.39"
+                  database="dtj_resourcedata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="reportdata"
+                  dbdriver="postgresql"  
+                  host="192.168.1.39"
+                  database="dtj_reportdata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+
     </cfg>
-
-
+    
     <datadir>
-        <path name="dbfilestorage" path="C:/dbfilestorage"/>
+        <path name="dbfilestorage" path="C:/dbfilestorage_dtj"/>
 
 
-<!--
-        <minio
-                url="http://192.168.1.39:9000"
-                bucketName = "nsidata"
-                accessKey = "O9kIqOQfBobkdPZ7LOb1"
-                secretKey = "YoVr0eZNMnfpSP4SSBHQNtB67qUorZZEB0M2zqrB">
+        <!--
+                <minio
+                        url="http://localhost:9000"
+                        bucketName = "nsidata"
+                        accessKey = "O9kIqOQfBobkdPZ7LOb1"
+                        secretKey = "YoVr0eZNMnfpSP4SSBHQNtB67qUorZZEB0M2zqrB">
 
-        </minio>
--->
+                </minio>
+        -->
 
 
     </datadir>
