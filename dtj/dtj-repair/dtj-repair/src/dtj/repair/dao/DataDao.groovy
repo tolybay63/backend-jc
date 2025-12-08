@@ -2170,7 +2170,8 @@ class DataDao extends BaseMdbUtils {
                 v10.id as idCreatedAt, v10.dateTimeVal as CreatedAt,
                 v11.id as idUpdatedAt, v11.dateTimeVal as UpdatedAt,
                 v12.id as idLocationClsSection, v12.propVal as pvLocationClsSection, 
-                    v12.obj as objLocationClsSection, null as nameLocationClsSection
+                    v12.obj as objLocationClsSection, null as nameLocationClsSection,
+                v13.id as idReasonDeviation, v13.multiStrVal as ReasonDeviation
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_WorkPlan
@@ -2197,6 +2198,8 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v11 on d11.id=v11.dataprop
                 left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_LocationClsSection
                 inner join DataPropVal v12 on d12.id=v12.dataprop ${wheV12}
+                left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_ReasonDeviation
+                left join DataPropVal v13 on d11.id=v13.dataprop
             where ${whe}
         """, map)
 
@@ -2542,11 +2545,11 @@ class DataDao extends BaseMdbUtils {
                 fillProperties(true, "Prop_FactDateEnd", pms)
         }
         //5 Prop_ReasonDeviation
-        if (pms.containsKey("idUpdatedAt"))
-            updateProperties("Prop_FactDateEnd", pms)
+        if (pms.containsKey("idReasonDeviation"))
+            updateProperties("Prop_ReasonDeviation", pms)
         else {
             if (!pms.getString("ReasonDeviation").isEmpty())
-                fillProperties(true, "Prop_FactDateEnd", pms)
+                fillProperties(true, "Prop_ReasonDeviation", pms)
         }
         //6 Prop_UpdatedAt
         if (pms.containsKey("idUpdatedAt")) {
@@ -2702,7 +2705,8 @@ class DataDao extends BaseMdbUtils {
         }
         // Attrib multistr
         if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_Description")) {
+            if (cod.equalsIgnoreCase("Prop_Description") ||
+                    cod.equalsIgnoreCase("Prop_ReasonDeviation")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("multiStrVal", UtCnv.toString(params.get(keyValue)))
                 }
@@ -2858,7 +2862,8 @@ class DataDao extends BaseMdbUtils {
         }
         // Attrib multistr
         if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_Description")) {
+            if (cod.equalsIgnoreCase("Prop_Description") ||
+                    cod.equalsIgnoreCase("Prop_ReasonDeviation")) {
                 if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
                     sql = """
                         delete from DataPropVal where id=${idVal};

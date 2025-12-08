@@ -60,6 +60,10 @@
         <!--prop of Object-->
         <field name="objSection" parent="long"/>
         <field name="nameSection" parent="string"/>
+
+        <field name="idReasonDeviation" parent="long"/>
+        <field name="ReasonDeviation" parent="string"/>
+
     </domain>
 
     <domain name="Obj.TaskLogEntriesForWorkPlan" parent="base">
