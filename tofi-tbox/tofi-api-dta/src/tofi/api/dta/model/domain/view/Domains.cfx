@@ -220,8 +220,10 @@
 
     <domain name="Obj.Station" parent="base">
         <field name="id" parent="long"/>
+        <field name="parent" parent="long"/>
         <field name="cls" parent="long"/>
         <field name="name" parent="string"/>
+        <field name="nameParent" parent="string"/>
 
         <field name="idStartKm" parent="long"/>
         <field name="StartKm" parent="long"/>
@@ -249,8 +251,10 @@
 
     <domain name="Obj.Stage" parent="base">
         <field name="id" parent="long"/>
+        <field name="parent" parent="long"/>
         <field name="cls" parent="long"/>
         <field name="name" parent="string"/>
+        <field name="nameParent" parent="string"/>
 
         <field name="idStartKm" parent="long"/>
         <field name="StartKm" parent="long"/>
