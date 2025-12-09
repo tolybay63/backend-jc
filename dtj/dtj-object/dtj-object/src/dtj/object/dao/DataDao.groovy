@@ -467,6 +467,571 @@ class DataDao extends BaseMdbUtils {
         return st
     }
 
+    @DaoMethod
+    Store loadSection(long obj) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Section", "")
+        if (map.isEmpty())
+            throw new XError("NotFoundCod@Cls_Section")
+        String whe = "o.id=${obj}"
+        if (obj == 0)
+            whe = "o.cls=${map.get("Cls_Section")}"
+        //
+        Store st = mdb.createStore("Obj.Section")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        mdb.loadQuery(st,"""
+            select o.id, o.cls, v.name,
+                v1.id as idStartKm, v1.numberVal as StartKm,
+                v2.id as idFinishKm, v2.numberVal as FinishKm,
+                v3.id as idStageLength, v3.numberVal as StageLength,
+                v4.id as idClient, v4.propVal as pvClient, v4.obj as objClient, null as nameClient,
+                v5.id as idUser, v5.propVal as pvUser, v5.obj as objUser, null as fullNameUser,
+                v6.id as idCreatedAt, v6.dateTimeVal as CreatedAt,
+                v7.id as idUpdatedAt, v7.dateTimeVal as UpdatedAt
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_StartKm
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_FinishKm
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StageLength
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Client
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_User
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_CreatedAt
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_UpdatedAt
+                left join DataPropVal v7 on d7.id=v7.dataprop
+            where ${whe}
+        """, map)
+        //... Пересечение
+        Set<Object> idsClient = st.getUniqueValues("objClient")
+        Store stClient = loadSqlService("""
+            select o.id, v.name
+            from Obj o, ObjVer v
+            where o.id=v.ownerver and v.lastver=1 and o.id in (0${idsClient.join(",")})
+        """, "", "clientdata")
+        StoreIndex indClient = stClient.getIndex("id")
+        //
+        Set<Object> idsUser = st.getUniqueValues("objUser")
+        Store stUser = loadSqlService("""
+            select o.id, v.name, v.fullName
+            from Obj o, ObjVer v
+            where o.id=v.ownerver and v.lastver=1 and o.id in (0${idsUser.join(",")})
+        """, "", "personnaldata")
+        StoreIndex indUser = stUser.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord recClient = indClient.get(r.getLong("objClient"))
+            if (recClient != null)
+                r.set("nameClient", recClient.getString("name"))
+            StoreRecord recUser = indUser.get(r.getLong("objUser"))
+            if (recUser != null)
+                r.set("fullNameUser", recUser.getString("fullName"))
+        }
+        //
+        return st
+    }
+
+    @DaoMethod
+    Store loadStation(long obj) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Station", "")
+        if (map.isEmpty())
+            throw new XError("NotFoundCod@Cls_Station")
+        String whe = "o.id=${obj}"
+        if (obj == 0)
+            whe = "o.cls=${map.get("Cls_Station")}"
+        //
+        Store st = mdb.createStore("Obj.Station")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        mdb.loadQuery(st, """
+            select o.id, o.cls, v.name, v.objParent as parent, ov.name as nameParent,
+                v1.id as idStartKm, v1.numberVal as StartKm,
+                v2.id as idStartPicket, v2.numberVal as StartPicket,
+                v3.id as idFinishKm, v3.numberVal as FinishKm,
+                v4.id as idFinishPicket, v4.numberVal as FinishPicket,
+                v5.id as idUser, v5.propVal as pvUser, v5.obj as objUser, null as fullNameUser,
+                v6.id as idCreatedAt, v6.dateTimeVal as CreatedAt,
+                v7.id as idUpdatedAt, v7.dateTimeVal as UpdatedAt,
+                v8.id as idStartLink, v8.numberVal as StartLink,
+                v9.id as idFinishLink, v9.numberVal as FinishLink
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join ObjVer ov on ov.id=v.objParent and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_StartKm
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_StartPicket
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_FinishKm
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FinishPicket
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_User
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_CreatedAt
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_UpdatedAt
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_StartLink
+                left join DataPropVal v8 on d8.id=v8.dataprop
+                left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=:Prop_FinishLink
+                left join DataPropVal v9 on d9.id=v9.dataprop
+            where ${whe}
+        """, map)
+        //... Пересечение
+        Set<Object> idsUser = st.getUniqueValues("objUser")
+        Store stUser = loadSqlService("""
+            select o.id, v.name, v.fullName
+            from Obj o, ObjVer v
+            where o.id=v.ownerver and v.lastver=1 and o.id in (0${idsUser.join(",")})
+        """, "", "personnaldata")
+        StoreIndex indUser = stUser.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord recUser = indUser.get(r.getLong("objUser"))
+            if (recUser != null)
+                r.set("fullNameUser", recUser.getString("fullName"))
+        }
+        //
+        return st
+    }
+
+    @DaoMethod
+    Store loadStage(long obj) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Stage", "")
+        if (map.isEmpty())
+            throw new XError("NotFoundCod@Cls_Stage")
+        String whe = "o.id=${obj}"
+        if (obj == 0)
+            whe = "o.cls=${map.get("Cls_Stage")}"
+        //
+        Store st = mdb.createStore("Obj.Stage")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        mdb.loadQuery(st, """
+            select o.id, o.cls, v.name, v.objParent as parent, ov.name as nameParent,
+                v1.id as idStartKm, v1.numberVal as StartKm,
+                v2.id as idStartPicket, v2.numberVal as StartPicket,
+                v3.id as idFinishKm, v3.numberVal as FinishKm,
+                v4.id as idFinishPicket, v4.numberVal as FinishPicket,
+                v5.id as idUser, v5.propVal as pvUser, v5.obj as objUser, null as fullNameUser,
+                v6.id as idCreatedAt, v6.dateTimeVal as CreatedAt,
+                v7.id as idUpdatedAt, v7.dateTimeVal as UpdatedAt,
+                v8.id as idStartLink, v8.numberVal as StartLink,
+                v9.id as idFinishLink, v9.numberVal as FinishLink,
+                v10.id as idStageLength, v10.numberVal as StageLength
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join ObjVer ov on ov.id=v.objParent and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_StartKm
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_StartPicket
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_FinishKm
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FinishPicket
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_User
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_CreatedAt
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_UpdatedAt
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_StartLink
+                left join DataPropVal v8 on d8.id=v8.dataprop
+                left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=:Prop_FinishLink
+                left join DataPropVal v9 on d9.id=v9.dataprop
+                left join DataProp d10 on d10.objorrelobj=o.id and d10.prop=:Prop_StageLength
+                left join DataPropVal v10 on d10.id=v10.dataprop
+            where ${whe}
+        """, map)
+        //... Пересечение
+        Set<Object> idsUser = st.getUniqueValues("objUser")
+        Store stUser = loadSqlService("""
+            select o.id, v.name, v.fullName
+            from Obj o, ObjVer v
+            where o.id=v.ownerver and v.lastver=1 and o.id in (0${idsUser.join(",")})
+        """, "", "personnaldata")
+        StoreIndex indUser = stUser.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord recUser = indUser.get(r.getLong("objUser"))
+            if (recUser != null)
+                r.set("fullNameUser", recUser.getString("fullName"))
+        }
+        //
+        return st
+    }
+
+    @DaoMethod
+    Store saveSection(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        Map<String, Object> par = new HashMap<>(pms)
+        par.putIfAbsent("fullName", pms.getString("name"))
+        if (mode.equalsIgnoreCase("ins")) {
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Section", "")
+            par.put("cls", map.get("Cls_Section"))
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+            //1 Prop_StartKm
+            if (pms.getLong("StartKm") > 0)
+                fillProperties(true, "Prop_StartKm", pms)
+            else
+                throw new XError("Не указан [StartKm]")
+            //2 FinishKm
+            if (pms.getLong("FinishKm") > 0)
+                fillProperties(true, "Prop_FinishKm", pms)
+            else
+                throw new XError("Не указан [FinishKm]")
+            //3 StageLength
+            if (pms.getDouble("StageLength") > 0)
+                fillProperties(true, "Prop_StageLength", pms)
+            else
+                throw new XError("Не указан [StageLength]")
+            //4 Client
+            if (pms.getLong("objClient") > 0)
+                fillProperties(true, "Prop_Client", pms)
+            else
+                throw new XError("Не указан [Client]")
+            //5 Prop_User
+            if (pms.getLong("objUser") > 0)
+                fillProperties(true, "Prop_User", pms)
+            else
+                throw new XError("[User] не указан")
+            //6 Prop_CreatedAt
+            if (pms.getString("CreatedAt").isEmpty())
+                throw new XError("[CreatedAt] не указан")
+            else
+                fillProperties(true, "Prop_CreatedAt", pms)
+            //7 Prop_UpdatedAt
+            if (pms.getString("UpdatedAt").isEmpty())
+                throw new XError("[UpdatedAt] не указан")
+            else
+                fillProperties(true, "Prop_UpdatedAt", pms)
+            //
+        } else if (mode.equalsIgnoreCase("upd")) {
+            own = pms.getLong("id")
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+            //1 Prop_StartKm
+            if (pms.containsKey("idStartKm")) {
+                if (pms.getLong("StartKm") > 0)
+                    updateProperties("Prop_StartKm", pms)
+                else
+                    throw new XError("Не указан [StartKm]")
+            }
+            //2 Prop_FinishKm
+            if (pms.containsKey("idFinishKm")) {
+                if (pms.getLong("FinishKm") > 0)
+                    updateProperties("Prop_FinishKm", pms)
+                else
+                    throw new XError("Не указан [FinishKm]")
+            }
+            //3 Prop_StageLength
+            if (pms.containsKey("idStageLength")) {
+                if (pms.getDouble("StageLength") > 0)
+                    updateProperties("Prop_StageLength", pms)
+                else
+                    throw new XError("Не указан [StageLength]")
+            }
+            //4 Prop_Client
+            if (pms.containsKey("idClient")) {
+                if (pms.getLong("objClient") > 0)
+                    updateProperties("Prop_Client", pms)
+                else
+                    throw new XError("Не указан [Client]")
+            }
+            //5 Prop_User
+            if (pms.containsKey("idUser")) {
+                if (pms.getLong("objUser") > 0)
+                    updateProperties("Prop_User", pms)
+                else
+                    throw new XError("[User] не указан")
+            }
+            //6 Prop_UpdatedAt
+            if (pms.containsKey("idUpdatedAt")) {
+                if (pms.getString("UpdatedAt").isEmpty())
+                    throw new XError("[UpdatedAt] не указан")
+                else
+                    updateProperties("Prop_UpdatedAt", pms)
+            }
+            //
+        } else {
+            throw new XError("Нейзвестный режим сохранения ('ins', 'upd')")
+        }
+
+        return loadSection(own)
+    }
+
+    @DaoMethod
+    Store saveStation(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        Map<String, Object> par = new HashMap<>(pms)
+        par.putIfAbsent("fullName", pms.getString("name"))
+        if (mode.equalsIgnoreCase("ins")) {
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Station", "")
+            par.put("cls", map.get("Cls_Station"))
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+            //1 Prop_StartKm
+            if (pms.getLong("StartKm") > 0)
+                fillProperties(true, "Prop_StartKm", pms)
+            else
+                throw new XError("Не указан [StartKm]")
+            //2 Prop_StartPicket
+            if (pms.getLong("StartPicket") > 0)
+                fillProperties(true, "Prop_StartPicket", pms)
+            else
+                throw new XError("Не указан [StartPicket]")
+            //3 Prop_FinishKm
+            if (pms.getLong("FinishKm") > 0)
+                fillProperties(true, "Prop_FinishKm", pms)
+            else
+                throw new XError("Не указан [FinishKm]")
+            //4 Prop_FinishPicket
+            if (pms.getLong("FinishPicket") > 0)
+                fillProperties(true, "Prop_FinishPicket", pms)
+            else
+                throw new XError("Не указан [FinishPicket]")
+            //5 Prop_User
+            if (pms.getLong("objUser") > 0)
+                fillProperties(true, "Prop_User", pms)
+            else
+                throw new XError("[User] не указан")
+            //6 Prop_CreatedAt
+            if (pms.getString("CreatedAt").isEmpty())
+                throw new XError("[CreatedAt] не указан")
+            else
+                fillProperties(true, "Prop_CreatedAt", pms)
+            //7 Prop_UpdatedAt
+            if (pms.getString("UpdatedAt").isEmpty())
+                throw new XError("[UpdatedAt] не указан")
+            else
+                fillProperties(true, "Prop_UpdatedAt", pms)
+            //8 Prop_StartLink
+            if (pms.getLong("StartLink") > 0)
+                fillProperties(true, "Prop_StartLink", pms)
+            else
+                throw new XError("Не указан [StartLink]")
+            //9 Prop_FinishLink
+            if (pms.getLong("FinishLink") > 0)
+                fillProperties(true, "Prop_FinishLink", pms)
+            else
+                throw new XError("Не указан [FinishLink]")
+            //
+        } else if (mode.equalsIgnoreCase("upd")) {
+            own = pms.getLong("id")
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+            //1 Prop_StartKm
+            if (pms.containsKey("idStartKm")) {
+                if (pms.getLong("StartKm") > 0)
+                    updateProperties("Prop_StartKm", pms)
+                else
+                    throw new XError("Не указан [StartKm]")
+            }
+            //2 Prop_StartPicket
+            if (pms.containsKey("idStartPicket")) {
+                if (pms.getLong("StartPicket") > 0)
+                    updateProperties("Prop_StartPicket", pms)
+                else
+                    throw new XError("Не указан [StartPicket]")
+            }
+            //3 Prop_FinishKm
+            if (pms.containsKey("idFinishKm")) {
+                if (pms.getLong("FinishKm") > 0)
+                    updateProperties("Prop_FinishKm", pms)
+                else
+                    throw new XError("Не указан [FinishKm]")
+            }
+            //4 Prop_FinishPicket
+            if (pms.containsKey("idFinishPicket")) {
+                if (pms.getLong("FinishPicket") > 0)
+                    updateProperties("Prop_FinishPicket", pms)
+                else
+                    throw new XError("Не указан [FinishPicket]")
+            }
+            //5 Prop_User
+            if (pms.containsKey("idUser")) {
+                if (pms.getLong("objUser") > 0)
+                    updateProperties("Prop_User", pms)
+                else
+                    throw new XError("[User] не указан")
+            }
+            //6 Prop_UpdatedAt
+            if (pms.containsKey("idUpdatedAt")) {
+                if (pms.getString("UpdatedAt").isEmpty())
+                    throw new XError("[UpdatedAt] не указан")
+                else
+                    updateProperties("Prop_UpdatedAt", pms)
+            }
+            //7 Prop_StartLink
+            if (pms.containsKey("idStartLink")) {
+                if (pms.getLong("StartLink") > 0)
+                    updateProperties("Prop_StartLink", pms)
+                else
+                    throw new XError("Не указан [StartLink]")
+            }
+            //8 Prop_FinishLink
+            if (pms.containsKey("idFinishLink")) {
+                if (pms.getLong("FinishLink") > 0)
+                    updateProperties("Prop_FinishLink", pms)
+                else
+                    throw new XError("Не указан [FinishLink]")
+            }
+            //
+        } else {
+            throw new XError("Нейзвестный режим сохранения ('ins', 'upd')")
+        }
+        //
+        return loadStation(own)
+    }
+
+    @DaoMethod
+    Store saveStage(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        Map<String, Object> par = new HashMap<>(pms)
+        par.putIfAbsent("fullName", pms.getString("name"))
+        if (mode.equalsIgnoreCase("ins")) {
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Stage", "")
+            par.put("cls", map.get("Cls_Stage"))
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+            //1 Prop_StartKm
+            if (pms.getLong("StartKm") > 0)
+                fillProperties(true, "Prop_StartKm", pms)
+            else
+                throw new XError("Не указан [StartKm]")
+            //2 Prop_StartPicket
+            if (pms.getLong("StartPicket") > 0)
+                fillProperties(true, "Prop_StartPicket", pms)
+            else
+                throw new XError("Не указан [StartPicket]")
+            //3 Prop_FinishKm
+            if (pms.getLong("FinishKm") > 0)
+                fillProperties(true, "Prop_FinishKm", pms)
+            else
+                throw new XError("Не указан [FinishKm]")
+            //4 Prop_FinishPicket
+            if (pms.getLong("FinishPicket") > 0)
+                fillProperties(true, "Prop_FinishPicket", pms)
+            else
+                throw new XError("Не указан [FinishPicket]")
+            //5 Prop_StageLength
+            if (pms.getDouble("StageLength") > 0)
+                fillProperties(true, "Prop_StageLength", pms)
+            else
+                throw new XError("Не указан [StageLength]")
+            //6 Prop_User
+            if (pms.getLong("objUser") > 0)
+                fillProperties(true, "Prop_User", pms)
+            else
+                throw new XError("[User] не указан")
+            //7 Prop_CreatedAt
+            if (pms.getString("CreatedAt").isEmpty())
+                throw new XError("[CreatedAt] не указан")
+            else
+                fillProperties(true, "Prop_CreatedAt", pms)
+            //8 Prop_UpdatedAt
+            if (pms.getString("UpdatedAt").isEmpty())
+                throw new XError("[UpdatedAt] не указан")
+            else
+                fillProperties(true, "Prop_UpdatedAt", pms)
+            //9 Prop_StartLink
+            if (pms.getLong("StartLink") > 0)
+                fillProperties(true, "Prop_StartLink", pms)
+            else
+                throw new XError("Не указан [StartLink]")
+            //10 Prop_FinishLink
+            if (pms.getLong("FinishLink") > 0)
+                fillProperties(true, "Prop_FinishLink", pms)
+            else
+                throw new XError("Не указан [FinishLink]")
+            //
+        } else if (mode.equalsIgnoreCase("upd")) {
+            own = pms.getLong("id")
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+            //1 Prop_StartKm
+            if (pms.containsKey("idStartKm")) {
+                if (pms.getLong("StartKm") > 0)
+                    updateProperties("Prop_StartKm", pms)
+                else
+                    throw new XError("Не указан [StartKm]")
+            }
+            //2 Prop_StartPicket
+            if (pms.containsKey("idStartPicket")) {
+                if (pms.getLong("StartPicket") > 0)
+                    updateProperties("Prop_StartPicket", pms)
+                else
+                    throw new XError("Не указан [StartPicket]")
+            }
+            //3 Prop_FinishKm
+            if (pms.containsKey("idFinishKm")) {
+                if (pms.getLong("FinishKm") > 0)
+                    updateProperties("Prop_FinishKm", pms)
+                else
+                    throw new XError("Не указан [FinishKm]")
+            }
+            //4 Prop_FinishPicket
+            if (pms.containsKey("idFinishPicket")) {
+                if (pms.getLong("FinishPicket") > 0)
+                    updateProperties("Prop_FinishPicket", pms)
+                else
+                    throw new XError("Не указан [FinishPicket]")
+            }
+            //5 Prop_StageLength
+            if (pms.containsKey("idStageLength")) {
+                if (pms.getDouble("StageLength") > 0)
+                    updateProperties("Prop_StageLength", pms)
+                else
+                    throw new XError("Не указан [StageLength]")
+            }
+            //6 Prop_User
+            if (pms.containsKey("idUser")) {
+                if (pms.getLong("objUser") > 0)
+                    updateProperties("Prop_User", pms)
+                else
+                    throw new XError("[User] не указан")
+            }
+            //7 Prop_UpdatedAt
+            if (pms.containsKey("idUpdatedAt")) {
+                if (pms.getString("UpdatedAt").isEmpty())
+                    throw new XError("[UpdatedAt] не указан")
+                else
+                    updateProperties("Prop_UpdatedAt", pms)
+            }
+            //8 Prop_StartLink
+            if (pms.containsKey("idStartLink")) {
+                if (pms.getLong("StartLink") > 0)
+                    updateProperties("Prop_StartLink", pms)
+                else
+                    throw new XError("Не указан [StartLink]")
+            }
+            //9 Prop_FinishLink
+            if (pms.containsKey("idFinishLink")) {
+                if (pms.getLong("FinishLink") > 0)
+                    updateProperties("Prop_FinishLink", pms)
+                else
+                    throw new XError("Не указан [FinishLink]")
+            }
+            //
+        }
+        else {
+            throw new XError("Нейзвестный режим сохранения ('ins', 'upd')")
+        }
+        return loadStage(own)
+    }
+
     /**
      *
      * @param codPropOrFactor: код фактора или код пропа
@@ -634,7 +1199,10 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_StartPicket") ||
                     cod.equalsIgnoreCase("Prop_FinishKm") ||
                     cod.equalsIgnoreCase("Prop_FinishPicket") ||
-                        cod.equalsIgnoreCase("Prop_PeriodicityReplacement")) {
+                    cod.equalsIgnoreCase("Prop_PeriodicityReplacement") ||
+                    cod.equalsIgnoreCase("Prop_StageLength") ||
+                    cod.equalsIgnoreCase("Prop_StartLink") ||
+                    cod.equalsIgnoreCase("Prop_FinishLink")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     double v = UtCnv.toDouble(params.get(keyValue))
                     v = v / koef
@@ -649,7 +1217,8 @@ class DataDao extends BaseMdbUtils {
         if ([FD_PropType_consts.typ].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_ObjectType") ||
                     cod.equalsIgnoreCase("Prop_Section") ||
-                    cod.equalsIgnoreCase("Prop_User")) {
+                    cod.equalsIgnoreCase("Prop_User") ||
+                    cod.equalsIgnoreCase("Prop_Client")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
@@ -809,7 +1378,10 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_StartPicket") ||
                     cod.equalsIgnoreCase("Prop_FinishKm") ||
                     cod.equalsIgnoreCase("Prop_FinishPicket") ||
-                        cod.equalsIgnoreCase("Prop_PeriodicityReplacement")) {
+                    cod.equalsIgnoreCase("Prop_PeriodicityReplacement") ||
+                    cod.equalsIgnoreCase("Prop_StageLength") ||
+                    cod.equalsIgnoreCase("Prop_StartLink") ||
+                    cod.equalsIgnoreCase("Prop_FinishLink")) {
                 if (mapProp[keyValue] != "") {
                     def v = mapProp.getDouble(keyValue)
                     v = v / koef
@@ -833,7 +1405,8 @@ class DataDao extends BaseMdbUtils {
         if ([FD_PropType_consts.typ].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_ObjectType") ||
                     cod.equalsIgnoreCase("Prop_Section") ||
-                    cod.equalsIgnoreCase("Prop_User")) {
+                    cod.equalsIgnoreCase("Prop_User") ||
+                    cod.equalsIgnoreCase("Prop_Client")) {
                 if (objRef > 0)
                     sql = "update DataPropval set propVal=${propVal}, obj=${objRef}, timeStamp='${tmst}' where id=${idVal}"
                 else {
