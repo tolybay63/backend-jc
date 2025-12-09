@@ -30,6 +30,12 @@
         <field name="idFinishPicket" parent="long"/>
         <field name="FinishPicket" parent="double"/>
 
+        <field name="idStartLink" parent="long"/>
+        <field name="StartLink" parent="long"/>
+
+        <field name="idFinishLink" parent="long"/>
+        <field name="FinishLink" parent="long"/>
+
         <field name="idPlanDateEnd" parent="long"/>
         <field name="PlanDateEnd" parent="string"/>
         <field name="idFactDateEnd" parent="long"/>

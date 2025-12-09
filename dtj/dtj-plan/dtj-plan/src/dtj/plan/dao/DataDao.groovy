@@ -649,8 +649,6 @@ class DataDao extends BaseMdbUtils {
         }
 
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
-
-
         mdb.loadQuery(st, """
             select o.id, o.cls, v.name, null as nameCls,
                 v1.id as idLocationClsSection, v1.propVal as pvLocationClsSection, 
@@ -668,7 +666,9 @@ class DataDao extends BaseMdbUtils {
                 v11.id as idWork, v11.propVal as pvWork, v11.obj as objWork,
                     null as nameClsWork, null as fullNameWork,
                 v12.id as idFactDateEnd, v12.dateTimeVal as FactDateEnd,
-                v13.id as idIncident, v13.propVal as pvIncident, v13.obj as objIncident
+                v13.id as idIncident, v13.propVal as pvIncident, v13.obj as objIncident,
+                v14.id as idStartLink, v14.numberVal as StartLink,
+                v15.id as idFinishLink, v15.numberVal as FinishLink
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
@@ -697,6 +697,10 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v12 on d12.id=v12.dataprop
                 left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_Incident
                 left join DataPropVal v13 on d13.id=v13.dataprop
+                left join DataProp d14 on d14.objorrelobj=o.id and d14.prop=:Prop_StartLink
+                left join DataPropVal v14 on d14.id=v14.dataprop
+                left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_FinishLink
+                left join DataPropVal v15 on d15.id=v15.dataprop
             where ${whe} ${wheV12}
         """, map)
         //
@@ -720,7 +724,7 @@ class DataDao extends BaseMdbUtils {
             select o.id, o.cls, v.fullName, null as nameClsWork
             from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsWork.join(",")})
         """, "", "nsidata")
-
+        //
         for (StoreRecord r in stWork) {
             StoreRecord rec = indCls.get(r.getLong("cls"))
             if (rec != null)
@@ -733,6 +737,7 @@ class DataDao extends BaseMdbUtils {
             select c.id, v.name from Cls c, ClsVer v where c.id=v.ownerVer and v.lastVer=1 and typ=${map.get("Typ_Object")}
         """, "")
         indCls = stCls.getIndex("id")
+        //
         Set<Object> idsObject = st.getUniqueValues("objObject")
         Store stObject = loadSqlService("""
             select o.id, o.cls, v.fullName, null as nameClsObject
@@ -786,6 +791,7 @@ class DataDao extends BaseMdbUtils {
         long own
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
         Map<String, Object> par = new HashMap<>(pms)
+        par.putIfAbsent("fullName", par.get("name"))
         if (mode.equalsIgnoreCase("ins")) {
             if (pms.getLong("id") > 0) {
                 pms.put("objIncident", pms.getLong("id"))
@@ -816,7 +822,7 @@ class DataDao extends BaseMdbUtils {
                     group by c.cls
                 ) t where t.fvlist in (select fv.fvlist from fv)
             """, "")
-
+            ///
             long cls
             if (stTmp.size() > 0)
                 cls = stTmp.get(0).getLong("cls")
@@ -824,7 +830,6 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("Не найден класс сответствующий классу {0}", linkCls)
             }
             par.put("cls", cls)
-            par.put("fullName", par.get("name"))
             own = eu.insertEntity(par)
             pms.put("own", own)
             //1 Prop_LocationClsSection
@@ -849,44 +854,57 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("[objUser] not specified")
 
             //5 Prop_StartKm
-            if (pms.getString("StartKm") != "")
+            if (pms.getLong("StartKm") > 0)
                 fillProperties(true, "Prop_StartKm", pms)
             else
                 throw new XError("[StartKm] not specified")
             //6 Prop_FinishKm
-            if (pms.getString("FinishKm") != "")
+            if (pms.getLong("FinishKm") > 0)
                 fillProperties(true, "Prop_FinishKm", pms)
             else
                 throw new XError("[FinishKm] not specified")
             //7 Prop_StartPicket
-            if (pms.getString("StartPicket") != "")
+            if (pms.getLong("StartPicket") > 0)
                 fillProperties(true, "Prop_StartPicket", pms)
+            else
+                throw new XError("[StartPicket] not specified")
             //8 Prop_FinishPicket
-            if (pms.getString("FinishPicket") != "")
+            if (pms.getLong("FinishPicket") > 0)
                 fillProperties(true, "Prop_FinishPicket", pms)
+            else
+                throw new XError("[FinishPicket] not specified")
+            //9 Prop_StartLink
+            if (pms.getLong("StartLink") > 0)
+                fillProperties(true, "Prop_StartLink", pms)
+            else
+                throw new XError("Не указан [StartLink]")
+            //10 Prop_FinishLink
+            if (pms.getLong("FinishLink") > 0)
+                fillProperties(true, "Prop_FinishLink", pms)
+            else
+                throw new XError("Не указан [FinishLink]")
 
-            //9 Prop_PlanDateEnd
-            if (pms.getString("PlanDateEnd") != "")
+            //11 Prop_PlanDateEnd
+            if (!pms.getString("PlanDateEnd").isEmpty())
                 fillProperties(true, "Prop_PlanDateEnd", pms)
             else
                 throw new XError("[PlanDateEnd] not specified")
-            //10 Prop_CreatedAt
-            if (pms.getString("CreatedAt") != "")
+            //12 Prop_CreatedAt
+            if (!pms.getString("CreatedAt").isEmpty())
                 fillProperties(true, "Prop_CreatedAt", pms)
             else
                 throw new XError("[CreatedAt] not specified")
-            //11 Prop_UpdatedAt
-            if (pms.getString("UpdatedAt") != "")
+            //13 Prop_UpdatedAt
+            if (!pms.getString("UpdatedAt").isEmpty())
                 fillProperties(true, "Prop_UpdatedAt", pms)
             else
                 throw new XError("[UpdatedAt] not specified")
-            //12 Prop_Inspection
+            //14 Prop_Inspection
             if (pms.getLong("objIncident") > 0)
                 fillProperties(true, "Prop_Incident", pms)
             //
         } else if (mode.equalsIgnoreCase("upd")) {
             own = pms.getLong("id")
-            par.put("fullName", par.get("name"))
             Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_WorkPlan", "")
             Store stInspection = loadSqlService("""
                 select v.id
@@ -900,7 +918,6 @@ class DataDao extends BaseMdbUtils {
             eu.updateEntity(par)
             //
             pms.put("own", own)
-
             //1 Prop_ObjectType
             if (pms.containsKey("idLocationClsSection")) {
                 if (pms.getLong("objLocationClsSection") > 0)
@@ -931,42 +948,56 @@ class DataDao extends BaseMdbUtils {
             }
             //5 Prop_StartKm
             if (pms.containsKey("idStartKm")) {
-                if (pms.getString("StartKm") != "")
+                if (pms.getLong("StartKm") > 0)
                     updateProperties("Prop_StartKm", pms)
                 else
                     throw new XError("[StartKm] not specified")
             }
             //6 Prop_FinishKm
             if (pms.containsKey("idFinishKm")) {
-                if (pms.getString("FinishKm") != "")
+                if (pms.getLong("FinishKm") > 0)
                     updateProperties("Prop_FinishKm", pms)
                 else
                     throw new XError("[FinishKm] not specified")
             }
             //7 Prop_StartPicket
             if (pms.containsKey("idStartPicket")) {
-                updateProperties("Prop_StartPicket", pms)
-            } else {
-                if (pms.getString("StartPicket") != "")
-                    fillProperties(true, "Prop_StartPicket", pms)
+                if (pms.getLong("StartPicket") > 0)
+                    updateProperties("Prop_StartPicket", pms)
+                else
+                    throw new XError("[StartPicket] not specified")
             }
             //8 Prop_FinishPicket
             if (pms.containsKey("idFinishPicket")) {
-                updateProperties("Prop_FinishPicket", pms)
-            } else {
-                if (pms.getString("FinishPicket") != "")
-                    fillProperties(true, "Prop_FinishPicket", pms)
+                if (pms.getLong("FinishPicket") > 0)
+                    updateProperties("Prop_FinishPicket", pms)
+                else
+                    throw new XError("[FinishPicket] not specified")
             }
-            //9 Prop_PlanDateEnd
+            //9 Prop_StartLink
+            if (pms.containsKey("idStartLink")) {
+                if (pms.getLong("StartLink") > 0)
+                    updateProperties("Prop_StartLink", pms)
+                else
+                    throw new XError("[StartLink] not specified")
+            }
+            //10 Prop_FinishLink
+            if (pms.containsKey("idFinishLink")) {
+                if (pms.getLong("FinishLink") > 0)
+                    updateProperties("Prop_FinishLink", pms)
+                else
+                    throw new XError("[FinishLink] not specified")
+            }
+            //11 Prop_PlanDateEnd
             if (pms.containsKey("idPlanDateEnd")) {
-                if (pms.getString("PlanDateEnd") != "")
+                if (!pms.getString("PlanDateEnd").isEmpty())
                     updateProperties("Prop_PlanDateEnd", pms)
                 else
                     throw new XError("[PlanDateEnd] not specified")
             }
-            //10 Prop_UpdatedAt
+            //12 Prop_UpdatedAt
             if (pms.containsKey("idUpdatedAt")) {
-                if (pms.getString("UpdatedAt") != "")
+                if (!pms.getString("UpdatedAt").isEmpty())
                     updateProperties("Prop_UpdatedAt", pms)
                 else
                     throw new XError("[UpdatedAt] not specified")
