@@ -17,17 +17,21 @@
         <field name="nameSection" parent="string"/>
 
         <field name="idStartKm" parent="long"/>
-        <field name="StartKm" parent="double"/>
+        <field name="StartKm" parent="long"/>
         <field name="idFinishKm" parent="long"/>
-        <field name="FinishKm" parent="double"/>
+        <field name="FinishKm" parent="long"/>
+        <field name="idStartLink" parent="long"/>
+        <field name="StartLink" parent="long"/>
 
         <field name="idStartPicket" parent="long"/>
-        <field name="StartPicket" parent="double"/>
+        <field name="StartPicket" parent="long"/>
         <field name="idFinishPicket" parent="long"/>
-        <field name="FinishPicket" parent="double"/>
+        <field name="FinishPicket" parent="long"/>
+        <field name="idFinishLink" parent="long"/>
+        <field name="FinishLink" parent="long"/>
 
         <field name="idPeriodicityReplacement" parent="long"/>
-        <field name="PeriodicityReplacement" parent="double"/>
+        <field name="PeriodicityReplacement" parent="long"/>
 
         <field name="idSide" parent="long"/>
         <field name="pvSide" parent="long"/>

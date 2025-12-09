@@ -182,179 +182,214 @@ class DataDao extends BaseMdbUtils {
             else
                 throw new XError("[objSection] requered")
             //2 Prop_StartKm
-            if (pms.getString("StartKm") != "")
+            if (pms.getLong("StartKm") > 0)
                 fillProperties(true, "Prop_StartKm", pms)
             else
                 throw new XError("[StartKm] requered")
             //3 Prop_FinishKm
-            if (pms.getString("FinishKm") != "")
+            if (pms.getLong("FinishKm") > 0)
                 fillProperties(true, "Prop_FinishKm", pms)
             else
                 throw new XError("[FinishKm] requered")
             //4 Prop_StartPicket
-            if (pms.getString("StartPicket") != "")
+            if (pms.getLong("StartPicket") > 0)
                 fillProperties(true, "Prop_StartPicket", pms)
             else
                 throw new XError("[StartPicket] requered")
             //5 Prop_FinishPicket
-            if (pms.getString("FinishPicket") != "")
+            if (pms.getLong("FinishPicket") > 0)
                 fillProperties(true, "Prop_FinishPicket", pms)
             else
                 throw new XError("[FinishPicket] requered")
-
-            //6 Prop_PeriodicityReplacement
-            if (pms.getString("PeriodicityReplacement") != "")
+            //6 Prop_StartLink
+            if (pms.getLong("StartLink") > 0)
+                fillProperties(true, "Prop_StartLink", pms)
+            else
+                throw new XError("[StartLink] requered")
+            //7 Prop_FinishLink
+            if (pms.getLong("FinishLink") > 0)
+                fillProperties(true, "Prop_FinishLink", pms)
+            else
+                throw new XError("[FinishLink] requered")
+            //8 Prop_PeriodicityReplacement
+            if (pms.getLong("PeriodicityReplacement") > 0)
                 fillProperties(true, "Prop_PeriodicityReplacement", pms)
-            //7 Prop_Side
+            //9 Prop_Side
             if (pms.getLong("fvSide") > 0)
                 fillProperties(true, "Prop_Side", pms)
-            //8 Prop_Specs
-            if (pms.getString("Specs") != "")
+            //10 Prop_Specs
+            if (!pms.getString("Specs").isEmpty())
                 fillProperties(true, "Prop_Specs", pms)
-            //9 Prop_LocationDetails
-            if (pms.getString("LocationDetails") != "")
+            //11 Prop_LocationDetails
+            if (!pms.getString("LocationDetails").isEmpty())
                 fillProperties(true, "Prop_LocationDetails", pms)
-            //10 Prop_Number
-            if (pms.getString("Number") != "")
+            //12 Prop_Number
+            if (!pms.getString("Number").isEmpty())
                 fillProperties(true, "Prop_Number", pms)
-            //11 Prop_InstallationDate
-            if (pms.getString("InstallationDate") != "")
+            //13 Prop_InstallationDate
+            if (!pms.getString("InstallationDate").isEmpty())
                 fillProperties(true, "Prop_InstallationDate", pms)
-            //12 Prop_CreatedAt
-            if (pms.getString("CreatedAt") != "")
+            //14 Prop_CreatedAt
+            if (!pms.getString("CreatedAt").isEmpty())
                 fillProperties(true, "Prop_CreatedAt", pms)
-            //13 Prop_UpdatedAt
-            if (pms.getString("UpdatedAt") != "")
+            else
+                throw new XError("[CreatedAt] requered")
+            //15 Prop_UpdatedAt
+            if (!pms.getString("UpdatedAt").isEmpty())
                 fillProperties(true, "Prop_UpdatedAt", pms)
-            //14 Prop_Description
-            if (pms.getString("Description") != "")
+            else
+                throw new XError("[UpdatedAt] requered")
+            //16 Prop_Description
+            if (!pms.getString("Description").isEmpty())
                 fillProperties(true, "Prop_Description", pms)
-            //15 Prop_User
+            //17 Prop_User
             if (pms.getLong("objUser") > 0)
                 fillProperties(true, "Prop_User", pms)
+            else
+                throw new XError("[User] requered")
+            //
         } else if (mode.equalsIgnoreCase("upd")) {
             own = pms.getLong("id")
             eu.updateEntity(par)
             //
             pms.put("own", own)
-
-            //1 Prop_ObjectType
-            if (pms.containsKey("idObjectType"))
-                updateProperties("Prop_ObjectType", pms)
-            else {
-                if (pms.containsKey("objObjectType"))
-                    fillProperties(true, "Prop_ObjectType", pms)
-            }
-
             //1 a Prop_Section
-            if (pms.containsKey("idSection"))
-                updateProperties("Prop_Section", pms)
-            else {
-                if (pms.containsKey("objSection"))
-                    fillProperties(true, "Prop_Section", pms)
+            if (pms.containsKey("idSection"))  {
+                if (pms.getLong("objSection") > 0)
+                    updateProperties("Prop_Section", pms)
+                else
+                    throw new XError("[Section] requered")
             }
-
             //2 Prop_StartKm
             if (pms.containsKey("idStartKm")) {
-                if (pms.getString("StartKm") != "")
+                if (pms.getLong("StartKm") > 0)
                     updateProperties("Prop_StartKm", pms)
                 else
                     throw new XError("[StartKm] requered")
+            } else {
+                if (pms.getLong("StartKm") > 0)
+                    fillProperties(true, "Prop_StartKm", pms)
             }
-
             //3 Prop_FinishKm
             if (pms.containsKey("idFinishKm")) {
-                if (pms.getString("FinishKm") != "")
+                if (pms.getLong("FinishKm") > 0)
                     updateProperties("Prop_FinishKm", pms)
                 else
                     throw new XError("[FinishKm] requered")
+            } else {
+                if (pms.getLong("FinishKm") > 0)
+                    fillProperties(true, "Prop_FinishKm", pms)
             }
-
             //4 Prop_StartPicket
             if (pms.containsKey("idStartPicket")) {
-                if (pms.getString("StartPicket") != "")
+                if (pms.getLong("StartPicket") > 0)
                     updateProperties("Prop_StartPicket", pms)
                 else
                     throw new XError("[StartPicket] requered")
+            } else {
+                if (pms.getLong("StartPicket") > 0)
+                    fillProperties(true, "Prop_StartPicket", pms)
             }
-
             //5 Prop_FinishPicket
             if (pms.containsKey("idFinishPicket")) {
-                if (pms.getString("FinishPicket") != "")
+                if (pms.getLong("FinishPicket") > 0)
                     updateProperties("Prop_FinishPicket", pms)
                 else
                     throw new XError("[FinishPicket] requered")
+            } else {
+                if (pms.getLong("FinishPicket") > 0)
+                    fillProperties(true, "Prop_FinishPicket", pms)
             }
-
-            //6 Prop_PeriodicityReplacement
+            //6 Prop_StartLink
+            if (pms.containsKey("idStartLink")) {
+                if (pms.getLong("StartLink") > 0)
+                    updateProperties("Prop_StartLink", pms)
+                else
+                    throw new XError("[StartLink] requered")
+            } else {
+                if (pms.getLong("StartLink") > 0)
+                    fillProperties(true, "Prop_StartLink", pms)
+            }
+            //7 Prop_FinishLink
+            if (pms.containsKey("idFinishLink")) {
+                if (pms.getLong("FinishLink") > 0)
+                    updateProperties("Prop_FinishLink", pms)
+                else
+                    throw new XError("[FinishLink] requered")
+            } else {
+                if (pms.getLong("FinishLink") > 0)
+                    fillProperties(true, "Prop_FinishLink", pms)
+            }
+            //8 Prop_PeriodicityReplacement
             if (pms.containsKey("idPeriodicityReplacement")) {
                 updateProperties("Prop_PeriodicityReplacement", pms)
             } else {
-                if (pms.getString("PeriodicityReplacement") != "")
+                if (pms.getLong("PeriodicityReplacement") > 0)
                     fillProperties(true, "Prop_PeriodicityReplacement", pms)
             }
-
-            //7 Prop_Side
+            //9 Prop_Side
             if (pms.containsKey("idSide")) {
                 updateProperties("Prop_Side", pms)
             } else {
-                if (pms.containsKey("fvSide"))
+                if (pms.getLong("fvSide") > 0)
                     fillProperties(true, "Prop_Side", pms)
             }
-
-            //8 Prop_Specs
+            //10 Prop_Specs
             if (pms.containsKey("idSpecs")) {
                 updateProperties("Prop_Specs", pms)
             } else {
-                if (pms.getString("Specs") != "")
+                if (!pms.getString("Specs").isEmpty())
                     fillProperties(true, "Prop_Specs", pms)
             }
-
-            //9 Prop_LocationDetails
+            //11 Prop_LocationDetails
             if (pms.containsKey("idLocationDetails")) {
                 updateProperties("Prop_LocationDetails", pms)
             } else {
-                if (pms.getString("LocationDetails") != "")
+                if (!pms.getString("LocationDetails").isEmpty())
                     fillProperties(true, "Prop_LocationDetails", pms)
             }
-
-            //10 Prop_Number
+            //12 Prop_Number
             if (pms.containsKey("idNumber")) {
                 updateProperties("Prop_Number", pms)
             } else {
-                if (pms.getString("Number") != "")
+                if (!pms.getString("Number").isEmpty())
                     fillProperties(true, "Prop_Number", pms)
             }
-
-            //11 Prop_InstallationDate
+            //13 Prop_InstallationDate
             if (pms.containsKey("idInstallationDate")) {
                 updateProperties("Prop_InstallationDate", pms)
             } else {
-                if (pms.getString("InstallationDate") != "")
+                if (!pms.getString("InstallationDate").isEmpty())
                     fillProperties(true, "Prop_InstallationDate", pms)
             }
-
-            //12 Prop_CreatedAt
-            if (pms.containsKey("idCreatedAt")) {
-                updateProperties("Prop_CreatedAt", pms)
-            } else {
-                if (pms.getString("CreatedAt") != "")
-                    fillProperties(true, "Prop_CreatedAt", pms)
-            }
-            //13 Prop_UpdatedAt
+            //15 Prop_UpdatedAt
             if (pms.containsKey("idUpdatedAt")) {
-                updateProperties("Prop_UpdatedAt", pms)
+                if (!pms.getString("UpdatedAt").isEmpty())
+                    updateProperties("Prop_UpdatedAt", pms)
+                else
+                    throw new XError("[UpdatedAt] requered")
             } else {
-                if (pms.getString("UpdatedAt") != "")
+                if (!pms.getString("UpdatedAt").isEmpty())
                     fillProperties(true, "Prop_UpdatedAt", pms)
             }
-            //14 Prop_Description
+            //16 Prop_Description
             if (pms.containsKey("idDescription")) {
                 updateProperties("Prop_Description", pms)
             } else {
-                if (pms.getString("Description") != "")
+                if (!pms.getString("Description").isEmpty())
                     fillProperties(true, "Prop_Description", pms)
             }
+            //17 Prop_User
+            if (pms.containsKey("idUser")) {
+                if (pms.getLong("objUser") > 0)
+                    updateProperties("Prop_User", pms)
+                else
+                    throw new XError("[User] requered")
+            } else {
+                if (pms.getLong("objUser") > 0)
+                    fillProperties(true, "Prop_User", pms)
+            }
+            //
         } else {
             throw new XError("Нейзвестный режим сохранения ('ins', 'upd')")
         }
@@ -364,19 +399,19 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store loadObjectServed(long id) {
-
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Object", "")
         Store st = mdb.createStore("Obj.Served")
-
-        Store stCls = loadSqlMeta("""
-            select id from Cls where typ=${map.get("Typ_Object")}
-        """, "")
-        Set<Object> idsCls = stCls.getUniqueValues("id")
-
+        //
         String whe = "o.id=${id}"
-        if (id==0)
+        if (id == 0) {
+            Store stCls = loadSqlMeta("""
+                select id from Cls where typ=${map.get("Typ_Object")}
+            """, "")
+            Set<Object> idsCls = stCls.getUniqueValues("id")
+            //
             whe = "o.cls in (${idsCls.join(",")})"
-
+        }
+        //
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
         mdb.loadQuery(st, """
             select o.id, o.cls, v.name, v.fullName,
@@ -394,74 +429,75 @@ class DataDao extends BaseMdbUtils {
                 v12.id as idCreatedAt, v12.dateTimeVal as CreatedAt,
                 v13.id as idUpdatedAt, v13.dateTimeVal as UpdatedAt,
                 v14.id as idDescription, v14.multiStrVal as Description,
-                v15.id as idSection, v15.propVal as pvSection, v15.obj as objSection, ov15.name as nameSection
+                v15.id as idSection, v15.propVal as pvSection, v15.obj as objSection, ov15.name as nameSection,
+                v16.id as idStartLink, v16.numberVal as StartLink,
+                v17.id as idFinishLink, v17.numberVal as FinishLink
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
-                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_ObjectType --1072
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_ObjectType
                 left join DataPropVal v1 on d1.id=v1.dataprop
-                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_StartKm   --1074
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_StartKm
                 left join DataPropVal v2 on d2.id=v2.dataprop
-                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_FinishKm   --1074
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_FinishKm
                 left join DataPropVal v3 on d3.id=v3.dataprop
-                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_StartPicket --1073
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_StartPicket
                 left join DataPropVal v4 on d4.id=v4.dataprop
-                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_FinishPicket   --1075
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_FinishPicket
                 left join DataPropVal v5 on d5.id=v5.dataprop
-                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_PeriodicityReplacement   --1075
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_PeriodicityReplacement
                 left join DataPropVal v6 on d6.id=v6.dataprop
-                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_Side   --1075
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_Side
                 left join DataPropVal v7 on d7.id=v7.dataprop
-                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_Specs   --1075
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_Specs
                 left join DataPropVal v8 on d8.id=v8.dataprop
-                left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=:Prop_LocationDetails   --1075
+                left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=:Prop_LocationDetails
                 left join DataPropVal v9 on d9.id=v9.dataprop
-                left join DataProp d10 on d10.objorrelobj=o.id and d10.prop=:Prop_Number   --1075
+                left join DataProp d10 on d10.objorrelobj=o.id and d10.prop=:Prop_Number
                 left join DataPropVal v10 on d10.id=v10.dataprop
-                left join DataProp d11 on d11.objorrelobj=o.id and d11.prop=:Prop_InstallationDate   --1075
+                left join DataProp d11 on d11.objorrelobj=o.id and d11.prop=:Prop_InstallationDate
                 left join DataPropVal v11 on d11.id=v11.dataprop
-                left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_CreatedAt   --1075
+                left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_CreatedAt
                 left join DataPropVal v12 on d12.id=v12.dataprop
-                left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_UpdatedAt   --1075
+                left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_UpdatedAt
                 left join DataPropVal v13 on d13.id=v13.dataprop
-                left join DataProp d14 on d14.objorrelobj=o.id and d14.prop=:Prop_Description   --1075
+                left join DataProp d14 on d14.objorrelobj=o.id and d14.prop=:Prop_Description
                 left join DataPropVal v14 on d14.id=v14.dataprop
-                left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_Section   --1075
+                left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_Section
                 left join DataPropVal v15 on d15.id=v15.dataprop
                 left join ObjVer ov15 on ov15.ownerVer=v15.obj and ov15.lastVer=1
-            where ${whe}
+                left join DataProp d16 on d16.objorrelobj=o.id and d16.prop=:Prop_StartLink
+                left join DataPropVal v16 on d16.id=v16.dataprop
+                left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=:Prop_FinishLink
+                left join DataPropVal v17 on d17.id=v17.dataprop
+            where ${whe} order by o.id
         """, map)
-
-        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", "Prop_Side", true)
-
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_ObjectTyp", "")
-        Store stTmp = loadSqlMeta("""
-            select id from Cls where typ=${map.get("Typ_ObjectTyp")}
-        """, "")
-        Set<Object> idsTmp = stTmp.getUniqueValues("id")
-
-        Store stObj = loadSqlService("""
+        //... Пересечение
+        Set<Object> idsObjectType = st.getUniqueValues("objObjectType")
+        Store stObjectType = loadSqlService("""
             select o.id, v.name
             from Obj o, ObjVer v
-            where o.id=v.ownerVer and o.cls in (${idsTmp.join(",")})    
+            where o.id=v.ownerVer and o.id in (0${idsObjectType.join(",")})    
         """, "", "nsidata")
-        StoreIndex indObj = stObj.getIndex("id")
-
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "Factor_Side", "")
-        Store stFV = loadSqlMeta("""
-            select id, name
-            from Factor where parent = ${map.get("Factor_Side")} 
+        StoreIndex indObj = stObjectType.getIndex("id")
+        //
+        Set<Object> pvs = st.getUniqueValues("pvSide")
+        Store stPV = apiMeta().get(ApiMeta).loadSql("""
+            select fv.id as fv, pv.id as pv, fv.name from Factor fv, PropVal pv 
+            where pv.factorval=fv.id and pv.id in (0${pvs.join(",")})
         """, "")
-        StoreIndex indFV = stFV.getIndex("id")
-
+        StoreIndex indPV = stPV.getIndex("pv")
+        //
         for (StoreRecord record in st) {
             StoreRecord rObj = indObj.get(record.get("objObjectType"))
             if (rObj != null) {
                 record.set("nameObjectType", rObj.getString("name"))
             }
-            record.set("fvSide", mapPV.get(record.getLong("pvSide")))
-            StoreRecord rFV = indFV.get(record.getLong("fvSide"))
-            if (rFV != null)
+            //
+            StoreRecord rFV = indPV.get(record.getLong("pvSide"))
+            if (rFV != null) {
+                record.set("fvSide", rFV.getLong("fv"))
                 record.set("nameSide", rFV.getString("name"))
+            }
         }
         //
         return st

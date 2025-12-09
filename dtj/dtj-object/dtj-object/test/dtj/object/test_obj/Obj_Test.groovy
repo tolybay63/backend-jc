@@ -117,7 +117,7 @@ class Obj_Test extends Apx_Test {
     void test_loadObjServed() {
         DataDao dao = mdb.createDao(DataDao.class)
         Store st = dao.loadObjectServed(0)
-        mdb.outTable(st)
+        mdb.outTable(st.get(0))
     }
 
     @Test
