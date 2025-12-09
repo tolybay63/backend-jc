@@ -188,6 +188,97 @@
         <field name="pv" parent="long"/>
     </domain>
 
+    <domain name="Obj.Section" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idStartKm" parent="long"/>
+        <field name="StartKm" parent="long"/>
+        <field name="idFinishKm" parent="long"/>
+        <field name="FinishKm" parent="long"/>
+
+        <field name="idStageLength" parent="long"/>
+        <field name="StageLength" parent="double"/>
+
+        <field name="idClient" parent="long"/>
+        <field name="objClient" parent="long"/>
+        <field name="pvClient" parent="long"/>
+        <field name="nameClient" parent="string"/>
+
+        <field name="idUser" parent="long"/>
+        <field name="objUser" parent="long"/>
+        <field name="pvUser" parent="long"/>
+        <field name="fullNameUser" parent="string"/>
+
+        <field name="idCreatedAt" parent="long"/>
+        <field name="CreatedAt" parent="string"/>
+        <field name="idUpdatedAt" parent="long"/>
+        <field name="UpdatedAt" parent="string"/>
+
+    </domain>
+
+    <domain name="Obj.Station" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idStartKm" parent="long"/>
+        <field name="StartKm" parent="long"/>
+        <field name="idStartPicket" parent="long"/>
+        <field name="StartPicket" parent="long"/>
+        <field name="idStartLink" parent="long"/>
+        <field name="StartLink" parent="long"/>
+        <field name="idFinishKm" parent="long"/>
+        <field name="FinishKm" parent="long"/>
+        <field name="idFinishPicket" parent="long"/>
+        <field name="FinishPicket" parent="long"/>
+        <field name="idFinishLink" parent="long"/>
+        <field name="FinishLink" parent="long"/>
+
+        <field name="idUser" parent="long"/>
+        <field name="objUser" parent="long"/>
+        <field name="pvUser" parent="long"/>
+        <field name="fullNameUser" parent="string"/>
+
+        <field name="idCreatedAt" parent="long"/>
+        <field name="CreatedAt" parent="string"/>
+        <field name="idUpdatedAt" parent="long"/>
+        <field name="UpdatedAt" parent="string"/>
+    </domain>
+
+    <domain name="Obj.Stage" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idStartKm" parent="long"/>
+        <field name="StartKm" parent="long"/>
+        <field name="idStartPicket" parent="long"/>
+        <field name="StartPicket" parent="long"/>
+        <field name="idStartLink" parent="long"/>
+        <field name="StartLink" parent="long"/>
+        <field name="idFinishKm" parent="long"/>
+        <field name="FinishKm" parent="long"/>
+        <field name="idFinishPicket" parent="long"/>
+        <field name="FinishPicket" parent="long"/>
+        <field name="idFinishLink" parent="long"/>
+        <field name="FinishLink" parent="long"/>
+
+        <field name="idStageLength" parent="long"/>
+        <field name="StageLength" parent="double"/>
+
+        <field name="idUser" parent="long"/>
+        <field name="objUser" parent="long"/>
+        <field name="pvUser" parent="long"/>
+        <field name="fullNameUser" parent="string"/>
+
+        <field name="idCreatedAt" parent="long"/>
+        <field name="CreatedAt" parent="string"/>
+        <field name="idUpdatedAt" parent="long"/>
+        <field name="UpdatedAt" parent="string"/>
+    </domain>
+
     <domain name="Report.po_4" parent="base">
         <field name="id" parent="long"/>
         <field name="cls" parent="long"/>

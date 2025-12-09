@@ -9,6 +9,63 @@ import org.junit.jupiter.api.Test
 class Obj_Test extends Apx_Test {
 
     @Test
+    void loadSection_test() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadSection(0)
+        mdb.outTable(st)
+    }
+
+    @Test
+    void loadStation_test() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadStation(0)
+        mdb.outTable(st)
+    }
+
+    @Test
+    void loadStage_test() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadStage(0)
+        mdb.outTable(st)
+    }
+
+    @Test
+    void saveSection_ins_test() {
+        Map<String, Object> map = new HashMap<>()
+        map.put("name", "жб мост 3")
+        map.put("StartKm", 50)
+        map.put("FinishKm", 50)
+        map.put("StageLength", 5)
+        map.put("objClient", 1014)
+        map.put("pvClient", 1320)
+        map.put("objUser", 1003)
+        map.put("pvUser", 1087)
+        map.put("CreatedAt", "2025-01-01")
+        map.put("UpdatedAt", "2025-01-02")
+        //
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.saveSection("ins", map)
+        mdb.outTable(st)
+    }
+
+    @Test
+    void saveSection_upd_test() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadSection(12590)
+        StoreRecord rec = st.get(0)
+
+        rec.set("name", "жб мост 3 u")
+        rec.set("StartKm", 5)
+        rec.set("FinishKm", 5)
+        rec.set("StageLength", 5)
+        rec.set("objClient", 1014)
+        rec.set("pvClient", 1320)
+        Store stRes = dao.saveSection("upd", rec.getValues())
+
+        mdb.outTable(stRes)
+    }
+
+    @Test
     void mappingStAndPer() {
         Map<String, Long> map = new HashMap<>()
 
