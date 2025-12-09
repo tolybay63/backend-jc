@@ -431,7 +431,8 @@ class DataDao extends BaseMdbUtils {
                 v14.id as idDescription, v14.multiStrVal as Description,
                 v15.id as idSection, v15.propVal as pvSection, v15.obj as objSection, ov15.name as nameSection,
                 v16.id as idStartLink, v16.numberVal as StartLink,
-                v17.id as idFinishLink, v17.numberVal as FinishLink
+                v17.id as idFinishLink, v17.numberVal as FinishLink,
+                v18.id as idUser, v18.propVal as pvUser, v18.obj as objUser, null as fullNameUser
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_ObjectType
@@ -469,6 +470,8 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v16 on d16.id=v16.dataprop
                 left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=:Prop_FinishLink
                 left join DataPropVal v17 on d17.id=v17.dataprop
+                left join DataProp d18 on d18.objorrelobj=o.id and d18.prop=:Prop_User
+                left join DataPropVal v18 on d18.id=v18.dataprop
             where ${whe} order by o.id
         """, map)
         //... Пересечение
@@ -487,17 +490,29 @@ class DataDao extends BaseMdbUtils {
         """, "")
         StoreIndex indPV = stPV.getIndex("pv")
         //
-        for (StoreRecord record in st) {
-            StoreRecord rObj = indObj.get(record.get("objObjectType"))
-            if (rObj != null) {
-                record.set("nameObjectType", rObj.getString("name"))
+        Set<Object> idsUser = st.getUniqueValues("objUser")
+        Store stUser = loadSqlService("""
+            select o.id, v.name, v.fullName
+            from Obj o, ObjVer v
+            where o.id=v.ownerver and v.lastver=1 and o.id in (0${idsUser.join(",")})
+        """, "", "personnaldata")
+        StoreIndex indUser = stUser.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord recObj = indObj.get(r.get("objObjectType"))
+            if (recObj != null) {
+                r.set("nameObjectType", recObj.getString("name"))
             }
             //
-            StoreRecord rFV = indPV.get(record.getLong("pvSide"))
-            if (rFV != null) {
-                record.set("fvSide", rFV.getLong("fv"))
-                record.set("nameSide", rFV.getString("name"))
+            StoreRecord recFV = indPV.get(r.getLong("pvSide"))
+            if (recFV != null) {
+                r.set("fvSide", recFV.getLong("fv"))
+                r.set("nameSide", recFV.getString("name"))
             }
+            //
+            StoreRecord recUser = indUser.get(r.getLong("objUser"))
+            if (recUser != null)
+                r.set("fullNameUser", recUser.getString("fullName"))
         }
         //
         return st
@@ -1470,8 +1485,8 @@ class DataDao extends BaseMdbUtils {
 
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
 
-        int beg = UtCnv.toInt(params.get('StartKm')) * 1000 + UtCnv.toInt(params.get('StartPicket')) * 100
-        int end = UtCnv.toInt(params.get('FinishKm')) * 1000 + UtCnv.toInt(params.get('FinishPicket')) * 100
+        int beg = UtCnv.toInt(params.get('StartKm')) * 1000 + UtCnv.toInt(params.get('StartPicket')) * 100 + UtCnv.toInt(params.get('StartLink')) * 25
+        int end = UtCnv.toInt(params.get('FinishKm')) * 1000 + UtCnv.toInt(params.get('FinishPicket')) * 100 + UtCnv.toInt(params.get('FinishLink')) * 25
 
         String sql = """
             select o.id, o.cls, v.name, null as pv,
@@ -1487,7 +1502,12 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v4 on d4.id=v4.dataprop
                 left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_FinishPicket")}
                 left join DataPropVal v5 on d5.id=v5.dataprop
-            where ${whe} and v2.numberVal * 1000 + v4.numberVal*100 <= ${beg} and v3.numberVal * 1000 + v5.numberVal *100 >= ${end}
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=${map.get("Prop_StartLink")}
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=${map.get("Prop_FinishLink")}
+                left join DataPropVal v7 on d7.id=v7.dataprop
+            where ${whe} and v2.numberVal * 1000 + v4.numberVal * 100 + v6.numberVal * 25 <= ${beg} 
+                and v3.numberVal * 1000 + v5.numberVal * 100 + v7.numberVal * 25 >= ${end}
         """
         Store st = mdb.loadQuery(sql)
         //mdb.outTable(st)

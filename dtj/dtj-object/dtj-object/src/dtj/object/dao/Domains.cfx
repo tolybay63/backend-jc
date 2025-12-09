@@ -56,6 +56,11 @@
         <field name="idUpdatedAt" parent="long"/>
         <field name="UpdatedAt" parent="string"/>
 
+        <field name="idUser" parent="long"/>
+        <field name="pvUser" parent="long"/>
+        <field name="objUser" parent="long"/>
+        <field name="fullNameUser" parent="string"/>
+
         <field name="idDescription" parent="long"/>
         <field name="Description" parent="string"/>
 
