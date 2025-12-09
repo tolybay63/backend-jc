@@ -4,8 +4,6 @@
 
     <cfg>
 
-
-
         <dbsource name="adm"
                   dbdriver="postgresql"  
                   host="192.168.1.39"
