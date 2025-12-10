@@ -1490,8 +1490,8 @@ class DataDao extends BaseMdbUtils {
 
         String sql = """
             select o.id, o.cls, v.name, null as pv,
-                v2.numberVal * 1000 + v4.numberVal * 100 as beg,
-                v3.numberVal * 1000 + v5.numberVal *100 as end
+                v2.numberVal * 1000 + (v4.numberVal - 1) * 100 + v6.numberVal * 25 as beg,
+                v3.numberVal * 1000 + (v5.numberVal - 1) * 100 + v7.numberVal * 25 as end
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_StartKm")}
