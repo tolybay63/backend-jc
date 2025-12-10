@@ -1140,7 +1140,9 @@ class DataDao extends BaseMdbUtils {
                 v3.numberVal as StartKm,
                 v4.numberVal as FinishKm,
                 v5.numberVal as StartPicket,
-                v6.numberVal as FinishPicket
+                v6.numberVal as FinishPicket,
+                v7.numberVal as StartLink,
+                v8.numberVal as FinishLink
             from Obj o
                 left join ObjVer v on o.id=v.ownerVer and v.lastVer=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_ObjectType")}
@@ -1156,6 +1158,10 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v5 on d5.id=v5.dataProp
                 left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=${map.get("Prop_FinishPicket")}
                 left join DataPropVal v6 on d6.id=v6.dataProp
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=${map.get("Prop_StartLink")}
+                left join DataPropVal v7 on d7.id=v7.dataProp
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=${map.get("Prop_FinishLink")}
+                left join DataPropVal v8 on d8.id=v8.dataProp
             where o.id in (0${owners.join(",")})
         """, "Obj.objectServedForSelect", "objectdata")
 
