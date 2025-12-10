@@ -1256,7 +1256,7 @@ class DataDao extends BaseMdbUtils {
     Store saveStage(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         long own
-        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        //EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Stage", "")
         Map<String, Object> par = new HashMap<>(pms)
         par.put("cls", map.get("Cls_Stage"))
