@@ -1451,7 +1451,9 @@ class DataDao extends BaseMdbUtils {
             if (cod.equalsIgnoreCase("Prop_StartKm") ||
                     cod.equalsIgnoreCase("Prop_FinishKm") ||
                     cod.equalsIgnoreCase("Prop_StartPicket") ||
-                    cod.equalsIgnoreCase("Prop_FinishPicket")) {
+                    cod.equalsIgnoreCase("Prop_FinishPicket") ||
+                    cod.equalsIgnoreCase("Prop_StartLink") ||
+                    cod.equalsIgnoreCase("Prop_FinishLink")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     double v = UtCnv.toDouble(params.get(keyValue))
                     v = v / koef
@@ -1624,7 +1626,9 @@ class DataDao extends BaseMdbUtils {
             if (cod.equalsIgnoreCase("Prop_StartKm") ||
                     cod.equalsIgnoreCase("Prop_FinishKm") ||
                     cod.equalsIgnoreCase("Prop_StartPicket") ||
-                    cod.equalsIgnoreCase("Prop_FinishPicket")) {
+                    cod.equalsIgnoreCase("Prop_FinishPicket") ||
+                    cod.equalsIgnoreCase("Prop_StartLink") ||
+                    cod.equalsIgnoreCase("Prop_FinishLink")) {
                 if (mapProp[keyValue] != "") {
                     def v = mapProp.getDouble(keyValue)
                     v = v / koef
