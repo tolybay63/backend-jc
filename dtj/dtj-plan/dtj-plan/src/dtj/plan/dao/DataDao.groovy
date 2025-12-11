@@ -182,7 +182,7 @@ class DataDao extends BaseMdbUtils {
         Map<String, Object> par = new HashMap<>()
         par.put("own", own)
         par.put("FactDateEnd", FactDateEnd)
-//        fillProperties(true, "Prop_FactDateEnd", par)
+        fillProperties(true, "Prop_FactDateEnd", par)
     }
 
     @DaoMethod
