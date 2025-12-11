@@ -79,25 +79,43 @@ class DataDao extends BaseMdbUtils {
         if (cls <= 0)
             throw new XError("Не указан параметр [cls]")
         //
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_FactDateEnd", "")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
         Store st = mdb.loadQuery("""
-            select v.dateTimeVal
-            from DataProp d, DataPropVal v
-            where d.id=v.dataProp and d.objorrelobj=${own} and d.prop=${map.get("Prop_FactDateEnd")}
+            select o.id, v1.dateTimeVal as FactDateEnd,
+                v2.numberVal * 1000 + v4.numberVal * 100 + v6.numberVal * 25 as beg,
+                v3.numberVal * 1000 + v5.numberVal * 100 + v7.numberVal * 25 as end
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_FactDateEnd")}
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_StartKm")}
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_FinishKm")}
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_StartPicket")}
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_FinishPicket")}
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=${map.get("Prop_StartLink")}
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=${map.get("Prop_FinishLink")}
+                left join DataPropVal v7 on d7.id=v7.dataprop
+            where o.id=0${own}
         """)
-        if (st.size() > 0)
-            throw new XError("Фактическая дата завершения [{0}] уже существует", st.get(0).getString("dateTimeVal"))
+        //mdb.outTable(st)
+        if (st.size() > 0 && st.get(0).getString("FactDateEnd") != "0000-01-01")
+            throw new XError("Фактическая дата завершения [{0}] уже существует", st.get(0).getString("FactDateEnd"))
+        //
+        Map<String, Object> mapSql = new HashMap<>()
+        mapSql.put("own", own)
         //
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_WorkPlanCorrectional", "")
         if (cls == map.get("Cls_WorkPlanCorrectional")) {
-            Map<String, Object> mapSql = new HashMap<>()
-            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_FactDateEnd", "")
-            mapSql.put("Prop_FactDateEnd", map.get("Prop_FactDateEnd"))
-            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_WorkPlan", "")
-            mapSql.put("Prop_WorkPlan", map.get("Prop_WorkPlan"))
             map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_TaskLog", "")
             mapSql.put("cls", map.get("Cls_TaskLog"))
-            mapSql.put("own", own)
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_WorkPlan", "")
+            mapSql.put("Prop_WorkPlan", map.get("Prop_WorkPlan"))
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_FactDateEnd", "")
+            mapSql.put("Prop_FactDateEnd", map.get("Prop_FactDateEnd"))
 
             Store stRepair = loadSqlServiceWithParams("""
                 select o.id, v2.dateTimeVal as FactDateEnd
@@ -117,12 +135,54 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("Задача еще не добавлена")
             //Проверка статуса Incident
             apiRepairData().get(ApiRepairData).checkStatusOfIncident(own, "FV_StatusAtWork", "FV_StatusEliminated")
+        } else {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Inspection", "")
+            mapSql.put("cls", map.get("Cls_Inspection"))
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+            //
+            Store stInspection = loadSqlService("""
+                select o.id,
+                    v2.numberVal * 1000 + v4.numberVal * 100 + v6.numberVal * 25 as beg,
+                    v3.numberVal * 1000 + v5.numberVal * 100 + v7.numberVal * 25 as end
+                from Obj o 
+                    left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_WorkPlan")}
+                    inner join DataPropVal v1 on d1.id=v1.dataprop and v1.obj=${own}
+                    left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_StartKm")}
+                    left join DataPropVal v2 on d2.id=v2.dataprop
+                    left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_FinishKm")}
+                    left join DataPropVal v3 on d3.id=v3.dataprop
+                    left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_StartPicket")}
+                    left join DataPropVal v4 on d4.id=v4.dataprop
+                    left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_FinishPicket")}
+                    left join DataPropVal v5 on d5.id=v5.dataprop
+                    left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=${map.get("Prop_StartLink")}
+                    left join DataPropVal v6 on d6.id=v6.dataprop
+                    left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=${map.get("Prop_FinishLink")}
+                    left join DataPropVal v7 on d7.id=v7.dataprop
+                where o.cls=0${UtCnv.toLong(mapSql.get("cls"))}
+            """, "", "inspectiondata")
+            //mdb.outTable(stInspection)
+            if (stInspection.size() == 0) {
+                throw new XError("Осмотр и проверка не проведена")
+            } else if (stInspection.size() == 1) {
+                if (st.get(0).getLong("beg") < stInspection.get(0).getLong("beg") ||
+                        st.get(0).getLong("end") > stInspection.get(0).getLong("end")) {
+                    throw new XError("Осмотр и проверка проведена не полностью")
+                }
+            } else if (stInspection.size() > 1) {
+                Long lnInsp = (stInspection.size() - 1) * 25
+                for (StoreRecord r in stInspection) {
+                    lnInsp += r.getLong("end") - r.getLong("beg")
+                }
+                if (lnInsp < (st.get(0).getLong("end") - st.get(0).getLong("beg")))
+                    throw new XError("Осмотр и проверка проведена не полностью")
+            }
         }
         //
         Map<String, Object> par = new HashMap<>()
         par.put("own", own)
         par.put("FactDateEnd", FactDateEnd)
-        fillProperties(true, "Prop_FactDateEnd", par)
+//        fillProperties(true, "Prop_FactDateEnd", par)
     }
 
     @DaoMethod
