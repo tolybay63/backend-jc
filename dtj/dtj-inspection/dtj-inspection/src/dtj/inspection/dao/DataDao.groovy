@@ -1023,13 +1023,16 @@ class DataDao extends BaseMdbUtils {
             """, "", "objectdata")
             long pvObject = apiMeta().get(ApiMeta).idPV("cls", stObject.get(0).getLong("cls"), "Prop_Object")
             //
+            String description = ""
+            if(!UtCnv.toString(mapIncident.get("Description")).isEmpty())
+                description = "\nПримечание: " + mapIncident.get("Description")
+            //
             mapIncident.put("name", nameIncident)
             mapIncident.put("codCls", "Cls_IncidentParameter")
             mapIncident.put("Description", "Компонент: " + mapIncident.get("nameComponent") +
                     "\nПараметр: " + mapIncident.get("nameComponentParams") +
                     "\nЗначение: " + mapIncident.get("ParamsLimit") + " (min: " + mapIncident.get("ParamsLimitMin") +
-                    ", max: " + mapIncident.get("ParamsLimitMax") + ")"  +
-                    "\nПримечание: " + mapIncident.get("Description"))
+                    ", max: " + mapIncident.get("ParamsLimitMax") + ")"  + description)
             mapIncident.put("objParameterLog", mapIncident.get("id"))
             mapIncident.put("pvParameterLog", pvParameterLog)
             mapIncident.put("pvObject", pvObject)
@@ -1179,11 +1182,14 @@ class DataDao extends BaseMdbUtils {
         """, "", "objectdata")
         long pvObject = apiMeta().get(ApiMeta).idPV("cls", stObject.get(0).getLong("cls"), "Prop_Object")
         //
+        String description = ""
+        if(!UtCnv.toString(mapIncident.get("Description")).isEmpty())
+            description = "\nПримечание: " + mapIncident.get("Description")
+        //
         mapIncident.put("name", nameIncident)
         mapIncident.put("codCls", "Cls_IncidentFault")
         mapIncident.put("Description", "Компонент: " + mapIncident.get("nameDefectsComponent") +
-                        "\nНеисправность: " + mapIncident.get("nameDefect") +
-                        "\nПримечание: " + mapIncident.get("Description"))
+                        "\nНеисправность: " + mapIncident.get("nameDefect") + description)
         mapIncident.put("objFault", mapIncident.get("id"))
         mapIncident.put("pvFault", pvFault)
         mapIncident.put("pvObject", pvObject)
