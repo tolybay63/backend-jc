@@ -148,81 +148,81 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
         pms.put("fvStatus", idFV_StatusRegistered)
         pms.put("pvStatus", pvStatus)
         fillProperties(true, "Prop_Status", pms)
-
         //3 Prop_Event
         if (pms.getLong("objEvent") > 0)
             fillProperties(true, "Prop_Event", pms)
-
         //4 Prop_Object
         if (pms.getLong("objObject") > 0)
             fillProperties(true, "Prop_Object", pms)
-
+        else
+            throw new XError("[objObject] not specified")
         //5 Prop_User
         if (pms.getLong("objUser") > 0)
             fillProperties(true, "Prop_User", pms)
-
+        else
+            throw new XError("[objUser] not specified")
         //6 Prop_ParameterLog
         if (pms.getLong("objParameterLog") > 0)
             fillProperties(true, "Prop_ParameterLog", pms)
-
         //7 Prop_Fault
         if (pms.getLong("objFault") > 0)
             fillProperties(true, "Prop_Fault", pms)
-
         //8 Prop_StartKm
         if (pms.getInt("StartKm") > 0)
             fillProperties(true, "Prop_StartKm", pms)
-
+        else
+            throw new XError("[StartKm] not specified")
         //9 Prop_FinishKm
         if (pms.getInt("FinishKm") > 0)
             fillProperties(true, "Prop_FinishKm", pms)
-
+        else
+            throw new XError("[FinishKm] not specified")
         //10 Prop_StartPicket
         if (pms.getInt("StartPicket") > 0)
             fillProperties(true, "Prop_StartPicket", pms)
-
+        else
+            throw new XError("[StartPicket] not specified")
         //11 Prop_FinishPicket
         if (pms.getInt("FinishPicket") > 0)
             fillProperties(true, "Prop_FinishPicket", pms)
-
+        else
+            throw new XError("[FinishPicket] not specified")
         //12 Prop_StartLink
         if (pms.getInt("StartLink") > 0)
             fillProperties(true, "Prop_StartLink", pms)
-
+        else
+            throw new XError("[StartLink] not specified")
         //13 Prop_FinishLink
         if (pms.getInt("FinishLink") > 0)
             fillProperties(true, "Prop_FinishLink", pms)
-
+        else
+            throw new XError("[FinishLink] not specified")
         //14 Prop_CreatedAt
-        if (pms.getString("CreatedAt") != "")
+        if (!pms.getString("CreatedAt").isEmpty())
             fillProperties(true, "Prop_CreatedAt", pms)
         else
             throw new XError("[CreatedAt] not specified")
-
         //15 Prop_UpdatedAt
-        if (pms.getString("UpdatedAt") != "")
+        if (!pms.getString("UpdatedAt").isEmpty())
             fillProperties(true, "Prop_UpdatedAt", pms)
         else
             throw new XError("[UpdatedAt] not specified")
-
         //16 Prop_RegistrationDateTime
-        if (pms.getString("RegistrationDateTime") != "")
+        if (!pms.getString("RegistrationDateTime").isEmpty())
             fillProperties(true, "Prop_RegistrationDateTime", pms)
         else
             throw new XError("[RegistrationDateTime] not specified")
-
         //17 Prop_Description
-        if (pms.getString("Description") != "")
+        if (!pms.getString("Description").isEmpty())
             fillProperties(true, "Prop_Description", pms)
         else
             throw new XError("[Description] not specified")
-
         //18 Prop_InfoApplicant
-        if (pms.getString("InfoApplicant") != "")
+        if (!pms.getString("InfoApplicant").isEmpty())
             fillProperties(true, "Prop_InfoApplicant", pms)
         else
             throw new XError("[InfoApplicant] not specified")
-
+        //
         return own
     }
 

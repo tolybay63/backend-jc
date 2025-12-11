@@ -141,6 +141,17 @@
 
         <field name="FactDateEnd" parent="string"/>
 
+        <field name="idUser" parent="long"/>
+        <field name="pvUser" parent="long"/>
+        <field name="objUser" parent="long"/>
+        <field name="fullNameUser" parent="string"/>
+
+        <field name="idCreatedAt" parent="long"/>
+        <field name="CreatedAt" parent="string"/>
+
+        <field name="idUpdatedAt" parent="long"/>
+        <field name="UpdatedAt" parent="string"/>
+
         <field name="idDescription" parent="long"/>
         <field name="Description" parent="string"/>
 
@@ -251,6 +262,17 @@
 
         <field name="idParamsLimitMin" parent="long"/>
         <field name="ParamsLimitMin" parent="double"/>
+
+        <field name="idUser" parent="long"/>
+        <field name="pvUser" parent="long"/>
+        <field name="objUser" parent="long"/>
+        <field name="fullNameUser" parent="string"/>
+
+        <field name="idCreatedAt" parent="long"/>
+        <field name="CreatedAt" parent="string"/>
+
+        <field name="idUpdatedAt" parent="long"/>
+        <field name="UpdatedAt" parent="string"/>
 
         <field name="idDescription" parent="long"/>
         <field name="Description" parent="string"/>

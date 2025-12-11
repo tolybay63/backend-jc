@@ -34,47 +34,36 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiAdm() {
         return app.bean(ApinatorService).getApi("adm")
     }
-
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
     }
-
     ApinatorApi apiUserData() {
         return app.bean(ApinatorService).getApi("userdata")
     }
-
     ApinatorApi apiNSIData() {
         return app.bean(ApinatorService).getApi("nsidata")
     }
-
     ApinatorApi apiObjectData() {
         return app.bean(ApinatorService).getApi("objectdata")
     }
-
     ApinatorApi apiPlanData() {
         return app.bean(ApinatorService).getApi("plandata")
     }
-
     ApinatorApi apiPersonnalData() {
         return app.bean(ApinatorService).getApi("personnaldata")
     }
-
     ApinatorApi apiOrgStructureData() {
         return app.bean(ApinatorService).getApi("orgstructuredata")
     }
-
     ApinatorApi apiInspectionData() {
         return app.bean(ApinatorService).getApi("inspectiondata")
     }
-
     ApinatorApi apiClientData() {
         return app.bean(ApinatorService).getApi("clientdata")
     }
-
     ApinatorApi apiIncidentData() {
         return app.bean(ApinatorService).getApi("incidentdata")
     }
-
     /* =================================================================== */
 
     @DaoMethod
@@ -519,28 +508,27 @@ class DataDao extends BaseMdbUtils {
             pms.put("own", own)
             //1 Prop_InfoApplicant
             if (pms.getLong("idInfoApplicant") > 0) {
-                if (pms.getString("InfoApplicant") != "")
+                if (pms.getString("InfoApplicant").isEmpty())
                     updateProperties("Prop_InfoApplicant", pms)
                 else
                     throw new XError("Не указан [Информация о заявителе]")
             }
             //2 Prop_Description
             if (pms.getLong("idDescription") > 0) {
-                if (pms.getString("Description") != "")
+                if (pms.getString("Description").isEmpty())
                     updateProperties("Prop_Description", pms)
                 else
                     throw new XError("Не указан [Описание]")
             }
             //3 Prop_UpdatedAt
             if (pms.getLong("idUpdatedAt") > 0) {
-                if (pms.getString("UpdatedAt") != "")
+                if (pms.getString("UpdatedAt").isEmpty())
                     updateProperties("Prop_UpdatedAt", pms)
                 else
                     throw new XError("Не указан [Описание]")
             }
 
         } else {
-
             throw new XError("Нейзвестный режим сохранения ('ins', 'upd')")
         }
         Map<String, Object> mapRez = new HashMap<>()

@@ -127,8 +127,8 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store findLocationOfCoord(Map<String, Object> params) {
-        int beg = UtCnv.toInt(params.get('StartKm')) * 1000 + UtCnv.toInt(params.get('StartPicket')) * 100
-        int end = UtCnv.toInt(params.get('FinishKm')) * 1000 + UtCnv.toInt(params.get('FinishPicket')) * 100
+        int beg = UtCnv.toInt(params.get('StartKm')) * 1000 + (UtCnv.toInt(params.get('StartPicket')) - 1) * 100 + UtCnv.toInt(params.get('StartLink')) * 25
+        int end = UtCnv.toInt(params.get('FinishKm')) * 1000 + (UtCnv.toInt(params.get('FinishPicket')) - 1) * 100 + UtCnv.toInt(params.get('FinishLink')) * 25
         if (beg > end)
             throw new XError("Координаты начала не могут быть больше координаты конца")
 
@@ -164,19 +164,15 @@ class DataDao extends BaseMdbUtils {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
         String sql = """
             select o.id, o.cls, v.name, null as pv,
-                v2.numberVal * 1000 /*+ v4.numberVal * 100*/ as beg,
-                v3.numberVal * 1000 /*+ v5.numberVal *100*/ as end
+                v2.numberVal * 1000 as beg,
+                (v3.numberVal + 1) * 1000 as end
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_StartKm")}
                 left join DataPropVal v2 on d2.id=v2.dataprop
                 left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_FinishKm")}
                 left join DataPropVal v3 on d3.id=v3.dataprop
-                --left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_StartPicket")}
-                --left join DataPropVal v4 on d4.id=v4.dataprop
-                --left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_FinishPicket")}
-                --left join DataPropVal v5 on d5.id=v5.dataprop
-            where ${whe} and v2.numberVal * 1000 /*+ v4.numberVal*100*/ <= ${beg} and v3.numberVal * 1000 /*+ v5.numberVal *100*/ >= ${end}
+            where ${whe} and v2.numberVal * 1000 < ${beg} and (v3.numberVal + 1) * 1000 >= ${end}
         """
         Store st = loadSqlServiceWithParams(sql, params, "", "orgstructuredata")
         //mdb.outTable(st)
@@ -1144,7 +1140,9 @@ class DataDao extends BaseMdbUtils {
                 v3.numberVal as StartKm,
                 v4.numberVal as FinishKm,
                 v5.numberVal as StartPicket,
-                v6.numberVal as FinishPicket
+                v6.numberVal as FinishPicket,
+                v7.numberVal as StartLink,
+                v8.numberVal as FinishLink
             from Obj o
                 left join ObjVer v on o.id=v.ownerVer and v.lastVer=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_ObjectType")}
@@ -1160,6 +1158,10 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v5 on d5.id=v5.dataProp
                 left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=${map.get("Prop_FinishPicket")}
                 left join DataPropVal v6 on d6.id=v6.dataProp
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=${map.get("Prop_StartLink")}
+                left join DataPropVal v7 on d7.id=v7.dataProp
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=${map.get("Prop_FinishLink")}
+                left join DataPropVal v8 on d8.id=v8.dataProp
             where o.id in (0${owners.join(",")})
         """, "Obj.objectServedForSelect", "objectdata")
 
@@ -1451,7 +1453,9 @@ class DataDao extends BaseMdbUtils {
             if (cod.equalsIgnoreCase("Prop_StartKm") ||
                     cod.equalsIgnoreCase("Prop_FinishKm") ||
                     cod.equalsIgnoreCase("Prop_StartPicket") ||
-                    cod.equalsIgnoreCase("Prop_FinishPicket")) {
+                    cod.equalsIgnoreCase("Prop_FinishPicket") ||
+                    cod.equalsIgnoreCase("Prop_StartLink") ||
+                    cod.equalsIgnoreCase("Prop_FinishLink")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     double v = UtCnv.toDouble(params.get(keyValue))
                     v = v / koef
@@ -1624,7 +1628,9 @@ class DataDao extends BaseMdbUtils {
             if (cod.equalsIgnoreCase("Prop_StartKm") ||
                     cod.equalsIgnoreCase("Prop_FinishKm") ||
                     cod.equalsIgnoreCase("Prop_StartPicket") ||
-                    cod.equalsIgnoreCase("Prop_FinishPicket")) {
+                    cod.equalsIgnoreCase("Prop_FinishPicket") ||
+                    cod.equalsIgnoreCase("Prop_StartLink") ||
+                    cod.equalsIgnoreCase("Prop_FinishLink")) {
                 if (mapProp[keyValue] != "") {
                     def v = mapProp.getDouble(keyValue)
                     v = v / koef

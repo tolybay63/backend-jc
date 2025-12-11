@@ -123,13 +123,14 @@
         <field name="objSection" parent="long"/>
         <field name="nameSection" parent="string"/>
 
-        <field name="StartKm" parent="double"/>
+        <field name="StartKm" parent="long"/>
+        <field name="FinishKm" parent="long"/>
 
-        <field name="FinishKm" parent="double"/>
+        <field name="StartPicket" parent="long"/>
+        <field name="FinishPicket" parent="long"/>
 
-        <field name="StartPicket" parent="double"/>
-
-        <field name="FinishPicket" parent="double"/>
+        <field name="StartLink" parent="long"/>
+        <field name="FinishLink" parent="long"/>
     </domain>
 
     <domain name="Obj.UnfinishedByDate">
@@ -147,13 +148,13 @@
         <field name="objSection" parent="long"/>
         <field name="nameSection" parent="string"/>
 
-        <field name="StartKm" parent="double"/>
+        <field name="StartKm" parent="long"/>
 
-        <field name="FinishKm" parent="double"/>
+        <field name="FinishKm" parent="long"/>
 
-        <field name="StartPicket" parent="double"/>
+        <field name="StartPicket" parent="long"/>
 
-        <field name="FinishPicket" parent="double"/>
+        <field name="FinishPicket" parent="long"/>
     </domain>
 
     <domain name="Obj.UnfinishedByDate">
@@ -171,13 +172,13 @@
         <field name="objSection" parent="long"/>
         <field name="nameSection" parent="string"/>
 
-        <field name="StartKm" parent="double"/>
+        <field name="StartKm" parent="long"/>
 
-        <field name="FinishKm" parent="double"/>
+        <field name="FinishKm" parent="long"/>
 
-        <field name="StartPicket" parent="double"/>
+        <field name="StartPicket" parent="long"/>
 
-        <field name="FinishPicket" parent="double"/>
+        <field name="FinishPicket" parent="long"/>
     </domain>
 
     <domain name="Obj.ObjList">

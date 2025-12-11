@@ -487,7 +487,10 @@ class DataDao extends BaseMdbUtils {
                 v14.id as idDescription, v14.multiStrVal as Description,
                 v15.id as idParamsLimit, v15.numberVal as ParamsLimit,
                 v16.id as idParamsLimitMax, v16.numberVal as ParamsLimitMax,
-                v17.id as idParamsLimitMin, v17.numberVal as ParamsLimitMin
+                v17.id as idParamsLimitMin, v17.numberVal as ParamsLimitMin,
+                v18.id as idUser, v18.propVal as pvUser, v18.obj as objUser, null as fullNameUser,
+                v19.id as idCreatedAt, v19.dateTimeVal as CreatedAt,
+                v20.id as idUpdatedAt, v20.dateTimeVal as UpdatedAt
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
@@ -520,6 +523,12 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v16 on d16.id=v16.dataprop
                 left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=:Prop_ParamsLimitMin
                 left join DataPropVal v17 on d17.id=v17.dataprop
+                left join DataProp d18 on d18.objorrelobj=o.id and d18.prop=:Prop_User
+                left join DataPropVal v18 on d18.id=v18.dataprop
+                left join DataProp d19 on d19.objorrelobj=o.id and d19.prop=:Prop_CreatedAt
+                left join DataPropVal v19 on d19.id=v19.dataprop
+                left join DataProp d20 on d20.objorrelobj=o.id and d20.prop=:Prop_UpdatedAt
+                left join DataPropVal v20 on d20.id=v20.dataprop
             where ${whe}
             order by o.id
         """, map)
@@ -554,7 +563,7 @@ class DataDao extends BaseMdbUtils {
             mapParams.put(r.getLong("id"), r.getValues())
         }
         //
-        Set<Object> idsObjInspection = st.getUniqueValues("objInspection")
+        Set<Object> idsInspection = st.getUniqueValues("objInspection")
         Store stWP = mdb.loadQuery("""
             select o.id as objInspection, v1.obj as objWorkPlan, v2.dateTimeVal as FactDateEnd
             from Obj o 
@@ -562,9 +571,16 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropval v1 on d1.id=v1.dataProp 
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_FactDateEnd")}
                 left join DataPropval v2 on d2.id=v2.dataProp
-            where o.id in (0${idsObjInspection.join(",")})
+            where o.id in (0${idsInspection.join(",")})
         """)
         StoreIndex indWP = stWP.getIndex("objInspection")
+        //
+        Set<Object> idsUser = st.getUniqueValues("objUser")
+        Store stUser = loadSqlService("""
+            select o.id, o.cls, v.fullName
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsUser.join(",")})
+        """, "", "personnaldata")
+        StoreIndex indUser = stUser.getIndex("id")
         //
         for (StoreRecord r in st) {
             StoreRecord recLocation = indLocation.get(r.getLong("objLocationClsSection"))
@@ -580,6 +596,10 @@ class DataDao extends BaseMdbUtils {
                 r.set("objWorkPlan", recWP.getLong("objWorkPlan"))
                 r.set("FactDateEnd", recWP.getString("FactDateEnd"))
             }
+
+            StoreRecord recUser = indUser.get(r.getLong("objUser"))
+            if (recUser != null)
+                r.set("fullNameUser", recUser.getString("fullName"))
         }
         //
         Set<Object> idsWP = stWP.getUniqueValues("objWorkPlan")
@@ -682,7 +702,10 @@ class DataDao extends BaseMdbUtils {
                 v8.id as idDefect, v8.propVal as pvDefect, v8.obj as objDefect, null as nameDefect,
                 v12.id as idStartLink, v12.numberVal as StartLink,
                 v13.id as idFinishLink, v13.numberVal as FinishLink,
-                v14.id as idDescription, v14.multiStrVal as Description
+                v14.id as idDescription, v14.multiStrVal as Description,
+                v15.id as idUser, v15.propVal as pvUser, v15.obj as objUser, null as fullNameUser,
+                v16.id as idCreatedAt, v16.dateTimeVal as CreatedAt,
+                v17.id as idUpdatedAt, v17.dateTimeVal as UpdatedAt
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
@@ -707,20 +730,26 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v13 on d13.id=v13.dataprop
                 left join DataProp d14 on d14.objorrelobj=o.id and d14.prop=:Prop_Description
                 left join DataPropVal v14 on d14.id=v14.dataprop
+                left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_User
+                left join DataPropVal v15 on d15.id=v15.dataprop
+                left join DataProp d16 on d16.objorrelobj=o.id and d16.prop=:Prop_CreatedAt
+                left join DataPropVal v16 on d16.id=v16.dataprop
+                left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=:Prop_UpdatedAt
+                left join DataPropVal v17 on d17.id=v17.dataprop
             where ${whe}
             order by o.id
         """, map)
         //... Пересечение
-        Set<Object> idsObjLocation = st.getUniqueValues("objLocationClsSection")
-        Store stObjLocation = loadSqlService("""
+        Set<Object> idsLocation = st.getUniqueValues("objLocationClsSection")
+        Store stLocation = loadSqlService("""
             select o.id, v.name
             from Obj o, ObjVer v
-            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsObjLocation.join(",")})
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsLocation.join(",")})
         """, "", "orgstructuredata")
-        StoreIndex indLocation = stObjLocation.getIndex("id")
+        StoreIndex indLocation = stLocation.getIndex("id")
         //
-        Set<Object> idsObjDefect = st.getUniqueValues("objDefect")
-        Store stObjDefect = loadSqlService("""
+        Set<Object> idsDefect = st.getUniqueValues("objDefect")
+        Store stDefect = loadSqlService("""
             select o.id, v.name,
                 v1.obj as objDefectsComponent, ov1.name as nameDefectsComponent, 
                 v2.propVal as pvDefectsCategory, null as fvDefectsCategory, null as nameDefectsCategory 
@@ -731,11 +760,11 @@ class DataDao extends BaseMdbUtils {
                 left join ObjVer ov1 on v1.obj=ov1.ownerVer and ov1.lastVer=1
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_DefectsCategory")}
                 left join DataPropval v2 on d2.id=v2.dataProp
-            where o.id in (0${idsObjDefect.join(",")})
+            where o.id in (0${idsDefect.join(",")})
         """, "", "nsidata")
-        StoreIndex indDefect = stObjDefect.getIndex("id")
+        StoreIndex indDefect = stDefect.getIndex("id")
         //
-        Set<Object> idsObjInspection = st.getUniqueValues("objInspection")
+        Set<Object> idsInspection = st.getUniqueValues("objInspection")
         Store stWP = mdb.loadQuery("""
             select o.id as objInspection, v1.obj as objWorkPlan, v2.dateTimeVal as FactDateEnd
             from Obj o 
@@ -743,15 +772,21 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropval v1 on d1.id=v1.dataProp 
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_FactDateEnd")}
                 left join DataPropval v2 on d2.id=v2.dataProp
-            where o.id in (0${idsObjInspection.join(",")})
+            where o.id in (0${idsInspection.join(",")})
         """)
         StoreIndex indWP = stWP.getIndex("objInspection")
+        //
+        Set<Object> idsUser = st.getUniqueValues("objUser")
+        Store stUser = loadSqlService("""
+            select o.id, o.cls, v.fullName
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsUser.join(",")})
+        """, "", "personnaldata")
+        StoreIndex indUser = stUser.getIndex("id")
         //
         for (StoreRecord r in st) {
             StoreRecord recLocation = indLocation.get(r.getLong("objLocationClsSection"))
             if (recLocation != null)
                 r.set("nameLocationClsSection", recLocation.getString("name"))
-
             StoreRecord recDefect = indDefect.get(r.getLong("objDefect"))
             if (recDefect != null) {
                 r.set("nameDefect", recDefect.getString("name"))
@@ -764,6 +799,9 @@ class DataDao extends BaseMdbUtils {
                 r.set("objWorkPlan", recWP.getLong("objWorkPlan"))
                 r.set("FactDateEnd", recWP.getString("FactDateEnd"))
             }
+            StoreRecord rUser = indUser.get(r.getLong("objUser"))
+            if (rUser != null)
+                r.set("fullNameUser", rUser.getString("fullName"))
         }
         //
         Set<Object> idsWP = stWP.getUniqueValues("objWorkPlan")
@@ -774,7 +812,7 @@ class DataDao extends BaseMdbUtils {
         """, "", "plandata")
         StoreIndex indObject = stObject.getIndex("objWorkPlan")
         //
-        Set<Object> pvsDefectsCategory = stObjDefect.getUniqueValues("pvDefectsCategory")
+        Set<Object> pvsDefectsCategory = stDefect.getUniqueValues("pvDefectsCategory")
         Store stFV = loadSqlMeta("""
             select p.id, p.factorVal, f.name
             from PropVal p
@@ -852,13 +890,11 @@ class DataDao extends BaseMdbUtils {
                 fillProperties(true, "Prop_ComponentParams", pms)
             else
                 throw new XError("[relobjComponentParams] not specified")
-
             //1.1 Prop_LocationClsSection
             if (pms.getLong("objLocationClsSection") > 0)
                 fillProperties(true, "Prop_LocationClsSection", pms)
             else
                 throw new XError("[objLocationClsSection] not specified")
-
             //2 Prop_Inspection
             map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Inspection", "")
             long pvInspection = apiMeta().get(ApiMeta).idPV("cls", map.get("Cls_Inspection"), "Prop_Inspection")
@@ -888,66 +924,80 @@ class DataDao extends BaseMdbUtils {
             } else
                 throw new XError("[objInspection] not specified")
             //3 Prop_StartKm
-            if (pms.getString("StartKm") != "")
+            if (pms.getLong("StartKm") > 0)
                 fillProperties(true, "Prop_StartKm", pms)
             else
                 throw new XError("[StartKm] not specified")
-
             //4 Prop_FinishKm
-            if (pms.getString("FinishKm") != "")
+            if (pms.getLong("FinishKm") > 0)
                 fillProperties(true, "Prop_FinishKm", pms)
             else
                 throw new XError("[FinishKm] not specified")
-
             //5 Prop_StartPicket
-            if (pms.getInt("StartPicket") > 0)
+            if (pms.getLong("StartPicket") > 0)
                 fillProperties(true, "Prop_StartPicket", pms)
-
+            else
+                throw new XError("[StartPicket] not specified")
             //6 Prop_FinishPicket
-            if (pms.getInt("FinishPicket") > 0)
+            if (pms.getLong("FinishPicket") > 0)
                 fillProperties(true, "Prop_FinishPicket", pms)
-
+            else
+                throw new XError("[FinishPicket] not specified")
             //7 Prop_StartLink
-
-            if (pms.getInt("StartLink") > 0)
+            if (pms.getLong("StartLink") > 0)
                 fillProperties(true, "Prop_StartLink", pms)
-
+            else
+                throw new XError("[StartLink] not specified")
             //8 Prop_FinishLink
-            if (pms.getInt("FinishLink") > 0)
+            if (pms.getLong("FinishLink") > 0)
                 fillProperties(true, "Prop_FinishLink", pms)
-
+            else
+                throw new XError("[FinishLink] not specified")
             //9 Prop_ParamsLimit
             if (pms.getString("ParamsLimit") != "")
                 fillProperties(true, "Prop_ParamsLimit", pms)
             else
                 throw new XError("[ParamsLimit] not specified")
-
             //10 Prop_ParamsLimitMax
             if (pms.getString("ParamsLimitMax") != "")
                 fillProperties(true, "Prop_ParamsLimitMax", pms)
             else
                 throw new XError("[ParamsLimitMax] not specified")
-
             //11 Prop_ParamsLimitMin
-            if (pms.getString("") != "ParamsLimitMin")
+            if (pms.getString("ParamsLimitMin") != "")
                 fillProperties(true, "Prop_ParamsLimitMin", pms)
             else
                 throw new XError("[ParamsLimitMin] not specified")
-
             //12 Prop_OutOfNorm
             pms.put("fvOutOfNorm", idFV_Flag)
             pms.put("pvOutOfNorm", pvOutOfNorm)
             fillProperties(true, "Prop_OutOfNorm", pms)
-
             //13 Prop_CreationDateTime
-            if (pms.getString("CreationDateTime") != "")
+            if (!pms.getString("CreationDateTime").isEmpty())
                 fillProperties(true, "Prop_CreationDateTime", pms)
             else
                 throw new XError("[CreationDateTime] not specified")
-
             //14 Prop_Description
-            if (pms.getString("Description") != "")
+            if (!pms.getString("Description").isEmpty())
                 fillProperties(true, "Prop_Description", pms)
+            //15 Prop_User
+            if (pms.getLong("objUser") > 0)
+                fillProperties(true, "Prop_User", pms)
+            else
+                throw new XError("[objUser] not specified")
+            //
+            pms.put("CreatedAt", pms.getString("CreationDateTime").substring(0,10))
+            pms.put("UpdatedAt", pms.getString("CreationDateTime").substring(0,10))
+            //16 Prop_CreatedAt
+            if (pms.getString("CreatedAt").isEmpty())
+                throw new XError("[CreatedAt] not specified")
+            else
+                fillProperties(true, "Prop_CreatedAt", pms)
+            //17 Prop_UpdatedAt
+            if (pms.getString("UpdatedAt").isEmpty())
+                throw new XError("[UpdatedAt] not specified")
+            else
+                fillProperties(true, "Prop_UpdatedAt", pms)
             //
         } else if (mode.equalsIgnoreCase("upd")) {
             throw new XError("Режим [update] отключен")
@@ -973,21 +1023,20 @@ class DataDao extends BaseMdbUtils {
             """, "", "objectdata")
             long pvObject = apiMeta().get(ApiMeta).idPV("cls", stObject.get(0).getLong("cls"), "Prop_Object")
             //
+            String description = ""
+            if(!UtCnv.toString(mapIncident.get("Description")).isEmpty())
+                description = "\nПримечание: " + mapIncident.get("Description")
+            //
             mapIncident.put("name", nameIncident)
             mapIncident.put("codCls", "Cls_IncidentParameter")
-            mapIncident.put("Description", "" + mapIncident.get("nameComponent") +
-                    " / " + mapIncident.get("nameComponentParams") +
-                    ": " + mapIncident.get("ParamsLimit") + " (min: " + mapIncident.get("ParamsLimitMin") +
-                    ", max: " + mapIncident.get("ParamsLimitMax") + ")")
-            mapIncident.put("", mapIncident.get("nameDefectsComponent"))
+            mapIncident.put("Description", "Компонент: " + mapIncident.get("nameComponent") +
+                    "\nПараметр: " + mapIncident.get("nameComponentParams") +
+                    "\nЗначение: " + mapIncident.get("ParamsLimit") + " (min: " + mapIncident.get("ParamsLimitMin") +
+                    ", max: " + mapIncident.get("ParamsLimitMax") + ")"  + description)
             mapIncident.put("objParameterLog", mapIncident.get("id"))
             mapIncident.put("pvParameterLog", pvParameterLog)
             mapIncident.put("pvObject", pvObject)
-            mapIncident.put("objUser", pms.getLong("objUser"))
-            mapIncident.put("pvUser", pms.getLong("pvUser"))
             mapIncident.put("RegistrationDateTime", mapIncident.get("CreationDateTime"))
-            mapIncident.put("CreatedAt", UtCnv.toString(mapIncident.get("CreationDateTime")).substring(0, 10))
-            mapIncident.put("UpdatedAt", UtCnv.toString(mapIncident.get("CreationDateTime")).substring(0, 10))
             mapIncident.put("InfoApplicant", "" + pms.get("nameLocation") + ", " + pms.get("fullNameUser"))
             mapIncident.remove("id")
             mapIncident.remove("cls")
@@ -1021,14 +1070,12 @@ class DataDao extends BaseMdbUtils {
                 fillProperties(true, "Prop_Defect", pms)
             else
                 throw new XError("[objDefect] not specified")
-
-            //1.1 Prop_LocationClsSection
+            //2 Prop_LocationClsSection
             if (pms.getLong("objLocationClsSection") > 0)
                 fillProperties(true, "Prop_LocationClsSection", pms)
             else
                 throw new XError("[objLocationClsSection] not specified")
-
-            //2 Prop_Inspection
+            //3 Prop_Inspection
             map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Inspection", "")
             long pvInspection = apiMeta().get(ApiMeta).idPV("cls", map.get("Cls_Inspection"), "Prop_Inspection")
             pms.put("pvInspection", pvInspection)
@@ -1055,44 +1102,63 @@ class DataDao extends BaseMdbUtils {
                 }
             } else
                 throw new XError("[objInspection] not specified")
-            //3 Prop_StartKm
-            if (pms.getString("StartKm") != "")
+            //4 Prop_StartKm
+            if (pms.getLong("StartKm") > 0)
                 fillProperties(true, "Prop_StartKm", pms)
             else
                 throw new XError("[StartKm] not specified")
-
-            //4 Prop_FinishKm
-            if (pms.getString("FinishKm") != "")
+            //5 Prop_FinishKm
+            if (pms.getLong("FinishKm") > 0)
                 fillProperties(true, "Prop_FinishKm", pms)
             else
                 throw new XError("[FinishKm] not specified")
-
-            //5 Prop_StartPicket
-            if (pms.getInt("StartPicket") > 0)
+            //6 Prop_StartPicket
+            if (pms.getLong("StartPicket") > 0)
                 fillProperties(true, "Prop_StartPicket", pms)
-
-            //6 Prop_FinishPicket
-            if (pms.getInt("FinishPicket") > 0)
+            else
+                throw new XError("[StartPicket] not specified")
+            //7 Prop_FinishPicket
+            if (pms.getLong("FinishPicket") > 0)
                 fillProperties(true, "Prop_FinishPicket", pms)
-
-            //7 Prop_StartLink
-            if (pms.getInt("StartLink") > 0)
+            else
+                throw new XError("[FinishPicket] not specified")
+            //8 Prop_StartLink
+            if (pms.getLong("StartLink") > 0)
                 fillProperties(true, "Prop_StartLink", pms)
-
-            //8 Prop_FinishLink
-            if (pms.getInt("FinishLink") > 0)
+            else
+                throw new XError("[StartLink] not specified")
+            //9 Prop_FinishLink
+            if (pms.getLong("FinishLink") > 0)
                 fillProperties(true, "Prop_FinishLink", pms)
-
-            //9 Prop_CreationDateTime
-            if (pms.getString("CreationDateTime") != "")
+            else
+                throw new XError("[FinishLink] not specified")
+            //10 Prop_CreationDateTime
+            if (!pms.getString("CreationDateTime").isEmpty())
                 fillProperties(true, "Prop_CreationDateTime", pms)
             else
                 throw new XError("[CreationDateTime] not specified")
-
-            //10 Prop_Description
-            if (pms.getString("Description") != "")
+            //11 Prop_Description
+            if (!pms.getString("Description").isEmpty())
                 fillProperties(true, "Prop_Description", pms)
-
+            //12 Prop_User
+            if (pms.getLong("objUser") > 0)
+                fillProperties(true, "Prop_User", pms)
+            else
+                throw new XError("[objUser] not specified")
+            //
+            pms.put("CreatedAt", pms.getString("CreationDateTime").substring(0,10))
+            pms.put("UpdatedAt", pms.getString("CreationDateTime").substring(0,10))
+            //13 Prop_CreatedAt
+            if (pms.getString("CreatedAt").isEmpty())
+                throw new XError("[CreatedAt] not specified")
+            else
+                fillProperties(true, "Prop_CreatedAt", pms)
+            //14 Prop_UpdatedAt
+            if (pms.getString("UpdatedAt").isEmpty())
+                throw new XError("[UpdatedAt] not specified")
+            else
+                fillProperties(true, "Prop_UpdatedAt", pms)
+            //
         } else if (mode.equalsIgnoreCase("upd")) {
             throw new XError("Режим [update] отключен")
         } else {
@@ -1116,19 +1182,18 @@ class DataDao extends BaseMdbUtils {
         """, "", "objectdata")
         long pvObject = apiMeta().get(ApiMeta).idPV("cls", stObject.get(0).getLong("cls"), "Prop_Object")
         //
+        String description = ""
+        if(!UtCnv.toString(mapIncident.get("Description")).isEmpty())
+            description = "\nПримечание: " + mapIncident.get("Description")
+        //
         mapIncident.put("name", nameIncident)
         mapIncident.put("codCls", "Cls_IncidentFault")
-        mapIncident.put("Description", "" + mapIncident.get("nameDefectsComponent") +
-                        " / " + mapIncident.get("nameDefect"))
-        mapIncident.put("", mapIncident.get("nameDefectsComponent"))
+        mapIncident.put("Description", "Компонент: " + mapIncident.get("nameDefectsComponent") +
+                        "\nНеисправность: " + mapIncident.get("nameDefect") + description)
         mapIncident.put("objFault", mapIncident.get("id"))
         mapIncident.put("pvFault", pvFault)
         mapIncident.put("pvObject", pvObject)
-        mapIncident.put("objUser", pms.getLong("objUser"))
-        mapIncident.put("pvUser", pms.getLong("pvUser"))
         mapIncident.put("RegistrationDateTime", mapIncident.get("CreationDateTime"))
-        mapIncident.put("CreatedAt", UtCnv.toString(mapIncident.get("CreationDateTime")).substring(0,10))
-        mapIncident.put("UpdatedAt", UtCnv.toString(mapIncident.get("CreationDateTime")).substring(0,10))
         mapIncident.put("InfoApplicant", "" + pms.get("nameLocation") + ", " + pms.get("fullNameUser"))
         mapIncident.remove("id")
         mapIncident.remove("cls")
@@ -1737,7 +1802,8 @@ class DataDao extends BaseMdbUtils {
             }
             if (!bOk)
                 throw new XError("По данным координатам существует запись")
-        }        //
+        }
+        //
         long own
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
         Map<String, Object> par = new HashMap<>(pms)
@@ -1779,129 +1845,146 @@ class DataDao extends BaseMdbUtils {
             pms.put("fvFlagParameter", idFV_False)
             pms.put("pvFlagParameter", pvFlagParameter)
             fillProperties(true, "Prop_FlagParameter", pms)
-            //
-
             //5 Prop_StartKm
-            if (pms.getString("StartKm") != "")
+            if (pms.getLong("StartKm") > 0)
                 fillProperties(true, "Prop_StartKm", pms)
             else
                 throw new XError("[StartKm] not specified")
-
             //6 Prop_FinishKm
-            if (pms.getString("FinishKm") != "")
+            if (pms.getLong("FinishKm") > 0)
                 fillProperties(true, "Prop_FinishKm", pms)
             else
                 throw new XError("[FinishKm] not specified")
-
             //7 Prop_StartPicket
-            if (pms.getInt("StartPicket") > 0)
+            if (pms.getLong("StartPicket") > 0)
                 fillProperties(true, "Prop_StartPicket", pms)
-
+            else
+                throw new XError("[StartPicket] not specified")
             //8 Prop_FinishPicket
-            if (pms.getInt("FinishPicket") > 0)
+            if (pms.getLong("FinishPicket") > 0)
                 fillProperties(true, "Prop_FinishPicket", pms)
-
+            else
+                throw new XError("[FinishPicket] not specified")
             //9 Prop_StartLink
-            if (pms.getInt("StartLink") > 0)
+            if (pms.getLong("StartLink") > 0)
                 fillProperties(true, "Prop_StartLink", pms)
-
+            else
+                throw new XError("[StartLink] not specified")
             //10 Prop_FinishLink
-            if (pms.getInt("FinishLink") > 0)
+            if (pms.getLong("FinishLink") > 0)
                 fillProperties(true, "Prop_FinishLink", pms)
-
+            else
+                throw new XError("[FinishLink] not specified")
             //11 Prop_FactDateEnd
-            if (pms.getString("FactDateEnd") != "")
+            if (!pms.getString("FactDateEnd").isEmpty())
                 fillProperties(true, "Prop_FactDateEnd", pms)
             else
                 throw new XError("[FactDateEnd] not specified")
-
             //12 Prop_CreatedAt
-            if (pms.getString("CreatedAt") != "")
+            if (!pms.getString("CreatedAt").isEmpty())
                 fillProperties(true, "Prop_CreatedAt", pms)
+            else
+                throw new XError("[CreatedAt] not specified")
             //13 Prop_UpdatedAt
-            if (pms.getString("UpdatedAt") != "")
+            if (!pms.getString("UpdatedAt").isEmpty())
                 fillProperties(true, "Prop_UpdatedAt", pms)
-
+            else
+                throw new XError("[UpdatedAt] not specified")
             //14 Prop_ReasonDeviation
-            if (pms.getString("ReasonDeviation") != "")
+            if (!pms.getString("ReasonDeviation").isEmpty())
                 fillProperties(true, "Prop_ReasonDeviation", pms)
-
+            //
         } else if (mode.equalsIgnoreCase("upd")) {
             own = pms.getLong("id")
             par.put("fullName", par.get("name"))
             eu.updateEntity(par)
             //
             pms.put("own", own)
-
             //1 Prop_LocationClsSection
-            updateProperties("Prop_LocationClsSection", pms)
+            if (pms.containsKey("idLocationClsSection")) {
+                if (pms.getLong("objLocationClsSection") > 0)
+                    updateProperties("Prop_LocationClsSection", pms)
+                else
+                    throw new XError("[objLocationClsSection] not specified")
+            }
             //2 Prop_WorkPlan
-            updateProperties("Prop_WorkPlan", pms)
+            if (pms.containsKey("idWorkPlan")) {
+                if (pms.getLong("objWorkPlan") > 0)
+                    updateProperties("Prop_WorkPlan", pms)
+                else
+                    throw new XError("[objWorkPlan] not specified")
+            }
             //3 Prop_User
-            updateProperties("Prop_User", pms)
-
-            //5 Prop_StartKm
-            updateProperties("Prop_StartKm", pms)
-            //6 Prop_FinishKm
-            updateProperties("Prop_FinishKm", pms)
-
-            //7 Prop_StartPicket
-            if (pms.containsKey("idStartPicket"))
-                updateProperties("Prop_StartPicket", pms)
-            else {
-                if (pms.getInt("StartPicket") > 0)
-                    fillProperties(true, "Prop_StartPicket", pms)
+            if (pms.containsKey("idUser")) {
+                if (pms.getLong("objUser") > 0)
+                    updateProperties("Prop_User", pms)
+                else
+                    throw new XError("[objUser] not specified")
             }
-
+            //4 Prop_StartKm
+            if (pms.containsKey("idStartKm")) {
+                if (pms.getLong("StartKm") > 0)
+                    updateProperties("Prop_StartKm", pms)
+                else
+                    throw new XError("[StartKm] not specified")
+            }
+            //5 Prop_StartPicket
+            if (pms.containsKey("idStartPicket")) {
+                if (pms.getLong("StartPicket") > 0)
+                    updateProperties("Prop_StartPicket", pms)
+                else
+                    throw new XError("[StartPicket] not specified")
+            }
+            //6 Prop_StartLink
+            if (pms.containsKey("idStartLink")) {
+                if (pms.getLong("StartLink") > 0)
+                    updateProperties("Prop_StartLink", pms)
+                else
+                    throw new XError("[StartLink] not specified")
+            }
+            //7 Prop_FinishKm
+            if (pms.containsKey("idFinishKm")) {
+                if (pms.getLong("FinishKm") > 0)
+                    updateProperties("Prop_FinishKm", pms)
+                else
+                    throw new XError("[FinishKm] not specified")
+            }
             //8 Prop_FinishPicket
-            if (pms.containsKey("idFinishPicket"))
-                updateProperties("Prop_FinishPicket", pms)
-            else {
-                if (pms.getInt("FinishPicket") > 0)
-                    fillProperties(true, "Prop_FinishPicket", pms)
+            if (pms.containsKey("idFinishPicket")) {
+                if (pms.getLong("FinishPicket") > 0)
+                    updateProperties("Prop_FinishPicket", pms)
+                else
+                    throw new XError("[FinishPicket] not specified")
             }
-
-
-            //9 Prop_StartLink
-            if (pms.containsKey("idStartLink"))
-                updateProperties("Prop_StartLink", pms)
-            else {
-                if (pms.getInt("StartLink") > 0)
-                    fillProperties(true, "Prop_StartLink", pms)
+            //9 Prop_FinishLink
+            if (pms.containsKey("idFinishLink")) {
+                if (pms.getLong("FinishLink") > 0)
+                    updateProperties("Prop_FinishLink", pms)
+                else
+                    throw new XError("[FinishLink] not specified")
             }
-            //10 Prop_FinishLink
-            if (pms.containsKey("idFinishLink"))
-                updateProperties("Prop_FinishLink", pms)
-            else {
-                if (pms.getInt("FinishLink") > 0)
-                    fillProperties(true, "Prop_FinishLink", pms)
+            //10 Prop_FactDateEnd
+            if (pms.containsKey("idFactDateEnd")) {
+                if (pms.getString("FactDateEnd").isEmpty())
+                    throw new XError("[FactDateEnd] not specified")
+                else
+                    updateProperties("Prop_FactDateEnd", pms)
             }
-
-
-            //11 Prop_FactDateEnd
-            updateProperties("Prop_FactDateEnd", pms)
-            //12 Prop_CreatedAt
-            if (pms.containsKey("idCreatedAt"))
-                updateProperties("Prop_CreatedAt", pms)
-            else {
-                if (pms.getString("CreatedAt") != "")
-                    fillProperties(true, "Prop_CreatedAt", pms)
+            //11 Prop_UpdatedAt
+            if (pms.containsKey("idUpdatedAt")) {
+                if (pms.getString("UpdatedAt").isEmpty())
+                    throw new XError("[UpdatedAt] not specified")
+                else
+                    updateProperties("Prop_UpdatedAt", pms)
             }
-            //13 Prop_UpdatedAt
-            if (pms.containsKey("idUpdatedAt"))
-                updateProperties("Prop_UpdatedAt", pms)
-            else {
-                if (pms.getString("UpdatedAt") != "")
-                    fillProperties(true, "Prop_UpdatedAt", pms)
-            }
-            //14 Prop_ReasonDeviation
-            if (pms.containsKey("idReasonDeviation"))
+            //12 Prop_ReasonDeviation
+            if (pms.containsKey("idReasonDeviation")) {
                 updateProperties("Prop_ReasonDeviation", pms)
-            else {
-                if (pms.getString("ReasonDeviation") != "")
+            } else {
+                if (!pms.getString("ReasonDeviation").isEmpty())
                     fillProperties(true, "Prop_ReasonDeviation", pms)
             }
-
+            //
         } else {
             throw new XError("Нейзвестный режим сохранения ('ins', 'upd')")
         }

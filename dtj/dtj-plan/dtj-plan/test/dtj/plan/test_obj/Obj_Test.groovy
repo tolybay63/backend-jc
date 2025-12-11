@@ -44,16 +44,24 @@ class Obj_Test extends Apx_Test {
     void test_findLocationOfCoord() {
 /*
         {
-			"objWork": 2425,
-            "StartKm": 7,
-            "FinishKm": 10,
-            "StartPicket": 7,
-            "FinishPicket": 7
+			"objWork": 2477,
+            "StartKm": 20,
+            "FinishKm": 29,
+            "StartPicket": 1,
+            "FinishPicket": 10,
+            "StartLink": 2,
+            "FinishLink": 1
         }
  */
 
-        Map<String, Object> map = Map.of("objWork", 0, "StartKm", 7,
-        "FinishKm", 10, "StartPicket", 7, "FinishPicket", 7) //new HashMap<>()
+        Map<String, Object> map = Map.of(
+            "objWork", 2477,
+            "StartKm", 20,
+            "FinishKm", 29,
+            "StartPicket", 1,
+            "FinishPicket", 10,
+            "StartLink", 2,
+            "FinishLink", 1)
         DataDao dao = mdb.createDao(DataDao.class)
         Store st = dao.findLocationOfCoord(map)
         mdb.outTable(st)
