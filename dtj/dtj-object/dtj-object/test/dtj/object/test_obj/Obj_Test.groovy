@@ -210,12 +210,12 @@ class Obj_Test extends Apx_Test {
         Store stObj = mdb.loadQuery("""
             select o.id 
             from Obj o
-                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=1151
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_StartLink
                 inner join DataPropVal v1 on d1.id=v1.dataprop 
-                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=1152
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_FinishLink
                 inner join DataPropVal v2 on d2.id=v2.dataprop
             where o.cls in (0${idsCls.join(",")})
-        """)
+        """, mapProp)
         Set<Object> idsObj = stObj.getUniqueValues("id")
         //
         Store st = mdb.loadQuery("""
