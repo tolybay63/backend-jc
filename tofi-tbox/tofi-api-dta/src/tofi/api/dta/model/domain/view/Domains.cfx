@@ -149,36 +149,11 @@
         <field name="nameSection" parent="string"/>
 
         <field name="StartKm" parent="long"/>
-
         <field name="FinishKm" parent="long"/>
-
         <field name="StartPicket" parent="long"/>
-
         <field name="FinishPicket" parent="long"/>
-    </domain>
-
-    <domain name="Obj.UnfinishedByDate">
-        <field name="id" parent="long"/>
-        <field name="cls" parent="long"/>
-        <field name="pv" parent="long"/>
-
-        <field name="objObject" parent="long"/>
-        <field name="fullNameObject" parent="string"/>
-        <field name="nameClsObject" parent="string"/>
-
-        <field name="objWork" parent="long"/>
-        <field name="fullNameWork" parent="string"/>
-
-        <field name="objSection" parent="long"/>
-        <field name="nameSection" parent="string"/>
-
-        <field name="StartKm" parent="long"/>
-
-        <field name="FinishKm" parent="long"/>
-
-        <field name="StartPicket" parent="long"/>
-
-        <field name="FinishPicket" parent="long"/>
+        <field name="StartLink" parent="long"/>
+        <field name="FinishLink" parent="long"/>
     </domain>
 
     <domain name="Obj.ObjList">
