@@ -2242,7 +2242,9 @@ class DataDao extends BaseMdbUtils {
                 v5.numberVal as StartPicket,
                 v6.numberVal as FinishPicket,
                 v7.dateTimeVal as PlanDate,
-                v8.dateTimeVal as ActualDateEnd
+                v8.dateTimeVal as ActualDateEnd,
+                v5.numberVal as StartLink,
+                v6.numberVal as FinishLink
             from Obj o
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Work")}
                 left join DataPropVal v1 on d1.id=v1.dataProp
@@ -2259,7 +2261,11 @@ class DataDao extends BaseMdbUtils {
                 left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=${map.get("Prop_PlanDateEnd")}
                 left join DataPropVal v7 on d7.id=v7.dataProp
                 left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=${map.get("Prop_FactDateEnd")}
-                left join DataPropVal v8 on d8.id=v8.dataProp            
+                left join DataPropVal v8 on d8.id=v8.dataProp
+                left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=${map.get("Prop_StartLink")}
+                left join DataPropVal v9 on d9.id=v9.dataprop
+                left join DataProp d10 on d10.objorrelobj=o.id and d10.prop=${map.get("Prop_FinishLink")}
+                left join DataPropVal v10 on d10.id=v10.dataprop
             where o.id in (0${idsWorkPlan.join(",")})
         """, "", "plandata")
         StoreIndex indWPprops = stWPprops.getIndex("id")
@@ -2281,6 +2287,8 @@ class DataDao extends BaseMdbUtils {
                 r.set("FinishKm", rWPprops.getDouble("FinishKm"))
                 r.set("StartPicket", rWPprops.getDouble("StartPicket"))
                 r.set("FinishPicket", rWPprops.getDouble("FinishPicket"))
+                r.set("StartLink", rWPprops.getDouble("StartLink"))
+                r.set("FinishLink", rWPprops.getDouble("FinishLink"))
                 r.set("PlanDate", rWPprops.getString("PlanDate"))
                 r.set("ActualDateEnd", rWPprops.getString("ActualDateEnd"))
             }
