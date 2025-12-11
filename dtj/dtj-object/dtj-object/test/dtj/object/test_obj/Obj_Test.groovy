@@ -6,8 +6,15 @@ import jandcode.core.apx.test.Apx_Test
 import jandcode.core.store.Store
 import jandcode.core.store.StoreRecord
 import org.junit.jupiter.api.Test
+import tofi.api.mdl.ApiMeta
+import tofi.apinator.ApinatorApi
+import tofi.apinator.ApinatorService
 
 class Obj_Test extends Apx_Test {
+
+    ApinatorApi apiMeta() {
+        return app.bean(ApinatorService).getApi("meta")
+    }
 
     @Test
     void loadSection_test() {
@@ -192,27 +199,43 @@ class Obj_Test extends Apx_Test {
 
     @Test
     void assignValueOne() {
+        Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        Map<String, Long> mapTyp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Object", "")
+
+        Store stCls = apiMeta().get(ApiMeta).loadSql("""
+            select id from Cls where typ=${mapTyp.get("Typ_Object")}
+        """, "")
+        Set<Object> idsCls = stCls.getUniqueValues("id")
+        //
         Store stObj = mdb.loadQuery("""
             select o.id 
             from Obj o
-            where o.cls in (1050,1042,1072,1073,1074,1096,1075,1076,1077,1078,1095,1071,1058,1057,1054,1053,1052,1049,1048,1047,1046,1045,1079,1080,1081,1082,1083,1084,1085,1086,1087,1089,1090,1091,1092,1093,1094,1097,1098,1056,1051,1189,1190,1191,1192,1188,1193,1194,1195,1196,1197,1198,1199,1200,1201,1202,1203,1204,1205,1206,1207,1208,1209,1210,1211,1213,1215,1217,1219,1221,1223,1226,1227,1228,1212,1214,1216,1218,1220,1222,1224,1225,1229,1230,1231,1232,1233,1234,1235,1236,1237,1238,1239,1267)
-                and o.id not in (1068,1069,1070,1071,1428,1429,1430,1431,1432,1433,1434,1435,1454,1455,12196,12197,12198,12199,12592,12603)
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=1151
+                inner join DataPropVal v1 on d1.id=v1.dataprop 
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=1152
+                inner join DataPropVal v2 on d2.id=v2.dataprop
+            where o.cls in (0${idsCls.join(",")})
+        """)
+        Set<Object> idsObj = stObj.getUniqueValues("id")
+        //
+        Store st = mdb.loadQuery("""
+            select o.id 
+            from Obj o
+            where o.cls in (0${idsCls.join(",")})
+                and o.id not in (0${idsObj.join(",")})
             order by o.id
         """)
-        Set <Object> ids = stObj.getUniqueValues("id")
-        Map<String, Object> params = new HashMap<>()
-
-        params.put("Prop_StartLink", 1151)
-        params.put("Prop_FinishLink", 1152)
-        params.put("StartLink", 1)
-        params.put("FinishLink", 1)
+        Set <Object> idsOwn = st.getUniqueValues("id")
+        //
+        mapProp.put("StartLink", 1)
+        mapProp.put("FinishLink", 1)
         DataDao dao = mdb.createDao(DataDao.class)
 
-        for (Object o in ids) {
+        for (Object o in idsOwn) {
             long obj = UtCnv.toLong(o)
-            params.put("own", obj)
-            dao.fillPropertiesForTest(true, "Prop_StartLink", params)
-            dao.fillPropertiesForTest(true, "Prop_FinishLink", params)
+            mapProp.put("own", obj)
+            dao.fillPropertiesForTest(true, "Prop_StartLink", mapProp)
+            dao.fillPropertiesForTest(true, "Prop_FinishLink", mapProp)
         }
     }
 
