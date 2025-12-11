@@ -1,6 +1,7 @@
 package dtj.object.test_obj
 
 import dtj.object.dao.DataDao
+import jandcode.commons.UtCnv
 import jandcode.core.apx.test.Apx_Test
 import jandcode.core.store.Store
 import jandcode.core.store.StoreRecord
@@ -187,6 +188,32 @@ class Obj_Test extends Apx_Test {
     void jsonrpc1() throws Exception {
         Map<String, Object> map = apx.execJsonRpc("api", "data/loadObjList", ["Cls_Collections", "Prop_Collections", "nsidata"])
         mdb.outMap(map.get("result") as Map)
+    }
+
+    @Test
+    void assignValueOne() {
+        Store stObj = mdb.loadQuery("""
+            select o.id 
+            from Obj o
+            where o.cls in (1050,1042,1072,1073,1074,1096,1075,1076,1077,1078,1095,1071,1058,1057,1054,1053,1052,1049,1048,1047,1046,1045,1079,1080,1081,1082,1083,1084,1085,1086,1087,1089,1090,1091,1092,1093,1094,1097,1098,1056,1051,1189,1190,1191,1192,1188,1193,1194,1195,1196,1197,1198,1199,1200,1201,1202,1203,1204,1205,1206,1207,1208,1209,1210,1211,1213,1215,1217,1219,1221,1223,1226,1227,1228,1212,1214,1216,1218,1220,1222,1224,1225,1229,1230,1231,1232,1233,1234,1235,1236,1237,1238,1239,1267)
+                and o.id not in (1068,1069,1070,1071,1428,1429,1430,1431,1432,1433,1434,1435,1454,1455,12196,12197,12198,12199,12592,12603)
+            order by o.id
+        """)
+        Set <Object> ids = stObj.getUniqueValues("id")
+        Map<String, Object> params = new HashMap<>()
+
+        params.put("Prop_StartLink", 1151)
+        params.put("Prop_FinishLink", 1152)
+        params.put("StartLink", 1)
+        params.put("FinishLink", 1)
+        DataDao dao = mdb.createDao(DataDao.class)
+
+        for (Object o in ids) {
+            long obj = UtCnv.toLong(o)
+            params.put("own", obj)
+            dao.fillPropertiesForTest(true, "Prop_StartLink", params)
+            dao.fillPropertiesForTest(true, "Prop_FinishLink", params)
+        }
     }
 
 }

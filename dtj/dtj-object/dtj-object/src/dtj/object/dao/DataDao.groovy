@@ -1127,6 +1127,11 @@ class DataDao extends BaseMdbUtils {
         return apiObjectData().get(ApiObjectData).loadObjList(codClsOrTyp, codProp, model)
     }
 
+    @DaoMethod
+    public void fillPropertiesForTest(boolean isObj, String cod, Map<String, Object> params) {
+        fillProperties(isObj, cod, params)
+    }
+
     private void fillProperties(boolean isObj, String cod, Map<String, Object> params) {
         long own = UtCnv.toLong(params.get("own"))
         String keyValue = cod.split("_")[1]
