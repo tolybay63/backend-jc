@@ -67,15 +67,5 @@ public interface ApiObjectData {
      */
     void execSql(String sql);
 
-    /**
-     * create Owner
-     * @param params params
-     */
-    long createOwner(Map<String, Object> params);
-
-    void deleteOwnerWithProperties(long id, int isObj);
-
     Store loadObjList(String codClsOrTyp, String codProp, String model);
-
-    void fillProperties(boolean isObj, String cod, Map<String, Object> params);
 }
