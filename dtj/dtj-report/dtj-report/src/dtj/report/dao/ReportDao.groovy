@@ -87,7 +87,7 @@ class ReportDao extends BaseMdbUtils {
         }
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
         mdb.loadQuery(st, """
-            select o.id, o.cls, v.name, v.objparent as parent,
+            select o.id, o.cls, v.name, v.objparent as parent, null as objUserMulti,
                 v1.id as idMenuItem, v1.strVal as MenuItem,
                 v2.id as idPageTitle, v2.strVal as PageTitle,
                 v3.id as idDescription, v3.multiStrVal as Description,
@@ -95,7 +95,8 @@ class ReportDao extends BaseMdbUtils {
                 v5.id as idLayout, v5.propVal as pvLayout, null as fvLayout, null as nameLayout,
                 v6.id as idUser, v6.obj as objUser, v6.propVal as pvUser, null as fullNameUser,
                 v7.id as idCreatedAt, v7.dateTimeVal as CreatedAt,
-                v8.id as idUpdatedAt, v8.dateTimeVal as UpdatedAt
+                v8.id as idUpdatedAt, v8.dateTimeVal as UpdatedAt,
+                v9.id as idPrivate, v9.propVal as pvPrivate, null as fvPrivate, null as namePrivate
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_MenuItem
@@ -114,12 +115,16 @@ class ReportDao extends BaseMdbUtils {
                 left join DataPropVal v7 on d7.id=v7.dataprop
                 left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_UpdatedAt
                 left join DataPropVal v8 on d8.id=v8.dataprop
+                left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=:Prop_Private
+                left join DataPropVal v9 on d9.id=v9.dataprop
             where ${whe}
         """, map)
         if (st.size() == 0)
             return null
         //Пересечение
         Set<Object> pvs = st.getUniqueValues("pvLayout")
+        Set<Object> pvs2 = st.getUniqueValues("pvPrivate")
+        pvs.addAll(pvs2)
         Store stPV = apiMeta().get(ApiMeta).loadSql("""
             select fv.id as fv, pv.id as pv, fv.name from Factor fv, PropVal pv 
             where pv.factorval=fv.id and pv.id in (0${pvs.join(",")})
@@ -133,14 +138,51 @@ class ReportDao extends BaseMdbUtils {
         """, "", "personnaldata")
         StoreIndex indUser = stUser.getIndex("id")
         //
+        Store stMulti = mdb.loadQuery("""
+            select o.id,
+                string_agg (cast(v1.obj as varchar(2000)), ',' order by v1.obj) as lst,
+                string_agg (cast(ov1.name as varchar(4000)), ',' order by v1.obj) as lstName
+            from Obj o 
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_UserMulti
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join ObjVer ov1 on ov1.ownerVer=v1.obj and ov1.lastVer=1
+            where ${whe}
+            group by o.id
+        """, map)
+        StoreIndex indMulti = stMulti.getIndex("id")
+        //
         for (StoreRecord r in st) {
             StoreRecord recUser = indUser.get(r.getLong("objUser"))
             if (recUser != null)
                 r.set("fullNameUser", recUser.getString("fullName"))
-            StoreRecord rec = indPV.get(r.getLong("pvLayout"))
+            StoreRecord recLayout = indPV.get(r.getLong("pvLayout"))
+            if (recLayout != null) {
+                r.set("fvLayout", recLayout.getLong("fv"))
+                r.set("nameLayout", recLayout.getString("name"))
+            }
+            StoreRecord recPrivate = indPV.get(r.getLong("pvPrivate"))
+            if (recPrivate != null) {
+                r.set("fvPrivate", recPrivate.getLong("fv"))
+                r.set("namePrivate", recPrivate.getString("name"))
+            }
+            // Multi
+            StoreRecord rec = indMulti.get(r.getLong("id"))
+            List<Long> lstMulti = new ArrayList<>()
+            List<String> lstMultiName = new ArrayList<>()
             if (rec != null) {
-                r.set("fvLayout", rec.getLong("fv"))
-                r.set("nameLayout", rec.getString("name"))
+                Store stObjList = loadSqlService("""
+                    select o.id, o.cls, v.name, null as pv 
+                    from Obj o, ObjVer v
+                    where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${rec.getString("lst")})                    
+                """, "", "personnaldata")
+                for (StoreRecord record in stObjList) {
+                    lstMulti.add(record.getLong("id"))
+                    lstMultiName.add(record.getString("name"))
+                }
+            }
+            if (!lstMulti.isEmpty()) {
+                r.set("objUserMulti", lstMulti.join(","))
+                r.set("nameUserMulti", lstMultiName.join("; "))
             }
         }
         //mdb.outTable(st)
@@ -152,6 +194,10 @@ class ReportDao extends BaseMdbUtils {
     @DaoMethod
     List<Map<String, Object>> saveReportPage(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
+        //
+        List<Map<String, Object>> objMulti = pms.get("objUserMulti") as List<Map<String, Object>>
+        pms.remove("objUserMulti")
+        //
         long own
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
         if (UtCnv.toString(params.get("name")).trim().isEmpty())
@@ -201,6 +247,12 @@ class ReportDao extends BaseMdbUtils {
                 throw new XError("[UpdatedAt] не указан")
             else
                 fillProperties(true, "Prop_UpdatedAt", pms)
+            //9 Prop_Private
+            if (pms.getLong("fvPrivate") == 0)
+                throw new XError("[Private] не указан")
+            else
+                fillProperties(true, "Prop_Private", pms)
+            //
         } else if (mode.equalsIgnoreCase("upd")) {
             own = pms.getLong("id")
             par.putIfAbsent("fullName", pms.getString("name"))
@@ -255,8 +307,25 @@ class ReportDao extends BaseMdbUtils {
                     throw new XError("[UpdatedAt] не указан")
                 else
                     updateProperties("Prop_UpdatedAt", pms)
+            //8 Prop_Private
+            if (pms.containsKey("idPrivate")) {
+                if (pms.getLong("fvPrivate") == 0)
+                    throw new XError("[Private] не указан")
+                else
+                    updateProperties("Prop_Private", pms)
+            } else {
+                if (pms.getLong("fvPrivate") == 0)
+                    throw new XError("[Private] не указан")
+                else
+                    fillProperties(true, "Prop_Private", pms)
+            }
+            //
         } else {
             throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
+        }
+        //
+        if (objMulti != null) {
+            saveObjectTypeMulti(own, objMulti)
         }
         //
         return loadReportPage(own)
@@ -3236,6 +3305,55 @@ class ReportDao extends BaseMdbUtils {
 
     //-------------------------
 
+    private void saveObjectTypeMulti(long own, List<Map<String, Object>> objLst) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_UserMulti", "")
+        if (map.isEmpty())
+            throw new XError("NotFoundCod@Prop_UserMulti")
+        map.put("own", own)
+        Store stOld = mdb.loadQuery("""
+            select v.id, v.obj
+            from DataProp d
+                left join DataPropVal v on d.id=v.dataprop
+            where d.isObj=1 and d.objOrRelObj=:own and d.prop=:Prop_UserMulti
+        """, map)
+        Set<Long> idsOld = stOld.getUniqueValues("obj") as Set<Long>
+        Set<Long> idsNew = new HashSet<>()
+        for (Map<String, Object> m in objLst) {
+            idsNew.add(UtCnv.toLong(m.get("id")))
+        }
+
+        Set<Long> idsOldVal = new HashSet<>()
+        //Deleting
+        for (StoreRecord r in stOld) {
+            if (!idsNew.contains(r.getLong("obj"))) {
+                idsOldVal.add(r.getLong("id"))
+            }
+        }
+        if (idsOldVal.size() > 0) {
+            mdb.execQuery("""
+                delete from DataPropVal where id in (${idsOldVal.join(",")});
+                delete from DataProp
+                where id in (
+                    select id from DataProp
+                    except
+                    select dataprop as id from DataPropVal
+                )
+            """)
+        }
+        //Adding
+        Map<String, Object> pms = new HashMap<>()
+        pms.put("own", own)
+
+        for (Map<String, Object> m in objLst) {
+            idsNew.add(UtCnv.toLong(UtCnv.toLong(m.get("id"))))
+            if (!idsOld.contains(m.get("id"))) {
+                pms.put("objUserMulti", UtCnv.toLong(m.get("id")))
+                pms.put("pvUserMulti", UtCnv.toLong(m.get("pv")))
+                fillProperties(true, "Prop_UserMulti", pms)
+            }
+        }
+    }
+
     private void fillProperties(boolean isObj, String cod, Map<String, Object> params) {
         long own = UtCnv.toLong(params.get("own"))
         String keyValue = cod.split("_")[1]
@@ -3378,7 +3496,8 @@ class ReportDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_VisualTyp") ||
                     cod.equalsIgnoreCase("Prop_Layout") ||
                     cod.equalsIgnoreCase("Prop_Width") ||
-                    cod.equalsIgnoreCase("Prop_Height")) {
+                    cod.equalsIgnoreCase("Prop_Height") ||
+                    cod.equalsIgnoreCase("Prop_Private")) {
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
                 }
@@ -3418,7 +3537,8 @@ class ReportDao extends BaseMdbUtils {
         //Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_User") ||
-                    cod.equalsIgnoreCase("Prop_LinkToView")) {
+                    cod.equalsIgnoreCase("Prop_LinkToView") ||
+                    cod.equalsIgnoreCase("Prop_UserMulti")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
@@ -3574,7 +3694,8 @@ class ReportDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_VisualTyp") ||
                     cod.equalsIgnoreCase("Prop_Layout") ||
                     cod.equalsIgnoreCase("Prop_Width") ||
-                    cod.equalsIgnoreCase("Prop_Height")) {
+                    cod.equalsIgnoreCase("Prop_Height") ||
+                    cod.equalsIgnoreCase("Prop_Private")) {
                 if (propVal > 0)
                     sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
                 else {

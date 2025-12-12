@@ -154,6 +154,9 @@
         <field name="FinishPicket" parent="long"/>
         <field name="StartLink" parent="long"/>
         <field name="FinishLink" parent="long"/>
+
+        <field name="FactDateEnd" parent="string"/>
+        <field name="PlanDateEnd" parent="string"/>
     </domain>
 
     <domain name="Obj.ObjList">

@@ -163,6 +163,14 @@
             <field name="pvLayout" parent="long"/>
             <field name="nameLayout" parent="string"/>
 
+            <field name="idPrivate" parent="long"/>
+            <field name="fvPrivate" parent="long"/>
+            <field name="pvPrivate" parent="long"/>
+            <field name="namePrivate" parent="string"/>
+
+            <field name="objUserMulti" parent="string"/>
+            <field name="nameUserMulti" parent="string"/>
+
             <field name="idDescription" parent="long"/>
             <field name="Description" parent="string"/>
 
