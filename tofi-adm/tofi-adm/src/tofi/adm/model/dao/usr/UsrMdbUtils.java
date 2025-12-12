@@ -11,6 +11,7 @@ import jandcode.core.std.CfgService;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
 import org.apache.tools.ant.taskdefs.Sleep;
+import tofi.api.dta.ApiPersonnalData;
 import tofi.api.dta.ApiUserData;
 import tofi.api.mdl.ApiMeta;
 import tofi.api.mdl.model.consts.FD_AccessLevel_consts;
@@ -24,9 +25,11 @@ public class UsrMdbUtils extends BaseMdbUtils {
     ApinatorApi apiMeta() {
         return getApp().bean(ApinatorService.class).getApi("meta");
     }
-
     ApinatorApi apiUserData() {
         return getApp().bean(ApinatorService.class).getApi("userdata");
+    }
+    ApinatorApi apiPersonnalData() {
+        return getApp().bean(ApinatorService.class).getApi("personnaldata");
     }
 
     String checkAccount(long id) throws Exception {
@@ -37,8 +40,13 @@ public class UsrMdbUtils extends BaseMdbUtils {
         Store st = apiUserData().get(ApiUserData.class).infoUser(mapCods, id, UtString.join(setCls, ","), "0");
         if (st.size() > 0)
             return st.get(0).getString("name");
-        else
-            return "";
+        else {
+            st = apiPersonnalData().get(ApiPersonnalData.class).infoUser(mapCods, id, UtString.join(setCls, ","), "0");
+            if (st.size() > 0)
+                return st.get(0).getString("name");
+            else
+                return "";
+        }
     }
 
 

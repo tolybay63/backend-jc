@@ -43,6 +43,34 @@ class ApiPersonnalDataImpl extends BaseMdbUtils implements ApiPersonnalData {
         return app.bean(ApinatorService).getApi("orgstructuredata")
     }
 
+    @Override
+    Store infoUser(Map<String, Long> mapCods, long authuser, String idsCls, String idsUser) {
+        String whe = "dv.strval='${authuser}' and o.cls in (${idsCls})"
+        if (authuser == 0)
+            whe = "o.cls in (${idsCls})"
+        if (idsUser.contains(","))
+            whe = "o.id in (${idsUser})"
+
+        Store st= mdb.createStore("UserInfo")
+        mdb.loadQuery(st, """
+            select o.id, o.cls, dv.authUser as authUser,
+                dv1.strVal || ' ' || dv2.strVal || case when dv3.strVal <> '' then ' '||dv3.strVal else '' end as name,
+                dv1.strVal as UserSecondName, dv2.strVal as UserFirstName, case when dv3.strVal <> '' then dv3.strVal else '' end as UserMiddleName 
+            from Obj o
+                left join ObjVer v on o.id=v.ownerver and v.lastVer=1
+                left join DataProp d on d.isobj=1 and d.objorrelobj=o.id and d.prop=:Prop_UserId
+                left join DataPropVal dv on d.id=dv.dataprop
+                left join DataProp d1 on d1.isobj=1 and d1.objorrelobj=o.id and d1.prop=:Prop_UserSecondName
+                left join DataPropVal dv1 on d1.id=dv1.dataprop
+                left join DataProp d2 on d2.isobj=1 and d2.objorrelobj=o.id and d2.prop=:Prop_UserFirstName
+                left join DataPropVal dv2 on d2.id=dv2.dataprop
+                left join DataProp d3 on d3.isobj=1 and d3.objorrelobj=o.id and d3.prop=:Prop_UserMiddleName
+                left join DataPropVal dv3 on d3.id=dv3.dataprop
+            where ${whe}
+        """, mapCods)
+        //
+        return st
+    }
 
     @Override
     Store loadSql(String sql, String domain) {

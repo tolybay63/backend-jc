@@ -34,6 +34,7 @@ public class RegMdbUtils extends BaseModelDao {
         st = mdb.createStore("AuthUser");
         StoreRecord r = st.add(rec);
         r.set("authUserGr", 2);
+        r.set("accessLevel", 1);
         r.set("locked", 0);
         mdb.insertRec("AuthUser", r, true);
     }

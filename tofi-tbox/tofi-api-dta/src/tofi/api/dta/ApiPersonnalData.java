@@ -7,6 +7,14 @@ import java.util.Map;
 public interface ApiPersonnalData {
 
     /**
+     *
+     * @param mapCods: [cod: id]
+     * @param authuser: id User
+     * @return info User
+     */
+    Store infoUser(Map<String,Long> mapCods, long authuser, String idsCls, String idsUser);
+
+    /**
      * @param sql text of Sql
      * @return Store
      */

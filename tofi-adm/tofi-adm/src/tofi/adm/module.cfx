@@ -57,6 +57,7 @@
         <model name="default" instance="tofi.adm.model"/>
         <model name="meta" instance="tofi.api.mdl.model"/>
         <model name="userdata" instance="tofi.api.dta.model"/>
+        <model name="personnaldata" instance="tofi.api.dta.model"/>
     </dbm>
 
     <x-include path="dao.cfx"/>
