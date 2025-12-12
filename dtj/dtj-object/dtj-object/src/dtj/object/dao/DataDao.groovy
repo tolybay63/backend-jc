@@ -628,7 +628,7 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v8 on d8.id=v8.dataprop
                 left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=:Prop_FinishLink
                 left join DataPropVal v9 on d9.id=v9.dataprop
-            where ${whe}
+            where ${whe} order by v1.numberVal
         """, map)
         //... Пересечение
         Set<Object> idsUser = st.getUniqueValues("objUser")
@@ -694,7 +694,7 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v9 on d9.id=v9.dataprop
                 left join DataProp d10 on d10.objorrelobj=o.id and d10.prop=:Prop_StageLength
                 left join DataPropVal v10 on d10.id=v10.dataprop
-            where ${whe}
+            where ${whe} order by v1.numberVal
         """, map)
         //... Пересечение
         Set<Object> idsUser = st.getUniqueValues("objUser")
