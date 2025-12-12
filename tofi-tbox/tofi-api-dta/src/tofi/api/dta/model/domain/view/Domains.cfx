@@ -148,6 +148,9 @@
         <field name="objSection" parent="long"/>
         <field name="nameSection" parent="string"/>
 
+        <field name="objLocationClsSection" parent="long"/>
+        <field name="nameLocationClsSection" parent="string"/>
+
         <field name="StartKm" parent="long"/>
         <field name="FinishKm" parent="long"/>
         <field name="StartPicket" parent="long"/>

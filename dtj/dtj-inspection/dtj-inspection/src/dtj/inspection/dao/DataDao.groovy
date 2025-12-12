@@ -55,7 +55,6 @@ class DataDao extends BaseMdbUtils {
         return app.bean(ApinatorService).getApi("incidentdata")
     }
 
-
     //todo Temporary
     @DaoMethod
     Store findLocationOfCoord(Map<String, Object> params) {
@@ -1353,7 +1352,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadObjClsWorkPlanInspectionUnfinishedByDate_(Long objLocation) {
+    Store loadWorkPlanInspectionUnfinished(Long objLocation) {
         Store stLocation = loadObjLocationSectionForSelect(objLocation)
         Set<Object> idsLocation = stLocation.getUniqueValues("id")
         //
@@ -1390,7 +1389,8 @@ class DataDao extends BaseMdbUtils {
                 v7.numberVal as StartLink,
                 v8.numberVal as FinishLink,
                 v9.dateTimeVal as PlanDateEnd,
-                v10.dateTimeVal as FactDateEnd
+                v10.dateTimeVal as FactDateEnd,
+                v11.obj as objLocationClsSection, null as nameLocationClsSection
             from Obj o
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Work")}
                 left join DataPropVal v1 on d1.id=v1.dataprop             
@@ -1412,7 +1412,10 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v9 on d9.id=v9.dataprop
                 left join DataProp d10 on d10.objorrelobj=o.id and d10.prop=${map.get("Prop_FactDateEnd")}
                 left join DataPropVal v10 on d10.id=v10.dataprop
+                left join DataProp d11 on d11.objorrelobj=o.id and d11.prop=${map.get("Prop_LocationClsSection")}
+                left join DataPropVal v11 on d11.id=v11.dataprop
             where o.id in (0${idsWP.join(",")})
+            order by v9.dateTimeVal, v11.obj
         """, "Obj.UnfinishedByDate", "plandata")
         mdb.outTable(st)
         // find pv...
@@ -1425,20 +1428,28 @@ class DataDao extends BaseMdbUtils {
         if (stPV.size() > 0) {
             pv = stPV.get(0).getLong("id")
         } else {
-            throw new XError("Не найден pvWorkPlan")
+            throw new XError("Не найден [pvWorkPlan]")
         }
         //
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Object", "")
+        Set<Object> idsObject = st.getUniqueValues("objObject")
+        Store stObject = loadSqlService("""
+            select o.id, o.cls, ov.fullName, null as nameClsObject,
+                v1.obj as objSection, ov1.name as nameSection
+            from Obj o
+                left join ObjVer ov on ov.ownerVer=o.id and ov.lastVer=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Section")}
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join ObjVer ov1 on ov1.ownerVer=v1.obj and ov1.lastVer=1
+            where o.id in (0${idsObject.join(",")})
+        """, "", "objectdata")
+        //
+        Set<Object> idsClsObject = stObject.getUniqueValues("cls")
         Store stCls = loadSqlMeta("""
-            select c.id, v.name from Cls c, ClsVer v where c.id=v.ownerVer and v.lastVer=1 and typ=${map.get("Typ_Object")}
+            select c.id, v.name from Cls c, ClsVer v 
+            where c.id=v.ownerVer and v.lastVer=1 and c.id in (0${idsClsObject.join(",")})
         """, "")
         StoreIndex indCls = stCls.getIndex("id")
-        Set<Object> idsCls = stCls.getUniqueValues("id")
-        Store stObject = loadSqlService("""
-            select o.id, o.cls, v.fullName, null as nameClsObject
-            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
-        """, "", "objectdata")
-
+        //
         for (StoreRecord r in stObject) {
             StoreRecord rec = indCls.get(r.getLong("cls"))
             if (rec != null)
@@ -1446,12 +1457,19 @@ class DataDao extends BaseMdbUtils {
         }
         StoreIndex indObject = stObject.getIndex("id")
         //
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_WorkInspection", "")
+        Set<Object> idsWork = st.getUniqueValues("objWork")
         Store stWork = loadSqlService("""
             select o.id, o.cls, v.fullName
-            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.cls=${map.get("Cls_WorkInspection")}
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsWork.join(",")})
         """, "", "nsidata")
         StoreIndex indWork = stWork.getIndex("id")
+        //
+        Set<Object> idsLocationClsSection = st.getUniqueValues("objLocationClsSection")
+        Store stLocationClsSection = loadSqlService("""
+            select o.id, o.cls, v.name
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsLocationClsSection.join(",")})
+        """, "", "orgstructuredata")
+        StoreIndex indLocationClsSection = stLocationClsSection.getIndex("id")
         //
         for (StoreRecord r in st) {
             r.set("pv", pv)
@@ -1463,30 +1481,15 @@ class DataDao extends BaseMdbUtils {
             if (rObject != null) {
                 r.set("fullNameObject", rObject.getString("fullName"))
                 r.set("nameClsObject", rObject.getString("nameClsObject"))
+                r.set("objSection", rObject.getLong("objSection"))
+                r.set("nameSection", rObject.getString("nameSection"))
+            }
+            StoreRecord rLocation = indLocationClsSection.get(r.getLong("objLocationClsSection"))
+            if (rLocation != null) {
+                r.set("nameLocationClsSection", rLocation.getString("name"))
             }
         }
-        Set<Object> idsObject = st.getUniqueValues("objObject")
         //
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Section", "")
-        Store stSection = loadSqlService("""
-            select o.id, o.cls, v1.obj as objSection, ov1.name as nameSection
-            from Obj o
-                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Section")}
-                left join DataPropVal v1 on d1.id=v1.dataprop
-                left join ObjVer ov1 on ov1.ownerVer=v1.obj and ov1.lastVer=1
-            where o.id in (0${idsObject.join(",")})
-        """, "", "objectdata")
-
-        StoreIndex indSection = stSection.getIndex("id")
-        //
-        for (StoreRecord r in st) {
-            StoreRecord rec = indSection.get(r.getLong("objObject"))
-            if (rec != null) {
-                r.set("nameSection", rec.getString("nameSection"))
-                r.set("objSection", rec.getString("objSection"))
-            }
-        }
-
         return st
     }
 
