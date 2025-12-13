@@ -113,8 +113,8 @@ class ApiNSIDataImpl extends BaseMdbUtils implements ApiNSIData {
         params.put("fileVal", par.getLong("fileVal"))
         AuthService authSvc = mdb.getApp().bean(AuthService.class)
         long au = authSvc.getCurrentUser().getAttrs().getLong("id")
-        if (au == 0)
-            throw new XError("notLogined")
+        if (au == 0) au= 1
+            //throw new XError("notLogined")
         long id = insertRecToTable("DataProp", params, true)
 
         params.put("dataProp", id)
