@@ -288,4 +288,70 @@
         <field name="objDefect" parent="long"/>
         <field name="DefectsIndex" parent="string"/>
     </domain>
+
+    <domain name="Report.ReportTaskLog" parent="base">
+        <field name="id" parent="long"/>
+
+        <field name="objworkplan" parent="long"/>
+        <field name="objtask" parent="string"/>
+
+        <field name="fullnametask" parent="string"/>
+        <field name="valueplan" parent="long"/>
+        <field name="valuefact" parent="long"/>
+
+        <field name="plandatestart" parent="string"/>
+        <field name="plandateend" parent="string"/>
+
+        <field name="factdatestart" parent="string"/>
+        <field name="factdateend" parent="string"/>
+        <field name="objlocationclssection" parent="long"/>
+        <field name="namelocationclssection" parent="string"/>
+        <field name="plan_objwork" parent="long"/>
+        <field name="plan_fullnamework" parent="string"/>
+        <field name="plan_objobject" parent="long"/>
+        <field name="plan_fullnameobject" parent="string"/>
+        <field name="plan_startkm" parent="long"/>
+        <field name="plan_finishkm" parent="long"/>
+        <field name="plan_startpicket" parent="long"/>
+        <field name="plan_finishpicket" parent="long"/>
+        <field name="plan_startlink" parent="long"/>
+        <field name="plan_finishlink" parent="long"/>
+        <field name="plan_plandateend" parent="string"/>
+        <field name="plan_factdateend" parent="string"/>
+        <field name="plan_objsection" parent="long"/>
+        <field name="plan_namesection" parent="string"/>
+        <field name="plan_objincident" parent="long"/>
+        <field name="objevent" parent="long"/>
+        <field name="nameevent" parent="string"/>
+        <field name="objparameterlog" parent="long"/>
+        <field name="objfault" parent="long"/>
+        <field name="pvstatus" parent="long"/>
+        <field name="fvstatus" parent="long"/>
+        <field name="namestatus" parent="string"/>
+        <field name="pvcriticality" parent="long"/>
+        <field name="fvcriticality" parent="long"/>
+        <field name="namecriticality" parent="string"/>
+        <field name="registrationdatetime" parent="string"/>
+        <field name="assigndatetime" parent="string"/>
+        <field name="objinspection" parent="long"/>
+        <field name="par_creationdatetime" parent="string"/>
+        <field name="def_creationdatetime" parent="string"/>
+        <field name="relobjcomponentparams" parent="long"/>
+        <field name="namecomponentparams" parent="string"/>
+        <field name="objdefect" parent="long"/>
+        <field name="namedefect" parent="string"/>
+        <field name="objcomponent" parent="long"/>
+        <field name="namecomponent" parent="string"/>
+        <field name="paramslimit" parent="double"/>
+        <field name="paramslimitmax" parent="double"/>
+        <field name="paramslimitmin" parent="double"/>
+        <field name="ins_objworkplan" parent="long"/>
+        <field name="ins_factdateend" parent="string"/>
+        <field name="ins_plan_objwork" parent="long"/>
+        <field name="ins_plan_fullnamework" parent="string"/>
+        <field name="ins_plan_plandateend" parent="string"/>
+        <field name="ins_plan_factdateend" parent="string"/>
+        <field name="ins_plan_objincident" parent="long"/>
+
+    </domain>
 </root>
