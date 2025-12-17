@@ -1352,12 +1352,17 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadWorkPlanInspectionUnfinished(Long objLocation) {
+    Store loadWorkPlanInspectionUnfinished(Long objLocation, String codCls) {
+        if (objLocation == 0)
+            throw new XError("Не найден [objLocation]")
+        if (codCls.isEmpty())
+            throw new XError("Не найден [codCls]")
+        //
         Store stLocation = loadObjLocationSectionForSelect(objLocation)
         Set<Object> idsLocation = stLocation.getUniqueValues("id")
         //
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_WorkPlanInspection", "")
-        long cls_WorkPlanInspection = map.get("Cls_WorkPlanInspection")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codCls, "")
+        long cls_WorkPlan = map.get(codCls)
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
         //
         Store stTmp = loadSqlService("""
@@ -1365,7 +1370,7 @@ class DataDao extends BaseMdbUtils {
             from Obj o
                 left join DataProp d11 on d11.objorrelobj=o.id and d11.prop=${map.get("Prop_LocationClsSection")}
                 inner join DataPropVal v11 on d11.id=v11.dataprop and v11.obj in (0${idsLocation.join(",")})
-            where o.cls=0${cls_WorkPlanInspection}
+            where o.cls=0${cls_WorkPlan}
             except
             select o.id as own
             from Obj o
@@ -1373,7 +1378,7 @@ class DataDao extends BaseMdbUtils {
                 inner join DataPropVal v1 on d1.id=v1.dataprop
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_LocationClsSection")}
                 inner join DataPropVal v2 on d2.id=v2.dataprop and v2.obj in (0${idsLocation.join(",")})
-            where o.cls=0${cls_WorkPlanInspection}
+            where o.cls=0${cls_WorkPlan}
         """, "", "plandata")
         Set<Object> idsWP = stTmp.getUniqueValues("own")
         //
@@ -1422,7 +1427,7 @@ class DataDao extends BaseMdbUtils {
         Store stPV = loadSqlMeta("""
             select id, prop, cls
             from PropVal
-            where prop=0${map.get("Prop_WorkPlan")} and cls=${cls_WorkPlanInspection}
+            where prop=0${map.get("Prop_WorkPlan")} and cls=${cls_WorkPlan}
         """, "")
         long pv = 0
         if (stPV.size() > 0) {
