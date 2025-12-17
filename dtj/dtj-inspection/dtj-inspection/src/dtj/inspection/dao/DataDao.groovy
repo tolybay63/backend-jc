@@ -1352,7 +1352,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadWorkPlanInspectionUnfinished(Long objLocation, String codCls) {
+    Store loadWorkPlanUnfinished(Long objLocation, String codCls) {
         if (objLocation == 0)
             throw new XError("Не найден [objLocation]")
         if (codCls.isEmpty())
