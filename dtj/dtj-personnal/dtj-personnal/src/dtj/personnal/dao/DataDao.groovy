@@ -1,5 +1,6 @@
 package dtj.personnal.dao
 
+import dtj.personnal.utils.MailSender
 import groovy.transform.CompileStatic
 import jandcode.commons.UtCnv
 import jandcode.commons.datetime.XDate
@@ -173,6 +174,7 @@ class DataDao extends BaseMdbUtils {
         return apiPersonnalData().get(ApiPersonnalData).loadPersonnal(id)
     }
 
+    String gen_psw = ""
     @DaoMethod
     Store savePersonnal(String mode, Map<String, Object> params) {
         Map<String, Object> par = new HashMap<>(params)
@@ -194,10 +196,12 @@ class DataDao extends BaseMdbUtils {
             //
             long userId = 0
             if (params.containsKey("login")) {
-                par.put("passwd", "123456")
+                gen_psw = genPassword()
+                par.put("passwd", gen_psw)
                 userId = regUser(par)
             }
             //
+            boolean err = false
             try {
                 Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Personnel", "")
                 if (map.isEmpty())
@@ -250,9 +254,15 @@ class DataDao extends BaseMdbUtils {
                 if (UtCnv.toLong(params.get("fvIsActive")) > 0)
                     fillProperties(true, "Prop_IsActive", params)
             } catch (Exception e) {
+                err = true
                 e.printStackTrace()
                 if (userId > 0)
                     deleteAuthUser(userId)
+            } finally {
+                if (!err && userId > 0) {
+                    //Отрправляем пароль
+                    sendMsg(UtCnv.toString(params.get("login")), gen_psw, fn, UtCnv.toString(params.get("UserEmail")))
+                }
             }
         } else if (mode.equalsIgnoreCase("upd")) {
             own = UtCnv.toLong(params.get("id"))
@@ -869,4 +879,64 @@ class DataDao extends BaseMdbUtils {
         return au
     }
 
+    private static String genPassword() {
+        String alpha0 = "QWERTYUIOPASDFGHJKLZXCVBNM"
+        String alpha1 = "qwertyuiopasdfghjklzxcvbnm"
+        String sign = "@#^_"
+
+        String psw = ""
+        int i = (int) (Math.random() * alpha0.length())
+        String a = alpha0.split("")[i]
+        psw += a
+        i = (int) (Math.random() * alpha1.length())
+        a = alpha1.split("")[i]
+        psw += a
+        i = (int) (Math.random() * sign.length())
+        a = sign.split("")[i]
+        psw += a
+        i = (int) (Math.random() * alpha0.length())
+        a = alpha1.split("")[i]
+        psw += a
+
+        int n = (int) (Math.random() * 9027)
+        psw += n.toString().padLeft(4, "0")
+
+        return psw
+    }
+
+    private static void sendMsg(String login, String passwd, String fullName, String email) {
+        String txtMsg = """
+<head>
+    <title>Сброс пароля</title>
+</head>
+<body>
+
+<table style='background-color: #f0f0f0; font-family: Arial, Helvetica, sans-serif; width: 540px; margin:20px auto; padding: 60px;    box-sizing: border-box;'>
+
+    <div style='width: 540px; margin:0 auto; font-family: Arial, Helvetica, sans-serif;
+    background-color: #fdfdfd;
+    box-shadow: 0px 0px 9px -2px #000; padding: 40px;'>
+        <h3 style='text-align: center'>Service-360 жүйесінде құпиясөзді жаңарту</h3>
+    <p style='line-height: 24px;'>Құрметті ${fullName}!<br>Сіз Service-360 жүйесіне тіркелдіңіз</p>
+        <p style='line-height: 24px;'>Кіру үшін мәліметтер:<br>Логин: ${login}<br>Құпиясөз: ${passwd}</p>
+    </div>
+</table>
+<table style='background-color: #f0f0f0; width: 540px; font-family: Arial, Helvetica, sans-serif; margin:20px auto; padding: 60px;    box-sizing: border-box;'>
+
+    <div style='width: 540px; margin:0 auto;font-family: Arial, Helvetica, sans-serif;
+    background-color: #fdfdfd;
+    box-shadow: 0px 0px 9px -2px #000; padding: 40px;'>
+        <h3 style='text-align: center'>Сброс пароля в системе Service-360</h3>
+    <p style='line-height: 24px;'>Уважаемый(ая) ${fullName}!<br>Вы зарегистрировались в системе Service-360</p>
+        <p style='line-height: 24px;'>Данные для входа:<br>Логин: ${login}<br>Пароль: ${passwd}</p>
+    </div>
+</table>
+
+</body>
+</html>
+ """
+
+        MailSender mailSender = new MailSender()
+        mailSender.send("Регистрация", txtMsg, email)
+    }
 }

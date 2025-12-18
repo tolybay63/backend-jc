@@ -19,6 +19,7 @@ class P extends ProjectScript {
                     "tofi-api-dta",
                     "tofi-api-mdl",
                     "tofi-auth",
+		    "jakarta.mail"
                 )
                 depends.dev(
                 )

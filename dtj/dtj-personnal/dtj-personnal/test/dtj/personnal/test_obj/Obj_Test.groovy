@@ -90,4 +90,38 @@ class Obj_Test extends Apx_Test {
         mdb.outMap(map.get("result") as Map)
     }
 
+
+    @Test
+    void get_psw() {
+        String psw = genPassword()
+        System.out.println(psw)
+    }
+
+    private static String genPassword() {
+        String alpha0 = "QWERTYUIOPASDFGHJKLZXCVBNM"
+        String alpha1 = "qwertyuiopasdfghjklzxcvbnm"
+        String sign = "@#^_"
+
+        String psw = ""
+        int i = (int) (Math.random() * alpha0.length())
+        String a = alpha0.split("")[i]
+        psw += a
+        i = (int) (Math.random() * alpha1.length())
+        a = alpha1.split("")[i]
+        psw += a
+        i = (int) (Math.random() * sign.length())
+        a = sign.split("")[i]
+        psw += a
+        i = (int) (Math.random() * alpha0.length())
+        a = alpha1.split("")[i]
+        psw += a
+
+        int n = (int) (Math.random() * 9027)
+        psw += n.toString().padLeft(4, "0")
+
+        return psw
+    }
+
 }
+
+
