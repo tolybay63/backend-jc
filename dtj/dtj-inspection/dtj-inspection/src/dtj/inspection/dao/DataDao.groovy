@@ -1395,7 +1395,7 @@ class DataDao extends BaseMdbUtils {
                 v8.numberVal as FinishLink,
                 v9.dateTimeVal as PlanDateEnd,
                 v10.dateTimeVal as FactDateEnd,
-                v11.obj as objLocationClsSection, null as nameLocationClsSection
+                v11.propVal as pvLocationClsSection, v11.obj as objLocationClsSection, null as nameLocationClsSection
             from Obj o
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Work")}
                 left join DataPropVal v1 on d1.id=v1.dataprop             

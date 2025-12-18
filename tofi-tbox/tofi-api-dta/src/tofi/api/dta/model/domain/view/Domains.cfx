@@ -148,6 +148,7 @@
         <field name="objSection" parent="long"/>
         <field name="nameSection" parent="string"/>
 
+        <field name="pvLocationClsSection" parent="long"/>
         <field name="objLocationClsSection" parent="long"/>
         <field name="nameLocationClsSection" parent="string"/>
 
