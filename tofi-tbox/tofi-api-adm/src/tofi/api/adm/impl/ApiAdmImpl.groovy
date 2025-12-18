@@ -82,15 +82,36 @@ class ApiAdmImpl extends BaseMdbUtils implements ApiAdm {
         if (st.size() > 0) {
             throw new XError("loginExists")
         }
-
         rec.put("passwd", psw)
-
         //
         st = mdb.createStore("AuthUser")
         StoreRecord r = st.add(rec)
         r.set("authUserGr", 2)
         r.set("locked", 0)
         return mdb.insertRec("AuthUser", r, true)
+    }
+
+    @Override
+    void changePasswd(long user, String oldPasswd, String newPasswd) {
+        Store st = mdb.loadQuery("select passwd from AuthUser where id=:id", Map.of("id", user))
+        if (UtString.md5Str(oldPasswd) != st.get(0).getString("passwd")) {
+            throw new XError("Старый пароль неверный")
+        }
+        String psw = UtString.md5Str(newPasswd)
+        mdb.execQuery("update AuthUser set passwd=${psw} where id=${user}")
+    }
+
+    @Override
+    String forgetPasswd(String login, String newPasswd) {
+        Store st = mdb.loadQuery("""
+            select id, login, fullname, email from AuthUser where login like :l
+        """, Map.of("l", login.trim()))
+        if (st.size()==0) {
+            throw new XError("Не найден пользователь с логиом [{0}]", login)
+        }
+        String psw = UtString.md5Str(newPasswd)
+        mdb.execQuery("update AuthUser set passwd=${psw} where id=${st.get(0).getLong("id")}")
+        return st.get(0).getString("email")
     }
 
     @Override

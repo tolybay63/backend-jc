@@ -17,6 +17,10 @@ public interface ApiAdm {
 
     long regUser(Map<String, Object> rec);
 
+    void changePasswd(long user, String oldPasswd, String newPasswd);
+
+    String forgetPasswd(String login, String newPasswd);
+
     void deleteAuthUser(long id);
 
     Store loadSql(String sql, String domain);

@@ -862,6 +862,18 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    void changePasswd(long user, String oldPasswd, String newPasswd) {
+        apiAdm().get(ApiAdm).changePasswd(user, oldPasswd, newPasswd)
+    }
+
+    @DaoMethod
+    void forgetPasswd(String login) {
+        String passwd = genPassword()
+        String email = apiAdm().get(ApiAdm).forgetPasswd(login, passwd)
+        sendPasswd(login, passwd, email)
+    }
+
+    @DaoMethod
     Map<String, Object> getCurUserInfo() {
         AuthService authSvc = mdb.getApp().bean(AuthService.class)
         AuthUser au = authSvc.getCurrentUser()
@@ -916,7 +928,7 @@ class DataDao extends BaseMdbUtils {
     <div style='width: 540px; margin:0 auto; font-family: Arial, Helvetica, sans-serif;
     background-color: #fdfdfd;
     box-shadow: 0px 0px 9px -2px #000; padding: 40px;'>
-        <h3 style='text-align: center'>Service-360 жүйесінде құпиясөзді жаңарту</h3>
+        <h3 style='text-align: center'>Service-360 жүйесіне тіркелу</h3>
     <p style='line-height: 24px;'>Құрметті ${fullName}!<br>Сіз Service-360 жүйесіне тіркелдіңіз</p>
         <p style='line-height: 24px;'>Кіру үшін мәліметтер:<br>Логин: ${login}<br>Құпиясөз: ${passwd}</p>
     </div>
@@ -926,7 +938,7 @@ class DataDao extends BaseMdbUtils {
     <div style='width: 540px; margin:0 auto;font-family: Arial, Helvetica, sans-serif;
     background-color: #fdfdfd;
     box-shadow: 0px 0px 9px -2px #000; padding: 40px;'>
-        <h3 style='text-align: center'>Сброс пароля в системе Service-360</h3>
+        <h3 style='text-align: center'>Регистрация в системе Service-360</h3>
     <p style='line-height: 24px;'>Уважаемый(ая) ${fullName}!<br>Вы зарегистрировались в системе Service-360</p>
         <p style='line-height: 24px;'>Данные для входа:<br>Логин: ${login}<br>Пароль: ${passwd}</p>
     </div>
@@ -935,8 +947,41 @@ class DataDao extends BaseMdbUtils {
 </body>
 </html>
  """
-
         MailSender mailSender = new MailSender()
         mailSender.send("Регистрация", txtMsg, email)
     }
+
+    private static void sendPasswd(String login, String passwd, String email) {
+        String txtMsg = """
+<head>
+    <title>Сброс пароля</title>
+</head>
+<body>
+
+<table style='background-color: #f0f0f0; font-family: Arial, Helvetica, sans-serif; width: 540px; margin:20px auto; padding: 60px;    box-sizing: border-box;'>
+
+    <div style='width: 540px; margin:0 auto; font-family: Arial, Helvetica, sans-serif;
+    background-color: #fdfdfd;
+    box-shadow: 0px 0px 9px -2px #000; padding: 40px;'>
+        <h3 style='text-align: center'>Service-360 жүйесінде құпиясөзді жаңарту</h3>
+        <p style='line-height: 24px;'>Кіру үшін мәліметтер:<br>Логин: ${login}<br>Құпиясөз: ${passwd}</p>
+    </div>
+</table>
+<table style='background-color: #f0f0f0; width: 540px; font-family: Arial, Helvetica, sans-serif; margin:20px auto; padding: 60px;    box-sizing: border-box;'>
+
+    <div style='width: 540px; margin:0 auto;font-family: Arial, Helvetica, sans-serif;
+    background-color: #fdfdfd;
+    box-shadow: 0px 0px 9px -2px #000; padding: 40px;'>
+        <h3 style='text-align: center'>Сброс пароля в системе Service-360</h3>
+        <p style='line-height: 24px;'>Данные для входа:<br>Логин: ${login}<br>Пароль: ${passwd}</p>
+    </div>
+</table>
+
+</body>
+</html>
+ """
+        MailSender mailSender = new MailSender()
+        mailSender.send("Сброс пароля", txtMsg, email)
+    }
+
 }
