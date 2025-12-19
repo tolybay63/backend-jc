@@ -3,6 +3,7 @@ package dtj.personnal.dao
 import dtj.personnal.utils.MailSender
 import groovy.transform.CompileStatic
 import jandcode.commons.UtCnv
+import jandcode.commons.UtString
 import jandcode.commons.datetime.XDate
 import jandcode.commons.datetime.XDateTime
 import jandcode.commons.datetime.XDateTimeFormatter
@@ -863,6 +864,13 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     void changePasswd(long user, String oldPasswd, String newPasswd) {
+        Store st = apiAdm().get(ApiAdm).loadSql("select passwd from AuthUser where id=${user}", "")
+        if (UtString.md5Str(oldPasswd) != st.get(0).getString("passwd")) {
+            throw new XError("Старый пароль неверный")
+        }
+        if (!checkPasswd(newPasswd))
+            throw new XError("Пароль должен состоять не менее чем из 8 знаков, содержать цифры, заглавные и прописные буквы латинского алфавита и специальные знаки (!@#^_)")
+
         apiAdm().get(ApiAdm).changePasswd(user, oldPasswd, newPasswd)
     }
 
@@ -891,10 +899,20 @@ class DataDao extends BaseMdbUtils {
         return au
     }
 
+    private static boolean checkPasswd(String passwd) {
+        def regex = /[!@#^&_]/
+        boolean res = passwd.length() > 7
+        res = res && passwd.matches(".*[A-Z].*")
+        res = res && passwd.matches(".*[a-z].*")
+        res = res && passwd.matches('.*\\d.*')
+        res = res && passwd.find(regex)
+        return res
+    }
+
     private static String genPassword() {
         String alpha0 = "QWERTYUIOPASDFGHJKLZXCVBNM"
         String alpha1 = "qwertyuiopasdfghjklzxcvbnm"
-        String sign = "@#^_"
+        String sign = "!@#^&_"
 
         String psw = ""
         int i = (int) (Math.random() * alpha0.length())
