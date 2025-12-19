@@ -869,7 +869,7 @@ class DataDao extends BaseMdbUtils {
             throw new XError("Старый пароль неверный")
         }
         if (!checkPasswd(newPasswd))
-            throw new XError("Пароль должен состоять не менее чем из 8 знаков, содержать цифры, заглавные и прописные буквы латинского алфавита и специальные знаки (!@#^_)")
+            throw new XError("Пароль должен состоять не менее чем из 8 знаков, содержать цифры, заглавные и прописные буквы латинского алфавита и специальные знаки (!@#^&_)")
 
         apiAdm().get(ApiAdm).changePasswd(user, oldPasswd, newPasswd)
     }
