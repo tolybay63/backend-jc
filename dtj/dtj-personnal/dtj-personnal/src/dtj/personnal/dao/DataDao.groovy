@@ -913,7 +913,6 @@ class DataDao extends BaseMdbUtils {
         String alpha0 = "QWERTYUIOPASDFGHJKLZXCVBNM"
         String alpha1 = "qwertyuiopasdfghjklzxcvbnm"
         String sign = "!@#^&_"
-
         String psw = ""
         int i = (int) (Math.random() * alpha0.length())
         String a = alpha0.split("")[i]
@@ -927,11 +926,13 @@ class DataDao extends BaseMdbUtils {
         i = (int) (Math.random() * alpha0.length())
         a = alpha1.split("")[i]
         psw += a
-
         int n = (int) (Math.random() * 9027)
         psw += n.toString().padLeft(4, "0")
-
-        return psw
+        //
+        List<Character> chars = psw.split("") as List<Character>
+        Collections.shuffle(chars)
+        String shuffledPsw = chars.join('')
+        return shuffledPsw
     }
 
     private static void sendMsg(String login, String passwd, String fullName, String email) {
