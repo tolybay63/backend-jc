@@ -1,5 +1,5 @@
-import jandcode.jc.*
-import jandcode.jc.std.*
+import jandcode.jc.ProjectScript
+import jandcode.jc.std.JavaProject
 
 class P extends ProjectScript {
 
