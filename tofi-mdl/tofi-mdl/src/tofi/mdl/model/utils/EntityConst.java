@@ -172,6 +172,17 @@ public class EntityConst {
      */
     public static long CubeS = 32;
 
+    /*
+     * Группа источников данных
+     */
+    public static long SourceStockGr = 33;
+
+    /*
+     * Источники
+     */
+    public static long SourceStock = 34;
+
+
     //...
 
     /**
@@ -305,6 +316,9 @@ public class EntityConst {
         add(DimMultiPropItem, "DMPI_#", "DimMultiPropItem", "DimMultiPropItem", "Элементы измерения многомерного свойства", false, 1, "dimmultipropitem");
         add(CubeSGr, "CSG_#", "CubeSGr", "CubeSGr", "Группа стандартных кубов", false, 1, "cubesgr");
         add(CubeS, "CS_#", "CubeS", "CubeS", "Стандартные кубы", false, 0, "cubes");
+        add(SourceStockGr, "DSG_#", "SourceStockGr", "SourceStockGr", "Группа источников данных", false, 0, "sourcestockgr");
+        add(SourceStock, "DS_#", "SourceStock", "SourceStock", "Источники данных", false, 0, "sourcestock");
+
 
     }
 

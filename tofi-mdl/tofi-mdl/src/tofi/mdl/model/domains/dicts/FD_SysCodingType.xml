@@ -1,0 +1,5 @@
+<root>
+    <row id="1" text="Регистрационная система" vis="1" ord="1" code="reg"/>
+    <row id="2" text="Иерархическая система" vis="1" ord="2" code="tree"/>
+    <row id="3" text="Фасетная система" vis="1" ord="3" code="faset"/>
+</root>
