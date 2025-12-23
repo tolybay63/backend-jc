@@ -19,16 +19,16 @@
         <field name="fullNameObject" parent="string"/>
 
         <field name="idStartKm" parent="long"/>
-        <field name="StartKm" parent="double"/>
+        <field name="StartKm" parent="long"/>
 
         <field name="idFinishKm" parent="long"/>
-        <field name="FinishKm" parent="double"/>
+        <field name="FinishKm" parent="long"/>
 
         <field name="idStartPicket" parent="long"/>
-        <field name="StartPicket" parent="double"/>
+        <field name="StartPicket" parent="long"/>
 
         <field name="idFinishPicket" parent="long"/>
-        <field name="FinishPicket" parent="double"/>
+        <field name="FinishPicket" parent="long"/>
 
         <field name="idStartLink" parent="long"/>
         <field name="StartLink" parent="long"/>
