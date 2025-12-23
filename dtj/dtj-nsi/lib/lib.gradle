@@ -30,7 +30,9 @@ dependencies {
     v = '3.0.3'
     implementation (group: 'org.apache.pdfbox', name: 'pdfbox', version: v) {
     }
-
+    v = '2.3.1'
+    implementation (group: 'javax.xml.bind', name: 'jaxb-api', version: v) {
+    }
 
 
 
