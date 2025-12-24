@@ -23,6 +23,7 @@ import javax.xml.parsers.DocumentBuilderFactory
 class TestXml extends Apx_Test {
 
     ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
+
     ApinatorApi apiInspectionData() { return app.bean(ApinatorService).getApi("inspectiondata") }
 
     @Test
@@ -36,16 +37,29 @@ class TestXml extends Apx_Test {
             } else if (inputFile.name.startsWith("B")) {
                 parseBall(inputFile)
                 assignPropDefault("_ball")
+                check("_ball")
             }
         } catch (Exception e) {
             e.printStackTrace()
         }
     }
 
+    void check(String domain) {
+        //1 План работы (plandata)
+        //Store stPlan =
+
+
+        //2 Осмотр и проверок
+
+
+        //3 Журнал параметров
+
+
+    }
+
     void assignPropDefault(String domain) {
         Map<String, String> mapCoding = new HashMap<>()
         if (domain == "_ball") {
-            //Map<String,Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
             //
             mapCoding.put("date_obn", "Prop_FactDateEnd")
             mapCoding.put("nomer_mdk", "Prop_NumberTrack")
@@ -60,32 +74,25 @@ class TestXml extends Apx_Test {
                 select sc.id, sc.cod, scc.syscod, scc.cod as codOther
                 from syscoding sc
                     left join syscodingcod scc on scc.syscoding=sc.id
-                where sc.id=${idSysCoding} and scc.cod in (${"'" +mapCoding.keySet().join("','")+"'"})
+                where sc.id=${idSysCoding} and scc.cod in (${"'" + mapCoding.keySet().join("','") + "'"})
             """, "")
-
-            if (stTmp.size()==0) {
-                Store stSysCod = mdb.loadQuery("""
-                    select id, cod from SysCod where cod in (${"'" +mapCoding.values().join("','")+"'"})
-                """)
-                StoreIndex indSysCod = stSysCod.getIndex("cod")
-
-                for (Map.Entry entry : mapCoding) {
+            Set<Object> codsOther = stTmp.getUniqueValues("codOther")
+            Store stSysCod = apiMeta().get(ApiMeta).loadSql("""
+                select id, cod from SysCod where cod in (${"'" + mapCoding.values().join("','") + "'"})
+            """, "")
+            StoreIndex indSysCod = stSysCod.getIndex("cod")
+            for (Map.Entry entry : mapCoding) {
+                if (!codsOther.contains(entry.key)) {
                     StoreRecord rec = mdb.createStoreRecord("SysCodingCod")
-                    StoreRecord  recInd = indSysCod.get(entry.value.toString())
+                    StoreRecord recInd = indSysCod.get(entry.value.toString())
                     if (recInd != null)
                         rec.set("syscod", recInd.getLong("id"))
                     rec.set("sysCoding", idSysCoding)
                     rec.set("cod", entry.key)
+                    apiMeta().get(ApiMeta).insertRecToTable("SysCodingCod", rec.getValues(), true)
                 }
-            } else {
-
             }
-
-
         }
-
-
-
     }
 
 

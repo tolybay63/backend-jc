@@ -9,8 +9,53 @@
         <field name="cod" parent="f.cod"/>
         <field name="linkType" parent="ref"/>
         <field name="linkId" parent="ref"/>
-
-
     </domain>
+
+    <domain name="SysCodingCod" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1"
+            title="Внешний код в системе кодирования sysCoding">
+        <!--@
+            Соответствие внутренних и внешних (по конкретной системе кодирования) кодов
+        -->
+        <field name="sysCod" parent="SysCod/ref"/>
+        <field name="sysCoding" parent="ref">
+            <!--@
+                Ссылка на систему кодирования
+            -->
+        </field>
+        <field name="cod" parent="f.cod">
+            <!--@
+                Соответствующий внутреннему внешний код в системе кодирования sysCoding
+            -->
+        </field>
+    </domain>
+
+    <domain name="SysCoding" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Системы кодирования">
+
+        <field name="cod" parent="f.cod"/>
+        <field name="accessLevel" parent="FD_AccessLevel/ref"/>
+        <field name="sysCodingType" parent="FD_SysCodingType/ref"/>
+        <field name="sgnSeparator" parent="string" size="20"/>
+        <field name="sourceStock" parent="ref">
+            <!-- parent="SourceStock/ref" -->
+        </field>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
+    </domain>
+
+    <domain name="SysCodingItem" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Свойства системы кодирования">
+
+        <field name="sysCoding" parent="SysCoding/ref"/>
+        <field name="factor" parent="Factor/ref"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="maskReg" parent="string" size="1000"/>
+        <field name="cmt" parent="f.cmt"/>
+        <field name="ord" parent="f.ord"/>
+    </domain>
+
 
 </root>

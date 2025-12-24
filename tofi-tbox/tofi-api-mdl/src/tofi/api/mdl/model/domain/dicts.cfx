@@ -407,6 +407,17 @@
           handler="tofi.api.mdl.utils.DictHandler"/>
 
 
+    <!--
+        Тип системы кодирования.
+        Возможные значения:
+        1) Регистрационная система;
+        2) Иерархическая система.
+        3) Фасетная система.
+    -->
+
+    <domain name="FD_SysCodingType" parent="dict.tofi" tag.db="true" title="Тип системы кодирования"/>
+    <dict name="FD_SysCodingType" parent="base" domain="FD_SysCodingType"
+          handler="tofi.mdl.model.utils.DictHandler"/>
 
     <!--******************************************************************-->
     <!--Fill Dicts-->

@@ -3,6 +3,7 @@ package tofi.api.mdl.impl
 import jandcode.commons.UtCnv
 import jandcode.commons.UtString
 import jandcode.commons.datetime.XDate
+import jandcode.commons.datetime.XDateTime
 import jandcode.commons.datetime.XDateTimeFormatter
 import jandcode.commons.error.XError
 import jandcode.core.auth.AuthService
@@ -868,5 +869,23 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
     @Override
     void execSql(String sql) {
         mdb.execQuery(sql)
+    }
+
+    @Override
+    long insertRecToTable(String tableName, Map<String, Object> params, boolean generateId) {
+        Store st = mdb.createStore(tableName)
+        StoreRecord r = st.add(params)
+        if (generateId)
+            return mdb.insertRec(tableName, r, generateId)
+        else {
+            long id = mdb.getNextId(tableName)
+            r.set("id", id)
+            if (st.findField("ord") != null)
+                r.set("ord", id)
+            if (st.findField("timeStamp") != null)
+                r.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
+            //
+            return mdb.insertRec(tableName, r, false);
+        }
     }
 }

@@ -246,4 +246,6 @@ public interface ApiMeta {
      */
     void execSql(String sql);
 
+    long insertRecToTable(String tableName, Map<String, Object> params, boolean generateId);
+
 }

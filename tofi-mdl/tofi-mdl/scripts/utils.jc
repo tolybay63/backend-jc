@@ -48,7 +48,8 @@ class P extends ProjectScript {
             'FD_CubeSType',
             'FD_CubeSDimType',
             'FD_DimMultiPropType',
-	    'FD_CubeSActionType'
+	        'FD_CubeSActionType',
+            'FD_SysCodingType'
     ]
 
     void onInclude() {
