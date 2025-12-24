@@ -1,13 +1,11 @@
 package dtj.nsi.test_obj
 
-
 import jandcode.commons.UtCnv
 import jandcode.commons.datetime.XDate
 import jandcode.commons.datetime.XDateTime
 import jandcode.commons.datetime.XDateTimeFormatter
 import jandcode.core.apx.test.Apx_Test
 import jandcode.core.store.Store
-import jandcode.core.store.StoreRecord
 import org.junit.jupiter.api.Test
 import org.w3c.dom.Document
 import org.w3c.dom.Element
@@ -22,22 +20,30 @@ class TestXml extends Apx_Test {
     @Test
     void test() {
         try {
-            //File inputFile = new File("D:\\backup\\xml\\G057_22042025_113706_64_1 1.xml")
-            File inputFile = new File("D:\\backup\\xml\\B057_22042025_113706_1 1.xml")
-            if (inputFile.name.startsWith("G"))
+            //File inputFile = new File("C:\\jc-2\\_info\\xml\\G057_22042025_113706_64_1 1.xml")
+            File inputFile = new File("C:\\jc-2\\_info\\xml\\B057_22042025_113706_1 1.xml")
+            if (inputFile.name.startsWith("G")) {
                 parseOtstup(inputFile)
-            else if (inputFile.name.startsWith("B"))
+                assignProp("_otstup")
+            } else if (inputFile.name.startsWith("B")) {
                 parseBall(inputFile)
+                assignProp("_ball")
+            }
         } catch (Exception e) {
             e.printStackTrace()
         }
+    }
+
+    void assignProp(String domain) {
+
 
     }
 
 
     void parseOtstup(File inputFile) {
+        String filename = inputFile.name
 
-        System.out.println("Импорт файла: ${inputFile.name}")
+        System.out.println("Импорт файла: ${filename}")
 
         try {
             mdb.startTran()
@@ -56,7 +62,11 @@ class TestXml extends Apx_Test {
                     Element rowElement = (Element) rowNode
                     String ind = rowElement.getElementsByTagName("REC").item(0).getTextContent()
                     String kod_otstup = rowElement.getElementsByTagName("kod_otstup").item(0).getTextContent()
-                    String prizn_most = rowElement.getElementsByTagName("prizn_most").item(0).getTextContent()
+
+                    String prizn_most_s = rowElement.getElementsByTagName("prizn_most").item(0).getTextContent()
+                    Long prizn_most = null
+                    if (!prizn_most_s.isEmpty())
+                        prizn_most = UtCnv.toLong(prizn_most)
                     //
                     String date_obn = rowElement.getElementsByTagName("date_obn").item(0).getTextContent()
                     String time_obn = rowElement.getElementsByTagName("time_obn").item(0).getTextContent()
@@ -71,14 +81,46 @@ class TestXml extends Apx_Test {
                     //
                     String nomer_mdk = rowElement.getElementsByTagName("nomer_mdk").item(0).getTextContent()
                     String avtor = rowElement.getElementsByTagName("avtor").item(0).getTextContent()
-                    String km = rowElement.getElementsByTagName("km").item(0).getTextContent()
-                    String pk = rowElement.getElementsByTagName("pk").item(0).getTextContent()
-                    String metr = rowElement.getElementsByTagName("metr").item(0).getTextContent()
-                    String dlina_ots = rowElement.getElementsByTagName("dlina_ots").item(0).getTextContent()
-                    String velich_ots = rowElement.getElementsByTagName("velich_ots").item(0).getTextContent()
-                    String glub_ots = rowElement.getElementsByTagName("glub_ots").item(0).getTextContent()
-                    String stepen_ots = rowElement.getElementsByTagName("stepen_ots").item(0).getTextContent()
-                    String kol_ots = rowElement.getElementsByTagName("kol_ots").item(0).getTextContent()
+                    //
+                    String km_s = UtCnv.toLong(rowElement.getElementsByTagName("km").item(0).getTextContent())
+                    Long km = null
+                    if (!km_s.isEmpty())
+                        km = UtCnv.toLong(km_s)
+
+                    String pk_s = UtCnv.toLong(rowElement.getElementsByTagName("pk").item(0).getTextContent())
+                    Long pk = null
+                    if (!pk_s.isEmpty())
+                        pk = UtCnv.toLong(pk_s)
+
+                    String metr_s = rowElement.getElementsByTagName("metr").item(0).getTextContent()
+                    Long metr = null
+                    if (!metr_s.isEmpty())
+                        metr = UtCnv.toLong(metr_s)
+
+                    String dlina_ots_s = rowElement.getElementsByTagName("dlina_ots").item(0).getTextContent()
+                    Long dlina_ots = null
+                    if (!dlina_ots_s.isEmpty())
+                        dlina_ots = UtCnv.toLong(dlina_ots_s)
+
+                    String velich_ots_s = rowElement.getElementsByTagName("velich_ots").item(0).getTextContent()
+                    Long velich_ots = null
+                    if (!velich_ots_s.isEmpty())
+                        velich_ots = UtCnv.toLong(velich_ots_s)
+
+                    String glub_ots_s = rowElement.getElementsByTagName("glub_ots").item(0).getTextContent()
+                    Long glub_ots = null
+                    if (!glub_ots_s.isEmpty())
+                        glub_ots = UtCnv.toLong(glub_ots_s)
+
+                    String stepen_ots_s = rowElement.getElementsByTagName("stepen_ots").item(0).getTextContent()
+                    Long stepen_ots = null
+                    if (!stepen_ots_s.isEmpty())
+                        stepen_ots = UtCnv.toLong(stepen_ots_s)
+
+                    String kol_ots_s = UtCnv.toLong(rowElement.getElementsByTagName("kol_ots").item(0).getTextContent())
+                    Long kol_ots = null
+                    if (!kol_ots_s.isEmpty())
+                        kol_ots = UtCnv.toLong(kol_ots_s)
                     //
                     mdb.execQueryNative("""
                         INSERT INTO _otstup (rec,kod_otstup,prizn_most,datetime_obn,nomer_mdk,avtor,km,pk,metr,dlina_ots,velich_ots,glub_ots,stepen_ots,kol_ots)
@@ -86,6 +128,10 @@ class TestXml extends Apx_Test {
                     """)
                 }
             }
+            mdb.execQueryNative("""
+                INSERT INTO public._log (filename, datetime_create, filled, datetime_fill)
+                VALUES('${filename}', '${XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)}', 0, null);
+            """)
         } catch (Exception e) {
             e.printStackTrace()
             mdb.rollback()
@@ -97,8 +143,9 @@ class TestXml extends Apx_Test {
     }
 
     void parseBall(File inputFile) {
+        String filename = inputFile.name
 
-        System.out.println("Импорт файла: ${inputFile.name}")
+        System.out.println("Импорт файла: ${filename}")
 
         try {
             mdb.startTran()
@@ -116,7 +163,10 @@ class TestXml extends Apx_Test {
                 if (rowNode.getNodeType() == Node.ELEMENT_NODE) {
                     Element rowElement = (Element) rowNode
                     String ind = UtCnv.toLong(rowElement.getElementsByTagName("REC").item(0).getTextContent())
-                    String prizn_most = UtCnv.toLong(rowElement.getElementsByTagName("prizn_most").item(0).getTextContent())
+                    String prizn_most_s = rowElement.getElementsByTagName("prizn_most").item(0).getTextContent()
+                    Long prizn_most = null
+                    if (!prizn_most_s.isEmpty())
+                        prizn_most = UtCnv.toLong(prizn_most)
                     String date_obn = rowElement.getElementsByTagName("date_obn").item(0).getTextContent()
                     //
                     String y = date_obn.substring(6)
@@ -126,10 +176,25 @@ class TestXml extends Apx_Test {
                     //
                     String nomer_mdk = rowElement.getElementsByTagName("nomer_mdk").item(0).getTextContent()
                     String avtor = rowElement.getElementsByTagName("avtor").item(0).getTextContent()
-                    String km = UtCnv.toLong(rowElement.getElementsByTagName("km").item(0).getTextContent())
-                    String pk = UtCnv.toLong(rowElement.getElementsByTagName("pk").item(0).getTextContent())
-                    String ballkm = UtCnv.toLong(rowElement.getElementsByTagName("ballkm").item(0).getTextContent())
-                    String kol_ots = UtCnv.toLong(rowElement.getElementsByTagName("kol_ots").item(0).getTextContent())
+                    String km_s = UtCnv.toLong(rowElement.getElementsByTagName("km").item(0).getTextContent())
+                    Long km = null
+                    if (!km_s.isEmpty())
+                        km = UtCnv.toLong(km_s)
+
+                    String pk_s = UtCnv.toLong(rowElement.getElementsByTagName("pk").item(0).getTextContent())
+                    Long pk = null
+                    if (!pk_s.isEmpty())
+                        pk = UtCnv.toLong(pk_s)
+
+                    String ballkm_s = UtCnv.toLong(rowElement.getElementsByTagName("ballkm").item(0).getTextContent())
+                    Long ballkm = null
+                    if (!ballkm_s.isEmpty())
+                        ballkm = UtCnv.toLong(ballkm_s)
+
+                    String kol_ots_s = UtCnv.toLong(rowElement.getElementsByTagName("kol_ots").item(0).getTextContent())
+                    Long kol_ots = null
+                    if (!kol_ots_s.isEmpty())
+                        kol_ots = UtCnv.toLong(kol_ots_s)
                     //
                     mdb.execQueryNative("""
                         INSERT INTO _ball (rec,prizn_most,date_obn,nomer_mdk,avtor,km,pk,ballkm,kol_ots)
@@ -137,6 +202,10 @@ class TestXml extends Apx_Test {
                     """)
                 }
             }
+            mdb.execQueryNative("""
+                INSERT INTO public._log (filename, datetime_create, filled, datetime_fill)
+                VALUES('${filename}', '${XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)}', 0, null);
+            """)
         } catch (Exception e) {
             e.printStackTrace()
             mdb.rollback()
