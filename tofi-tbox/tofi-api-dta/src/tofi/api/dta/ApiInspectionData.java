@@ -21,6 +21,13 @@ public interface ApiInspectionData {
     Store loadSqlWithParams(String sql, Map<String, Object> params, String domain);
 
     /**
+     * @param tableName name of table
+     * @param params    params
+     * @return id of table
+     */
+    long insertRecToTable(String tableName, Map<String, Object> params, boolean generateId);
+
+    /**
      *
      * @param owner id Obj or RelObj
      * @param isObj boolean

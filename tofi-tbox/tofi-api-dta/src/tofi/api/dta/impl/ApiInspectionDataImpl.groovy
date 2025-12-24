@@ -1,8 +1,11 @@
 package tofi.api.dta.impl
 
+import jandcode.commons.datetime.XDateTime
+import jandcode.commons.datetime.XDateTimeFormatter
 import jandcode.commons.error.XError
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
+import jandcode.core.store.StoreRecord
 import tofi.api.dta.ApiInspectionData
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
@@ -31,6 +34,24 @@ class ApiInspectionDataImpl extends BaseMdbUtils implements ApiInspectionData {
         else {
             Store st = mdb.createStore(domain)
             return mdb.loadQuery(st, sql, params)
+        }
+    }
+
+    @Override
+    long insertRecToTable(String tableName, Map<String, Object> params, boolean generateId) {
+        Store st = mdb.createStore(tableName)
+        StoreRecord r = st.add(params)
+        if (generateId)
+            return mdb.insertRec(tableName, r, generateId)
+        else {
+            long id = mdb.getNextId(tableName)
+            r.set("id", id)
+            if (st.findField("ord") != null)
+                r.set("ord", id)
+            if (st.findField("timeStamp") != null)
+                r.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
+            //
+            return mdb.insertRec(tableName, r, false);
         }
     }
 
