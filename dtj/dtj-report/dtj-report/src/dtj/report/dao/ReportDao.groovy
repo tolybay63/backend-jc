@@ -5,6 +5,7 @@ import groovy.transform.CompileStatic
 import jandcode.commons.UtCnv
 import jandcode.commons.UtDateTime
 import jandcode.commons.UtFile
+import jandcode.commons.UtJson
 import jandcode.commons.datetime.XDate
 import jandcode.commons.datetime.XDateTime
 import jandcode.commons.datetime.XDateTimeFormatter
@@ -118,8 +119,26 @@ class ReportDao extends BaseMdbUtils {
                 mdb.outTable(stTmp)
             }}
         }
+        //
+        String url = lstRes.get(0).get("URL")
+        String modeldata = url.split("/")[3]
 
+        Object body = jandcode.commons.UtJson.fromJson(UtCnv.toString( lstRes.get(0).get("MethodBody")))
+        String method = body["method"].toString().split("/")[1]
+
+        Map<String, Object> pms = UtJson.fromJson(UtCnv.toList(body["params"]).get(0), Map.class)
+        //
         return lstRes
+    }
+
+    @DaoMethod
+    Store myMethod(String model, String method, Map<String, Object> params) {
+
+        if (method=="loadPlan")
+            apiPlanData().get(ApiPlanData).loadSql("""""","")
+
+
+        return null
     }
 
     @DaoMethod

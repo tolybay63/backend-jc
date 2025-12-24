@@ -156,7 +156,7 @@ class DataDao extends BaseMdbUtils {
             mapRes.putAll(pms)
             mapRes.remove("id")
             mapRes.put("name", "" + r.getString("objWork") + "-" + r.getString("PlanDateEnd"))
-//            savePlan("ins", mapRes)
+            savePlan("ins", mapRes)
         }
         //
         return st
@@ -944,43 +944,46 @@ class DataDao extends BaseMdbUtils {
         Map<String, Object> par = new HashMap<>(pms)
         par.putIfAbsent("fullName", par.get("name"))
         if (mode.equalsIgnoreCase("ins")) {
-            if (pms.getLong("id") > 0) {
-                pms.put("objIncident", pms.getLong("id"))
+            if (pms.getLong("objIncident") > 0) {
                 long pv = apiMeta().get(ApiMeta).idPV("cls", pms.getLong("cls"), "Prop_Incident")
                 pms.put("pvIncident", pv)
             }
+            //
+            long cls = pms.getLong("cls")
             // find cls(linkCls)
-            long linkCls = pms.getLong("linkCls")
-            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_WorkPlan", "")
-            if (map.isEmpty())
-                throw new XError("NotFoundCod@Typ_Work")
-            map.put("linkCls", linkCls)
-            Store stTmp = loadSqlMeta("""
-                with fv as (
-                    select cls,
-                    string_agg (cast(factorval as varchar(2000)), ',' order by factorval) as fvlist
-                    from clsfactorval
-                    where cls=${linkCls}
-                    group by cls
-                )
-                select * from (
-                    select c.cls,
-                    string_agg (cast(c.factorval as varchar(1000)), ',' order by factorval) as fvlist
-                    from clsfactorval c, factor f  
-                    where c.factorval =f.id and c.cls in (
-                        select id from Cls where typ=${map.get("Typ_WorkPlan")}
+            if (cls == 0) {
+                Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_WorkPlan", "")
+                long linkCls = pms.getLong("linkCls")
+                if (map.isEmpty())
+                    throw new XError("NotFoundCod@Typ_Work")
+                map.put("linkCls", linkCls)
+                Store stTmp = loadSqlMeta("""
+                    with fv as (
+                        select cls,
+                        string_agg (cast(factorval as varchar(2000)), ',' order by factorval) as fvlist
+                        from clsfactorval
+                        where cls=${linkCls}
+                        group by cls
                     )
-                    group by c.cls
-                ) t where t.fvlist in (select fv.fvlist from fv)
-            """, "")
-            ///
-            long cls
-            if (stTmp.size() > 0)
-                cls = stTmp.get(0).getLong("cls")
-            else {
-                throw new XError("Не найден класс сответствующий классу {0}", linkCls)
+                    select * from (
+                        select c.cls,
+                        string_agg (cast(c.factorval as varchar(1000)), ',' order by factorval) as fvlist
+                        from clsfactorval c, factor f  
+                        where c.factorval =f.id and c.cls in (
+                            select id from Cls where typ=${map.get("Typ_WorkPlan")}
+                        )
+                        group by c.cls
+                    ) t where t.fvlist in (select fv.fvlist from fv)
+                """, "")
+                //
+                if (stTmp.size() > 0)
+                    cls = stTmp.get(0).getLong("cls")
+                else {
+                    throw new XError("Не найден класс сответствующий классу {0}", linkCls)
+                }
+                //
+                par.put("cls", cls)
             }
-            par.put("cls", cls)
             own = eu.insertEntity(par)
             pms.put("own", own)
             //1 Prop_LocationClsSection
@@ -1164,8 +1167,13 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     long assignPlan(Map<String, Object> params) {
-        //Prop_WorkPlan
-        savePlan("ins", params)
+        //WorkPlan
+        Map<String, Object> par = new HashMap<>(params)
+        par.put("objIncident", UtCnv.toLong(par.get("id")))
+        par.remove("id")
+        par.remove("cls")
+        savePlan("ins", par)
+        //
         return apiIncidentData().get(ApiIncidentData).updateIncident("ins", params)
     }
 
