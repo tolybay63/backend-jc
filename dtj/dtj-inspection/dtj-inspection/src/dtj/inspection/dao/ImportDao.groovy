@@ -4,6 +4,7 @@ import jandcode.commons.UtCnv
 import jandcode.commons.datetime.XDate
 import jandcode.commons.datetime.XDateTime
 import jandcode.commons.datetime.XDateTimeFormatter
+import jandcode.commons.error.XError
 import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
@@ -13,7 +14,10 @@ import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
+import tofi.api.dta.ApiNSIData
+import tofi.api.dta.ApiPlanData
 import tofi.api.mdl.ApiMeta
+import tofi.api.mdl.utils.UtPeriod
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
 
@@ -22,6 +26,8 @@ import javax.xml.parsers.DocumentBuilderFactory
 
 class ImportDao extends BaseMdbUtils {
     ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
+    ApinatorApi apiPlanData() { return app.bean(ApinatorService).getApi("plandata") }
+    ApinatorApi apiNSIData() { return app.bean(ApinatorService).getApi("nsidata") }
 
     @DaoMethod
     void analyze(File file) {
@@ -42,14 +48,138 @@ class ImportDao extends BaseMdbUtils {
     }
 
     void check(String domain) {
-        //1 План работы (plandata)
-        //Store stPlan =
+        Store st = mdb.loadQuery("""
+            select * from ${domain}
+        """)
+        if (st.size() == 0)
+            throw new XError("Нет данных в [${domain}]")
+        //1 Работа
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_WorkInspection", "")
+        Store stWork = apiNSIData().get(ApiNSIData).loadSqlWithParams("""
+            select o.id from obj o, objVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.cls=${map.get("Cls_WorkInspection")}
+                and v.name like 'Работа вагона-путеизмерителя'
+        """, null, "")
+        if (stWork.size() == 0)
+            throw new XError('Не найдена "Работа вагона-путеизмерителя" в справочнике работ')
+        String wheV11 = "and v11.obj=${stWork.get(0).getLong("id")}"
+        //2 План работы (plandata)
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_WorkPlanInspection", "")
+        String whe = "o.cls=${map.get("Cls_WorkPlanInspection")}"
+        String wheV7 = "and v7.dateTimeVal='${st.get(0).getString("date_obn")}'"
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        Store stPlan = apiPlanData().get(ApiPlanData).loadSqlWithParams("""
+            select o.id, o.cls,
+                v1.propVal as pvLocationClsSection, v1.obj as objLocationClsSection,
+                v2.propVal as pvObject, v2.obj as objObject,
+                v3.numberVal as StartKm,
+                v4.numberVal as FinishKm,
+                v5.numberVal as StartPicket,
+                v6.numberVal as FinishPicket,
+                v7.dateTimeVal as PlanDateEnd,
+                v8.propVal as pvUser, v8.obj as objUser,
+                v9.dateTimeVal as CreatedAt,
+                v10.dateTimeVal as UpdatedAt,
+                v11.propVal as pvWork, v11.obj as objWork,
+                v12.dateTimeVal as FactDateEnd,
+                v13.propVal as pvIncident, v13.obj as objIncident,
+                v14.numberVal as StartLink,
+                v15.numberVal as FinishLink
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Object
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartKm
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FinishKm
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_StartPicket
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_FinishPicket
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_PlanDateEnd
+                inner join DataPropVal v7 on d7.id=v7.dataprop ${wheV7}
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_User
+                left join DataPropVal v8 on d8.id=v8.dataprop
+                left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=:Prop_CreatedAt
+                left join DataPropVal v9 on d9.id=v9.dataprop
+                left join DataProp d10 on d10.objorrelobj=o.id and d10.prop=:Prop_UpdatedAt
+                left join DataPropVal v10 on d10.id=v10.dataprop
+                left join DataProp d11 on d11.objorrelobj=o.id and d11.prop=:Prop_Work
+                inner join DataPropVal v11 on d11.id=v11.dataprop ${wheV11}
+                left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_FactDateEnd
+                left join DataPropVal v12 on d12.id=v12.dataprop
+                left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_Incident
+                left join DataPropVal v13 on d13.id=v13.dataprop
+                left join DataProp d14 on d14.objorrelobj=o.id and d14.prop=:Prop_StartLink
+                left join DataPropVal v14 on d14.id=v14.dataprop
+                left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_FinishLink
+                left join DataPropVal v15 on d15.id=v15.dataprop
+            where ${whe}
+        """, map, "")
+        if (stPlan.size() == 0)
+            throw new XError('Не найден план работ')
+        //3 Осмотр и проверок
+        Set<Object> idsPlan = stPlan.getUniqueValues("id")
+        String wheV2 = "and v2.obj in (0${idsPlan.join(",")})"
+        Store stInspection = mdb.loadQuery("""
+            select o.id, o.cls,
+                v1.propVal as pvLocationClsSection, v1.obj as objLocationClsSection,
+                v2.propVal as pvWorkPlan, v2.obj as objWorkPlan, 
+                v3.numberVal as StartKm,
+                v4.numberVal as FinishKm,
+                v5.numberVal as StartPicket,
+                v6.numberVal as FinishPicket,
+                v7.dateTimeVal as FactDateEnd,
+                v8.propVal as pvUser, v8.obj as objUser,
+                v9.dateTimeVal as CreatedAt,
+                v10.dateTimeVal as UpdatedAt,
+                v11.propVal as pvFlagDefect, null as fvFlagDefect,
+                v12.numberVal as StartLink,
+                v13.numberVal as FinishLink,
+                v14.multiStrVal as ReasonDeviation,
+                v15.propVal as pvFlagParameter, null as fvFlagParameter
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_WorkPlan
+                left join DataPropVal v2 on d2.id=v2.dataprop ${wheV2}
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartKm
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FinishKm
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_StartPicket
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_FinishPicket
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_FactDateEnd
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_User
+                left join DataPropVal v8 on d8.id=v8.dataprop
+                left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=:Prop_CreatedAt
+                left join DataPropVal v9 on d9.id=v9.dataprop
+                left join DataProp d10 on d10.objorrelobj=o.id and d10.prop=:Prop_UpdatedAt
+                left join DataPropVal v10 on d10.id=v10.dataprop
+                left join DataProp d11 on d11.objorrelobj=o.id and d11.prop=:Prop_FlagDefect
+                left join DataPropVal v11 on d11.id=v11.dataprop
+                left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_StartLink
+                left join DataPropVal v12 on d12.id=v12.dataprop
+                left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_FinishLink
+                left join DataPropVal v13 on d13.id=v13.dataprop
+                left join DataProp d14 on d14.objorrelobj=o.id and d14.prop=:Prop_ReasonDeviation
+                left join DataPropVal v14 on d14.id=v14.dataprop
+                left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_FlagParameter
+                left join DataPropVal v15 on d15.id=v15.dataprop
+            where ${whe}
+        """, map)
+        if (stInspection.size() == 0) {
+            //Создать осмотры и проверки
+        }
 
 
-        //2 Осмотр и проверок
-
-
-        //3 Журнал параметров
+        //4 Журнал параметров
 
 
     }
