@@ -36,14 +36,13 @@ class TestXml extends Apx_Test {
 
 
     void parseOtstup(File inputFile) {
+
+        System.out.println("Импорт файла: ${inputFile.name}")
+
         try {
             mdb.startTran()
             mdb.execQuery("delete from _otstup")
-        } finally {
-            mdb.commit()
-        }
-
-        try {
+            //
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance()
             DocumentBuilder builder = factory.newDocumentBuilder()
             Document doc = builder.parse(inputFile)
@@ -51,8 +50,6 @@ class TestXml extends Apx_Test {
 
             System.out.println("Root element: " + doc.getDocumentElement().getNodeName())
             NodeList rowList = doc.getElementsByTagName("ROW")
-
-            mdb.startTran()
             for (int i = 0; i < rowList.getLength(); i++) {
                 Node rowNode = rowList.item(i)
                 if (rowNode.getNodeType() == Node.ELEMENT_NODE) {
@@ -91,6 +88,7 @@ class TestXml extends Apx_Test {
             }
         } catch (Exception e) {
             e.printStackTrace()
+            mdb.rollback()
         } finally {
             mdb.commit()
             Store st = mdb.loadQuery("select * from _otstup where 0=0")
@@ -99,23 +97,20 @@ class TestXml extends Apx_Test {
     }
 
     void parseBall(File inputFile) {
+
+        System.out.println("Импорт файла: ${inputFile.name}")
+
         try {
             mdb.startTran()
             mdb.execQuery("delete from _ball")
-        } finally {
-            mdb.commit()
-        }
-
-        try {
+            //
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance()
             DocumentBuilder builder = factory.newDocumentBuilder()
             Document doc = builder.parse(inputFile)
             doc.getDocumentElement().normalize()
-
             System.out.println("Root element: " + doc.getDocumentElement().getNodeName())
             NodeList rowList = doc.getElementsByTagName("ROW")
 
-            mdb.startTran()
             for (int i = 0; i < rowList.getLength(); i++) {
                 Node rowNode = rowList.item(i)
                 if (rowNode.getNodeType() == Node.ELEMENT_NODE) {
@@ -144,6 +139,7 @@ class TestXml extends Apx_Test {
             }
         } catch (Exception e) {
             e.printStackTrace()
+            mdb.rollback()
         } finally {
             mdb.commit()
             Store st = mdb.loadQuery("select * from _ball where 0=0")
