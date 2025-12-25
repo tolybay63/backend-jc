@@ -78,14 +78,14 @@ class DataDao extends BaseMdbUtils {
         //
         if (ids.size() == 0)
             throw new XError("Не указан [idsWorkPlan]")
-        if (pms.getString("startDateCopy").isEmpty())
-            throw new XError("Не указан [startDateCopy]")
-        if (pms.getString("finishDateCopy").isEmpty())
-            throw new XError("Не указан [finishDateCopy]")
-        if (pms.getString("startDate").isEmpty())
-            throw new XError("Не указан [startDate]")
-        if (pms.getString("finishDate").isEmpty())
-            throw new XError("Не указан [finishDate]")
+        if (pms.getString("dbegCopy").isEmpty())
+            throw new XError("Не указан [dbegCopy]")
+        if (pms.getString("dendCopy").isEmpty())
+            throw new XError("Не указан [dendCopy]")
+        if (pms.getString("dbegPlan").isEmpty())
+            throw new XError("Не указан [dbegPlan]")
+        if (pms.getString("dendPlan").isEmpty())
+            throw new XError("Не указан [dendPlan]")
         //
         if (pms.getLong("objUser") == 0)
             throw new XError("Не указан [objUser]")
@@ -98,8 +98,8 @@ class DataDao extends BaseMdbUtils {
         //
         Store st = mdb.createStore("Obj.plan")
         String whe = "o.id in (0${ids.join(",")})"
-        XDate d1 = UtCnv.toDate(pms.getString("startDateCopy"))
-        XDate d2 = UtCnv.toDate(pms.getString("finishDateCopy"))
+        XDate d1 = UtCnv.toDate(pms.getString("dbegCopy"))
+        XDate d2 = UtCnv.toDate(pms.getString("dendCopy"))
         //
         if (d1.toJavaLocalDate().isAfter(d2.toJavaLocalDate()))
             throw new XError("Начальная дата копирования больше конечной даты")
@@ -148,7 +148,7 @@ class DataDao extends BaseMdbUtils {
         //
         Map<String, String> mapDate = new HashMap<>()
         XDate d3 = d1
-        XDate d4 = UtCnv.toDate(pms.getString("startDate"))
+        XDate d4 = UtCnv.toDate(pms.getString("dbegPlan"))
         while (d2 != d3) {
             mapDate.put(UtCnv.toString(d3), UtCnv.toString(d4))
             d3 = d3.addDays(1)
