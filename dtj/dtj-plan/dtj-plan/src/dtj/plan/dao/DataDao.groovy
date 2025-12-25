@@ -100,6 +100,10 @@ class DataDao extends BaseMdbUtils {
         String whe = "o.id in (0${ids.join(",")})"
         XDate d1 = UtCnv.toDate(pms.getString("startDateCopy"))
         XDate d2 = UtCnv.toDate(pms.getString("finishDateCopy"))
+        //
+        if (d1.toJavaLocalDate().isAfter(d2.toJavaLocalDate()))
+            throw new XError("Начальная дата копирования больше конечной даты")
+        //
         String wheV9 = "and v9.dateTimeVal between '${d1}' and '${d2}'"
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
         mdb.loadQuery(st, """
@@ -1175,6 +1179,25 @@ class DataDao extends BaseMdbUtils {
         savePlan("ins", par)
         //
         return apiIncidentData().get(ApiIncidentData).updateIncident("ins", params)
+    }
+
+    @DaoMethod
+    Map<String, Object> getPeriodInfo(String date, long periodType) {
+        if (date.isEmpty())
+            throw new XError("Не указан [date]")
+        if (periodType == 0)
+            throw new XError("Не указан [periodType]")
+        //
+        UtPeriod utPeriod = new UtPeriod()
+        XDate dt = UtCnv.toDate(date)
+        String d1 = utPeriod.calcDbeg(dt, periodType, 0).toString(XDateTimeFormatter.ISO_DATE)
+        String d2 = utPeriod.calcDend(dt, periodType, 0).toString(XDateTimeFormatter.ISO_DATE)
+        //
+        Map<String, Object> map = new HashMap<>()
+        map.put("dbeg", d1)
+        map.put("dend", d2)
+        //
+        return map
     }
 
     /**
