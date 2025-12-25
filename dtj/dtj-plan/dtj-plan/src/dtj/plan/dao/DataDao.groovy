@@ -67,6 +67,36 @@ class DataDao extends BaseMdbUtils {
         return app.bean(ApinatorService).getApi("repairdata")
     }
 
+    //
+    @DaoMethod
+    Store savePeriodPlan(Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        if (pms.getString("PlanDateEnd").isEmpty())
+            throw new XError("Не указан [PlanDateEnd]")
+        if (pms.getString("weekDays").isEmpty())
+            throw new XError("Не указан [weekDays]")
+        if (pms.getString("periodType").isEmpty())
+            throw new XError("Не указан [periodType]")
+        if (pms.getLong("Periodicity") == 0)
+            throw new XError("Не указан [Periodicity]")
+        //
+
+        long pt = pms.getLong("periodType")
+        XDate dte = UtCnv.toDate(pms.getString("PlanDateEnd"))
+        UtPeriod utPeriod = new UtPeriod()
+        XDate d1 = utPeriod.calcDbeg(dte, pt, 0)
+        XDate d2 = utPeriod.calcDend(dte, pt, 0)
+        //
+        d2.toJavaLocalDate().toEpochDay()
+        //
+        XDate d3 = UtCnv.toDate(pms.getString("PlanDateEnd").split("-")[0] + "-12-31")
+        if (d1.toJavaLocalDate().isAfter(d2.toJavaLocalDate()))
+            throw new XError("Начальная дата копирования больше конечной даты")
+        //
+        //
+        return null
+    }
+
     @DaoMethod
     Store copyPlan(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
@@ -147,13 +177,18 @@ class DataDao extends BaseMdbUtils {
             throw new XError("План работ не найден")
         //
         Map<String, String> mapDate = new HashMap<>()
-        XDate d3 = d1
-        XDate d4 = UtCnv.toDate(pms.getString("dbegPlan"))
-        while (d2 != d3) {
-            mapDate.put(UtCnv.toString(d3), UtCnv.toString(d4))
-            d3 = d3.addDays(1)
-            d4 = d4.addDays(1)
+        if (d1 == d2) {
+            mapDate.put(UtCnv.toString(d1), pms.getString("dbegPlan"))
+        } else {
+            XDate d3 = d1
+            XDate d4 = UtCnv.toDate(pms.getString("dbegPlan"))
+            while (d2 != d3) {
+                mapDate.put(UtCnv.toString(d3), UtCnv.toString(d4))
+                d3 = d3.addDays(1)
+                d4 = d4.addDays(1)
+            }
         }
+        //
         for (StoreRecord r in st) {
             r.set("PlanDateEnd", mapDate.get(r.getString("PlanDateEnd")))
             Map<String, Object> mapRes = r.getValues()
