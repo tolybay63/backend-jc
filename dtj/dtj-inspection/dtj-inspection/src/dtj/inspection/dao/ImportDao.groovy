@@ -14,12 +14,15 @@ import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
+import tofi.api.dta.ApiIncidentData
 import tofi.api.dta.ApiNSIData
+import tofi.api.dta.ApiObjectData
 import tofi.api.dta.ApiPlanData
 import tofi.api.mdl.ApiMeta
 import tofi.api.mdl.utils.UtPeriod
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
+import dtj.inspection.dao.DataDao
 
 import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
@@ -28,9 +31,11 @@ class ImportDao extends BaseMdbUtils {
     ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
     ApinatorApi apiPlanData() { return app.bean(ApinatorService).getApi("plandata") }
     ApinatorApi apiNSIData() { return app.bean(ApinatorService).getApi("nsidata") }
+    ApinatorApi apiIncidentData() { return app.bean(ApinatorService).getApi("incidentdata") }
+    ApinatorApi apiObjectData() { return app.bean(ApinatorService).getApi("objectdata") }
 
     @DaoMethod
-    void analyze(File file) {
+    void analyze(File file, Map<String, Object> params) {
         try {
             //File inputFile = new File("C:\\jc-2\\_info\\xml\\G057_22042025_113706_64_1 1.xml")
             //File inputFile = new File("C:\\jc-2\\_info\\xml\\B057_22042025_113706_1 1.xml")
@@ -40,36 +45,64 @@ class ImportDao extends BaseMdbUtils {
             } else if (file.name.startsWith("B")) {
                 parseBall(file)
                 assignPropDefault("_ball")
-                check("_ball")
+                check("_ball", params)
             }
         } catch (Exception e) {
             e.printStackTrace()
         }
     }
 
-    void check(String domain) {
+    void check(String domain, Map<String, Object> params) {
+        DataDao dataDao = mdb.createDao(DataDao.class)
+        Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "", "Cls_")
+        //
         Store st = mdb.loadQuery("""
             select * from ${domain}
         """)
         if (st.size() == 0)
             throw new XError("Нет данных в [${domain}]")
-        //1 Работа
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_WorkInspection", "")
+        // Находим направления
+        Store stNapr = apiObjectData().get(ApiObjectData).loadSql("""
+            select c.entityid as id from syscod c, syscodingcod s
+            where c.id=s.syscod and c.entitytype=1 
+                and s.syscoding=1001 and s.cod like 'kod_napr_${st.get(0).getString("kod_napr")}'
+        """, "")
+        if (stNapr.size() == 0)
+            throw new XError("Не найдено привязка [kod_napr: ${st.get(0).getString("kod_napr")}]")
+        // Находим участки направления
+        Store stSection = apiObjectData().get(ApiObjectData).loadSql("""
+            select o.id from Obj o, ObjVer v 
+            where o.id=v.ownerver and v.lastver=1 and v.objparent=${stNapr.get(0).getLong("id")} 
+                and o.cls in (0${mapCls.get("Cls_Station")}, 0${mapCls.get("Cls_Stage")})
+        """, "")
+        if (stSection.size() == 0)
+            throw new XError("Не найден Раздельный пункт и/или Перегон по направлению")
+        // Находим обслуживаемые объекты
+        Store stObject = apiObjectData().get(ApiObjectData).loadSql("""
+            select id from Obj
+            where cls in (0${mapCls.get("Cls_RailwayStage")}, 0${mapCls.get("Cls_RailwayStation")})
+        """, "")
+        if (stObject.size() == 0)
+            throw new XError("Не найден обслуживаемый объект по направлению")
+        //1 Работа вагона-путеизмерителя - 3394
         Store stWork = apiNSIData().get(ApiNSIData).loadSqlWithParams("""
             select o.id from obj o, objVer v
-            where o.id=v.ownerVer and v.lastVer=1 and o.cls=${map.get("Cls_WorkInspection")}
+            where o.id=v.ownerVer and v.lastVer=1 and o.cls=${mapCls.get("Cls_WorkInspection")}
                 and v.name like 'Работа вагона-путеизмерителя'
         """, null, "")
         if (stWork.size() == 0)
             throw new XError('Не найдена "Работа вагона-путеизмерителя" в справочнике работ')
         String wheV11 = "and v11.obj=${stWork.get(0).getLong("id")}"
-        //2 План работы (plandata)
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_WorkPlanInspection", "")
-        String whe = "o.cls=${map.get("Cls_WorkPlanInspection")}"
+        //2 План работ (plandata)
+        String whe = "o.cls=${mapCls.get("Cls_WorkPlanInspection")}"
+        Set<Object> idsObject = stObject.getUniqueValues("id")
+        String wheV2 = "and v2.obj in (0${idsObject.join(",")})"
         String wheV7 = "and v7.dateTimeVal='${st.get(0).getString("date_obn")}'"
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
         Store stPlan = apiPlanData().get(ApiPlanData).loadSqlWithParams("""
             select o.id, o.cls,
+                v3.numberVal * 1000 + (v5.numberVal - 1) * 100 + v14.numberVal * 25 as beg,
+                v4.numberVal * 1000 + (v6.numberVal - 1) * 100 + v15.numberVal * 25 as end,
                 v1.propVal as pvLocationClsSection, v1.obj as objLocationClsSection,
                 v2.propVal as pvObject, v2.obj as objObject,
                 v3.numberVal as StartKm,
@@ -77,12 +110,12 @@ class ImportDao extends BaseMdbUtils {
                 v5.numberVal as StartPicket,
                 v6.numberVal as FinishPicket,
                 v7.dateTimeVal as PlanDateEnd,
-                v8.propVal as pvUser, v8.obj as objUser,
-                v9.dateTimeVal as CreatedAt,
-                v10.dateTimeVal as UpdatedAt,
+                --v8.propVal as pvUser, v8.obj as objUser,
+                --v9.dateTimeVal as CreatedAt,
+                --v10.dateTimeVal as UpdatedAt,
                 v11.propVal as pvWork, v11.obj as objWork,
-                v12.dateTimeVal as FactDateEnd,
-                v13.propVal as pvIncident, v13.obj as objIncident,
+                --v12.dateTimeVal as FactDateEnd,
+                --v13.propVal as pvIncident, v13.obj as objIncident,
                 v14.numberVal as StartLink,
                 v15.numberVal as FinishLink
             from Obj o
@@ -91,7 +124,7 @@ class ImportDao extends BaseMdbUtils {
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Object
                 left join DataPropVal v2 on d2.id=v2.dataprop
                 left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartKm
-                left join DataPropVal v3 on d3.id=v3.dataprop
+                inner join DataPropVal v3 on d3.id=v3.dataprop ${wheV2}
                 left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FinishKm
                 left join DataPropVal v4 on d4.id=v4.dataprop
                 left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_StartPicket
@@ -100,30 +133,48 @@ class ImportDao extends BaseMdbUtils {
                 left join DataPropVal v6 on d6.id=v6.dataprop
                 left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_PlanDateEnd
                 inner join DataPropVal v7 on d7.id=v7.dataprop ${wheV7}
-                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_User
-                left join DataPropVal v8 on d8.id=v8.dataprop
-                left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=:Prop_CreatedAt
-                left join DataPropVal v9 on d9.id=v9.dataprop
-                left join DataProp d10 on d10.objorrelobj=o.id and d10.prop=:Prop_UpdatedAt
-                left join DataPropVal v10 on d10.id=v10.dataprop
+                --left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_User
+                --left join DataPropVal v8 on d8.id=v8.dataprop
+                --left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=:Prop_CreatedAt
+                --left join DataPropVal v9 on d9.id=v9.dataprop
+                --left join DataProp d10 on d10.objorrelobj=o.id and d10.prop=:Prop_UpdatedAt
+                --left join DataPropVal v10 on d10.id=v10.dataprop
                 left join DataProp d11 on d11.objorrelobj=o.id and d11.prop=:Prop_Work
                 inner join DataPropVal v11 on d11.id=v11.dataprop ${wheV11}
-                left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_FactDateEnd
-                left join DataPropVal v12 on d12.id=v12.dataprop
-                left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_Incident
-                left join DataPropVal v13 on d13.id=v13.dataprop
+                --left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_FactDateEnd
+                --left join DataPropVal v12 on d12.id=v12.dataprop
+                --left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_Incident
+                --left join DataPropVal v13 on d13.id=v13.dataprop
                 left join DataProp d14 on d14.objorrelobj=o.id and d14.prop=:Prop_StartLink
                 left join DataPropVal v14 on d14.id=v14.dataprop
                 left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_FinishLink
                 left join DataPropVal v15 on d15.id=v15.dataprop
             where ${whe}
-        """, map, "")
+        """, map, "Obj.plan")
+        //
         if (stPlan.size() == 0)
             throw new XError('Не найден план работ')
-        //3 Осмотр и проверок
+        //Проверяем запланирована ли работа по километрам из импортируемого файла
+        Boolean bool = false
+        for (StoreRecord r1 in st) {
+            for (StoreRecord r2 in stPlan) {
+                if (r2.getLong("beg") <= (r1.getLong("km") + 1) * 1000 && (r1.getLong("km") + 1) * 1000 <= r2.getLong("end")) {
+                    bool = true
+                    break;
+                }
+            }
+            if (bool) {
+                bool = false
+                break;
+            } else throw new XError("Не найден план работ на ${r1.getLong('km') + 1} км")
+        }
+        //3 Журнал осмотров и проверок
+        Store stInspection = mdb.createStore("Obj.inspection")
+        whe = "o.cls=${mapCls.get("Cls_Inspection")}"
         Set<Object> idsPlan = stPlan.getUniqueValues("id")
-        String wheV2 = "and v2.obj in (0${idsPlan.join(",")})"
-        Store stInspection = mdb.loadQuery("""
+        wheV2 = "and v2.obj in (0${idsPlan.join(",")})"
+        String wheV8 = ""
+        mdb.loadQuery(stInspection,"""
             select o.id, o.cls,
                 v1.propVal as pvLocationClsSection, v1.obj as objLocationClsSection,
                 v2.propVal as pvWorkPlan, v2.obj as objWorkPlan, 
@@ -132,20 +183,20 @@ class ImportDao extends BaseMdbUtils {
                 v5.numberVal as StartPicket,
                 v6.numberVal as FinishPicket,
                 v7.dateTimeVal as FactDateEnd,
-                v8.propVal as pvUser, v8.obj as objUser,
-                v9.dateTimeVal as CreatedAt,
-                v10.dateTimeVal as UpdatedAt,
+                --v8.propVal as pvUser, v8.obj as objUser,
+                --v9.dateTimeVal as CreatedAt,
+                --v10.dateTimeVal as UpdatedAt,
                 v11.propVal as pvFlagDefect, null as fvFlagDefect,
                 v12.numberVal as StartLink,
                 v13.numberVal as FinishLink,
-                v14.multiStrVal as ReasonDeviation,
+                --v14.multiStrVal as ReasonDeviation,
                 v15.propVal as pvFlagParameter, null as fvFlagParameter
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
                 left join DataPropVal v1 on d1.id=v1.dataprop
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_WorkPlan
-                left join DataPropVal v2 on d2.id=v2.dataprop ${wheV2}
+                inner join DataPropVal v2 on d2.id=v2.dataprop ${wheV2}
                 left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartKm
                 left join DataPropVal v3 on d3.id=v3.dataprop
                 left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FinishKm
@@ -156,32 +207,236 @@ class ImportDao extends BaseMdbUtils {
                 left join DataPropVal v6 on d6.id=v6.dataprop
                 left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_FactDateEnd
                 left join DataPropVal v7 on d7.id=v7.dataprop
-                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_User
-                left join DataPropVal v8 on d8.id=v8.dataprop
-                left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=:Prop_CreatedAt
-                left join DataPropVal v9 on d9.id=v9.dataprop
-                left join DataProp d10 on d10.objorrelobj=o.id and d10.prop=:Prop_UpdatedAt
-                left join DataPropVal v10 on d10.id=v10.dataprop
+                --left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_User
+                --left join DataPropVal v8 on d8.id=v8.dataprop
+                --left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=:Prop_CreatedAt
+                --left join DataPropVal v9 on d9.id=v9.dataprop
+                --left join DataProp d10 on d10.objorrelobj=o.id and d10.prop=:Prop_UpdatedAt
+                --left join DataPropVal v10 on d10.id=v10.dataprop
                 left join DataProp d11 on d11.objorrelobj=o.id and d11.prop=:Prop_FlagDefect
                 left join DataPropVal v11 on d11.id=v11.dataprop
                 left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_StartLink
                 left join DataPropVal v12 on d12.id=v12.dataprop
                 left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_FinishLink
                 left join DataPropVal v13 on d13.id=v13.dataprop
-                left join DataProp d14 on d14.objorrelobj=o.id and d14.prop=:Prop_ReasonDeviation
-                left join DataPropVal v14 on d14.id=v14.dataprop
+                --left join DataProp d14 on d14.objorrelobj=o.id and d14.prop=:Prop_ReasonDeviation
+                --left join DataPropVal v14 on d14.id=v14.dataprop
                 left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_FlagParameter
                 left join DataPropVal v15 on d15.id=v15.dataprop
             where ${whe}
         """, map)
-        if (stInspection.size() == 0) {
-            //Создать осмотры и проверки
+        //
+        StoreIndex indWorkPlan = stInspection.getIndex("objWorkPlan")
+        if (stInspection.size() != stPlan.size()) {
+            for (StoreRecord r in stPlan) {
+                StoreRecord rPlan = indWorkPlan.get(r.getLong("id"))
+                if (rPlan != null)
+                    continue;
+                Map<String, Object> mapIns = r.getValues()
+                mapIns.putAll(params)
+                mapIns.put("objWorkPlan", r.getLong("id"))
+                mapIns.put("FactDateEnd", r.getString("PlanDateEnd"))
+                mapIns.put("name", r.getString("id") + "-" + r.getString("PlanDateEnd"))
+                mapIns.remove("id")
+                mapIns.remove("cls")
+                mapIns.remove("beg")
+                mapIns.remove("end")
+                dataDao.saveInspection("ins", mapIns)
+                //Результаты saveInspection надо добавить stInspection
+            }
         }
+        //4 Журнал событий и запросов (incidentdata)
+        long relobjComponentParams = 2525// Оценка состояния жд пути, балл
+        if (domain != "_ball") {
+            whe = "o.cls=${mapCls.get("Cls_IncidentParameter")}"
+            Map<String, Long> mapFV = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_StatusEliminated", "")
+            long pv = apiMeta().get(ApiMeta).idPV("FactorVal", mapFV.get("FV_StatusEliminated"), "Prop_Status")
+            String wheV6 = "and v6.propVal not in (${pv})"
+            Store stIncident = apiIncidentData().get(ApiIncidentData).loadSqlWithParams("""
+                select o.id, o.cls,
+                    --v1.propVal as pvEvent, v1.obj as objEvent,
+                    v2.propVal as pvObject, v2.obj as objObject,
+                    --v3.propVal as pvUser, v3.obj as objUser,
+                    v4.propVal as pvParameterLog, v4.obj as objParameterLog,
+                    --v5.propVal as pvFault, v5.obj as objFault,
+                    v6.propVal as pvStatus,
+                    --v7.propVal as pvCriticality,
+                    v8.numberVal as StartKm,
+                    v9.numberVal as FinishKm,
+                    v10.numberVal as StartPicket,
+                    v11.numberVal as FinishPicket,
+                    v12.numberVal as StartLink,
+                    v13.numberVal as FinishLink,
+                    --v14.multiStrVal as Description,
+                    --v15.dateTimeVal as CreatedAt,
+                    --v16.dateTimeVal as UpdatedAt,
+                    v17.dateTimeVal as RegistrationDateTime,
+                    --v18.strVal as InfoApplicant,
+                    v19.propVal as pvLocationClsSection, v19.obj as objLocationClsSection
+                    --21.dateTimeVal as AssignDateTime
+                from Obj o
+                    --left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Event
+                    --left join DataPropVal v1 on d1.id=v1.dataprop
+                    left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Object
+                    left join DataPropVal v2 on d2.id=v2.dataprop
+                    --left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_User
+                    --left join DataPropVal v3 on d3.id=v3.dataprop
+                    left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_ParameterLog
+                    left join DataPropVal v4 on d4.id=v4.dataprop
+                    --left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_Fault
+                    --left join DataPropVal v5 on d5.id=v5.dataprop
+                    left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_Status
+                    inner join DataPropVal v6 on d6.id=v6.dataprop ${wheV6}
+                    --left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_Criticality
+                    --left join DataPropVal v7 on d7.id=v7.dataprop
+                    left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_StartKm
+                    left join DataPropVal v8 on d8.id=v8.dataprop
+                    left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=:Prop_FinishKm
+                    left join DataPropVal v9 on d9.id=v9.dataprop
+                    left join DataProp d10 on d10.objorrelobj=o.id and d10.prop=:Prop_StartPicket
+                    left join DataPropVal v10 on d10.id=v10.dataprop
+                    left join DataProp d11 on d11.objorrelobj=o.id and d11.prop=:Prop_FinishPicket
+                    left join DataPropVal v11 on d11.id=v11.dataprop
+                    left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_StartLink
+                    left join DataPropVal v12 on d12.id=v12.dataprop
+                    left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_FinishLink
+                    left join DataPropVal v13 on d13.id=v13.dataprop
+                    --left join DataProp d14 on d14.objorrelobj=o.id and d14.prop=:Prop_Description
+                    --left join DataPropVal v14 on d14.id=v14.dataprop
+                    --left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_CreatedAt
+                    --left join DataPropVal v15 on d15.id=v15.dataprop
+                    --left join DataProp d16 on d16.objorrelobj=o.id and d16.prop=:Prop_UpdatedAt
+                    --left join DataPropVal v16 on d16.id=v16.dataprop
+                    left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=:Prop_RegistrationDateTime
+                    left join DataPropVal v17 on d17.id=v17.dataprop
+                    --left join DataProp d18 on d18.objorrelobj=o.id and d18.prop=:Prop_InfoApplicant
+                    --left join DataPropVal v18 on d18.id=v18.dataprop
+                    left join DataProp d19 on d19.objorrelobj=o.id and d19.prop=:Prop_LocationClsSection
+                    left join DataPropVal v19 on d19.id=v19.dataprop
+                    --left join DataProp d21 on d21.objorrelobj=o.id and d21.prop=:Prop_AssignDateTime
+                    --left join DataPropVal v21 on d21.id=v21.dataprop
+                where ${whe}
+            """, map, "")
+            //
+            Set<Object> idsParameterLog = stIncident.getUniqueValues("objParameterLog")
+            whe = "o.id in (0${idsParameterLog.join(",")})"
+            wheV2 = "left join DataPropVal v2 on d2.id=v2.dataprop"
+            wheV8 = "left join DataPropVal v8 on d8.id=v8.dataprop"
+        } else {
+            whe = "o.cls=${mapCls.get("Cls_ParameterLog")}"
+            Set<Object> idsInspection = stInspection.getUniqueValues("id")
+            wheV2 = "inner join DataPropVal v2 on d2.id=v2.dataprop and v2.obj in (0${idsInspection.join(",")})"
+            wheV8 = "inner join DataPropVal v8 on d8.id=v8.dataprop and v8.relobj=${relobjComponentParams}"
+        }
+        //5 Журнал параметров
+        Store stParameterLog = mdb.createStore("Obj.ParameterLog")
+        mdb.loadQuery(stParameterLog, """
+            select o.id, o.cls,
+                v1.propVal as pvLocationClsSection, v1.obj as objLocationClsSection,
+                v2.propVal as pvInspection, v2.obj as objInspection, 
+                v3.numberVal as StartKm,
+                v4.numberVal as FinishKm,
+                v5.numberVal as StartPicket,
+                v6.numberVal as FinishPicket,
+                v7.dateTimeVal as CreationDateTime,
+                v8.propVal as pvComponentParams, v8.relobj as relobjComponentParams,
+                --v10.propVal as pvOutOfNorm,
+                v12.numberVal as StartLink,
+                v13.numberVal as FinishLink,
+                --v14.multiStrVal as Description,
+                v15.numberVal as ParamsLimit,
+                v16.numberVal as ParamsLimitMax,
+                v17.numberVal as ParamsLimitMin
+                --v18.propVal as pvUser, v18.obj as objUser,
+                --v19.id as idCreatedAt, v19.dateTimeVal as CreatedAt,
+                --v20.id as idUpdatedAt, v20.dateTimeVal as UpdatedAt
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Inspection
+                ${wheV2}
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartKm
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FinishKm
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_StartPicket
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_FinishPicket
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_CreationDateTime
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_ComponentParams
+                ${wheV8}
+                --left join DataProp d10 on d10.objorrelobj=o.id and d10.prop=:Prop_OutOfNorm
+                --left join DataPropVal v10 on d10.id=v10.dataprop
+                left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_StartLink
+                left join DataPropVal v12 on d12.id=v12.dataprop
+                left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_FinishLink
+                left join DataPropVal v13 on d13.id=v13.dataprop
+                --left join DataProp d14 on d14.objorrelobj=o.id and d14.prop=:Prop_Description
+                --left join DataPropVal v14 on d14.id=v14.dataprop
+                left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_ParamsLimit
+                left join DataPropVal v15 on d15.id=v15.dataprop
+                left join DataProp d16 on d16.objorrelobj=o.id and d16.prop=:Prop_ParamsLimitMax
+                left join DataPropVal v16 on d16.id=v16.dataprop
+                left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=:Prop_ParamsLimitMin
+                left join DataPropVal v17 on d17.id=v17.dataprop
+                --left join DataProp d18 on d18.objorrelobj=o.id and d18.prop=:Prop_User
+                --left join DataPropVal v18 on d18.id=v18.dataprop
+                --left join DataProp d19 on d19.objorrelobj=o.id and d19.prop=:Prop_CreatedAt
+                --left join DataPropVal v19 on d19.id=v19.dataprop
+                --left join DataProp d20 on d20.objorrelobj=o.id and d20.prop=:Prop_UpdatedAt
+                --left join DataPropVal v20 on d20.id=v20.dataprop
+            where ${whe}
+            order by o.id
+        """, map)
+        //
+        StoreIndex indStartKm = stParameterLog.getIndex("StartKm")
+        if (domain == "_ball") {
+            Map<String, Long> mapRelCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelCls", "RC_ParamsComponent", "")
+            long pvComponentParams = apiMeta().get(ApiMeta).idPV("relcls", mapRelCls.get("RC_ParamsComponent"), "Prop_ComponentParams")
+            bool = false
+            for (StoreRecord r1 in st) {
+                if (indStartKm.get(r1.getLong("km") + 1) != null)
+                    continue
+                for (StoreRecord r2 in stInspection) {
+                    Long beg = r2.getLong("StartKm") * 1000 + (r2.getLong("StartPicket") - 1) * 100 + r2.getLong("StartLink") * 25
+                    Long end = r2.getLong("FinishKm") * 1000 + (r2.getLong("FinishPicket") - 1) * 100 + r2.getLong("FinishLink") * 25
+                    if (beg <= (r1.getLong("km") + 1) * 1000 && (r1.getLong("km") + 1) * 1000 <= end) {
+                        Map<String, Object> mapIns = new HashMap<>(params)
+                        mapIns.put("name", r2.getString("id") + "-" + r1.getString("date_obn"))
+                        mapIns.put("relobjComponentParams", 2525)// Оценка состояния жд пути, балл
+                        mapIns.put("pvComponentParams", pvComponentParams)
+                        mapIns.put("objInspection", r2.getLong("id"))
+                        mapIns.put("pvLocationClsSection", r2.getLong("pvLocationClsSection"))
+                        mapIns.put("objLocationClsSection", r2.getLong("objLocationClsSection"))
+                        mapIns.put("StartKm", r1.getLong("km") + 1)
+                        mapIns.put("FinishKm", r1.getLong("km") + 1)
+                        mapIns.put("StartPicket", 1)
+                        mapIns.put("FinishPicket", 1)
+                        mapIns.put("StartLink", 1)
+                        mapIns.put("FinishLink", 1)
+                        mapIns.put("ParamsLimit", r1.getLong("ballkm"))
+                        mapIns.put("NumberRetreat", r1.getLong("kol_ots"))
+                        mapIns.put("ParamsLimitMax", 999)
+                        mapIns.put("ParamsLimitMin", 0)
+                        mapIns.put("CreationDateTime",  r1.getString("date_obn") + "T01:00:00.000")
+                        dataDao.saveParameterLog("ins", mapIns)
+                        //
+                        bool = true
+                        break
+                    }
+                }
+                if (bool) {
+                    bool = false
+                    continue
+                } else throw new XError("Не найден запись в Журнале осмотров и проверок на ${r1.getLong('km') + 1} км")
+            }
+        }
+        //
+        Long test = 0
 
-
-        //4 Журнал параметров
-
-
+        //
     }
 
     void assignPropDefault(String domain) {

@@ -1001,7 +1001,9 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("[UpdatedAt] not specified")
             else
                 fillProperties(true, "Prop_UpdatedAt", pms)
-            //
+            //18 NumberRetreat
+            if (pms.getLong("NumberRetreat") > 0)
+                fillProperties(true, "Prop_NumberRetreat", pms)
         } else if (mode.equalsIgnoreCase("upd")) {
             throw new XError("Режим [update] отключен")
         } else {
@@ -2494,7 +2496,8 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_FinishLink") ||
                     cod.equalsIgnoreCase("Prop_ParamsLimit") ||
                     cod.equalsIgnoreCase("Prop_ParamsLimitMax") ||
-                    cod.equalsIgnoreCase("Prop_ParamsLimitMin")) {
+                    cod.equalsIgnoreCase("Prop_ParamsLimitMin") ||
+                    cod.equalsIgnoreCase("Prop_NumberRetreat")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     double v = UtCnv.toDouble(params.get(keyValue))
                     v = v / koef
@@ -2705,7 +2708,8 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_FinishLink") ||
                     cod.equalsIgnoreCase("Prop_ParamsLimit") ||
                     cod.equalsIgnoreCase("Prop_ParamsLimitMax") ||
-                    cod.equalsIgnoreCase("Prop_ParamsLimitMin")) {
+                    cod.equalsIgnoreCase("Prop_ParamsLimitMin") ||
+                    cod.equalsIgnoreCase("Prop_NumberRetreat")) {
                 if (!(mapProp[keyValue] == null || mapProp[keyValue] == "")) {
                     def v = mapProp.getDouble(keyValue)
                     v = v / koef

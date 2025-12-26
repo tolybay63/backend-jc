@@ -12,9 +12,14 @@ class TestXml extends Apx_Test {
         //File inputFile = new File("C:\\jc-2\\_info\\xml\\B057_22042025_113706_1 1.xml")
 
         //File inputFile = new File("D:\\backup\\xml\\G057_22042025_113706_64_1 1.xml")
-        File inputFile = new File("D:\\backup\\xml\\B057_22042025_113706_1 1.xml")
+        File inputFile = new File("C:\\backup\\xml\\B057_22042025_113706_1.xml")
 
         ImportDao dao = mdb.createDao(ImportDao.class)
-        dao.analyze(inputFile)
+        Map<String, Object> map = new HashMap<>()
+        map.put("objUser", 1003)
+        map.put("pvUser", 1087)
+        map.put("CreatedAt", "2025-12-25")
+        map.put("UpdatedAt", "2025-12-25")
+        dao.analyze(inputFile, map)
     }
 }

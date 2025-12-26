@@ -42,20 +42,19 @@
         <field name="nameFlagParameter" parent="string"/>
 
         <field name="idStartKm" parent="long"/>
-        <field name="StartKm" parent="double"/>
+        <field name="StartKm" parent="long"/>
         <field name="idFinishKm" parent="long"/>
-        <field name="FinishKm" parent="double"/>
+        <field name="FinishKm" parent="long"/>
 
         <field name="idStartPicket" parent="long"/>
-        <field name="StartPicket" parent="double"/>
-
+        <field name="StartPicket" parent="long"/>
         <field name="idFinishPicket" parent="long"/>
-        <field name="FinishPicket" parent="double"/>
+        <field name="FinishPicket" parent="long"/>
 
         <field name="idStartLink" parent="long"/>
-        <field name="StartLink" parent="double"/>
+        <field name="StartLink" parent="long"/>
         <field name="idFinishLink" parent="long"/>
-        <field name="FinishLink" parent="double"/>
+        <field name="FinishLink" parent="long"/>
 
         <field name="idFactDateEnd" parent="long"/>
         <field name="FactDateEnd" parent="string"/>
@@ -74,12 +73,12 @@
     <domain name="Obj.InspectionEntriesForWorkPlan" parent="base">
         <field name="id" parent="long"/>
 
-        <field name="StartKm" parent="double"/>
-        <field name="FinishKm" parent="double"/>
-        <field name="StartPicket" parent="double"/>
-        <field name="FinishPicket" parent="double"/>
-        <field name="StartLink" parent="double"/>
-        <field name="FinishLink" parent="double"/>
+        <field name="StartKm" parent="long"/>
+        <field name="FinishKm" parent="long"/>
+        <field name="StartPicket" parent="long"/>
+        <field name="FinishPicket" parent="long"/>
+        <field name="StartLink" parent="long"/>
+        <field name="FinishLink" parent="long"/>
         <field name="FactDateEnd" parent="string"/>
 
     </domain>
@@ -119,22 +118,22 @@
         <field name="nameLocationClsSection" parent="string"/>
 
         <field name="idStartKm" parent="long"/>
-        <field name="StartKm" parent="double"/>
+        <field name="StartKm" parent="long"/>
 
         <field name="idFinishKm" parent="long"/>
-        <field name="FinishKm" parent="double"/>
+        <field name="FinishKm" parent="long"/>
 
         <field name="idStartPicket" parent="long"/>
-        <field name="StartPicket" parent="double"/>
+        <field name="StartPicket" parent="long"/>
 
         <field name="idFinishPicket" parent="long"/>
-        <field name="FinishPicket" parent="double"/>
+        <field name="FinishPicket" parent="long"/>
 
         <field name="idStartLink" parent="long"/>
-        <field name="StartLink" parent="double"/>
+        <field name="StartLink" parent="long"/>
 
         <field name="idFinishLink" parent="long"/>
-        <field name="FinishLink" parent="double"/>
+        <field name="FinishLink" parent="long"/>
 
         <field name="idCreationDateTime" parent="long"/>
         <field name="CreationDateTime" parent="string"/>
@@ -166,12 +165,12 @@
         <field name="objComponent" parent="long"/>
         <field name="nameComponent" parent="string"/>
 
-        <field name="StartKm" parent="double"/>
-        <field name="FinishKm" parent="double"/>
-        <field name="StartPicket" parent="double"/>
-        <field name="FinishPicket" parent="double"/>
-        <field name="StartLink" parent="double"/>
-        <field name="FinishLink" parent="double"/>
+        <field name="StartKm" parent="long"/>
+        <field name="FinishKm" parent="long"/>
+        <field name="StartPicket" parent="long"/>
+        <field name="FinishPicket" parent="long"/>
+        <field name="StartLink" parent="long"/>
+        <field name="FinishLink" parent="long"/>
         <field name="ParamsLimit" parent="double"/>
         <field name="ParamsLimitMax" parent="double"/>
         <field name="ParamsLimitMin" parent="double"/>
@@ -185,12 +184,12 @@
         <field name="nameDefect" parent="string"/>
         <field name="nameDefectsComponent" parent="string"/>
 
-        <field name="StartKm" parent="double"/>
-        <field name="FinishKm" parent="double"/>
-        <field name="StartPicket" parent="double"/>
-        <field name="FinishPicket" parent="double"/>
-        <field name="StartLink" parent="double"/>
-        <field name="FinishLink" parent="double"/>
+        <field name="StartKm" parent="long"/>
+        <field name="FinishKm" parent="long"/>
+        <field name="StartPicket" parent="long"/>
+        <field name="FinishPicket" parent="long"/>
+        <field name="StartLink" parent="long"/>
+        <field name="FinishLink" parent="long"/>
         <field name="CreationDateTime" parent="string"/>
 
     </domain>
@@ -211,22 +210,22 @@
         <field name="objInspection" parent="long"/>
 
         <field name="idStartKm" parent="long"/>
-        <field name="StartKm" parent="double"/>
+        <field name="StartKm" parent="long"/>
 
         <field name="idFinishKm" parent="long"/>
-        <field name="FinishKm" parent="double"/>
+        <field name="FinishKm" parent="long"/>
 
         <field name="idStartPicket" parent="long"/>
-        <field name="StartPicket" parent="double"/>
+        <field name="StartPicket" parent="long"/>
 
         <field name="idFinishPicket" parent="long"/>
-        <field name="FinishPicket" parent="double"/>
+        <field name="FinishPicket" parent="long"/>
 
         <field name="idStartLink" parent="long"/>
-        <field name="StartLink" parent="double"/>
+        <field name="StartLink" parent="long"/>
 
         <field name="idFinishLink" parent="long"/>
-        <field name="FinishLink" parent="double"/>
+        <field name="FinishLink" parent="long"/>
 
         <field name="idCreationDateTime" parent="long"/>
         <field name="CreationDateTime" parent="string"/>
