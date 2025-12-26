@@ -42,6 +42,7 @@ class ImportDao extends BaseMdbUtils {
             if (file.name.startsWith("G")) {
                 parseOtstup(file)
                 assignPropDefault("_otstup")
+                check("_otstup", params)
             } else if (file.name.startsWith("B")) {
                 parseBall(file)
                 assignPropDefault("_ball")
@@ -61,6 +62,22 @@ class ImportDao extends BaseMdbUtils {
         """)
         if (st.size() == 0)
             throw new XError("Нет данных в [${domain}]")
+        //Находим отступления
+        Set<Object> kodsOtstup = st.getUniqueValues("kod_otstup")
+        Store stOtstup = apiNSIData().get(ApiNSIData).loadSql("""
+            select s.cod, c.entityid as id from syscod c, syscodingcod s
+            where c.id=s.syscod and c.entitytype=2 
+                and s.syscoding=1001
+        ""","")
+        StoreIndex indOtstup = stOtstup.getIndex("cod")
+        Set<Object> idsRelobjComponentParams = new HashSet<>()
+        for (cod in kodsOtstup) {
+            StoreRecord r = indOtstup.get(UtCnv.toString(cod))
+            if (r == null)
+                throw new XError("Не найдено привязка [kod_otstup: ${cod}]")
+            else
+                idsRelobjComponentParams.add(r.getLong("id"))
+        }
         // Находим направления
         Store stNapr = apiObjectData().get(ApiObjectData).loadSql("""
             select c.entityid as id from syscod c, syscodingcod s
@@ -84,7 +101,7 @@ class ImportDao extends BaseMdbUtils {
         """, "")
         if (stObject.size() == 0)
             throw new XError("Не найден обслуживаемый объект по направлению")
-        //1 Работа вагона-путеизмерителя - 3394
+        // Находим работу вагона-путеизмерителя - 3394
         Store stWork = apiNSIData().get(ApiNSIData).loadSqlWithParams("""
             select o.id from obj o, objVer v
             where o.id=v.ownerVer and v.lastVer=1 and o.cls=${mapCls.get("Cls_WorkInspection")}
@@ -93,11 +110,15 @@ class ImportDao extends BaseMdbUtils {
         if (stWork.size() == 0)
             throw new XError('Не найдена "Работа вагона-путеизмерителя" в справочнике работ')
         String wheV11 = "and v11.obj=${stWork.get(0).getLong("id")}"
-        //2 План работ (plandata)
+        // План работ (plandata)
         String whe = "o.cls=${mapCls.get("Cls_WorkPlanInspection")}"
         Set<Object> idsObject = stObject.getUniqueValues("id")
         String wheV2 = "and v2.obj in (0${idsObject.join(",")})"
-        String wheV7 = "and v7.dateTimeVal='${st.get(0).getString("date_obn")}'"
+        String wheV7
+        if (domain == "_ball")
+            wheV7 = "and v7.dateTimeVal='${st.get(0).getString("date_obn")}'"
+        else
+            wheV7 = "and v7.dateTimeVal='${st.get(0).getString("datetime_obn").split("T")[0]}'"
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
         Store stPlan = apiPlanData().get(ApiPlanData).loadSqlWithParams("""
             select o.id, o.cls,
@@ -173,7 +194,6 @@ class ImportDao extends BaseMdbUtils {
         whe = "o.cls=${mapCls.get("Cls_Inspection")}"
         Set<Object> idsPlan = stPlan.getUniqueValues("id")
         wheV2 = "and v2.obj in (0${idsPlan.join(",")})"
-        String wheV8 = ""
         mdb.loadQuery(stInspection,"""
             select o.id, o.cls,
                 v1.propVal as pvLocationClsSection, v1.obj as objLocationClsSection,
@@ -190,7 +210,9 @@ class ImportDao extends BaseMdbUtils {
                 v12.numberVal as StartLink,
                 v13.numberVal as FinishLink,
                 --v14.multiStrVal as ReasonDeviation,
-                v15.propVal as pvFlagParameter, null as fvFlagParameter
+                v15.propVal as pvFlagParameter, null as fvFlagParameter,
+                v16.strVal as NumberTrack,
+                v17.strVal as HeadTrack
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
@@ -223,6 +245,10 @@ class ImportDao extends BaseMdbUtils {
                 --left join DataPropVal v14 on d14.id=v14.dataprop
                 left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_FlagParameter
                 left join DataPropVal v15 on d15.id=v15.dataprop
+                left join DataProp d16 on d16.objorrelobj=o.id and d16.prop=:Prop_NumberTrack
+                left join DataPropVal v16 on d16.id=v16.dataprop
+                left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=:Prop_HeadTrack
+                left join DataPropVal v17 on d17.id=v17.dataprop
             where ${whe}
         """, map)
         //
@@ -231,12 +257,14 @@ class ImportDao extends BaseMdbUtils {
             for (StoreRecord r in stPlan) {
                 StoreRecord rPlan = indWorkPlan.get(r.getLong("id"))
                 if (rPlan != null)
-                    continue;
+                    continue
                 Map<String, Object> mapIns = r.getValues()
                 mapIns.putAll(params)
+                mapIns.put("name", r.getString("id") + "-" + r.getString("PlanDateEnd"))
                 mapIns.put("objWorkPlan", r.getLong("id"))
                 mapIns.put("FactDateEnd", r.getString("PlanDateEnd"))
-                mapIns.put("name", r.getString("id") + "-" + r.getString("PlanDateEnd"))
+                mapIns.put("NumberTrack", r.getLong("nomer_mdk"))
+                mapIns.put("HeadTrack", r.getString("avtor"))
                 mapIns.remove("id")
                 mapIns.remove("cls")
                 mapIns.remove("beg")
@@ -247,6 +275,7 @@ class ImportDao extends BaseMdbUtils {
         }
         //4 Журнал событий и запросов (incidentdata)
         long relobjComponentParams = 2525// Оценка состояния жд пути, балл
+        String wheV8 = ""
         if (domain != "_ball") {
             whe = "o.cls=${mapCls.get("Cls_IncidentParameter")}"
             Map<String, Long> mapFV = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_StatusEliminated", "")
@@ -319,9 +348,13 @@ class ImportDao extends BaseMdbUtils {
             """, map, "")
             //
             Set<Object> idsParameterLog = stIncident.getUniqueValues("objParameterLog")
-            whe = "o.id in (0${idsParameterLog.join(",")})"
-            wheV2 = "left join DataPropVal v2 on d2.id=v2.dataprop"
-            wheV8 = "left join DataPropVal v8 on d8.id=v8.dataprop"
+//            whe = "o.id in (0${idsParameterLog.join(",")})"
+//            wheV2 = "left join DataPropVal v2 on d2.id=v2.dataprop"
+//            wheV8 = "left join DataPropVal v8 on d8.id=v8.dataprop"
+            whe = "o.cls=${mapCls.get("Cls_ParameterLog")}"
+            Set<Object> idsInspection = stInspection.getUniqueValues("id")
+            wheV2 = "inner join DataPropVal v2 on d2.id=v2.dataprop and v2.obj in (0${idsInspection.join(",")})"
+            wheV8 = "inner join DataPropVal v8 on d8.id=v8.dataprop and v8.relobj in (0${idsRelobjComponentParams.join(",")})"
         } else {
             whe = "o.cls=${mapCls.get("Cls_ParameterLog")}"
             Set<Object> idsInspection = stInspection.getUniqueValues("id")
@@ -332,6 +365,7 @@ class ImportDao extends BaseMdbUtils {
         Store stParameterLog = mdb.createStore("Obj.ParameterLog")
         mdb.loadQuery(stParameterLog, """
             select o.id, o.cls,
+                v3.numberVal * 1000 + v22.numberVal as beg,
                 v1.propVal as pvLocationClsSection, v1.obj as objLocationClsSection,
                 v2.propVal as pvInspection, v2.obj as objInspection, 
                 v3.numberVal as StartKm,
@@ -346,10 +380,15 @@ class ImportDao extends BaseMdbUtils {
                 --v14.multiStrVal as Description,
                 v15.numberVal as ParamsLimit,
                 v16.numberVal as ParamsLimitMax,
-                v17.numberVal as ParamsLimitMin
+                v17.numberVal as ParamsLimitMin,
                 --v18.propVal as pvUser, v18.obj as objUser,
                 --v19.id as idCreatedAt, v19.dateTimeVal as CreatedAt,
-                --v20.id as idUpdatedAt, v20.dateTimeVal as UpdatedAt
+                --v20.id as idUpdatedAt, v20.dateTimeVal as UpdatedAt,
+                v21.numberVal as NumberRetreat,
+                v22.numberVal as StartMeter,
+                v23.numberVal as LengthRetreat,
+                v24.numberVal as DepthRetreat,
+                v25.numberVal as DegreeRetreat
             from Obj o
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
                 left join DataPropVal v1 on d1.id=v1.dataprop
@@ -387,14 +426,25 @@ class ImportDao extends BaseMdbUtils {
                 --left join DataPropVal v19 on d19.id=v19.dataprop
                 --left join DataProp d20 on d20.objorrelobj=o.id and d20.prop=:Prop_UpdatedAt
                 --left join DataPropVal v20 on d20.id=v20.dataprop
+                left join DataProp d21 on d21.objorrelobj=o.id and d21.prop=:Prop_NumberRetreat
+                left join DataPropVal v21 on d21.id=v21.dataprop
+                left join DataProp d22 on d22.objorrelobj=o.id and d22.prop=:Prop_StartMeter
+                left join DataPropVal v22 on d22.id=v22.dataprop
+                left join DataProp d23 on d23.objorrelobj=o.id and d23.prop=:Prop_LengthRetreat
+                left join DataPropVal v23 on d23.id=v23.dataprop
+                left join DataProp d24 on d24.objorrelobj=o.id and d24.prop=:Prop_DepthRetreat
+                left join DataPropVal v24 on d24.id=v24.dataprop
+                left join DataProp d25 on d25.objorrelobj=o.id and d25.prop=:Prop_DegreeRetreat
+                left join DataPropVal v25 on d25.id=v25.dataprop
             where ${whe}
             order by o.id
         """, map)
         //
-        StoreIndex indStartKm = stParameterLog.getIndex("StartKm")
+        mdb.outTable(stParameterLog)
+        Map<String, Long> mapRelCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelCls", "RC_ParamsComponent", "")
+        long pvComponentParams = apiMeta().get(ApiMeta).idPV("relcls", mapRelCls.get("RC_ParamsComponent"), "Prop_ComponentParams")
         if (domain == "_ball") {
-            Map<String, Long> mapRelCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelCls", "RC_ParamsComponent", "")
-            long pvComponentParams = apiMeta().get(ApiMeta).idPV("relcls", mapRelCls.get("RC_ParamsComponent"), "Prop_ComponentParams")
+            StoreIndex indStartKm = stParameterLog.getIndex("StartKm")
             bool = false
             for (StoreRecord r1 in st) {
                 if (indStartKm.get(r1.getLong("km") + 1) != null)
@@ -405,7 +455,7 @@ class ImportDao extends BaseMdbUtils {
                     if (beg <= (r1.getLong("km") + 1) * 1000 && (r1.getLong("km") + 1) * 1000 <= end) {
                         Map<String, Object> mapIns = new HashMap<>(params)
                         mapIns.put("name", r2.getString("id") + "-" + r1.getString("date_obn"))
-                        mapIns.put("relobjComponentParams", 2525)// Оценка состояния жд пути, балл
+                        mapIns.put("relobjComponentParams", relobjComponentParams)
                         mapIns.put("pvComponentParams", pvComponentParams)
                         mapIns.put("objInspection", r2.getLong("id"))
                         mapIns.put("pvLocationClsSection", r2.getLong("pvLocationClsSection"))
@@ -421,6 +471,55 @@ class ImportDao extends BaseMdbUtils {
                         mapIns.put("ParamsLimitMax", 999)
                         mapIns.put("ParamsLimitMin", 0)
                         mapIns.put("CreationDateTime",  r1.getString("date_obn") + "T01:00:00.000")
+                        dataDao.saveParameterLog("ins", mapIns)
+                        //
+                        bool = true
+                        break
+                    }
+                }
+                if (bool) {
+                    bool = false
+                    continue
+                } else throw new XError("Не найден запись в Журнале осмотров и проверок на ${r1.getLong('km') + 1} км")
+            }
+        } else if (domain == "_otstup") {
+            StoreIndex indStartKm = stParameterLog.getIndex("beg")
+            bool = false
+            for (StoreRecord r1 in st) {
+                Long metrOts = (r1.getLong("km") + 1) * 1000 + r1.getLong("metr")
+                if (indStartKm.get(metrOts) != null)
+                    continue
+                for (StoreRecord r2 in stInspection) {
+                    Long beg = r2.getLong("StartKm") * 1000 + (r2.getLong("StartPicket") - 1) * 100 + r2.getLong("StartLink") * 25
+                    Long end = r2.getLong("FinishKm") * 1000 + (r2.getLong("FinishPicket") - 1) * 100 + r2.getLong("FinishLink") * 25
+                    if (beg <= metrOts && metrOts <= end) {
+                        Map<String, Object> mapIns = new HashMap<>(params)
+                        mapIns.put("name", r2.getString("id") + "-" + r1.getString("datetime_obn"))
+                        mapIns.put("relobjComponentParams", indOtstup.get(r1.getString("kod_otstup")).get("id"))
+                        mapIns.put("pvComponentParams", pvComponentParams)
+                        mapIns.put("objInspection", r2.getLong("id"))
+                        mapIns.put("pvLocationClsSection", r2.getLong("pvLocationClsSection"))
+                        mapIns.put("objLocationClsSection", r2.getLong("objLocationClsSection"))
+                        mapIns.put("StartKm", r1.getLong("km") + 1)
+                        mapIns.put("FinishKm", r1.getLong("km") + 1)
+                        mapIns.put("StartPicket", r1.getLong("pk") + 1)
+                        mapIns.put("FinishPicket", r1.getLong("pk") + 1)
+                        mapIns.put("StartLink", Math.ceil(((metrOts - (r1.getLong("km") + 1) * 1000) % 100) / 25))
+                        mapIns.put("FinishLink", Math.ceil(((metrOts - (r1.getLong("km") + 1) * 1000 + r1.getLong("dlina_ots")) % 100) / 25))
+                        mapIns.put("ParamsLimit", r1.getLong("velich_ots"))
+                        mapIns.put("ParamsLimitMax", 0)
+                        mapIns.put("ParamsLimitMin", 0)
+                        mapIns.put("NumberRetreat", r1.getLong("kol_ots"))
+                        mapIns.put("StartMeter", r1.getLong("metr"))
+                        mapIns.put("LengthRetreat", r1.getLong("dlina_ots"))
+                        mapIns.put("DepthRetreat", r1.getLong("glub_ots"))
+                        mapIns.put("DegreeRetreat", r1.getLong("stepen_ots"))
+                        mapIns.put("CreationDateTime",  r1.getString("datetime_obn"))
+                        mapIns.put("Description",  "Место - " + (r1.getLong("km") + 1) + " км " + r1.getLong("metr") +
+                                " метр; длина - " + r1.getLong("dlina_ots") + "; глубина - " +
+                                r1.getLong("glub_ots") + "; степень - " + r1.getLong("stepen_ots"))
+                        mapIns.put("nameLocation",  "ПС №" + r1.getString("nomer_mdk"))
+                        mapIns.put("fullNameUser",  r1.getString("avtor"))
                         dataDao.saveParameterLog("ins", mapIns)
                         //
                         bool = true
@@ -501,6 +600,11 @@ class ImportDao extends BaseMdbUtils {
                     String ind = rowElement.getElementsByTagName("REC").item(0).getTextContent()
                     String kod_otstup = rowElement.getElementsByTagName("kod_otstup").item(0).getTextContent()
 
+                    String kod_napr_s = rowElement.getElementsByTagName("kod_napr").item(0).getTextContent()
+                    Long kod_napr = null
+                    if (!kod_napr_s.isEmpty())
+                        kod_napr = UtCnv.toLong(kod_napr_s)
+
                     String prizn_most_s = rowElement.getElementsByTagName("prizn_most").item(0).getTextContent()
                     Long prizn_most = null
                     if (!prizn_most_s.isEmpty())
@@ -561,8 +665,8 @@ class ImportDao extends BaseMdbUtils {
                         kol_ots = UtCnv.toLong(kol_ots_s)
                     //
                     mdb.execQueryNative("""
-                        INSERT INTO _otstup (rec,kod_otstup,prizn_most,datetime_obn,nomer_mdk,avtor,km,pk,metr,dlina_ots,velich_ots,glub_ots,stepen_ots,kol_ots)
-                        VALUES ($ind,$kod_otstup,$prizn_most,'$dte','$nomer_mdk','$avtor',$km,$pk,$metr, $dlina_ots,$velich_ots,$glub_ots,$stepen_ots,$kol_ots);
+                        INSERT INTO _otstup (rec,kod_otstup,kod_napr,prizn_most,datetime_obn,nomer_mdk,avtor,km,pk,metr,dlina_ots,velich_ots,glub_ots,stepen_ots,kol_ots)
+                        VALUES ($ind,$kod_otstup,$kod_napr,$prizn_most,'$dte','$nomer_mdk','$avtor',$km,$pk,$metr, $dlina_ots,$velich_ots,$glub_ots,$stepen_ots,$kol_ots);
                     """)
                 }
             }

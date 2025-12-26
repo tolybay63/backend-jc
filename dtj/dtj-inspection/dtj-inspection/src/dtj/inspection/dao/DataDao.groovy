@@ -493,7 +493,12 @@ class DataDao extends BaseMdbUtils {
                 v17.id as idParamsLimitMin, v17.numberVal as ParamsLimitMin,
                 v18.id as idUser, v18.propVal as pvUser, v18.obj as objUser, null as fullNameUser,
                 v19.id as idCreatedAt, v19.dateTimeVal as CreatedAt,
-                v20.id as idUpdatedAt, v20.dateTimeVal as UpdatedAt
+                v20.id as idUpdatedAt, v20.dateTimeVal as UpdatedAt,
+                v21.id as idNumberRetreat, v21.numberVal as NumberRetreat,
+                v22.id as idStartMeter, v22.numberVal as StartMeter,
+                v23.id as idLengthRetreat, v23.numberVal as LengthRetreat,
+                v24.id as idDepthRetreat, v24.numberVal as DepthRetreat,
+                v25.id as idDegreeRetreat, v25.numberVal as DegreeRetreat
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
@@ -532,6 +537,16 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v19 on d19.id=v19.dataprop
                 left join DataProp d20 on d20.objorrelobj=o.id and d20.prop=:Prop_UpdatedAt
                 left join DataPropVal v20 on d20.id=v20.dataprop
+                left join DataProp d21 on d21.objorrelobj=o.id and d21.prop=:Prop_NumberRetreat
+                left join DataPropVal v21 on d21.id=v21.dataprop
+                left join DataProp d22 on d22.objorrelobj=o.id and d22.prop=:Prop_StartMeter
+                left join DataPropVal v22 on d22.id=v22.dataprop
+                left join DataProp d23 on d23.objorrelobj=o.id and d23.prop=:Prop_LengthRetreat
+                left join DataPropVal v23 on d23.id=v23.dataprop
+                left join DataProp d24 on d24.objorrelobj=o.id and d24.prop=:Prop_DepthRetreat
+                left join DataPropVal v24 on d24.id=v24.dataprop
+                left join DataProp d25 on d25.objorrelobj=o.id and d25.prop=:Prop_DegreeRetreat
+                left join DataPropVal v25 on d25.id=v25.dataprop
             where ${whe}
             order by o.id
         """, map)
@@ -1001,9 +1016,22 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("[UpdatedAt] not specified")
             else
                 fillProperties(true, "Prop_UpdatedAt", pms)
-            //18 NumberRetreat
+            //18 Prop_NumberRetreat
             if (pms.getLong("NumberRetreat") > 0)
                 fillProperties(true, "Prop_NumberRetreat", pms)
+            //19 Prop_StartMeter
+            if (pms.getLong("StartMeter") > 0)
+                fillProperties(true, "Prop_StartMeter", pms)
+            //20 Prop_LengthRetreat
+            if (pms.getLong("LengthRetreat") > 0)
+                fillProperties(true, "Prop_LengthRetreat", pms)
+            //21 Prop_DepthRetreat
+            if (pms.getLong("DepthRetreat") > 0)
+                fillProperties(true, "Prop_DepthRetreat", pms)
+            //22 Prop_DegreeRetreat
+            if (pms.getLong("DegreeRetreat") > 0)
+                fillProperties(true, "Prop_DegreeRetreat", pms)
+            //
         } else if (mode.equalsIgnoreCase("upd")) {
             throw new XError("Режим [update] отключен")
         } else {
@@ -1745,7 +1773,9 @@ class DataDao extends BaseMdbUtils {
                 v13.id as idFinishLink, v13.numberVal as FinishLink,
                 v14.id as idReasonDeviation, v14.multiStrVal as ReasonDeviation,
                 v15.id as idFlagParameter, v15.propVal as pvFlagParameter, null as fvFlagParameter,
-                    null as nameFlagParameter
+                    null as nameFlagParameter,
+                v16.id as idNumberTrack, v16.strVal as NumberTrack,
+                v17.id as idHeadTrack, v17.strVal as HeadTrack
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
@@ -1778,6 +1808,10 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v14 on d14.id=v14.dataprop
                 left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_FlagParameter
                 left join DataPropVal v15 on d15.id=v15.dataprop
+                left join DataProp d16 on d16.objorrelobj=o.id and d16.prop=:Prop_NumberTrack
+                left join DataPropVal v16 on d16.id=v16.dataprop
+                left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=:Prop_HeadTrack
+                left join DataPropVal v17 on d17.id=v17.dataprop
             where ${whe}
         """, map)
         //mdb.outTable(st)
@@ -2051,6 +2085,12 @@ class DataDao extends BaseMdbUtils {
             //14 Prop_ReasonDeviation
             if (!pms.getString("ReasonDeviation").isEmpty())
                 fillProperties(true, "Prop_ReasonDeviation", pms)
+            //15 Prop_NumberTrack
+            if (!pms.getString("NumberTrack").isEmpty())
+                fillProperties(true, "Prop_NumberTrack", pms)
+            //16 Prop_HeadTrack
+            if (!pms.getString("HeadTrack").isEmpty())
+                fillProperties(true, "Prop_HeadTrack", pms)
             //
         } else if (mode.equalsIgnoreCase("upd")) {
             own = pms.getLong("id")
@@ -2421,7 +2461,9 @@ class DataDao extends BaseMdbUtils {
         recDPV.set("dataProp", idDP)
         // Attrib
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
-            if ( cod.equalsIgnoreCase("Prop_TabNumber")) {
+            if ( cod.equalsIgnoreCase("Prop_TabNumber") ||
+                    cod.equalsIgnoreCase("Prop_NumberTrack") ||
+                    cod.equalsIgnoreCase("Prop_HeadTrack")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
                 }
@@ -2497,7 +2539,11 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_ParamsLimit") ||
                     cod.equalsIgnoreCase("Prop_ParamsLimitMax") ||
                     cod.equalsIgnoreCase("Prop_ParamsLimitMin") ||
-                    cod.equalsIgnoreCase("Prop_NumberRetreat")) {
+                    cod.equalsIgnoreCase("Prop_NumberRetreat") ||
+                    cod.equalsIgnoreCase("Prop_StartMeter") ||
+                    cod.equalsIgnoreCase("Prop_LengthRetreat") ||
+                    cod.equalsIgnoreCase("Prop_DepthRetreat") ||
+                    cod.equalsIgnoreCase("Prop_DegreeRetreat")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     double v = UtCnv.toDouble(params.get(keyValue))
                     v = v / koef
@@ -2709,7 +2755,11 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_ParamsLimit") ||
                     cod.equalsIgnoreCase("Prop_ParamsLimitMax") ||
                     cod.equalsIgnoreCase("Prop_ParamsLimitMin") ||
-                    cod.equalsIgnoreCase("Prop_NumberRetreat")) {
+                    cod.equalsIgnoreCase("Prop_NumberRetreat") ||
+                    cod.equalsIgnoreCase("Prop_StartMeter") ||
+                    cod.equalsIgnoreCase("Prop_LengthRetreat") ||
+                    cod.equalsIgnoreCase("Prop_DepthRetreat") ||
+                    cod.equalsIgnoreCase("Prop_DegreeRetreat")) {
                 if (!(mapProp[keyValue] == null || mapProp[keyValue] == "")) {
                     def v = mapProp.getDouble(keyValue)
                     v = v / koef

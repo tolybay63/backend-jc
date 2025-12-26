@@ -68,6 +68,11 @@
         <field name="idReasonDeviation" parent="long"/>
         <field name="ReasonDeviation" parent="memo"/>
 
+        <field name="idNumberTrack" parent="long"/>
+        <field name="NumberTrack" parent="string"/>
+        <field name="idHeadTrack" parent="long"/>
+        <field name="HeadTrack" parent="string"/>
+
     </domain>
 
     <domain name="Obj.InspectionEntriesForWorkPlan" parent="base">
@@ -276,6 +281,17 @@
         <field name="idDescription" parent="long"/>
         <field name="Description" parent="string"/>
 
+        <field name="beg" parent="long"/>
+        <field name="idNumberRetreat" parent="long"/>
+        <field name="NumberRetreat" parent="long"/>
+        <field name="idStartMeter" parent="long"/>
+        <field name="StartMeter" parent="long"/>
+        <field name="idLengthRetreat" parent="long"/>
+        <field name="LengthRetreat" parent="long"/>
+        <field name="idDepthRetreat" parent="long"/>
+        <field name="DepthRetreat" parent="long"/>
+        <field name="idDegreeRetreat" parent="long"/>
+        <field name="DegreeRetreat" parent="long"/>
     </domain>
 
     <domain name="_ball" parent="base">
