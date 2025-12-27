@@ -8,6 +8,8 @@
             <item name="data" method="*" invoker="model:default"
                   class="dtj.inspection.dao.DataDao"/>
 
+            <item name="import" method="*" invoker="model:default"
+                  class="dtj.inspection.dao.ImportDao"/>
 
         </holder>
 

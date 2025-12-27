@@ -1,0 +1,321 @@
+<template>
+  <q-page class="q-pa-md q-gutter-sm">
+
+    <div style="width: 60%; height: 80%">
+      <div class="row">
+        <div class="col-8">
+          <q-input
+            v-model="file"
+            :clearable="true"
+            :model-value="file"
+            accept=".xml"
+            autofocus
+            class="q-mx-sm"
+            dense
+            type="file"
+            @clear="clrFile"
+            @click="clickFile"
+            @update:model-value="updFile"
+          />
+        </div>
+
+
+        <div class="col-4 text-right">
+          <div class="row">
+            <div>
+              <q-btn
+                :disable="!file || err || (file && isAnalyzed)"
+                class="q-mx-sm"
+                color="grey-4"
+                icon="code"
+                label="Анализ"
+                text-color="black"
+                @click="fnAnalyze"
+              />
+            </div>
+
+            <div>
+              <q-btn
+                :disable="!file || !err || (file && isAnalyzed && isFilled)"
+                class="q-mx-sm"
+                color="grey-4"
+                icon="add_link"
+                label="Привязка"
+                text-color="black"
+                @click="fnAssign"
+              />
+            </div>
+
+            <div>
+              <q-btn
+                :disable="!file || err || (isAnalyzed && isFilled)"
+                class="q-mx-sm"
+                color="grey-4"
+                icon="file_download"
+                label="Залить"
+                text-color="black"
+                @click="fnFill"
+              />
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <div v-if="file" class="q-pa-sm q-gutter-sm">
+        <div v-if="isAnalyzed && !isFilled" class="text-black">
+          <div v-if="err">
+            Анализ: <span class="text-red"> {{ msg }} </span>
+          </div>
+          <div v-else>
+            Анализ: <span class="text-green"> Успешно </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <q-inner-loading :showing="loading" color="secondary"></q-inner-loading>
+    </div>
+
+    <hr/>
+
+    <div style="height: calc(100vh - 500px); width: 100%">
+
+    <q-table
+      style="height: calc(100vh - 140px); width: 100%"
+      color="primary" dense
+      card-class="bg-amber-1 text-brown"
+      row-key="row"
+      :columns="cols"
+      :rows="rows"
+      :wrap-cells="true"
+      table-header-class="text-bold text-white bg-blue-grey-13"
+      separator="cell"
+      :loading="loading"
+      :rows-per-page-options="[0]"
+    >
+
+    </q-table>
+
+    </div>
+
+  </q-page>
+</template>
+
+<script>
+import {defineComponent, ref} from 'vue'
+import {api} from "boot/axios.js";
+
+export default defineComponent({
+  name: 'IndexPage',
+
+  data() {
+    return {
+      file: ref(null),
+      loading: false,
+      err: false,
+      msg: "",
+      isFilled: false,
+      isAnalyzed: false,
+      rows: [],
+      cols: [],
+      tableName: "_ball"
+    }
+  },
+
+  methods: {
+
+
+    clrFile() {
+      this.file = ref(null)
+      this.err = false
+      this.msg = ""
+      this.isFilled = false
+      this.isAnalyzed = false
+      this.rows = []
+      this.cols = []
+    },
+
+    clickFile() {
+      this.clrFile()
+    },
+
+    updFile(val) {
+      if (val && val.length > 0) {
+        this.file = val[0]
+
+        if (this.file.name[0]==="B") {
+          this.tableName = "_ball"
+        } else if (this.file.name[0]==="G") {
+          this.tableName = "_otstup"
+        }
+        this.cols = this.getColumns(this.tableName)
+      }
+    },
+
+    fnAnalyze() {
+      this.loading = true
+
+      let fd = new FormData()
+      fd.append('file', this.file)
+      fd.append('filename', this.file.name)
+
+      this.$axios
+        .post('/importXml', fd, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+        .then(() => {
+
+
+        })
+        .catch((error) => {
+          console.log("error", error)
+        })
+        .finally(() => {
+          api
+            .post('', {
+              method: "import/loadLog",
+              params: [this.file.name],
+            })
+            .then(response => {
+              console.info("response", response.data.result.records[0])
+              this.msg = response.data.result.records[0].msg
+              this.isAnalyzed = true
+              this.isFilled = response.data.result.records[0].filled === 1
+              if (this.msg !== "")
+                this.err = true
+              this.loadTable(this.tableName)
+            })
+          this.loading = false
+        })
+    },
+
+    fnAssign() {
+    },
+
+    fnFill() {
+    },
+
+    loadTable(tabl) {
+
+      api
+        .post('', {
+          method: "import/loadTable",
+          params: [tabl],
+        })
+        .then(response => {
+          console.info("response", response.data.result.records)
+          this.rows = response.data.result.records
+        })
+
+    },
+
+    getColumns(tabl) {
+      if (tabl==="_ball")
+        return [
+          {
+            name: "rec",
+            label: "rec",
+            field: "rec",
+            align: "left",
+            classes: "bg-blue-grey-1",
+            headerStyle: "font-size: 1.2em; width:5%",
+          },
+          {
+            name: "kod_otstup",
+            label: "kod_otstup",
+            field: "kod_otstup",
+            align: "left",
+            classes: "bg-blue-grey-1",
+            headerStyle: "font-size: 1.2em; width:10%",
+          },
+          {
+            name: "kod_napr",
+            label: "kod_napr",
+            field: "kod_napr",
+            align: "left",
+            classes: "bg-blue-grey-1",
+            headerStyle: "font-size: 1.2em; width:10%",
+          },
+          {
+            name: "prizn_most",
+            label: "prizn_most",
+            field: "prizn_most",
+            align: "left",
+            classes: "bg-blue-grey-1",
+            headerStyle: "font-size: 1.2em; width:10%",
+          },
+          {
+            name: "date_obn",
+            label: "date_obn",
+            field: "date_obn",
+            align: "left",
+            classes: "bg-blue-grey-1",
+            headerStyle: "font-size: 1.2em; width:10%",
+          },
+          {
+            name: "nomer_mdk",
+            label: "nomer_mdk",
+            field: "nomer_mdk",
+            align: "left",
+            classes: "bg-blue-grey-1",
+            headerStyle: "font-size: 1.2em; width:10%",
+          },
+          {
+            name: "avtot",
+            label: "avtot",
+            field: "avtot",
+            align: "left",
+            classes: "bg-blue-grey-1",
+            headerStyle: "font-size: 1.2em; width:10%",
+          },
+          {
+            name: "km",
+            label: "km",
+            field: "km",
+            align: "left",
+            classes: "bg-blue-grey-1",
+            headerStyle: "font-size: 1.2em; width:10%",
+          },
+          {
+            name: "pk",
+            label: "pk",
+            field: "pk",
+            align: "left",
+            classes: "bg-blue-grey-1",
+            headerStyle: "font-size: 1.2em; width:10%",
+          },
+          {
+            name: "ballkm",
+            label: "ballkm",
+            field: "ballkm",
+            align: "left",
+            classes: "bg-blue-grey-1",
+            headerStyle: "font-size: 1.2em; width:10%",
+          },
+          {
+            name: "kol_ots",
+            label: "kol_ots",
+            field: "kol_ots",
+            align: "left",
+            classes: "bg-blue-grey-1",
+            headerStyle: "font-size: 1.2em; width:10%",
+          },
+
+
+
+        ]
+      else if (tabl==="_otstup")
+        return [
+
+
+        ]
+    }
+  }
+
+})
+</script>

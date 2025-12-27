@@ -1,5 +1,6 @@
 package tofi.api.dta;
 
+import jandcode.core.dbm.mdb.Mdb;
 import jandcode.core.store.Store;
 
 import java.util.Map;
@@ -52,5 +53,7 @@ public interface ApiInspectionData {
      * @param isObj 1=>Obj, 0=>RelObj
      */
     boolean checkExistOwners(long clsORrelcls, boolean isObj);
+
+    Mdb getMdbForImport();
 
 }

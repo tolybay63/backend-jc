@@ -4,6 +4,7 @@ import jandcode.commons.datetime.XDateTime
 import jandcode.commons.datetime.XDateTimeFormatter
 import jandcode.commons.error.XError
 import jandcode.core.dbm.mdb.BaseMdbUtils
+import jandcode.core.dbm.mdb.Mdb
 import jandcode.core.store.Store
 import jandcode.core.store.StoreRecord
 import tofi.api.dta.ApiInspectionData
@@ -132,4 +133,8 @@ class ApiInspectionDataImpl extends BaseMdbUtils implements ApiInspectionData {
             """).size() > 0
     }
 
+    @Override
+    Mdb getMdbForImport() {
+        return mdb
+    }
 }

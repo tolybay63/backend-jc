@@ -18,8 +18,8 @@
                 class = "dtj.inspection.action.DeletefileAction"
         />
 
-        <action name="upload"
-                class = "dtj.inspection.action.UploadAction"
+        <action name="importXml"
+                class = "dtj.inspection.action.ImportAction"
         />
         <type name="dtj.inspection.action.DownFile"
               render="downfile"/>
