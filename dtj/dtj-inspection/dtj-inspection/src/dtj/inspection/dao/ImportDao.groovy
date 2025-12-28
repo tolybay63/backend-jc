@@ -57,8 +57,36 @@ class ImportDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadTable(String table) {
-        return mdb.loadQuery("select * from ${table} where 0=0")
+    Map<String, Object> loadTable(String table) {
+        Store st = mdb.loadQuery("select * from ${table} where 0=0")
+        Set<Object> setNapr = st.getUniqueValues("kod_napr")
+        Set<String> cods = new HashSet<>()
+        for (Object o : setNapr) {
+            String cod = "kod_napr_"+UtCnv.toString(o)
+            cods.add(cod)
+        }
+        if (table=="_otstup") {
+            Set<Object> setOtstup = st.getUniqueValues("kod_napr")
+            for (Object o : setNapr) {
+                String cod = "kod_otstup_"+UtCnv.toString(o)
+                cods.add(cod)
+            }
+        }
+        //
+        Store stCod = mdb.loadQuery("select * from SysCodingCod where 0=0")
+        Set<Object> codsOther = stCod.getUniqueValues("cod")
+        Set<Object> codsErr = new HashSet<>()
+        for (String cod : cods) {
+            if (!codsOther.contains(cod))
+                codsErr.add(cod)
+        }
+        Map<String, Object> res = new HashMap<>()
+        if (codsErr.size() > 0)
+            res.put("cods_err", "Нет привязки ["+codsErr.join(", ")+"]")
+        else
+            res.put("cods_err", "")
+        res.put("store", st)
+        return res
     }
 
     @DaoMethod
@@ -657,7 +685,6 @@ class ImportDao extends BaseMdbUtils {
         }
     }
 
-
     void parseOtstup(File inputFile) {
         String filename = infoFile.get("filename")
 
@@ -679,7 +706,10 @@ class ImportDao extends BaseMdbUtils {
                 if (rowNode.getNodeType() == Node.ELEMENT_NODE) {
                     Element rowElement = (Element) rowNode
                     String ind = rowElement.getElementsByTagName("REC").item(0).getTextContent()
-                    String kod_otstup = rowElement.getElementsByTagName("kod_otstup").item(0).getTextContent()
+                    String kod_otstup_s = rowElement.getElementsByTagName("kod_otstup").item(0).getTextContent()
+                    Long kod_otstup = null
+                    if (!kod_otstup_s.isEmpty())
+                        kod_otstup = UtCnv.toLong(kod_otstup_s)
 
                     String kod_napr_s = rowElement.getElementsByTagName("kod_napr").item(0).getTextContent()
                     Long kod_napr = null
@@ -705,12 +735,12 @@ class ImportDao extends BaseMdbUtils {
                     String nomer_mdk = rowElement.getElementsByTagName("nomer_mdk").item(0).getTextContent()
                     String avtor = rowElement.getElementsByTagName("avtor").item(0).getTextContent()
                     //
-                    String km_s = UtCnv.toLong(rowElement.getElementsByTagName("km").item(0).getTextContent())
+                    String km_s = rowElement.getElementsByTagName("km").item(0).getTextContent()
                     Long km = null
                     if (!km_s.isEmpty())
                         km = UtCnv.toLong(km_s)
 
-                    String pk_s = UtCnv.toLong(rowElement.getElementsByTagName("pk").item(0).getTextContent())
+                    String pk_s = rowElement.getElementsByTagName("pk").item(0).getTextContent()
                     Long pk = null
                     if (!pk_s.isEmpty())
                         pk = UtCnv.toLong(pk_s)
@@ -740,7 +770,7 @@ class ImportDao extends BaseMdbUtils {
                     if (!stepen_ots_s.isEmpty())
                         stepen_ots = UtCnv.toLong(stepen_ots_s)
 
-                    String kol_ots_s = UtCnv.toLong(rowElement.getElementsByTagName("kol_ots").item(0).getTextContent())
+                    String kol_ots_s = rowElement.getElementsByTagName("kol_ots").item(0).getTextContent()
                     Long kol_ots = null
                     if (!kol_ots_s.isEmpty())
                         kol_ots = UtCnv.toLong(kol_ots_s)
@@ -789,11 +819,10 @@ class ImportDao extends BaseMdbUtils {
                 if (rowNode.getNodeType() == Node.ELEMENT_NODE) {
                     Element rowElement = (Element) rowNode
                     String ind = UtCnv.toLong(rowElement.getElementsByTagName("REC").item(0).getTextContent())
-                    String kod_napr_s = UtCnv.toLong(rowElement.getElementsByTagName("kod_napr").item(0).getTextContent())
+                    String kod_napr_s = rowElement.getElementsByTagName("kod_napr").item(0).getTextContent()
                     Long kod_napr = null
                     if (!kod_napr_s.isEmpty())
                         kod_napr = UtCnv.toLong(kod_napr_s)
-
 
                     String prizn_most_s = rowElement.getElementsByTagName("prizn_most").item(0).getTextContent()
                     Long prizn_most = null
@@ -808,22 +837,22 @@ class ImportDao extends BaseMdbUtils {
                     //
                     String nomer_mdk = rowElement.getElementsByTagName("nomer_mdk").item(0).getTextContent()
                     String avtor = rowElement.getElementsByTagName("avtor").item(0).getTextContent()
-                    String km_s = UtCnv.toLong(rowElement.getElementsByTagName("km").item(0).getTextContent())
+                    String km_s = rowElement.getElementsByTagName("km").item(0).getTextContent()
                     Long km = null
                     if (!km_s.isEmpty())
                         km = UtCnv.toLong(km_s)
 
-                    String pk_s = UtCnv.toLong(rowElement.getElementsByTagName("pk").item(0).getTextContent())
+                    String pk_s = rowElement.getElementsByTagName("pk").item(0).getTextContent()
                     Long pk = null
                     if (!pk_s.isEmpty())
                         pk = UtCnv.toLong(pk_s)
 
-                    String ballkm_s = UtCnv.toLong(rowElement.getElementsByTagName("ballkm").item(0).getTextContent())
+                    String ballkm_s = rowElement.getElementsByTagName("ballkm").item(0).getTextContent()
                     Long ballkm = null
                     if (!ballkm_s.isEmpty())
                         ballkm = UtCnv.toLong(ballkm_s)
 
-                    String kol_ots_s = UtCnv.toLong(rowElement.getElementsByTagName("kol_ots").item(0).getTextContent())
+                    String kol_ots_s = rowElement.getElementsByTagName("kol_ots").item(0).getTextContent()
                     Long kol_ots = null
                     if (!kol_ots_s.isEmpty())
                         kol_ots = UtCnv.toLong(kol_ots_s)
@@ -850,6 +879,23 @@ class ImportDao extends BaseMdbUtils {
             //mdb.outTable(st)
         }
 
+    }
+
+    @DaoMethod
+    Store loadAssign(String tableName) {
+        Store st = mdb.loadQuery("select kod_otstup, kod_napr from ${tableName}")
+        Set<Object> setOtstup = st.getUniqueValues("kod_otstup")
+        Set<Object> setNapr = st.getUniqueValues("kod_napr")
+
+        Set<String> cods = new HashSet<>()
+        for (Object o : setNapr) {
+            String cod = "kod_napr_"+UtCnv.toString(o)
+            cods.add(cod)
+        }
+
+
+
+        return null
     }
 
 
