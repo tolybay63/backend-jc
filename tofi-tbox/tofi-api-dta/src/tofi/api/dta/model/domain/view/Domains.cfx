@@ -332,6 +332,175 @@
         <field name="UpdatedAt" parent="string"/>
     </domain>
 
+    <domain name="Obj.inspection" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idLocationClsSection" parent="long"/>
+        <field name="pvLocationClsSection" parent="long"/>
+        <field name="objLocationClsSection" parent="long"/>
+        <field name="nameLocationClsSection" parent="string"/>
+
+        <field name="idWorkPlan" parent="long"/>
+        <field name="pvWorkPlan" parent="long"/>
+        <field name="objWorkPlan" parent="long"/>
+        <!--prop of WorkPlan-->
+        <field name="objWork" parent="long"/>
+        <field name="fullNameWork" parent="string"/>
+
+        <field name="PlanDateEnd" parent="string"/>
+        <field name="ActualDateEnd" parent="string"/>
+
+        <field name="objObject" parent="long"/>
+        <field name="fullNameObject" parent="string"/>
+        <!--prop of Object-->
+        <field name="objSection" parent="long"/>
+        <field name="nameSection" parent="string"/>
+
+        <field name="idUser" parent="long"/>
+        <field name="pvUser" parent="long"/>
+        <field name="objUser" parent="long"/>
+        <field name="fullNameUser" parent="string"/>
+
+        <field name="idFlagDefect" parent="long"/>
+        <field name="fvFlagDefect" parent="long"/>
+        <field name="pvFlagDefect" parent="long"/>
+        <field name="nameFlagDefect" parent="string"/>
+
+        <field name="idFlagParameter" parent="long"/>
+        <field name="fvFlagParameter" parent="long"/>
+        <field name="pvFlagParameter" parent="long"/>
+        <field name="nameFlagParameter" parent="string"/>
+
+        <field name="idStartKm" parent="long"/>
+        <field name="StartKm" parent="long"/>
+        <field name="idFinishKm" parent="long"/>
+        <field name="FinishKm" parent="long"/>
+
+        <field name="idStartPicket" parent="long"/>
+        <field name="StartPicket" parent="long"/>
+        <field name="idFinishPicket" parent="long"/>
+        <field name="FinishPicket" parent="long"/>
+
+        <field name="idStartLink" parent="long"/>
+        <field name="StartLink" parent="long"/>
+        <field name="idFinishLink" parent="long"/>
+        <field name="FinishLink" parent="long"/>
+
+        <field name="idFactDateEnd" parent="long"/>
+        <field name="FactDateEnd" parent="string"/>
+
+        <field name="idCreatedAt" parent="long"/>
+        <field name="CreatedAt" parent="string"/>
+
+        <field name="idUpdatedAt" parent="long"/>
+        <field name="UpdatedAt" parent="string"/>
+
+        <field name="idReasonDeviation" parent="long"/>
+        <field name="ReasonDeviation" parent="memo"/>
+
+        <field name="idNumberTrack" parent="long"/>
+        <field name="NumberTrack" parent="string"/>
+        <field name="idHeadTrack" parent="long"/>
+        <field name="HeadTrack" parent="string"/>
+
+    </domain>
+
+    <domain name="Obj.ParameterLog" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idLocationClsSection" parent="long"/>
+        <field name="pvLocationClsSection" parent="long"/>
+        <field name="objLocationClsSection" parent="long"/>
+        <field name="nameLocationClsSection" parent="string"/>
+
+        <field name="idInspection" parent="long"/>
+        <field name="pvInspection" parent="long"/>
+        <field name="objInspection" parent="long"/>
+
+        <field name="idStartKm" parent="long"/>
+        <field name="StartKm" parent="long"/>
+
+        <field name="idFinishKm" parent="long"/>
+        <field name="FinishKm" parent="long"/>
+
+        <field name="idStartPicket" parent="long"/>
+        <field name="StartPicket" parent="long"/>
+
+        <field name="idFinishPicket" parent="long"/>
+        <field name="FinishPicket" parent="long"/>
+
+        <field name="idStartLink" parent="long"/>
+        <field name="StartLink" parent="long"/>
+
+        <field name="idFinishLink" parent="long"/>
+        <field name="FinishLink" parent="long"/>
+
+        <field name="idCreationDateTime" parent="long"/>
+        <field name="CreationDateTime" parent="string"/>
+
+        <field name="FactDateEnd" parent="string"/>
+
+        <field name="objWorkPlan" parent="long"/>
+
+        <field name="idComponentParams" parent="long"/>
+        <field name="pvComponentParams" parent="long"/>
+        <field name="relobjComponentParams" parent="long"/>
+        <field name="nameComponentParams" parent="string"/>
+
+        <field name="objComponent" parent="long"/>
+        <field name="nameComponent" parent="string"/>
+
+        <field name="objObject" parent="long"/>
+        <field name="nameObject" parent="string"/>
+
+        <field name="objSection" parent="long"/>
+        <field name="nameSection" parent="string"/>
+
+        <field name="idOutOfNorm" parent="long"/>
+        <field name="pvOutOfNorm" parent="long"/>
+        <field name="fvOutOfNorm" parent="long"/>
+        <field name="nameOutOfNorm" parent="string"/>
+
+        <field name="idParamsLimit" parent="long"/>
+        <field name="ParamsLimit" parent="double"/>
+
+        <field name="idParamsLimitMax" parent="long"/>
+        <field name="ParamsLimitMax" parent="double"/>
+
+        <field name="idParamsLimitMin" parent="long"/>
+        <field name="ParamsLimitMin" parent="double"/>
+
+        <field name="idUser" parent="long"/>
+        <field name="pvUser" parent="long"/>
+        <field name="objUser" parent="long"/>
+        <field name="fullNameUser" parent="string"/>
+
+        <field name="idCreatedAt" parent="long"/>
+        <field name="CreatedAt" parent="string"/>
+
+        <field name="idUpdatedAt" parent="long"/>
+        <field name="UpdatedAt" parent="string"/>
+
+        <field name="idDescription" parent="long"/>
+        <field name="Description" parent="string"/>
+
+        <field name="beg" parent="long"/>
+        <field name="idNumberRetreat" parent="long"/>
+        <field name="NumberRetreat" parent="long"/>
+        <field name="idStartMeter" parent="long"/>
+        <field name="StartMeter" parent="long"/>
+        <field name="idLengthRetreat" parent="long"/>
+        <field name="LengthRetreat" parent="long"/>
+        <field name="idDepthRetreat" parent="long"/>
+        <field name="DepthRetreat" parent="long"/>
+        <field name="idDegreeRetreat" parent="long"/>
+        <field name="DegreeRetreat" parent="long"/>
+    </domain>
+
     <domain name="Report.po_4" parent="base">
         <field name="id" parent="long"/>
         <field name="cls" parent="long"/>
