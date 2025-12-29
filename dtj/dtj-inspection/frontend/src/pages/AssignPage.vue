@@ -23,10 +23,10 @@
           card-class="bg-amber-1 text-brown"
           color="primary"
           dense
-          row-key="row"
+          row-key="cod"
           separator="cell"
-
           table-header-class="text-bold text-white bg-blue-grey-13"
+          :rows-per-page-options="[0]"
          >
 
         </q-table>

@@ -28,8 +28,13 @@
             icon="code"
             label="Анализ"
             text-color="black"
+            :loading="loading"
             @click="fnAnalyze"
-          />
+          >
+            <template #loading>
+              <q-spinner-hourglass color="white"/>
+            </template>
+          </q-btn>
         </div>
 
         <div>
@@ -79,7 +84,8 @@
 
       <q-table
         :columns="cols"
-        :loading="loading" :rows="rows"
+        :rows="rows"
+        :loading="loading"
         :rows-per-page-options="[0]"
         :wrap-cells="true"
         card-class="bg-amber-1 text-brown"
@@ -87,7 +93,7 @@
         dense
         row-key="row"
         separator="cell"
-        style="height: calc(100vh - 240px); width: 100%"
+        style="height: calc(100vh - 160px); width: 100%"
         table-header-class="text-bold text-white bg-blue-grey-13"
       >
 
