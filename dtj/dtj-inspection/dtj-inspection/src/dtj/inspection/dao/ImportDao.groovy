@@ -408,23 +408,28 @@ class ImportDao extends BaseMdbUtils {
                 StoreIndex indStartKm = stParameterLog.getIndex("StartKm")
                 for (StoreRecord r1 in st) {
                     if (indStartKm.get(r1.getLong("km") + 1) != null)
-                        r1.set("import", true)
+                        r1.set("import", 1)
                     else
-                        r1.set("import", false)
+                        r1.set("import", 0)
                 }
             } else if (domain == "_otstup") {
                 StoreIndex indStartKm = stParameterLog.getIndex("beg")
                 for (StoreRecord r1 in st) {
                     Long metrOts = (r1.getLong("km") + 1) * 1000 + r1.getLong("metr")
                     if (indStartKm.get(metrOts) != null)
-                        r1.set("import", true)
+                        r1.set("import", 1)
                     else
-                        r1.set("import", false)
+                        r1.set("import", 0)
                 }
             }
         }
         //
-        mdb.outTable(st)
+        //mdb.outTable(st)
+
+        for (StoreRecord r in st) {
+            mdb.execQuery("update ${domain} set import=${r.getInt("import")} where rec=${r.getLong("rec")}" )
+        }
+
     }
 
     void checkCopy(String domain, Map<String, Object> params) {
@@ -1172,10 +1177,6 @@ class ImportDao extends BaseMdbUtils {
                     """)
                 }
             }
-/*            mdb.execQueryNative("""
-                INSERT INTO public._log (filename, datetime_create, filled, datetime_fill)
-                VALUES('${filename}', '${XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)}', 0, null);
-            """)*/
             datetime_create = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
         } catch (Exception e) {
             errorImport = true
