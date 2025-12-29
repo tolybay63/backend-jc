@@ -107,7 +107,7 @@ class ImportDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    void analyze(File file) {
+    void analyze(File file, Map<String, Object> params) {
         try {
             //File inputFile = new File("C:\\jc-2\\_info\\xml\\G057_22042025_113706_64_1 1.xml")
             //File inputFile = new File("C:\\jc-2\\_info\\xml\\B057_22042025_113706_1 1.xml")
@@ -138,6 +138,299 @@ class ImportDao extends BaseMdbUtils {
     }
 
     void check(String domain) {
+        Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "", "Cls_")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        //
+        Store st = mdb.loadQuery("""
+            select * from ${domain}
+        """)
+        // Находим направления
+        Set<Object> idsNapr = new HashSet<>()
+        Set<Object> kodsNapr = st.getUniqueValues("kod_napr")
+        Store stNapr = apiObjectData().get(ApiObjectData).loadSql("""
+            select s.cod, c.entityid as id from syscod c, syscodingcod s
+            where c.id=s.syscod and c.entitytype=1 
+                and s.syscoding=1001 and s.cod like 'kod_napr_%'
+        """, "")
+        StoreIndex indNapr = stNapr.getIndex("cod")
+        for (cod in kodsNapr) {
+            StoreRecord r = indNapr.get(UtCnv.toString("kod_napr_" + cod))
+            if (r != null)
+                idsNapr.add(r.getLong("id"))
+        }
+        // Находим участки направления
+        Store stSection = apiObjectData().get(ApiObjectData).loadSql("""
+            select o.id from Obj o, ObjVer v 
+            where o.id=v.ownerver and v.lastver=1 and v.objparent in (0${idsNapr.join(",")})
+                and o.cls in (0${mapCls.get("Cls_Station")}, 0${mapCls.get("Cls_Stage")})
+        """, "")
+        if (stSection.size() == 0) {
+            errorImport = true
+            saveLog(UtCnv.toString(infoFile.get("filename")), datetime_create,0, null,
+                    "Не найден Раздельный пункт и/или Перегон по направлению")
+            throw new XError("Не найден Раздельный пункт и/или Перегон по направлению")
+        }
+        // Находим обслуживаемые объекты
+        Set<Object> idsSection = stSection.getUniqueValues("id")
+        Store stObject = apiObjectData().get(ApiObjectData).loadSql("""
+            select o.id 
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Section")}
+                inner join DataPropVal v1 on d1.id=v1.dataprop and v1.obj in (0${idsSection.join(",")})
+            where cls in (0${mapCls.get("Cls_RailwayStage")}, 0${mapCls.get("Cls_RailwayStation")})
+        """, "")
+        if (stObject.size() == 0) {
+            errorImport = true
+            saveLog(UtCnv.toString(infoFile.get("filename")), datetime_create,0, null,
+                    "Не найден обслуживаемый объект по направлению")
+            throw new XError("Не найден обслуживаемый объект по направлению")
+        }
+        Set<Object> idsObject = stObject.getUniqueValues("id")
+        // Находим параметр балл или отступления
+        Set<Object> idsRelobjComponentParams = new HashSet<>()
+        if (domain == "_otstup") {
+            Set<Object> kodsOtstup = st.getUniqueValues("kod_otstup")
+            Store stOtstup = apiNSIData().get(ApiNSIData).loadSql("""
+                select s.cod, c.entityid as id from syscod c, syscodingcod s
+                where c.id=s.syscod and c.entitytype=2 
+                    and s.syscoding=1001 and s.cod like 'kod_otstup_%'
+            """, "")
+            StoreIndex indOtstup = stOtstup.getIndex("cod")
+            for (cod in kodsOtstup) {
+                StoreRecord r = indOtstup.get(UtCnv.toString("kod_otstup_" + cod))
+                if (r != null)
+                    idsRelobjComponentParams.add(r.getLong("id"))
+            }
+        } else {
+            idsRelobjComponentParams.add(2525)// Оценка состояния жд пути, балл
+        }
+        // Находим работу вагона-путеизмерителя - 3394
+        Store stWork = apiNSIData().get(ApiNSIData).loadSqlWithParams("""
+            select o.id from obj o, objVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.cls=${mapCls.get("Cls_WorkInspection")}
+                and v.name like 'Работа вагона-путеизмерителя'
+        """, null, "")
+        if (stWork.size() == 0) {
+            errorImport = true
+            saveLog(UtCnv.toString(infoFile.get("filename")), datetime_create,0, null,
+                    'Не найдена "Работа вагона-путеизмерителя" в справочнике работ')
+            throw new XError('Не найдена "Работа вагона-путеизмерителя" в справочнике работ')
+        }
+        // План работ (plandata)
+        String whe = "o.cls=${mapCls.get("Cls_WorkPlanInspection")}"
+        String wheV2 = "and v2.obj in (0${idsObject.join(",")})"
+        String wheV7
+        if (domain == "_ball")
+            wheV7 = "and v7.dateTimeVal='${st.get(0).getString("date_obn")}'"
+        else
+            wheV7 = "and v7.dateTimeVal='${st.get(0).getString("datetime_obn").split("T")[0]}'"
+        String wheV11 = "and v11.obj=${stWork.get(0).getLong("id")}"
+        Store stPlan = apiPlanData().get(ApiPlanData).loadSqlWithParams("""
+            select o.id, o.cls,
+                v3.numberVal * 1000 + (v5.numberVal - 1) * 100 + v14.numberVal * 25 as beg,
+                v4.numberVal * 1000 + (v6.numberVal - 1) * 100 + v15.numberVal * 25 as end,
+                v1.propVal as pvLocationClsSection, v1.obj as objLocationClsSection,
+                v2.propVal as pvObject, v2.obj as objObject,
+                v3.numberVal as StartKm,
+                v4.numberVal as FinishKm,
+                v5.numberVal as StartPicket,
+                v6.numberVal as FinishPicket,
+                v7.dateTimeVal as PlanDateEnd,
+                v11.propVal as pvWork, v11.obj as objWork,
+                v14.numberVal as StartLink,
+                v15.numberVal as FinishLink
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Object
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartKm
+                inner join DataPropVal v3 on d3.id=v3.dataprop ${wheV2}
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FinishKm
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_StartPicket
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_FinishPicket
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_PlanDateEnd
+                inner join DataPropVal v7 on d7.id=v7.dataprop ${wheV7}
+                left join DataProp d11 on d11.objorrelobj=o.id and d11.prop=:Prop_Work
+                inner join DataPropVal v11 on d11.id=v11.dataprop ${wheV11}
+                left join DataProp d14 on d14.objorrelobj=o.id and d14.prop=:Prop_StartLink
+                left join DataPropVal v14 on d14.id=v14.dataprop
+                left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_FinishLink
+                left join DataPropVal v15 on d15.id=v15.dataprop
+            where ${whe}
+        """, map, "Obj.plan")
+        //
+        if (stPlan.size() == 0) {
+            errorImport = true
+            saveLog(UtCnv.toString(infoFile.get("filename")), datetime_create,0, null,
+                    "Не найден план работ")
+            throw new XError('Не найден план работ')
+        }
+        //Проверяем запланирована ли работа по километрам из импортируемого файла
+        Boolean bool = false
+        for (StoreRecord r1 in st) {
+            for (StoreRecord r2 in stPlan) {
+                if (r2.getLong("beg") <= (r1.getLong("km") + 1) * 1000 && (r1.getLong("km") + 1) * 1000 <= r2.getLong("end")) {
+                    bool = true
+                    break;
+                }
+            }
+            if (bool) {
+                bool = false
+                break;
+            } else {
+                errorImport = true
+                saveLog(UtCnv.toString(infoFile.get("filename")), datetime_create,0, null,
+                        "Не найден план работ на ${r1.getLong('km') + 1} км")
+                throw new XError("Не найден план работ на ${r1.getLong('km') + 1} км")
+            }
+        }
+        //3 Журнал осмотров и проверок
+        Store stInspection = mdb.createStore("Obj.inspection")
+        whe = "o.cls=${mapCls.get("Cls_Inspection")}"
+        Set<Object> idsPlan = stPlan.getUniqueValues("id")
+        wheV2 = "and v2.obj in (0${idsPlan.join(",")})"
+        mdb.loadQuery(stInspection,"""
+            select o.id, o.cls,
+                v1.propVal as pvLocationClsSection, v1.obj as objLocationClsSection,
+                v2.propVal as pvWorkPlan, v2.obj as objWorkPlan, 
+                v3.numberVal as StartKm,
+                v4.numberVal as FinishKm,
+                v5.numberVal as StartPicket,
+                v6.numberVal as FinishPicket,
+                v7.dateTimeVal as FactDateEnd,
+                v11.propVal as pvFlagDefect, null as fvFlagDefect,
+                v12.numberVal as StartLink,
+                v13.numberVal as FinishLink,
+                v15.propVal as pvFlagParameter, null as fvFlagParameter,
+                v16.strVal as NumberTrack,
+                v17.strVal as HeadTrack
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_WorkPlan
+                inner join DataPropVal v2 on d2.id=v2.dataprop ${wheV2}
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartKm
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FinishKm
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_StartPicket
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_FinishPicket
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_FactDateEnd
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d11 on d11.objorrelobj=o.id and d11.prop=:Prop_FlagDefect
+                left join DataPropVal v11 on d11.id=v11.dataprop
+                left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_StartLink
+                left join DataPropVal v12 on d12.id=v12.dataprop
+                left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_FinishLink
+                left join DataPropVal v13 on d13.id=v13.dataprop
+                left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_FlagParameter
+                left join DataPropVal v15 on d15.id=v15.dataprop
+                left join DataProp d16 on d16.objorrelobj=o.id and d16.prop=:Prop_NumberTrack
+                left join DataPropVal v16 on d16.id=v16.dataprop
+                left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=:Prop_HeadTrack
+                left join DataPropVal v17 on d17.id=v17.dataprop
+            where ${whe}
+        """, map)
+        Set<Object> idsInspection = stInspection.getUniqueValues("id")
+        //5 Журнал параметров
+        if (stInspection.size() != 0) {
+            Store stParameterLog = mdb.createStore("Obj.ParameterLog")
+            whe = "o.cls=${mapCls.get("Cls_ParameterLog")}"
+            wheV2 = "and v2.obj in (0${idsInspection.join(",")})"
+            String wheV8 = "and v8.relobj in (0${idsRelobjComponentParams.join(",")})"
+            mdb.loadQuery(stParameterLog, """
+                select o.id, o.cls,
+                    v3.numberVal * 1000 + v22.numberVal as beg,
+                    v1.propVal as pvLocationClsSection, v1.obj as objLocationClsSection,
+                    v2.propVal as pvInspection, v2.obj as objInspection, 
+                    v3.numberVal as StartKm,
+                    v4.numberVal as FinishKm,
+                    v5.numberVal as StartPicket,
+                    v6.numberVal as FinishPicket,
+                    v7.dateTimeVal as CreationDateTime,
+                    v8.propVal as pvComponentParams, v8.relobj as relobjComponentParams,
+                    v12.numberVal as StartLink,
+                    v13.numberVal as FinishLink,
+                    v15.numberVal as ParamsLimit,
+                    v16.numberVal as ParamsLimitMax,
+                    v17.numberVal as ParamsLimitMin,
+                    v21.numberVal as NumberRetreat,
+                    v22.numberVal as StartMeter,
+                    v23.numberVal as LengthRetreat,
+                    v24.numberVal as DepthRetreat,
+                    v25.numberVal as DegreeRetreat
+                from Obj o
+                    left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
+                    left join DataPropVal v1 on d1.id=v1.dataprop
+                    left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Inspection
+                    inner join DataPropVal v2 on d2.id=v2.dataprop ${wheV2}
+                    left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartKm
+                    left join DataPropVal v3 on d3.id=v3.dataprop
+                    left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FinishKm
+                    left join DataPropVal v4 on d4.id=v4.dataprop
+                    left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_StartPicket
+                    left join DataPropVal v5 on d5.id=v5.dataprop
+                    left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_FinishPicket
+                    left join DataPropVal v6 on d6.id=v6.dataprop
+                    left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_CreationDateTime
+                    left join DataPropVal v7 on d7.id=v7.dataprop
+                    left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_ComponentParams
+                    inner join DataPropVal v8 on d8.id=v8.dataprop ${wheV8}
+                    left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_StartLink
+                    left join DataPropVal v12 on d12.id=v12.dataprop
+                    left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_FinishLink
+                    left join DataPropVal v13 on d13.id=v13.dataprop
+                    left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_ParamsLimit
+                    left join DataPropVal v15 on d15.id=v15.dataprop
+                    left join DataProp d16 on d16.objorrelobj=o.id and d16.prop=:Prop_ParamsLimitMax
+                    left join DataPropVal v16 on d16.id=v16.dataprop
+                    left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=:Prop_ParamsLimitMin
+                    left join DataPropVal v17 on d17.id=v17.dataprop
+                    left join DataProp d21 on d21.objorrelobj=o.id and d21.prop=:Prop_NumberRetreat
+                    left join DataPropVal v21 on d21.id=v21.dataprop
+                    left join DataProp d22 on d22.objorrelobj=o.id and d22.prop=:Prop_StartMeter
+                    left join DataPropVal v22 on d22.id=v22.dataprop
+                    left join DataProp d23 on d23.objorrelobj=o.id and d23.prop=:Prop_LengthRetreat
+                    left join DataPropVal v23 on d23.id=v23.dataprop
+                    left join DataProp d24 on d24.objorrelobj=o.id and d24.prop=:Prop_DepthRetreat
+                    left join DataPropVal v24 on d24.id=v24.dataprop
+                    left join DataProp d25 on d25.objorrelobj=o.id and d25.prop=:Prop_DegreeRetreat
+                    left join DataPropVal v25 on d25.id=v25.dataprop
+                where ${whe}
+                order by o.id
+            """, map)
+            //mdb.outTable(stParameterLog)
+            if (domain == "_ball") {
+                StoreIndex indStartKm = stParameterLog.getIndex("StartKm")
+                for (StoreRecord r1 in st) {
+                    if (indStartKm.get(r1.getLong("km") + 1) != null)
+                        r1.set("import", true)
+                    else
+                        r1.set("import", false)
+                }
+            } else if (domain == "_otstup") {
+                StoreIndex indStartKm = stParameterLog.getIndex("beg")
+                for (StoreRecord r1 in st) {
+                    Long metrOts = (r1.getLong("km") + 1) * 1000 + r1.getLong("metr")
+                    if (indStartKm.get(metrOts) != null)
+                        r1.set("import", true)
+                    else
+                        r1.set("import", false)
+                }
+            }
+        }
+        //
+        mdb.outTable(st)
+    }
+
+    void checkCopy(String domain, Map<String, Object> params) {
         DataDao dataDao = mdb.createDao(DataDao.class)
         Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "", "Cls_")
         //
