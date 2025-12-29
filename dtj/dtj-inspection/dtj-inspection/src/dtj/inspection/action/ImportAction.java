@@ -49,7 +49,7 @@ public class ImportAction extends BaseAction {
                 //params.put("filePath", fle.getAbsolutePath());
                 Mdb mdb = apiInspection().get(ApiInspectionData.class).getMdbForImport();
                 ImportDao importDao = mdb.createDao(ImportDao.class);
-                importDao.analyze(fle, params);
+                importDao.analyze(fle);
             //} catch (Exception e) {
                 //e.printStackTrace();
             //}

@@ -58,7 +58,14 @@ class ImportDao extends BaseMdbUtils {
 
     @DaoMethod
     Map<String, Object> loadTable(String table) {
+        Map<String, Object> res = new HashMap<>()
         Store st = mdb.loadQuery("select * from ${table} where 0=0")
+        if (st.size()==0) {
+            res.put("cods_err", "Файл пустой")
+            res.put("store", st)
+            return res
+        }
+
         Set<Object> setNapr = st.getUniqueValues("kod_napr")
         Set<String> cods = new HashSet<>()
         for (Object o : setNapr) {
@@ -73,14 +80,24 @@ class ImportDao extends BaseMdbUtils {
             }
         }
         //
-        Store stCod = mdb.loadQuery("select * from SysCodingCod where 0=0")
+        Store stCod = apiObjectData().get(ApiObjectData).loadSql ("""
+            select * from SysCodingCod where cod like 'kod_napr_%'
+        """, "")
+
+        Store stOtstup = apiNSIData().get(ApiNSIData).loadSql("""
+            select * from SysCodingCod where cod like 'kod_otstup_%'
+        """, "")
+
+        stCod.add(stOtstup)
+        //
         Set<Object> codsOther = stCod.getUniqueValues("cod")
         Set<Object> codsErr = new HashSet<>()
         for (String cod : cods) {
             if (!codsOther.contains(cod))
                 codsErr.add(cod)
         }
-        Map<String, Object> res = new HashMap<>()
+        //
+
         if (codsErr.size() > 0)
             res.put("cods_err", "Нет привязки ["+codsErr.join(", ")+"]")
         else
@@ -90,7 +107,7 @@ class ImportDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    void analyze(File file, Map<String, Object> params) {
+    void analyze(File file) {
         try {
             //File inputFile = new File("C:\\jc-2\\_info\\xml\\G057_22042025_113706_64_1 1.xml")
             //File inputFile = new File("C:\\jc-2\\_info\\xml\\B057_22042025_113706_1 1.xml")
@@ -102,21 +119,17 @@ class ImportDao extends BaseMdbUtils {
                 fileLoaded = true
 
             if (filename.startsWith("G")) {
+                parseOtstup(file)
                 if (!fileLoaded) {
-                    parseOtstup(file)
                     assignPropDefault("_otstup")
                 }
-                check("_otstup", params)
+                check("_otstup")
             } else if (filename.startsWith("B")) {
+                parseBall(file)
                 if (!fileLoaded) {
-                    parseBall(file)
                     assignPropDefault("_ball")
                 }
-                params.put("objUser", 1003)
-                params.put("pvUser", 1087)
-                params.put("CreatedAt", "2025-12-25")
-                params.put("UpdatedAt", "2025-12-25")
-                check("_ball", params)
+                check("_ball")
             }
         } finally {
             if (!errorImport)
@@ -124,7 +137,7 @@ class ImportDao extends BaseMdbUtils {
         }
     }
 
-    void check(String domain, Map<String, Object> params) {
+    void check(String domain) {
         DataDao dataDao = mdb.createDao(DataDao.class)
         Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "", "Cls_")
         //
@@ -137,23 +150,25 @@ class ImportDao extends BaseMdbUtils {
             throw new XError("Нет данных в [${domain}]")
         }
         //Находим отступления
-        Set<Object> kodsOtstup = st.getUniqueValues("kod_otstup")
-        Store stOtstup = apiNSIData().get(ApiNSIData).loadSql("""
-            select s.cod, c.entityid as id from syscod c, syscodingcod s
-            where c.id=s.syscod and c.entitytype=2 
-                and s.syscoding=1001
-        ""","")
-        StoreIndex indOtstup = stOtstup.getIndex("cod")
-        Set<Object> idsRelobjComponentParams = new HashSet<>()
-        for (cod in kodsOtstup) {
-            StoreRecord r = indOtstup.get(UtCnv.toString(cod))
-            if (r == null) {
-                errorImport = true
-                saveLog(UtCnv.toString(infoFile.get("filename")), datetime_create,0, null,
-                        "Не найдено привязка [kod_otstup: ${cod}]")
-                throw new XError("Не найдено привязка [kod_otstup: ${cod}]")
-            } else
-                idsRelobjComponentParams.add(r.getLong("id"))
+        if (domain=="_otstup") {
+            Set<Object> kodsOtstup = st.getUniqueValues("kod_otstup")
+            Store stOtstup = apiNSIData().get(ApiNSIData).loadSql("""
+                select s.cod, c.entityid as id from syscod c, syscodingcod s
+                where c.id=s.syscod and c.entitytype=2 
+                    and s.syscoding=1001
+            """, "")
+            StoreIndex indOtstup = stOtstup.getIndex("cod")
+            Set<Object> idsRelobjComponentParams = new HashSet<>()
+            for (cod in kodsOtstup) {
+                StoreRecord r = indOtstup.get(UtCnv.toString(cod))
+                if (r == null) {
+                    errorImport = true
+                    saveLog(UtCnv.toString(infoFile.get("filename")), datetime_create, 0, null,
+                            "Не найдено привязка [kod_otstup: ${cod}]")
+                    throw new XError("Не найдено привязка [kod_otstup: ${cod}]")
+                } else
+                    idsRelobjComponentParams.add(r.getLong("id"))
+            }
         }
         // Находим направления
         Store stNapr = apiObjectData().get(ApiObjectData).loadSql("""

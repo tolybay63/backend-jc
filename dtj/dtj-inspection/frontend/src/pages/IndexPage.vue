@@ -171,8 +171,6 @@ export default defineComponent({
           }
         })
         .then(() => {
-
-
         })
         .catch((error) => {
           console.log("error", error)
@@ -184,9 +182,9 @@ export default defineComponent({
               params: [this.file.name],
             })
             .then(response => {
-              console.info("response", response.data.result.records[0])
-              this.msg = response.data.result.records[0].msg
+              //console.info("response", response.data.result.records[0])
               this.isAnalyzed = true
+              this.msg = response.data.result.records[0].msg
               this.isFilled = response.data.result.records[0].filled === 1
               if (this.msg !== "")
                 this.err = true
