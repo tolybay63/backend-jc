@@ -2856,5 +2856,43 @@ class DataDao extends BaseMdbUtils {
         return au
     }
 
+    //Temporary!
+    @DaoMethod
+    Store loadAssign(String table) {
+        Store st = mdb.loadQuery("select * from ${table} where 0=0")
+        Set<Object> setNapr = st.getUniqueValues("kod_napr")
+        Set<String> cods = new HashSet<>()
+        for (Object o : setNapr) {
+            String cod = "kod_napr_"+UtCnv.toString(o)
+            cods.add(cod)
+        }
+        if (table=="_otstup") {
+            Set<Object> setOtstup = st.getUniqueValues("kod_otstup")
+            for (Object o : setOtstup) {
+                String cod = "kod_otstup_"+UtCnv.toString(o)
+                cods.add(cod)
+            }
+        }
+
+        st = mdb.loadQuery("""
+            select sc.cod, s.cod as cod_tofi, 
+                case when s.entitytype=1 then v1.name else v2.name end as name
+            from syscodingcod sc
+                left join SysCod s on sc.syscod=s.id
+                left join ObjVer v1 on s.entitytype=1 and s.entityid=v1.ownerver and v1.lastVer=1
+                left join RelObjVer v2 on s.entitytype=2 and s.entityid=v2.ownerver and v2.lastVer=1
+            where sc.sysCoding=1001
+        """)
+        Set<Object> setCod = st.getUniqueValues("cod")
+
+        for (String cod : cods) {
+            if (!setCod.contains(cod))
+                st.add([cod: cod])
+        }
+
+
+
+        return st
+    }
 
 }

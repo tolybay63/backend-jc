@@ -7,9 +7,8 @@
     autofocus
     transition-show="slide-up"
     transition-hide="slide-down"
-    style="width: 600px"
   >
-    <q-card class="q-dialog-plugin" style="width: 600px">
+    <q-card class="q-dialog-plugin" style="width: 800px">
       <q-bar class="text-white bg-primary">
         <div>Привязка</div>
       </q-bar>
@@ -126,7 +125,7 @@ export default {
     this.loading = true
     api
       .post('', {
-        method: 'import/loadAssign',
+        method: 'data/loadAssign',
         params: [this.tableName]
       })
       .then(

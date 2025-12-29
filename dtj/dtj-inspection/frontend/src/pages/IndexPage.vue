@@ -312,6 +312,15 @@ export default defineComponent({
             classes: "bg-blue-grey-1",
             headerStyle: "font-size: 1.2em; width:10%",
           },
+          {
+            name: "import",
+            label: "import",
+            field: "import",
+            align: "left",
+            classes: "bg-blue-grey-1",
+            headerStyle: "font-size: 1.2em; width:10%",
+            format: (val) => (val ? 'Залито' : '')
+          },
 
 
         ]

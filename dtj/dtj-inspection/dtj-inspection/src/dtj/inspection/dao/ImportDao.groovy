@@ -19,10 +19,8 @@ import tofi.api.dta.ApiNSIData
 import tofi.api.dta.ApiObjectData
 import tofi.api.dta.ApiPlanData
 import tofi.api.mdl.ApiMeta
-import tofi.api.mdl.utils.UtPeriod
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
-import dtj.inspection.dao.DataDao
 
 import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
@@ -109,8 +107,6 @@ class ImportDao extends BaseMdbUtils {
     @DaoMethod
     void analyze(File file, Map<String, Object> params) {
         try {
-            //File inputFile = new File("C:\\jc-2\\_info\\xml\\G057_22042025_113706_64_1 1.xml")
-            //File inputFile = new File("C:\\jc-2\\_info\\xml\\B057_22042025_113706_1 1.xml")
             String filename = UtCnv.toString(params.get("filename"))
             infoFile.put("filename", filename)
             Store stLog = mdb.loadQuery("select * from _log where filename like '${filename}'")
@@ -138,6 +134,7 @@ class ImportDao extends BaseMdbUtils {
     }
 
     void check(String domain) {
+        DataDao dataDao = mdb.createDao(DataDao.class)
         Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "", "Cls_")
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
         //
@@ -1211,8 +1208,8 @@ class ImportDao extends BaseMdbUtils {
         }
 
         st = mdb.loadQuery("""
-            select sc.cod, s.cod as cod_tofi, 
-                case when s.entitytype=1 then v1.name else v2.name end as name
+            select sc.cod, 
+                s.cod || ' / ' ||case when s.entitytype=1 then v1.name else v2.name end as name
             from syscodingcod sc
                 left join SysCod s on sc.syscod=s.id
                 left join ObjVer v1 on s.entitytype=1 and s.entityid=v1.ownerver and v1.lastVer=1
