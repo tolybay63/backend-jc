@@ -199,7 +199,6 @@
 
     </domain>
 
-
     <domain name="Obj.ParameterLog" parent="base">
         <field name="id" parent="long"/>
         <field name="cls" parent="long"/>
@@ -292,36 +291,6 @@
         <field name="DepthRetreat" parent="long"/>
         <field name="idDegreeRetreat" parent="long"/>
         <field name="DegreeRetreat" parent="long"/>
-    </domain>
-
-    <domain name="_ball" parent="base">
-        <field name="rec" parent="long"/>
-        <field name="prizn_most" parent="long"/>
-        <field name="date_obn" parent="date"/>
-        <field name="nomer_mdk" parent="string"/>
-        <field name="avtor" parent="string"/>
-        <field name="km" parent="long"/>
-        <field name="pk" parent="long"/>
-        <field name="ballkm" parent="long"/>
-        <field name="kol_ots" parent="long"/>
-    </domain>
-
-    <domain name="_otstup" parent="base">
-        <field name="rec" parent="long"/>
-        <field name="kod_otstup" parent="long"/>
-        <field name="kod_napr" parent="long"/>
-        <field name="prizn_most" parent="long"/>
-        <field name="datetime_obn" parent="datetime"/>
-        <field name="nomer_mdk" parent="string"/>
-        <field name="avtor" parent="string"/>
-        <field name="km" parent="long"/>
-        <field name="pk" parent="long"/>
-        <field name="metr" parent="long"/>
-        <field name="dlina_ots" parent="long"/>
-        <field name="velich_ots" parent="long"/>
-        <field name="glub_ots" parent="long"/>
-        <field name="stepen_ots" parent="long"/>
-        <field name="kol_ots" parent="long"/>
     </domain>
 
 </root>

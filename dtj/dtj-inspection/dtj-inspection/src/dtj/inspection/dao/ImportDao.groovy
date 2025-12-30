@@ -105,7 +105,8 @@ class ImportDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    void analyze(File file, Map<String, Object> params) {
+    Store analyze(File file, Map<String, Object> params) {
+        Store store = null
         try {
             String filename = UtCnv.toString(params.get("filename"))
             infoFile.put("filename", filename)
@@ -115,32 +116,31 @@ class ImportDao extends BaseMdbUtils {
                 fileLoaded = true
 
             if (filename.startsWith("G")) {
-                parseOtstup(file)
+                store = parseOtstup(file)
                 if (!fileLoaded) {
                     assignPropDefault("_otstup")
                 }
-                check("_otstup")
+                check("_otstup", store)
             } else if (filename.startsWith("B")) {
-                parseBall(file)
+                store = parseBall(file)
                 if (!fileLoaded) {
                     assignPropDefault("_ball")
                 }
-                check("_ball")
+                check("_ball", store)
             }
         } finally {
             if (!errorImport)
                 saveLog(UtCnv.toString(infoFile.get("filename")), datetime_create,0, null, '')
         }
+        return store
     }
 
-    void check(String domain) {
+    void check(String domain, Store st) {
         DataDao dataDao = mdb.createDao(DataDao.class)
         Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "", "Cls_")
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
         //
-        Store st = mdb.loadQuery("""
-            select * from ${domain}
-        """)
+        //Store st = mdb.loadQuery("select * from ${domain}")
         // Находим направления
         Set<Object> idsNapr = new HashSet<>()
         Set<Object> kodsNapr = st.getUniqueValues("kod_napr")
@@ -165,7 +165,8 @@ class ImportDao extends BaseMdbUtils {
             errorImport = true
             saveLog(UtCnv.toString(infoFile.get("filename")), datetime_create,0, null,
                     "Не найден Раздельный пункт и/или Перегон по направлению")
-            throw new XError("Не найден Раздельный пункт и/или Перегон по направлению")
+            return
+            //throw new XError("Не найден Раздельный пункт и/или Перегон по направлению")
         }
         // Находим обслуживаемые объекты
         Set<Object> idsSection = stSection.getUniqueValues("id")
@@ -180,7 +181,8 @@ class ImportDao extends BaseMdbUtils {
             errorImport = true
             saveLog(UtCnv.toString(infoFile.get("filename")), datetime_create,0, null,
                     "Не найден обслуживаемый объект по направлению")
-            throw new XError("Не найден обслуживаемый объект по направлению")
+            //throw new XError("Не найден обслуживаемый объект по направлению")
+            return
         }
         Set<Object> idsObject = stObject.getUniqueValues("id")
         // Находим параметр балл или отступления
@@ -211,7 +213,8 @@ class ImportDao extends BaseMdbUtils {
             errorImport = true
             saveLog(UtCnv.toString(infoFile.get("filename")), datetime_create,0, null,
                     'Не найдена "Работа вагона-путеизмерителя" в справочнике работ')
-            throw new XError('Не найдена "Работа вагона-путеизмерителя" в справочнике работ')
+            //throw new XError('Не найдена "Работа вагона-путеизмерителя" в справочнике работ')
+            return
         }
         // План работ (plandata)
         String whe = "o.cls=${mapCls.get("Cls_WorkPlanInspection")}"
@@ -264,7 +267,8 @@ class ImportDao extends BaseMdbUtils {
             errorImport = true
             saveLog(UtCnv.toString(infoFile.get("filename")), datetime_create,0, null,
                     "Не найден план работ")
-            throw new XError('Не найден план работ')
+            //throw new XError('Не найден план работ')
+            return
         }
         //Проверяем запланирована ли работа по километрам из импортируемого файла
         Boolean bool = false
@@ -282,7 +286,8 @@ class ImportDao extends BaseMdbUtils {
                 errorImport = true
                 saveLog(UtCnv.toString(infoFile.get("filename")), datetime_create,0, null,
                         "Не найден план работ на ${r1.getLong('km') + 1} км")
-                throw new XError("Не найден план работ на ${r1.getLong('km') + 1} км")
+                //throw new XError("Не найден план работ на ${r1.getLong('km') + 1} км")
+                return
             }
         }
         //3 Журнал осмотров и проверок
@@ -426,9 +431,11 @@ class ImportDao extends BaseMdbUtils {
         //
         //mdb.outTable(st)
 
+/*
         for (StoreRecord r in st) {
             mdb.execQuery("update ${domain} set import=${r.getInt("import")} where rec=${r.getLong("rec")}" )
         }
+*/
 
     }
 
@@ -999,14 +1006,14 @@ class ImportDao extends BaseMdbUtils {
         }
     }
 
-    void parseOtstup(File inputFile) {
+    Store parseOtstup(File inputFile) {
         String filename = infoFile.get("filename")
-
         System.out.println("Импорт файла: ${filename}")
 
+        Store st = mdb.createStore("Otstup")
         try {
-            mdb.startTran()
-            mdb.execQuery("delete from _otstup")
+            //mdb.startTran()
+            //mdb.execQuery("delete from _otstup")
             //
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance()
             DocumentBuilder builder = factory.newDocumentBuilder()
@@ -1089,37 +1096,35 @@ class ImportDao extends BaseMdbUtils {
                     if (!kol_ots_s.isEmpty())
                         kol_ots = UtCnv.toLong(kol_ots_s)
                     //
+/*
                     mdb.execQueryNative("""
                         INSERT INTO _otstup (rec,kod_otstup,kod_napr,prizn_most,datetime_obn,nomer_mdk,avtor,km,pk,metr,dlina_ots,velich_ots,glub_ots,stepen_ots,kol_ots)
                         VALUES ($ind,$kod_otstup,$kod_napr,$prizn_most,'$dte','$nomer_mdk','$avtor',$km,$pk,$metr, $dlina_ots,$velich_ots,$glub_ots,$stepen_ots,$kol_ots);
                     """)
+*/
                 }
             }
-/*            mdb.execQueryNative("""
-                INSERT INTO public._log (filename, datetime_create, filled, datetime_fill)
-                VALUES('${filename}', '${XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)}', 0, null);
-            """)*/
-            datetime_create = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
+
         } catch (Exception e) {
             errorImport = true
             e.printStackTrace()
-            mdb.rollback()
+            //mdb.rollback()
         } finally {
-            if (!errorImport)
-                mdb.commit()
-            //Store st = mdb.loadQuery("select * from _otstup where 0=0")
-            //mdb.outTable(st)
+            //if (!errorImport) mdb.commit()
+            datetime_create = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
         }
+        return st
     }
 
-    void parseBall(File inputFile) {
+    Store parseBall(File inputFile) {
         String filename = UtCnv.toString(infoFile.get("filename"))
-
         System.out.println("Импорт файла: ${filename}")
 
+        Store st = mdb.createStore("Ball")
+
         try {
-            mdb.startTran()
-            mdb.execQuery("delete from _ball")
+            //mdb.startTran()
+            //mdb.execQuery("delete from _ball")
             //
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance()
             DocumentBuilder builder = factory.newDocumentBuilder()
@@ -1171,24 +1176,35 @@ class ImportDao extends BaseMdbUtils {
                     if (!kol_ots_s.isEmpty())
                         kol_ots = UtCnv.toLong(kol_ots_s)
                     //
+                    StoreRecord rec = mdb.createStoreRecord("Ball")
+                    rec.set("rec", ind)
+                    rec.set("kod_napr", kod_napr)
+                    rec.set("prizn_most", prizn_most)
+                    rec.set("date_obn", dte)
+                    rec.set("nomer_mdk", nomer_mdk)
+                    rec.set("avtor", avtor)
+                    rec.set("km", km)
+                    rec.set("pk", pk)
+                    rec.set("ballkm", ballkm)
+                    rec.set("kol_ots", kol_ots)
+                    st.add(rec)
+/*
                     mdb.execQueryNative("""
                         INSERT INTO _ball (rec,kod_napr,prizn_most,date_obn,nomer_mdk,avtor,km,pk,ballkm,kol_ots)
                         VALUES ($ind,$kod_napr,$prizn_most,'$dte','$nomer_mdk','$avtor',$km,$pk,$ballkm,$kol_ots);
                     """)
+*/
                 }
             }
-            datetime_create = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
         } catch (Exception e) {
             errorImport = true
             e.printStackTrace()
-            mdb.rollback()
         } finally {
-            if (!errorImport)
-                mdb.commit()
-            //Store st = mdb.loadQuery("select * from _ball where 0=0")
-            //mdb.outTable(st)
+            //if (!errorImport)
+            datetime_create = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
+            //return st
         }
-
+        return st
     }
 
     @DaoMethod

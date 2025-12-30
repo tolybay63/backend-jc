@@ -10,6 +10,8 @@ import jandcode.commons.variant.VariantMap;
 import jandcode.core.dbm.ModelService;
 import jandcode.core.dbm.mdb.Mdb;
 import jandcode.core.std.DataDirService;
+import jandcode.core.store.Store;
+import jandcode.core.store.StoreRecord;
 import jandcode.core.web.HttpError;
 import jandcode.core.web.action.BaseAction;
 import tofi.api.dta.ApiInspectionData;
@@ -21,6 +23,8 @@ import tofi.apinator.ApinatorApi;
 import tofi.apinator.ApinatorService;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -43,13 +47,14 @@ public class ImportAction extends BaseAction {
 
         //Сгенирированный файл
         File fle = findFile(tempDir);
+        Store st = null;
 
         if (fle != null) {
             //try {
                 //params.put("filePath", fle.getAbsolutePath());
                 Mdb mdb = apiInspection().get(ApiInspectionData.class).getMdbForImport();
                 ImportDao importDao = mdb.createDao(ImportDao.class);
-                importDao.analyze(fle, params);
+                st = importDao.analyze(fle, params);
             //} catch (Exception e) {
                 //e.printStackTrace();
             //}
@@ -57,7 +62,12 @@ public class ImportAction extends BaseAction {
             throw  new XError("File not found");
         }
         //
-        getReq().render("FileName: " + filename);
+        //getReq().render("FileName: " + filename);
+        List<Map> res = new ArrayList<>();
+        for(StoreRecord r : st.getRecords()) {
+            res.add(r.getValues());
+        }
+        getReq().render( res);
 
     }
 

@@ -170,7 +170,9 @@ export default defineComponent({
             'Content-Type': 'multipart/form-data'
           }
         })
-        .then(() => {
+        .then((response) => {
+          //console.info("response.data", response.data)
+          this.rows = response.data
         })
         .catch((error) => {
           console.log("error", error)
@@ -188,7 +190,7 @@ export default defineComponent({
               this.isFilled = response.data.result.records[0].filled === 1
               if (this.msg !== "")
                 this.err = true
-              this.loadTable(this.tableName)
+              //this.loadTable(this.tableName)
             })
         })
         .finally(()=> {
