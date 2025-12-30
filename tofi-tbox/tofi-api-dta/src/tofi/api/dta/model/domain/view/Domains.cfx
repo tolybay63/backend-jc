@@ -601,6 +601,7 @@
         <field name="pk" parent="long"/>
         <field name="ballkm" parent="long"/>
         <field name="kol_ots" parent="long"/>
+        <field name="import" parent="int"/>
     </domain>
 
     <domain name="Otstup" parent="base">
@@ -619,6 +620,7 @@
         <field name="glub_ots" parent="long"/>
         <field name="stepen_ots" parent="long"/>
         <field name="kol_ots" parent="long"/>
+        <field name="import" parent="int"/>
     </domain>
 
 </root>

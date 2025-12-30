@@ -70,7 +70,7 @@ class ImportDao extends BaseMdbUtils {
             String cod = "kod_napr_"+UtCnv.toString(o)
             cods.add(cod)
         }
-        if (table=="_otstup") {
+        if (table=="Otstup") {
             Set<Object> setOtstup = st.getUniqueValues("kod_otstup")
             for (Object o : setOtstup) {
                 String cod = "kod_otstup_"+UtCnv.toString(o)
@@ -118,15 +118,15 @@ class ImportDao extends BaseMdbUtils {
             if (filename.startsWith("G")) {
                 store = parseOtstup(file)
                 if (!fileLoaded) {
-                    assignPropDefault("_otstup")
+                    assignPropDefault("Otstup")
                 }
-                check("_otstup", store)
+                check("Otstup", store)
             } else if (filename.startsWith("B")) {
                 store = parseBall(file)
                 if (!fileLoaded) {
-                    assignPropDefault("_ball")
+                    assignPropDefault("Ball")
                 }
-                check("_ball", store)
+                check("Ball", store)
             }
         } finally {
             if (!errorImport)
@@ -136,7 +136,51 @@ class ImportDao extends BaseMdbUtils {
     }
 
     void check(String domain, Store st) {
-        //DataDao dataDao = mdb.createDao(DataDao.class)
+        if (st.size()==0) {
+            errorImport = true
+            saveLog(UtCnv.toString(infoFile.get("filename")), datetime_create,0, null, 'Файл пустой')
+            return
+        }
+        //
+        // Проверка привязки
+        Set<Object> setNapr = st.getUniqueValues("kod_napr")
+        Set<String> cods = new HashSet<>()
+        for (Object o : setNapr) {
+            String cod = "kod_napr_"+UtCnv.toString(o)
+            cods.add(cod)
+        }
+
+        if (domain=="Otstup") {
+            Set<Object> setOtstup = st.getUniqueValues("kod_otstup")
+            for (Object o : setOtstup) {
+                String cod = "kod_otstup_"+UtCnv.toString(o)
+                cods.add(cod)
+            }
+        }
+        //
+        Store stCod = apiObjectData().get(ApiObjectData).loadSql ("""
+            select * from SysCodingCod where cod like 'kod_napr_%'
+        """, "")
+
+        Store stOts = apiNSIData().get(ApiNSIData).loadSql("""
+            select * from SysCodingCod where cod like 'kod_otstup_%'
+        """, "")
+
+        stCod.add(stOts)
+        //
+        Set<Object> codsOther = stCod.getUniqueValues("cod")
+        Set<Object> codsErr = new HashSet<>()
+        for (String cod : cods) {
+            if (!codsOther.contains(cod))
+                codsErr.add(cod)
+        }
+        //
+        if (codsErr.size() > 0) {
+            errorImport = true
+            saveLog(UtCnv.toString(infoFile.get("filename")), datetime_create, 0, null, "Нет привязки [" + codsErr.join(", ") + "]")
+            return
+        }
+        //
         Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "", "Cls_")
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
         //
@@ -187,7 +231,7 @@ class ImportDao extends BaseMdbUtils {
         Set<Object> idsObject = stObject.getUniqueValues("id")
         // Находим параметр балл или отступления
         Set<Object> idsRelobjComponentParams = new HashSet<>()
-        if (domain == "_otstup") {
+        if (domain == "Otstup") {
             Set<Object> kodsOtstup = st.getUniqueValues("kod_otstup")
             Store stOtstup = apiNSIData().get(ApiNSIData).loadSql("""
                 select s.cod, c.entityid as id from syscod c, syscodingcod s
@@ -220,7 +264,7 @@ class ImportDao extends BaseMdbUtils {
         String whe = "o.cls=${mapCls.get("Cls_WorkPlanInspection")}"
         String wheV2 = "and v2.obj in (0${idsObject.join(",")})"
         String wheV7
-        if (domain == "_ball")
+        if (domain == "Ball")
             wheV7 = "and v7.dateTimeVal='${st.get(0).getString("date_obn")}'"
         else
             wheV7 = "and v7.dateTimeVal='${st.get(0).getString("datetime_obn").split("T")[0]}'"
@@ -409,7 +453,7 @@ class ImportDao extends BaseMdbUtils {
                 order by o.id
             """, map)
             //mdb.outTable(stParameterLog)
-            if (domain == "_ball") {
+            if (domain == "Ball") {
                 StoreIndex indStartKm = stParameterLog.getIndex("StartKm")
                 for (StoreRecord r1 in st) {
                     if (indStartKm.get(r1.getLong("km") + 1) != null)
@@ -417,7 +461,7 @@ class ImportDao extends BaseMdbUtils {
                     else
                         r1.set("import", 0)
                 }
-            } else if (domain == "_otstup") {
+            } else if (domain == "Otstup") {
                 StoreIndex indStartKm = stParameterLog.getIndex("beg")
                 for (StoreRecord r1 in st) {
                     Long metrOts = (r1.getLong("km") + 1) * 1000 + r1.getLong("metr")
@@ -428,15 +472,6 @@ class ImportDao extends BaseMdbUtils {
                 }
             }
         }
-        //
-        //mdb.outTable(st)
-
-/*
-        for (StoreRecord r in st) {
-            mdb.execQuery("update ${domain} set import=${r.getInt("import")} where rec=${r.getLong("rec")}" )
-        }
-*/
-
     }
 
     void checkCopy(String domain, Map<String, Object> params) {
@@ -452,7 +487,7 @@ class ImportDao extends BaseMdbUtils {
             throw new XError("Нет данных в [${domain}]")
         }
         //Находим отступления
-        if (domain=="_otstup") {
+        if (domain=="Otstup") {
             Set<Object> kodsOtstup = st.getUniqueValues("kod_otstup")
             Store stOtstup = apiNSIData().get(ApiNSIData).loadSql("""
                 select s.cod, c.entityid as id from syscod c, syscodingcod s
@@ -525,7 +560,7 @@ class ImportDao extends BaseMdbUtils {
         Set<Object> idsObject = stObject.getUniqueValues("id")
         String wheV2 = "and v2.obj in (0${idsObject.join(",")})"
         String wheV7
-        if (domain == "_ball")
+        if (domain == "Ball")
             wheV7 = "and v7.dateTimeVal='${st.get(0).getString("date_obn")}'"
         else
             wheV7 = "and v7.dateTimeVal='${st.get(0).getString("datetime_obn").split("T")[0]}'"
@@ -695,7 +730,7 @@ class ImportDao extends BaseMdbUtils {
         //4 Журнал событий и запросов (incidentdata)
         long relobjComponentParams = 2525// Оценка состояния жд пути, балл
         String wheV8 = ""
-        if (domain != "_ball") {
+        if (domain != "Ball") {
             whe = "o.cls=${mapCls.get("Cls_IncidentParameter")}"
             Map<String, Long> mapFV = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_StatusEliminated", "")
             long pv = apiMeta().get(ApiMeta).idPV("FactorVal", mapFV.get("FV_StatusEliminated"), "Prop_Status")
@@ -862,7 +897,7 @@ class ImportDao extends BaseMdbUtils {
         mdb.outTable(stParameterLog)
         Map<String, Long> mapRelCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelCls", "RC_ParamsComponent", "")
         long pvComponentParams = apiMeta().get(ApiMeta).idPV("relcls", mapRelCls.get("RC_ParamsComponent"), "Prop_ComponentParams")
-        if (domain == "_ball") {
+        if (domain == "Ball") {
             StoreIndex indStartKm = stParameterLog.getIndex("StartKm")
             bool = false
             for (StoreRecord r1 in st) {
@@ -907,7 +942,7 @@ class ImportDao extends BaseMdbUtils {
                     throw new XError("Не найден запись в Журнале осмотров и проверок на ${r1.getLong('km') + 1} км")
                 }
             }
-        } else if (domain == "_otstup") {
+        } else if (domain == "Otstup") {
             StoreIndex indStartKm = stParameterLog.getIndex("beg")
             bool = false
             for (StoreRecord r1 in st) {
@@ -970,7 +1005,7 @@ class ImportDao extends BaseMdbUtils {
 
     void assignPropDefault(String domain) {
         Map<String, String> mapCoding = new HashMap<>()
-        if (domain == "_ball") {
+        if (domain == "Ball") {
             //
             mapCoding.put("date_obn", "Prop_FactDateEnd")
             mapCoding.put("nomer_mdk", "Prop_NumberTrack")
@@ -1013,7 +1048,7 @@ class ImportDao extends BaseMdbUtils {
         Store st = mdb.createStore("Otstup")
         try {
             //mdb.startTran()
-            //mdb.execQuery("delete from _otstup")
+            //mdb.execQuery("delete from Otstup")
             //
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance()
             DocumentBuilder builder = factory.newDocumentBuilder()
@@ -1116,7 +1151,7 @@ class ImportDao extends BaseMdbUtils {
 
 /*
                     mdb.execQueryNative("""
-                        INSERT INTO _otstup (rec,kod_otstup,kod_napr,prizn_most,datetime_obn,nomer_mdk,avtor,km,pk, metr,dlina_ots,velich_ots,glub_ots,stepen_ots,kol_ots)
+                        INSERT INTO Otstup (rec,kod_otstup,kod_napr,prizn_most,datetime_obn,nomer_mdk,avtor,km,pk, metr,dlina_ots,velich_ots,glub_ots,stepen_ots,kol_ots)
                         VALUES ($ind,$kod_otstup,$kod_napr,$prizn_most,'$dte','$nomer_mdk','$avtor',$km,$pk,$metr, $dlina_ots,$velich_ots,$glub_ots,$stepen_ots,$kol_ots);
                     """)
 */
@@ -1131,6 +1166,10 @@ class ImportDao extends BaseMdbUtils {
             //if (!errorImport) mdb.commit()
             datetime_create = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
         }
+        if (st.size()==0) {
+            errorImport = true
+            saveLog(UtCnv.toString(infoFile.get("filename")), datetime_create,0, null, 'Файл пустой')
+        }
         return st
     }
 
@@ -1142,7 +1181,7 @@ class ImportDao extends BaseMdbUtils {
 
         try {
             //mdb.startTran()
-            //mdb.execQuery("delete from _ball")
+            //mdb.execQuery("delete from Ball")
             //
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance()
             DocumentBuilder builder = factory.newDocumentBuilder()
@@ -1208,7 +1247,7 @@ class ImportDao extends BaseMdbUtils {
                     st.add(rec)
 /*
                     mdb.execQueryNative("""
-                        INSERT INTO _ball (rec,kod_napr,prizn_most,date_obn,nomer_mdk,avtor,km,pk,ballkm,kol_ots)
+                        INSERT INTO Ball (rec,kod_napr,prizn_most,date_obn,nomer_mdk,avtor,km,pk,ballkm,kol_ots)
                         VALUES ($ind,$kod_napr,$prizn_most,'$dte','$nomer_mdk','$avtor',$km,$pk,$ballkm,$kol_ots);
                     """)
 */
@@ -1218,9 +1257,7 @@ class ImportDao extends BaseMdbUtils {
             errorImport = true
             e.printStackTrace()
         } finally {
-            //if (!errorImport)
             datetime_create = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
-            //return st
         }
         return st
     }
@@ -1234,7 +1271,7 @@ class ImportDao extends BaseMdbUtils {
             String cod = "kod_napr_"+UtCnv.toString(o)
             cods.add(cod)
         }
-        if (table=="_otstup") {
+        if (table=="Otstup") {
             Set<Object> setOtstup = st.getUniqueValues("kod_otstup")
             for (Object o : setOtstup) {
                 String cod = "kod_otstup_"+UtCnv.toString(o)

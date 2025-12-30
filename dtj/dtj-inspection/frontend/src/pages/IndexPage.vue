@@ -190,7 +190,6 @@ export default defineComponent({
               this.isFilled = response.data.result.records[0].filled === 1
               if (this.msg !== "")
                 this.err = true
-              //this.loadTable(this.tableName)
             })
         })
         .finally(()=> {
