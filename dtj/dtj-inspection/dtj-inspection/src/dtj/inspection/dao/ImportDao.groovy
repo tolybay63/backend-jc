@@ -136,7 +136,7 @@ class ImportDao extends BaseMdbUtils {
     }
 
     void check(String domain, Store st) {
-        DataDao dataDao = mdb.createDao(DataDao.class)
+        //DataDao dataDao = mdb.createDao(DataDao.class)
         Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "", "Cls_")
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
         //
@@ -1096,9 +1096,27 @@ class ImportDao extends BaseMdbUtils {
                     if (!kol_ots_s.isEmpty())
                         kol_ots = UtCnv.toLong(kol_ots_s)
                     //
+                    StoreRecord rec = mdb.createStoreRecord("Otstup")
+                    rec.set("rec", ind)
+                    rec.set("kod_otstup", kod_otstup)
+                    rec.set("kod_napr", kod_napr)
+                    rec.set("prizn_most", prizn_most)
+                    rec.set("datetime_obn", dte)
+                    rec.set("nomer_mdk", nomer_mdk)
+                    rec.set("avtor", avtor)
+                    rec.set("km", km)
+                    rec.set("pk", pk)
+                    rec.set("metr", metr)
+                    rec.set("dlina_ots", dlina_ots)
+                    rec.set("velich_ots", velich_ots)
+                    rec.set("glub_ots", glub_ots)
+                    rec.set("stepen_ots", stepen_ots)
+                    rec.set("kol_ots", kol_ots)
+                    st.add(rec)
+
 /*
                     mdb.execQueryNative("""
-                        INSERT INTO _otstup (rec,kod_otstup,kod_napr,prizn_most,datetime_obn,nomer_mdk,avtor,km,pk,metr,dlina_ots,velich_ots,glub_ots,stepen_ots,kol_ots)
+                        INSERT INTO _otstup (rec,kod_otstup,kod_napr,prizn_most,datetime_obn,nomer_mdk,avtor,km,pk, metr,dlina_ots,velich_ots,glub_ots,stepen_ots,kol_ots)
                         VALUES ($ind,$kod_otstup,$kod_napr,$prizn_most,'$dte','$nomer_mdk','$avtor',$km,$pk,$metr, $dlina_ots,$velich_ots,$glub_ots,$stepen_ots,$kol_ots);
                     """)
 */
