@@ -61,6 +61,8 @@ public interface ApiObjectData {
      */
     void updateTable(String tableName, Map<String, Object> params);
 
+    long insertTable(String tableName, Map<String, Object> params);
+
     /**
      *
      * @param sql text sql

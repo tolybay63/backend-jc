@@ -994,42 +994,89 @@ class ImportDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadAssign(String table) {
-        Store st = mdb.loadQuery("select * from ${table} where 0=0")
-        Set<Object> setNapr = st.getUniqueValues("kod_napr")
-        Set<String> cods = new HashSet<>()
-        for (Object o : setNapr) {
-            String cod = "kod_napr_"+UtCnv.toString(o)
-            cods.add(cod)
-        }
-        if (table=="Otstup") {
-            Set<Object> setOtstup = st.getUniqueValues("kod_otstup")
-            for (Object o : setOtstup) {
-                String cod = "kod_otstup_"+UtCnv.toString(o)
-                cods.add(cod)
+    Store loadAssign(String cods_err) {
+        Set<String> cods = cods_err.split(", ")
+
+        Store stObj = apiObjectData().get(ApiObjectData).loadSql("""
+            select s.entityid as id, sc.cod, s.cod as cod_tofi, s.cod || ' / ' ||v1.name as name, sc.sysCoding
+            from SysCodingCod sc
+                left join SysCod s on sc.sysCod=s.id
+                left join ObjVer v1 on s.entityType=1 and s.entityId=v1.ownerVer and v1.lastVer=1
+            where sc.sysCoding=1001
+        """, "")
+
+        Store stRelObj = apiNSIData().get(ApiNSIData).loadSql("""
+            select s.entityid as id, sc.cod, s.cod as cod_tofi, s.cod || ' / ' ||v1.name as name, sc.sysCoding
+            from sysCodingCod sc
+                left join SysCod s on sc.sysCod=s.id
+                left join RelObjVer v1 on s.entityType=2 and s.entityId=v1.ownerVer and v1.lastVer=1
+            where sc.sysCoding=1001
+        """, "")
+
+        stObj.add(stRelObj)
+
+        if (cods_err != "") {
+            for (String cod in cods) {
+                stObj.add([cod: cod])
             }
         }
-
-        st = mdb.loadQuery("""
-            select sc.cod, 
-                s.cod || ' / ' ||case when s.entitytype=1 then v1.name else v2.name end as name
-            from syscodingcod sc
-                left join SysCod s on sc.syscod=s.id
-                left join ObjVer v1 on s.entitytype=1 and s.entityid=v1.ownerver and v1.lastVer=1
-                left join RelObjVer v2 on s.entitytype=2 and s.entityid=v2.ownerver and v2.lastVer=1
-            where sc.sysCoding=1001
-        """)
-        Set<Object> setCod = st.getUniqueValues("cod")
-
-        for (String cod : cods) {
-            if (!setCod.contains(cod))
-                st.add([cod: cod])
-        }
-
-
-
-        return st
+        return stObj
     }
 
+
+    @DaoMethod
+    Store loadObjForSelect() {
+        return apiObjectData().get(ApiObjectData).loadSql("""
+            select s.entityid as id, s.cod || ' / ' || v.name as name, s.cod as tofi_cod, 
+                s.cod as tofi_cod, s.id as syscod, sc.id as syscodingcod
+            from syscod s
+                left join syscodingcod sc on s.id=sc.syscod
+                left join objVer v on s.entityid=v.ownerver and v.lastver=1
+            where s.entitytype=1 and s.entityid in (
+                select id
+                from obj 
+                where cls=1240
+            )
+        """, "")
+    }
+
+    @DaoMethod
+    Store loadRelObjForSelect() {
+        return apiNSIData().get(ApiNSIData).loadSql("""
+            select s.entityid as id, s.cod || ' / ' || v.name as name, s.cod as tofi_cod
+            from syscod s
+                left join RelobjVer v on s.entityid=v.ownerver and v.lastver=1
+            where s.entitytype=2 and s.entityid in (
+                select id
+                from relobj 
+                where relcls=1074
+            )
+        """, "")
+    }
+
+    @DaoMethod
+    void saveAssign(Map<String, Object> params) {
+        long sysCoding = 1001
+        params.put("sysCoding", sysCoding)
+        if (UtCnv.toString(params.get("cod")).startsWith("kod_napr")) {
+            if (UtCnv.toLong(params.get("syscodingcod")) > 0) {
+                params.put("id", UtCnv.toLong(params.get("syscodingcod")))
+                apiObjectData().get(ApiObjectData).updateTable("SysCodingCod", params)
+            } else {
+                params.put("id", null)
+                apiObjectData().get(ApiObjectData).insertTable("SysCodingCod", params)
+            }
+        } else if (UtCnv.toString(params.get("cod")).startsWith("kod_otstup")) {
+            if (UtCnv.toLong(params.get("syscodingcod")) > 0) {
+                params.put("id", UtCnv.toLong(params.get("syscodingcod")))
+                apiNSIData().get(ApiNSIData).updateTable("SysCodingCod", params)
+            } else {
+                params.put("id", null)
+                apiNSIData().get(ApiNSIData).insertTable("SysCodingCod", params)
+            }
+        } else {
+            throw new XError("Неизвестный код")
+        }
+    }
 
 }

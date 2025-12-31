@@ -73,6 +73,13 @@ class ApiNSIDataImpl extends BaseMdbUtils implements ApiNSIData {
     }
 
     @Override
+    long insertTable(String tableName, Map<String, Object> params) {
+        Store st = mdb.createStore(tableName)
+        StoreRecord r = st.add(params)
+        return mdb.insertRec(tableName, r, true)
+    }
+
+    @Override
     void deleteTable(String tableName, long id) {
         mdb.deleteRec(tableName, id)
     }

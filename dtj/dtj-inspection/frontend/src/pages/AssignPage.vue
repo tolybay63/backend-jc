@@ -101,6 +101,26 @@ export default {
   ],
 
   methods: {
+    load(cods) {
+      this.loading = true
+      api
+        .post('', {
+          method: 'import/loadAssign',
+          params: [cods]
+        })
+        .then(
+          (response) => {
+            this.rows = response.data.result["records"]
+            console.info("rows", this.rows)
+          })
+        .catch((error) => {
+          console.log(error);
+        })
+        .finally(() => {
+          this.loading = false
+        })
+    },
+
     fnEdit(row) {
       console.log(row);
       let prefix = row["cod"].substring(0, row["cod"].indexOf("_", 5))
@@ -113,8 +133,10 @@ export default {
             prefix: prefix,
           }
         })
-        .onOk(() => {
-
+        .onOk((r) => {
+          if (r.res) {
+            this.load("")
+          }
         })
 
 
@@ -177,23 +199,7 @@ export default {
 
   created() {
     this.cols = this.getColumns()
-    this.loading = true
-    api
-      .post('', {
-        method: 'import/loadAssign',
-        params: [/*this.tableName, */this.cods]
-      })
-      .then(
-        (response) => {
-          this.rows = response.data.result["records"]
-        })
-      .catch((error) => {
-        console.log(error);
-      })
-      .finally(() => {
-        this.loading = false
-      })
-
+    this.load(this.cods)
   },
 
 }

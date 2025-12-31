@@ -38,6 +38,8 @@ public interface ApiNSIData {
      */
     void updateTable(String tableName, Map<String, Object> params);
 
+    long insertTable(String tableName, Map<String, Object> params);
+
     /**
      * @param tableName name of table
      * @param id        id of table

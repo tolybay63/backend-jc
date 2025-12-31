@@ -195,6 +195,13 @@ class ApiObjectDataImpl extends BaseMdbUtils implements ApiObjectData {
     }
 
     @Override
+    long insertTable(String tableName, Map<String, Object> params) {
+        Store st = mdb.createStore(tableName)
+        StoreRecord r = st.add(params)
+        return mdb.insertRec(tableName, r, true)
+    }
+
+    @Override
     void execSql(String sql) {
         mdb.execQueryNative(sql)
     }

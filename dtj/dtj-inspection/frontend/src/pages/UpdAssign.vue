@@ -2,11 +2,11 @@
 
   <q-dialog
     ref="dialog"
-    @hide="onDialogHide"
-    persistent
     autofocus
-    transition-show="slide-up"
+    persistent
     transition-hide="slide-down"
+    transition-show="slide-up"
+    @hide="onDialogHide"
   >
     <q-card class="q-dialog-plugin" style="width: 800px">
       <q-bar class="text-white bg-primary">
@@ -17,33 +17,32 @@
         <q-select
           v-model="form.id"
           :model-value="form.id"
-          label="Код ТОФИ"
           :options="optCods"
+          class="q-mb-lg"
           dense
+          label="Код ТОФИ"
           map-options
           option-label="name"
           option-value="id"
-          class="q-mb-lg"
           use-input
-          @update:model-value="fnSelectCod"
           @filter="filterCod"
+          @update:model-value="fnSelectCod"
         />
-
 
 
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-          dense
           color="primary"
+          dense
           icon="save"
           label="Сохранить"
           @click="onOkClick"
         />
         <q-btn
-          dense
           color="primary"
+          dense
           icon="close"
           label="Закрыть"
           @click="onCancelClick"
@@ -85,6 +84,8 @@ export default {
       if (v) {
         this.form.id = v.id
         this.form.tofi_cod = v.tofi_cod
+        this.form.syscod = v.syscod
+        this.form.syscodingcod = v.syscodingcod
       }
     },
 
@@ -106,7 +107,6 @@ export default {
     },
 
 
-
     // following method is REQUIRED
     // (don't change its name --> "show")
     show() {
@@ -126,17 +126,41 @@ export default {
     },
 
     onOkClick() {
+      console.info(this.form)
+      this.loading = true
+      let err = false
+      api
+        .post('', {
+          method: "import/saveAssign",
+          params: [this.form]
+        })
+        .then(
+          () => {
+            this.$emit("ok", {res: true})
+          })
+        .catch((error) => {
+          err = true
+          console.log(error);
+        })
+        .finally(() => {
+          this.loading = false
+          if (!err)
+            this.hide()
+        })
+
+
 
     },
 
 
-      onCancelClick() {
+    onCancelClick() {
       // we just need to hide the dialog
       this.hide();
     },
   },
 
   created() {
+
     this.loading = true
     let method = "import/loadObjForSelect"
     if (this.prefix === "kod_otstup")
