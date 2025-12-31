@@ -28,6 +28,32 @@
           :rows-per-page-options="[0]"
          >
 
+          <template #body-cell="props">
+            <q-td :props="props">
+
+              <div v-if="props.col.field === 'cmd'">
+
+                <q-btn
+                       round size="sm" icon="edit" color="blue" flat dense
+                       @click="fnEdit(props.row)"
+                >
+                  <q-tooltip
+                    transition-show="rotate" transition-hide="rotate"
+                  >
+                    Редактирование
+                  </q-tooltip>
+                </q-btn>
+
+
+              </div>
+
+              <div v-else>
+                {{ props.value }}
+              </div>
+
+            </q-td>
+          </template>
+
         </q-table>
 
 
@@ -56,9 +82,10 @@
 /*import {api} from "boot/axios.js";*/
 
 import {api} from "boot/axios.js";
+import UpdAssign from "pages/UpdAssign.vue";
 
 export default {
-  props: ["tableName"],
+  props: ["tableName", "cods"],
 
   data() {
     return {
@@ -74,6 +101,25 @@ export default {
   ],
 
   methods: {
+    fnEdit(row) {
+      console.log(row);
+      let prefix = row["cod"].substring(0, row["cod"].indexOf("_", 5))
+
+      this.$q
+        .dialog({
+          component: UpdAssign,
+          componentProps: {
+            data: row,
+            prefix: prefix,
+          }
+        })
+        .onOk(() => {
+
+        })
+
+
+    },
+
     getColumns() {
       return [
         {
@@ -82,7 +128,7 @@ export default {
           field: "cod",
           align: "left",
           classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width:50%",
+          headerStyle: "font-size: 1.2em; width:27%",
         },
         {
           name: "cod_tofi",
@@ -90,8 +136,17 @@ export default {
           field: "cod_tofi",
           align: "left",
           classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width:50%",
+          headerStyle: "font-size: 1.2em; width:67%",
         },
+        {
+          name: "cmd",
+          label: "",
+          field: "cmd",
+          align: "center",
+          classes: "bg-blue-grey-1",
+          headerStyle: "font-size: 1.2em; width:6%",
+        },
+
 
       ]
     },
@@ -125,8 +180,8 @@ export default {
     this.loading = true
     api
       .post('', {
-        method: 'data/loadAssign',
-        params: [this.tableName]
+        method: 'import/loadAssign',
+        params: [/*this.tableName, */this.cods]
       })
       .then(
         (response) => {

@@ -123,7 +123,7 @@ export default defineComponent({
       isAssign: false,
       rows: [],
       cols: [],
-      tableName: "_ball"
+      tableName: "Ball"
     }
   },
 
@@ -149,9 +149,9 @@ export default defineComponent({
         this.file = val[0]
 
         if (this.file.name[0] === "B") {
-          this.tableName = "_ball"
+          this.tableName = "Ball"
         } else if (this.file.name[0] === "G") {
-          this.tableName = "_otstup"
+          this.tableName = "Otstup"
         }
         this.cols = this.getColumns(this.tableName)
       }
@@ -198,11 +198,15 @@ export default defineComponent({
     },
 
     fnAssign() {
+      let cods = ""
+      if (this.msg !== "")
+        cods = this.msg.substring(this.msg.indexOf("[")+1, this.msg.length - 1)
       this.$q
         .dialog({
           component: AssignPage,
           componentProps: {
-            tableName: this.tableName
+            tableName: this.tableName,
+            cods: cods
           }
         })
         .onOk(() => {
@@ -231,7 +235,7 @@ export default defineComponent({
     },
 
     getColumns(tabl) {
-      if (tabl === "_ball")
+      if (tabl === "Ball")
         return [
           {
             name: "rec",
@@ -325,7 +329,7 @@ export default defineComponent({
 
 
         ]
-      else if (tabl === "_otstup")
+      else if (tabl === "Otstup")
         return [
           {
             name: "rec",
