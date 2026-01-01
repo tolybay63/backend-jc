@@ -29,7 +29,6 @@
           @update:model-value="fnSelectCod"
         />
 
-
       </q-card-section>
 
       <q-card-actions align="right">
@@ -53,8 +52,6 @@
   </q-dialog>
 
 </template>
-
-
 <script>
 
 import {api} from "boot/axios.js";
@@ -79,7 +76,6 @@ export default {
   methods: {
 
     fnSelectCod(v) {
-      console.info("v", v)
       if (v) {
         this.form.id = v.id
         this.form.syscodingcod = v.syscodingcod
@@ -106,9 +102,6 @@ export default {
       })
     },
 
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
     show() {
       this.$refs.dialog.show();
     },
@@ -126,7 +119,6 @@ export default {
     },
 
     onOkClick() {
-      console.info("form", this.form)
       this.loading = true
       let err = false
       api
@@ -136,7 +128,6 @@ export default {
         })
         .then(
           () => {
-
             this.$emit("ok", {name: this.form.name})
           })
         .catch((error) => {
@@ -148,9 +139,6 @@ export default {
           if (!err)
             this.hide()
         })
-
-
-
     },
 
 
@@ -175,7 +163,6 @@ export default {
         (response) => {
           this.optCods = response.data.result["records"]
           this.optCodsOrg = response.data.result["records"]
-          console.info("this.optCods", this.optCods)
         })
       .catch((error) => {
         console.log(error);
@@ -183,7 +170,6 @@ export default {
       .finally(() => {
         this.loading = false
       })
-
   },
 
 }

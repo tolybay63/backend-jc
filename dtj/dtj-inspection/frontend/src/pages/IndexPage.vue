@@ -212,25 +212,9 @@ export default defineComponent({
         .onOk(() => {
           this.fnAnalyze()
         })
-
     },
 
     fnFill() {
-    },
-
-    loadTable(tabl) {
-      api
-        .post('', {
-          method: "import/loadTable",
-          params: [tabl],
-        })
-        .then(response => {
-          console.info("response", response.data.result.store.records)
-          this.rows = response.data.result.store.records
-          this.msg = response.data.result.cods_err
-          if (this.msg !== "")
-            this.err = true
-        })
 
     },
 

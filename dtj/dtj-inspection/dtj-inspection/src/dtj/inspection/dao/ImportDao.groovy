@@ -55,56 +55,6 @@ class ImportDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Map<String, Object> loadTable(String table) {
-        Map<String, Object> res = new HashMap<>()
-        Store st = mdb.loadQuery("select * from ${table} where 0=0")
-        if (st.size()==0) {
-            res.put("cods_err", "Файл пустой")
-            res.put("store", st)
-            return res
-        }
-
-        Set<Object> setNapr = st.getUniqueValues("kod_napr")
-        Set<String> cods = new HashSet<>()
-        for (Object o : setNapr) {
-            String cod = "kod_napr_"+UtCnv.toString(o)
-            cods.add(cod)
-        }
-        if (table=="Otstup") {
-            Set<Object> setOtstup = st.getUniqueValues("kod_otstup")
-            for (Object o : setOtstup) {
-                String cod = "kod_otstup_"+UtCnv.toString(o)
-                cods.add(cod)
-            }
-        }
-        //
-        Store stCod = apiObjectData().get(ApiObjectData).loadSql ("""
-            select * from SysCodingCod where cod like 'kod_napr_%'
-        """, "")
-
-        Store stOtstup = apiNSIData().get(ApiNSIData).loadSql("""
-            select * from SysCodingCod where cod like 'kod_otstup_%'
-        """, "")
-
-        stCod.add(stOtstup)
-        //
-        Set<Object> codsOther = stCod.getUniqueValues("cod")
-        Set<Object> codsErr = new HashSet<>()
-        for (String cod : cods) {
-            if (!codsOther.contains(cod))
-                codsErr.add(cod)
-        }
-        //
-
-        if (codsErr.size() > 0)
-            res.put("cods_err", "Нет привязки ["+codsErr.join(", ")+"]")
-        else
-            res.put("cods_err", "")
-        res.put("store", st)
-        return res
-    }
-
-    @DaoMethod
     Store analyze(File file, Map<String, Object> params) {
         Store store = null
         try {

@@ -45,7 +45,6 @@
                   </q-tooltip>
                 </q-btn>
 
-
               </div>
 
               <div v-else>
@@ -56,7 +55,6 @@
           </template>
 
         </q-table>
-
 
       </q-card-section>
 
@@ -69,7 +67,6 @@
           @click="onOkClick"
         />
       </q-card-actions>
-
 
     </q-card>
 
@@ -112,7 +109,6 @@ export default {
         .then(
           (response) => {
             this.rows = response.data.result["records"]
-            console.info("rows", this.rows)
           })
         .catch((error) => {
           console.log(error);
@@ -123,9 +119,7 @@ export default {
     },
 
     fnEdit(row) {
-      console.log(row);
       let prefix = row["cod"].substring(0, row["cod"].indexOf("_", 5))
-
       this.$q
         .dialog({
           component: UpdAssign,
@@ -135,13 +129,8 @@ export default {
           }
         })
         .onOk((r) => {
-          console.info("r", r)
-          console.info("row1", row)
           row.name = r.name
-          console.info("row2", row)
         })
-
-
     },
 
     getColumns() {
@@ -204,11 +193,9 @@ export default {
     this.cols = this.getColumns()
     this.load(this.cods)
   },
-
 }
 
 </script>
-
 
 <style scoped>
 
