@@ -7,13 +7,14 @@
     autofocus
     transition-show="slide-up"
     transition-hide="slide-down"
+    style="min-width: 800px"
   >
-    <q-card class="q-dialog-plugin" style="width: 800px">
+    <q-card class="q-dialog-plugin" style="min-width: 800px; max-width: 800px">
       <q-bar class="text-white bg-primary">
         <div>Привязка</div>
       </q-bar>
 
-      <q-card-section>
+      <q-card-section style="width: 800px">
 
         <q-table
           :columns="cols"
@@ -134,9 +135,10 @@ export default {
           }
         })
         .onOk((r) => {
-          if (r.res) {
-            this.load("")
-          }
+          console.info("r", r)
+          console.info("row1", row)
+          row.name = r.name
+          console.info("row2", row)
         })
 
 
@@ -153,9 +155,9 @@ export default {
           headerStyle: "font-size: 1.2em; width:27%",
         },
         {
-          name: "cod_tofi",
+          name: "name",
           label: "Код ТОФИ",
-          field: "cod_tofi",
+          field: "name",
           align: "left",
           classes: "bg-blue-grey-1",
           headerStyle: "font-size: 1.2em; width:67%",

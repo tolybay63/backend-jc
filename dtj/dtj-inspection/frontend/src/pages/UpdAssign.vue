@@ -57,8 +57,6 @@
 
 <script>
 
-/*import {api} from "boot/axios.js";*/
-
 import {api} from "boot/axios.js";
 
 export default {
@@ -81,11 +79,13 @@ export default {
   methods: {
 
     fnSelectCod(v) {
+      console.info("v", v)
       if (v) {
         this.form.id = v.id
-        this.form.tofi_cod = v.tofi_cod
-        this.form.syscod = v.syscod
         this.form.syscodingcod = v.syscodingcod
+        this.form.syscod = v.syscod
+        this.form.syscoding = v.syscoding
+        this.form.name = v.name
       }
     },
 
@@ -126,7 +126,7 @@ export default {
     },
 
     onOkClick() {
-      console.info(this.form)
+      console.info("form", this.form)
       this.loading = true
       let err = false
       api
@@ -136,7 +136,8 @@ export default {
         })
         .then(
           () => {
-            this.$emit("ok", {res: true})
+
+            this.$emit("ok", {name: this.form.name})
           })
         .catch((error) => {
           err = true
@@ -174,6 +175,7 @@ export default {
         (response) => {
           this.optCods = response.data.result["records"]
           this.optCodsOrg = response.data.result["records"]
+          console.info("this.optCods", this.optCods)
         })
       .catch((error) => {
         console.log(error);

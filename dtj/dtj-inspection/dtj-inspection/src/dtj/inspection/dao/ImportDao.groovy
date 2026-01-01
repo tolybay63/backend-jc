@@ -998,7 +998,7 @@ class ImportDao extends BaseMdbUtils {
         Set<String> cods = cods_err.split(", ")
 
         Store stObj = apiObjectData().get(ApiObjectData).loadSql("""
-            select s.entityid as id, sc.cod, s.cod as cod_tofi, s.cod || ' / ' ||v1.name as name, sc.sysCoding
+            select distinct s.entityid as id, sc.cod, s.cod || ' / ' ||v1.name as name, sc.syscoding
             from SysCodingCod sc
                 left join SysCod s on sc.sysCod=s.id
                 left join ObjVer v1 on s.entityType=1 and s.entityId=v1.ownerVer and v1.lastVer=1
@@ -1006,7 +1006,7 @@ class ImportDao extends BaseMdbUtils {
         """, "")
 
         Store stRelObj = apiNSIData().get(ApiNSIData).loadSql("""
-            select s.entityid as id, sc.cod, s.cod as cod_tofi, s.cod || ' / ' ||v1.name as name, sc.sysCoding
+            select distinct s.entityid as id, sc.cod, s.cod || ' / ' ||v1.name as name, sc.syscoding
             from sysCodingCod sc
                 left join SysCod s on sc.sysCod=s.id
                 left join RelObjVer v1 on s.entityType=2 and s.entityId=v1.ownerVer and v1.lastVer=1
@@ -1015,7 +1015,7 @@ class ImportDao extends BaseMdbUtils {
 
         stObj.add(stRelObj)
 
-        if (cods_err != "") {
+        if (cods_err != "" && cods_err.contains("kod_")) {
             for (String cod in cods) {
                 stObj.add([cod: cod])
             }
@@ -1027,8 +1027,8 @@ class ImportDao extends BaseMdbUtils {
     @DaoMethod
     Store loadObjForSelect() {
         return apiObjectData().get(ApiObjectData).loadSql("""
-            select s.entityid as id, s.cod || ' / ' || v.name as name, s.cod as tofi_cod, 
-                s.cod as tofi_cod, s.id as syscod, sc.id as syscodingcod
+            select s.entityid as id, s.cod || ' / ' || v.name as name, 
+                s.id as syscod, sc.id as syscodingcod
             from syscod s
                 left join syscodingcod sc on s.id=sc.syscod
                 left join objVer v on s.entityid=v.ownerver and v.lastver=1
@@ -1043,8 +1043,10 @@ class ImportDao extends BaseMdbUtils {
     @DaoMethod
     Store loadRelObjForSelect() {
         return apiNSIData().get(ApiNSIData).loadSql("""
-            select s.entityid as id, s.cod || ' / ' || v.name as name, s.cod as tofi_cod
+            select s.entityid as id, s.cod || ' / ' || v.name as name, 
+                s.id as syscod, sc.id as syscodingcod            
             from syscod s
+            left join syscodingcod sc on s.id=sc.syscod
                 left join RelobjVer v on s.entityid=v.ownerver and v.lastver=1
             where s.entitytype=2 and s.entityid in (
                 select id
