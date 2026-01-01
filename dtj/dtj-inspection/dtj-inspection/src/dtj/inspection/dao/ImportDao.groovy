@@ -1014,10 +1014,12 @@ class ImportDao extends BaseMdbUtils {
         """, "")
 
         stObj.add(stRelObj)
+        Set<Object> setCods = stObj.getUniqueValues("cod")
 
         if (cods_err != "" && cods_err.contains("kod_")) {
             for (String cod in cods) {
-                stObj.add([cod: cod])
+                if (!setCods.contains(cod))
+                    stObj.add([cod: cod])
             }
         }
         return stObj

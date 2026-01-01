@@ -2,12 +2,12 @@
 
   <q-dialog
     ref="dialog"
-    @hide="onDialogHide"
-    persistent
     autofocus
-    transition-show="slide-up"
-    transition-hide="slide-down"
+    persistent
     style="min-width: 800px"
+    transition-hide="slide-down"
+    transition-show="slide-up"
+    @hide="onDialogHide"
   >
     <q-card class="q-dialog-plugin" style="min-width: 800px; max-width: 800px">
       <q-bar class="text-white bg-primary">
@@ -19,6 +19,7 @@
         <q-table
           :columns="cols"
           :rows="rows"
+          :rows-per-page-options="[0]"
           :wrap-cells="true"
           card-class="bg-amber-1 text-brown"
           color="primary"
@@ -26,8 +27,7 @@
           row-key="cod"
           separator="cell"
           table-header-class="text-bold text-white bg-blue-grey-13"
-          :rows-per-page-options="[0]"
-         >
+        >
 
           <template #body-cell="props">
             <q-td :props="props">
@@ -35,11 +35,11 @@
               <div v-if="props.col.field === 'cmd'">
 
                 <q-btn
-                       round size="sm" icon="edit" color="blue" flat dense
-                       @click="fnEdit(props.row)"
+                  color="blue" dense flat icon="edit" round size="sm"
+                  @click="fnEdit(props.row)"
                 >
                   <q-tooltip
-                    transition-show="rotate" transition-hide="rotate"
+                    transition-hide="rotate" transition-show="rotate"
                   >
                     Редактирование
                   </q-tooltip>
@@ -62,11 +62,11 @@
 
       <q-card-actions align="right">
         <q-btn
-          dense
           color="primary"
+          dense
           icon="close"
           label="Закрыть"
-          @click="onCancelClick"
+          @click="onOkClick"
         />
       </q-card-actions>
 
@@ -193,8 +193,9 @@ export default {
       this.$emit("hide");
     },
 
-      onCancelClick() {
+    onOkClick() {
       // we just need to hide the dialog
+      this.$emit("ok", {res: true})
       this.hide();
     },
   },

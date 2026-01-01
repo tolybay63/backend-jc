@@ -210,7 +210,7 @@ export default defineComponent({
           }
         })
         .onOk(() => {
-
+          this.fnAnalyze()
         })
 
     },
