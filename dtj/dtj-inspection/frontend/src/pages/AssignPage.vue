@@ -83,7 +83,7 @@ import {api} from "boot/axios.js";
 import UpdAssign from "pages/UpdAssign.vue";
 
 export default {
-  props: ["tableName", "cods"],
+  props: ["cods"],
 
   data() {
     return {

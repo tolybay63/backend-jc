@@ -205,7 +205,6 @@ export default defineComponent({
         .dialog({
           component: AssignPage,
           componentProps: {
-            tableName: this.tableName,
             cods: cods
           }
         })
