@@ -41,22 +41,22 @@ export default defineConfig((ctx) => {
       },
 
       vueRouterMode: 'hash', // available values: 'hash', 'history'
-      // vueRouterBase,
+      vueRouterBase: ctx.modeName === 'spa' && ctx.prod ? '/dtj/importxml/' : '',
       // vueDevtools,
       // vueOptionsAPI: false,
 
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
 
       // publicPath: '/',
-      // analyze: true,
-      // env: {},
-      // rawDefine: {}
-      // ignorePublicFolder: true,
-      // minify: false,
-      // polyfillModulePreload: true,
-      // distDir
+      publicPath: ctx.modeName === 'spa' && ctx.prod ? '/dtj/importxml/' : '',
 
-      // extendViteConf (viteConf) {},
+      extendViteConf (viteConf) {
+        if (ctx.modeName === 'spa' && ctx.prod) {
+          viteConf.base = '/dtj/importxml/';
+        } else {
+          viteConf.base = '';
+        }
+      },
       // viteVuePluginOptions: {},
 
       vitePlugins: [

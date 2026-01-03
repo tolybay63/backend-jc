@@ -214,6 +214,21 @@ export default defineComponent({
     },
 
     fnFill() {
+      this.loading = true
+      api
+        .post('', {
+          method: "import/filldata",
+          params: [this.file.name],
+        })
+        .then(response => {
+          console.info("response", response.data.result)
+        })
+        .catch((error)=> {
+          console.error(error.message)
+        })
+        .finally(()=> {
+          this.loading = false
+        })
 
     },
 

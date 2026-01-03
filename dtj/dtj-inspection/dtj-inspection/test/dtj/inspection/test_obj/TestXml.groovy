@@ -1,6 +1,6 @@
 package dtj.inspection.test_obj
 
-import dtj.inspection.dao.ImportDao
+import dtj.inspection.dao.ImportXmlDao
 import jandcode.core.apx.test.Apx_Test
 import org.junit.jupiter.api.Test
 
@@ -14,7 +14,7 @@ class TestXml extends Apx_Test {
         File inputFile = new File("C:\\backup\\xml\\G057_22042025_113706_64_1.xml")
 //        File inputFile = new File("C:\\backup\\xml\\B057_22042025_113706_1.xml")
 
-        ImportDao dao = mdb.createDao(ImportDao.class)
+        ImportXmlDao dao = mdb.createDao(ImportXmlDao.class)
         Map<String, Object> map = new HashMap<>()
         map.put("objUser", 1003)
         map.put("pvUser", 1087)

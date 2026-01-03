@@ -25,7 +25,7 @@ import tofi.apinator.ApinatorService
 import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
 
-class ImportDao extends BaseMdbUtils {
+class ImportXmlDao extends BaseMdbUtils {
     ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
     ApinatorApi apiPlanData() { return app.bean(ApinatorService).getApi("plandata") }
     ApinatorApi apiNSIData() { return app.bean(ApinatorService).getApi("nsidata") }
@@ -1031,6 +1031,12 @@ class ImportDao extends BaseMdbUtils {
         } else {
             throw new XError("Неизвестный код")
         }
+    }
+
+    @DaoMethod
+    String filldata(String domain) {
+
+        return "Ok"
     }
 
 }
