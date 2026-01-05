@@ -1065,30 +1065,31 @@ class ImportXmlDao extends BaseMdbUtils {
         return stObj
     }
 
-
     @DaoMethod
-    Store loadObjForSelect() {
-        return apiObjectData().get(ApiObjectData).loadSql("""
+    Store loadObjForSelect(String cod) {
+        Store st = apiObjectData().get(ApiObjectData).loadSql("""
             select s.entityid as id, s.cod || ' / ' || v.name as name, 
                 s.id as syscod, sc.id as syscodingcod
             from syscod s
-                left join syscodingcod sc on s.id=sc.syscod
+                left join syscodingcod sc on s.id=sc.syscod and sc.cod like '${cod}'
                 left join objVer v on s.entityid=v.ownerver and v.lastver=1
             where s.entitytype=1 and s.entityid in (
                 select id
                 from obj 
                 where cls=1240
-            )
+            ) 
         """, "")
+
+        return st
     }
 
     @DaoMethod
-    Store loadRelObjForSelect() {
-        return apiNSIData().get(ApiNSIData).loadSql("""
+    Store loadRelObjForSelect(String cod) {
+        Store st = apiNSIData().get(ApiNSIData).loadSql("""
             select s.entityid as id, s.cod || ' / ' || v.name as name, 
                 s.id as syscod, sc.id as syscodingcod            
             from syscod s
-            left join syscodingcod sc on s.id=sc.syscod
+            left join syscodingcod sc on s.id=sc.syscod and sc.cod like '${cod}'
                 left join RelobjVer v on s.entityid=v.ownerver and v.lastver=1
             where s.entitytype=2 and s.entityid in (
                 select id
@@ -1096,6 +1097,8 @@ class ImportXmlDao extends BaseMdbUtils {
                 where relcls=1074
             )
         """, "")
+
+        return st
     }
 
     @DaoMethod
