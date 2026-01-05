@@ -153,6 +153,7 @@ export default defineComponent({
         } else if (this.file.name[0] === "G") {
           this.tableName = "Otstup"
         }
+        this.cols = []
         this.cols = this.getColumns(this.tableName)
       }
     },
@@ -385,9 +386,9 @@ export default defineComponent({
             headerStyle: "font-size: 1.2em; width:10%",
           },
           {
-            name: "date_obn",
-            label: "date_obn",
-            field: "date_obn",
+            name: "datetime_obn",
+            label: "datetime_obn",
+            field: "datetime_obn",
             align: "left",
             classes: "bg-blue-grey-1",
             headerStyle: "font-size: 1.2em; width:10%",
@@ -420,14 +421,6 @@ export default defineComponent({
             name: "pk",
             label: "pk",
             field: "pk",
-            align: "left",
-            classes: "bg-blue-grey-1",
-            headerStyle: "font-size: 1.2em; width:10%",
-          },
-          {
-            name: "metr",
-            label: "metr",
-            field: "metr",
             align: "left",
             classes: "bg-blue-grey-1",
             headerStyle: "font-size: 1.2em; width:10%",
