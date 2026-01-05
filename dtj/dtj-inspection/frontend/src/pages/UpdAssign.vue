@@ -77,6 +77,8 @@ export default {
 
     fnSelectCod(v) {
       if (v) {
+        console.info("v", v)
+
         this.form.id = v.id
         this.form.syscodingcod = v.syscodingcod
         this.form.syscod = v.syscod
@@ -154,10 +156,11 @@ export default {
     let method = "import/loadObjForSelect"
     if (this.prefix === "kod_otstup")
       method = "import/loadRelObjForSelect"
+    //console.log("row", this.data)
     api
       .post('', {
         method: method,
-        params: []
+        params: [this.data["cod"]]
       })
       .then(
         (response) => {

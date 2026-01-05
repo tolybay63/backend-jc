@@ -51,7 +51,7 @@
 
         <div>
           <q-btn
-            :disable="!(file && !err && isAnalyzed)"
+            :disable="!isFilled"
             class="q-mx-sm"
             color="grey-4"
             icon="file_download"
@@ -191,6 +191,15 @@ export default defineComponent({
               if (this.msg !== "")
                 this.err = true
             })
+            .finally(() => {
+              this.isFilled = false
+              this.rows.forEach((row) => {
+                if (row["import"]===0) {
+                  this.isFilled = true
+                }
+              })
+            })
+          //
         })
         .finally(()=> {
           this.loading = false
