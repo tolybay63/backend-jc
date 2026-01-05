@@ -55,6 +55,289 @@ class DataDao extends BaseMdbUtils {
         return app.bean(ApinatorService).getApi("incidentdata")
     }
 
+    @DaoMethod
+    void saveBallAndOtstupXml(String domain, Map<String, Object> params) {
+        Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "", "Cls_")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        //
+        Store st = mdb.createStore(domain)
+        List<Map<String, Object>> lstStore = (List<Map<String, Object>>) params.get("store")
+        for (Map<String, Object> m : lstStore) {
+            st.add(m)
+        }
+        // Находим направления
+        Set<Object> idsNapr = new HashSet<>()
+        Set<Object> kodsNapr = st.getUniqueValues("kod_napr")
+        Store stNapr = apiObjectData().get(ApiObjectData).loadSql("""
+            select s.cod, c.entityid as id from syscod c, syscodingcod s
+            where c.id=s.syscod and c.entitytype=1 
+                and s.syscoding=1001 and s.cod like 'kod_napr_%'
+        """, "")
+        StoreIndex indNapr = stNapr.getIndex("cod")
+        for (cod in kodsNapr) {
+            StoreRecord r = indNapr.get(UtCnv.toString("kod_napr_" + cod))
+            if (r != null)
+                idsNapr.add(r.getLong("id"))
+        }
+        // Находим участки направления
+        Store stSection = apiObjectData().get(ApiObjectData).loadSql("""
+            select o.id from Obj o, ObjVer v 
+            where o.id=v.ownerver and v.lastver=1 and v.objparent in (0${idsNapr.join(",")})
+                and o.cls in (0${mapCls.get("Cls_Station")}, 0${mapCls.get("Cls_Stage")})
+        """, "")
+        // Находим обслуживаемые объекты
+        Set<Object> idsSection = stSection.getUniqueValues("id")
+        Store stObject = apiObjectData().get(ApiObjectData).loadSql("""
+            select o.id 
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Section")}
+                inner join DataPropVal v1 on d1.id=v1.dataprop and v1.obj in (0${idsSection.join(",")})
+            where cls in (0${mapCls.get("Cls_RailwayStage")}, 0${mapCls.get("Cls_RailwayStation")})
+        """, "")
+        Set<Object> idsObject = stObject.getUniqueValues("id")
+        // Находим параметр балл или отступления
+        Set<Object> idsRelobjComponentParams = new HashSet<>()
+        StoreIndex indOtstup = null
+        if (domain == "Otstup") {
+            Set<Object> kodsOtstup = st.getUniqueValues("kod_otstup")
+            Store stOtstup = apiNSIData().get(ApiNSIData).loadSql("""
+                select s.cod, c.entityid as id from syscod c, syscodingcod s
+                where c.id=s.syscod and c.entitytype=2 
+                    and s.syscoding=1001 and s.cod like 'kod_otstup_%'
+            """, "")
+            indOtstup = stOtstup.getIndex("cod")
+            for (cod in kodsOtstup) {
+                StoreRecord r = indOtstup.get(UtCnv.toString("kod_otstup_" + cod))
+                if (r != null)
+                    idsRelobjComponentParams.add(r.getLong("id"))
+            }
+        } else {
+            long ro = apiNSIData().get(ApiNSIData).loadSql("""
+                select id from RelObj
+                where cod like 'RelObj_Ball'
+            """, "").get(0).getLong("id")
+            idsRelobjComponentParams.add(ro)// Оценка состояния жд пути, балл - 2525
+        }
+        // Находим работу вагона-путеизмерителя - 3394
+        Store stWork = apiNSIData().get(ApiNSIData).loadSqlWithParams("""
+            select o.id from obj o, objVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.cls=${mapCls.get("Cls_WorkInspection")}
+                and v.name like 'Работа вагона-путеизмерителя'
+        """, null, "")
+        // План работ (plandata)
+        String whe = "o.cls=${mapCls.get("Cls_WorkPlanInspection")}"
+        String wheV2 = "and v2.obj in (0${idsObject.join(",")})"
+        String wheV7
+        if (domain == "Ball")
+            wheV7 = "and v7.dateTimeVal='${st.get(0).getString("date_obn")}'"
+        else
+            wheV7 = "and v7.dateTimeVal='${st.get(0).getString("datetime_obn").split("T")[0]}'"
+        String wheV11 = "and v11.obj=${stWork.get(0).getLong("id")}"
+        Store stPlan = apiPlanData().get(ApiPlanData).loadSqlWithParams("""
+            select o.id, o.cls,
+                v3.numberVal * 1000 + (v5.numberVal - 1) * 100 + v14.numberVal * 25 as beg,
+                v4.numberVal * 1000 + (v6.numberVal - 1) * 100 + v15.numberVal * 25 as end,
+                v1.propVal as pvLocationClsSection, v1.obj as objLocationClsSection,
+                v2.propVal as pvObject, v2.obj as objObject,
+                v3.numberVal as StartKm,
+                v4.numberVal as FinishKm,
+                v5.numberVal as StartPicket,
+                v6.numberVal as FinishPicket,
+                v7.dateTimeVal as PlanDateEnd,
+                v11.propVal as pvWork, v11.obj as objWork,
+                v14.numberVal as StartLink,
+                v15.numberVal as FinishLink
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Object
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartKm
+                inner join DataPropVal v3 on d3.id=v3.dataprop ${wheV2}
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FinishKm
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_StartPicket
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_FinishPicket
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_PlanDateEnd
+                inner join DataPropVal v7 on d7.id=v7.dataprop ${wheV7}
+                left join DataProp d11 on d11.objorrelobj=o.id and d11.prop=:Prop_Work
+                inner join DataPropVal v11 on d11.id=v11.dataprop ${wheV11}
+                left join DataProp d14 on d14.objorrelobj=o.id and d14.prop=:Prop_StartLink
+                left join DataPropVal v14 on d14.id=v14.dataprop
+                left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_FinishLink
+                left join DataPropVal v15 on d15.id=v15.dataprop
+            where ${whe}
+        """, map as Map<String, Object>, "Obj.plan")
+        Set<Object> idsPlan = stPlan.getUniqueValues("id")
+        // Журнал осмотров и проверок
+        Store stInspection = mdb.createStore("Obj.inspection")
+        whe = "o.cls=${mapCls.get("Cls_Inspection")}"
+        wheV2 = "and v2.obj in (0${idsPlan.join(",")})"
+        mdb.loadQuery(stInspection,"""
+            select o.id, o.cls,
+                v1.propVal as pvLocationClsSection, v1.obj as objLocationClsSection,
+                v2.propVal as pvWorkPlan, v2.obj as objWorkPlan, 
+                v3.numberVal as StartKm,
+                v4.numberVal as FinishKm,
+                v5.numberVal as StartPicket,
+                v6.numberVal as FinishPicket,
+                v7.dateTimeVal as FactDateEnd,
+                v11.propVal as pvFlagDefect, null as fvFlagDefect,
+                v12.numberVal as StartLink,
+                v13.numberVal as FinishLink,
+                v15.propVal as pvFlagParameter, null as fvFlagParameter,
+                v16.strVal as NumberTrack,
+                v17.strVal as HeadTrack
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_WorkPlan
+                inner join DataPropVal v2 on d2.id=v2.dataprop ${wheV2}
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartKm
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FinishKm
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_StartPicket
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_FinishPicket
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_FactDateEnd
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d11 on d11.objorrelobj=o.id and d11.prop=:Prop_FlagDefect
+                left join DataPropVal v11 on d11.id=v11.dataprop
+                left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_StartLink
+                left join DataPropVal v12 on d12.id=v12.dataprop
+                left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_FinishLink
+                left join DataPropVal v13 on d13.id=v13.dataprop
+                left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_FlagParameter
+                left join DataPropVal v15 on d15.id=v15.dataprop
+                left join DataProp d16 on d16.objorrelobj=o.id and d16.prop=:Prop_NumberTrack
+                left join DataPropVal v16 on d16.id=v16.dataprop
+                left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=:Prop_HeadTrack
+                left join DataPropVal v17 on d17.id=v17.dataprop
+            where ${whe}
+        """, map)
+        StoreIndex indWorkPlan = stInspection.getIndex("objWorkPlan")
+        // Если нет записей "Журнале осмотров и проверок" то создаем
+        if (stInspection.size() != stPlan.size()) {
+            for (StoreRecord r in stPlan) {
+                StoreRecord rPlan = indWorkPlan.get(r.getLong("id"))
+                if (rPlan != null)
+                    continue
+                Map<String, Object> mapIns = r.getValues()
+                mapIns.putAll(params)
+                mapIns.put("name", r.getString("id") + "-" + r.getString("PlanDateEnd"))
+                mapIns.put("objWorkPlan", r.getLong("id"))
+                mapIns.put("FactDateEnd", r.getString("PlanDateEnd"))
+                mapIns.put("NumberTrack", r.getLong("nomer_mdk"))
+                mapIns.put("HeadTrack", r.getString("avtor"))
+                mapIns.remove("id")
+                mapIns.remove("cls")
+                mapIns.remove("beg")
+                mapIns.remove("end")
+                Store stNewInspection = saveInspection("ins", mapIns)
+                stInspection.add(stNewInspection)//Результаты saveInspection надо добавить stInspection
+            }
+        }
+        // Создание параметров
+        Map<String, Long> mapRelCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelCls", "RC_ParamsComponent", "")
+        long pvComponentParams = apiMeta().get(ApiMeta).idPV("relcls", mapRelCls.get("RC_ParamsComponent"), "Prop_ComponentParams")
+        if (domain == "Ball") {
+            Long relobjComponentParams = UtCnv.toLong(idsRelobjComponentParams[0])
+            for (StoreRecord r1 in st) {
+                if (r1.getBoolean("import"))
+                    continue
+                boolean bOk = false
+                for (StoreRecord r2 in stInspection) {
+                    Long beg = r2.getLong("StartKm") * 1000 + (r2.getLong("StartPicket") - 1) * 100 + r2.getLong("StartLink") * 25
+                    Long end = r2.getLong("FinishKm") * 1000 + (r2.getLong("FinishPicket") - 1) * 100 + r2.getLong("FinishLink") * 25
+                    if (beg <= (r1.getLong("km") + 1) * 1000 && (r1.getLong("km") + 1) * 1000 <= end) {
+                        Map<String, Object> mapIns = new HashMap<>(params)
+                        mapIns.put("name", r2.getString("id") + "-" + r1.getString("date_obn"))
+                        mapIns.put("relobjComponentParams", relobjComponentParams)
+                        mapIns.put("pvComponentParams", pvComponentParams)
+                        mapIns.put("objInspection", r2.getLong("id"))
+                        mapIns.put("pvLocationClsSection", r2.getLong("pvLocationClsSection"))
+                        mapIns.put("objLocationClsSection", r2.getLong("objLocationClsSection"))
+                        mapIns.put("StartKm", r1.getLong("km") + 1)
+                        mapIns.put("FinishKm", r1.getLong("km") + 1)
+                        mapIns.put("StartPicket", 1)
+                        mapIns.put("FinishPicket", 1)
+                        mapIns.put("StartLink", 1)
+                        mapIns.put("FinishLink", 1)
+                        mapIns.put("ParamsLimit", r1.getLong("ballkm"))
+                        mapIns.put("NumberRetreat", r1.getLong("kol_ots"))
+                        mapIns.put("ParamsLimitMax", 999)
+                        mapIns.put("ParamsLimitMin", 0)
+                        mapIns.put("CreationDateTime",  r1.getString("date_obn") + "T01:00:00.000")
+                        mapIns.put("inputType", FD_InputType_consts.sss)
+                        saveParameterLog("ins", mapIns)
+                        //
+                        r1.set("import", 1)
+                        bOk = true
+                        break
+                    }
+                }
+                //
+                if (!bOk)
+                    throw new XError("Не найден запись в Журнале осмотров и проверок на ${r1.getLong('km') + 1} км")
+            }
+        } else if (domain == "Otstup") {
+            for (StoreRecord r1 in st) {
+                if (r1.getBoolean("import"))
+                    continue
+                Long metrOts = (r1.getLong("km") + 1) * 1000 + r1.getLong("metr")
+                boolean bOk = false
+                for (StoreRecord r2 in stInspection) {
+                    Long beg = r2.getLong("StartKm") * 1000 + (r2.getLong("StartPicket") - 1) * 100 + r2.getLong("StartLink") * 25
+                    Long end = r2.getLong("FinishKm") * 1000 + (r2.getLong("FinishPicket") - 1) * 100 + r2.getLong("FinishLink") * 25
+                    if (beg <= metrOts && metrOts <= end) {
+                        Map<String, Object> mapIns = new HashMap<>(params)
+                        mapIns.remove("store")
+                        mapIns.put("name", r2.getString("id") + "-" + r1.getString("datetime_obn"))
+                        mapIns.put("relobjComponentParams", indOtstup.get("kod_otstup_" + r1.getString("kod_otstup")).get("id"))
+                        mapIns.put("pvComponentParams", pvComponentParams)
+                        mapIns.put("objInspection", r2.getLong("id"))
+                        mapIns.put("pvLocationClsSection", r2.getLong("pvLocationClsSection"))
+                        mapIns.put("objLocationClsSection", r2.getLong("objLocationClsSection"))
+                        mapIns.put("StartKm", r1.getLong("km") + 1)
+                        mapIns.put("FinishKm", r1.getLong("km") + 1)
+                        mapIns.put("StartPicket", r1.getLong("pk") + 1)
+                        mapIns.put("FinishPicket", r1.getLong("pk") + 1)
+                        mapIns.put("StartLink", Math.ceil(((metrOts - (r1.getLong("km") + 1) * 1000) % 100) / 25 as double))
+                        mapIns.put("FinishLink", Math.ceil(((metrOts - (r1.getLong("km") + 1) * 1000 + r1.getLong("dlina_ots")) % 100) / 25 as double))
+                        mapIns.put("ParamsLimit", r1.getLong("velich_ots"))
+                        mapIns.put("ParamsLimitMax", 0)
+                        mapIns.put("ParamsLimitMin", 0)
+                        mapIns.put("NumberRetreat", r1.getLong("kol_ots"))
+                        mapIns.put("StartMeter", r1.getLong("metr"))
+                        mapIns.put("LengthRetreat", r1.getLong("dlina_ots"))
+                        mapIns.put("DepthRetreat", r1.getLong("glub_ots"))
+                        mapIns.put("DegreeRetreat", r1.getLong("stepen_ots"))
+                        mapIns.put("CreationDateTime",  r1.getString("datetime_obn"))
+                        mapIns.put("Description",  "Место - " + (r1.getLong("km") + 1) + " км " + r1.getLong("metr") +
+                                " метр; длина - " + r1.getLong("dlina_ots") + "; глубина - " +
+                                r1.getLong("glub_ots") + "; степень - " + r1.getLong("stepen_ots"))
+                        mapIns.put("nameLocation",  "ПС №" + r1.getString("nomer_mdk"))
+                        mapIns.put("fullNameUser",  r1.getString("avtor"))
+                        mapIns.put("inputType", FD_InputType_consts.sss)
+                        saveParameterLog("ins", mapIns)
+                        //
+                        r1.set("import", 1)
+                        bOk = true
+                        break
+                    }
+                }
+                //
+                if (!bOk)
+                    throw new XError("Не найден запись в Журнале осмотров и проверок на ${r1.getLong('km') + 1} км")
+            }
+        }
+    }
+
     //todo Temporary
     @DaoMethod
     Store findLocationOfCoord(Map<String, Object> params) {
@@ -2598,7 +2881,11 @@ class DataDao extends BaseMdbUtils {
 
         long au = getUser()
         recDPV.set("authUser", au)
-        recDPV.set("inputType", FD_InputType_consts.app)
+        if (params.containsKey("inputType"))
+            recDPV.set("inputType", params.get("inputType"))
+        else
+            recDPV.set("inputType", FD_InputType_consts.app)
+
         long idDPV = mdb.getNextId("DataPropVal")
         recDPV.set("id", idDPV)
         recDPV.set("ord", idDPV)

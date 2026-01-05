@@ -224,10 +224,24 @@ export default defineComponent({
 
     fnFill() {
       this.loading = true
+      /*
+            "CreatedAt": "2025-11-19",
+            "UpdatedAt": "2025-11-19",
+            "pvUser": 1087,
+            "objUser": 1003,
+       */
+      let params = {
+        "CreatedAt": "2025-11-19",
+        "UpdatedAt": "2025-11-19",
+        "pvUser": 1087,
+        "objUser": 1003,
+        "store": this.rows
+      }
+
       api
         .post('', {
-          method: "import/filldata",
-          params: [this.file.name],
+          method: "data/saveBallAndOtstupXml",
+          params: [this.tableName, params],
         })
         .then(response => {
           console.info("response", response.data.result)
