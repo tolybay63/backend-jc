@@ -818,14 +818,14 @@ class DataDao extends BaseMdbUtils {
         mdb.loadQuery(st, """
             select o.id as obj, o.cls, v.name, v.fullName, null as nameCls,
                 v2.id as idNumberSource, v2.strVal as NumberSource,
-                v3.id as idCollections, v3.propVal as pvCollections, v3.obj as objCollections, ov3.name as nameCollections,
-                v4.id as idPeriodType, v4.propVal as pvPeriodType, null as fvPeriodType,
+                v3.id as idCollections, v3.propVal as pvCollections, v3.obj as objCollections, null as nameCollections,
+                v4.id as idPeriodType, v4.propVal as pvPeriodType, null as fvPeriodType, null as namePeriodType,
                 v5.id as idPeriodicity, v5.numberVal as Periodicity
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
-                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_NumberSource   --1001
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_NumberSource
                 left join DataPropVal v2 on d2.id=v2.dataprop
-                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Collections --1081
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Collections
                 left join DataPropVal v3 on d3.id=v3.dataprop
                 left join ObjVer ov3 on ov3.ownerVer=v3.obj and ov3.lastVer=1
                 left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_PeriodType
@@ -835,11 +835,45 @@ class DataDao extends BaseMdbUtils {
             where ${whe}
             order by o.id
         """, map)
+        //... Пересечение
+        Set<Object> idsObjCollections = st.getUniqueValues("objCollections")
+        Store stObjCollections = mdb.loadQuery("""
+            select o.id, v.name
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsObjCollections.join(",")})
+        """)
+        StoreIndex indCollections = stObjCollections.getIndex("id")
+        //
+        Set<Object> pvsPeriodType = st.getUniqueValues("pvPeriodType")
+        Store stPeriodType = loadSqlMeta("""
+            select p.id, p.factorVal, f.name
+            from PropVal p
+                left join Factor f on p.factorVal=f.id 
+            where p.id in (0${pvsPeriodType.join(",")})   
+        """, "")
+        StoreIndex indPeriodType = stPeriodType.getIndex("id")
+        //
+        Store stCls = loadSqlMeta("""
+            select c.id, v.name
+            from Cls c, ClsVer v
+            where c.id=v.ownerVer and v.lastVer=1 and c.id in (0${idsCls.join(",")})
+        """, "")
+        StoreIndex indCls = stCls.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord recCollections = indCollections.get(r.getLong("objCollections"))
+            if (recCollections != null)
+                r.set("nameCollections", recCollections.getString("name"))
 
-        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", "Prop_PeriodType", true)
+            StoreRecord recPeriodType = indPeriodType.get(r.getLong("pvPeriodType"))
+            if (recPeriodType != null) {
+                r.set("fvPeriodType", recPeriodType.getLong("factorVal"))
+                r.set("namePeriodType", recPeriodType.getString("name"))
+            }
 
-        for (StoreRecord record in st) {
-            record.set("fvPeriodType", mapPV.get(record.getLong("pvPeriodType")))
+            StoreRecord recCls = indCls.get(r.getLong("cls"))
+            if (recCls != null)
+                r.set("nameCls", recCls.getString("name"))
         }
 
         //mdb.outTable(st)

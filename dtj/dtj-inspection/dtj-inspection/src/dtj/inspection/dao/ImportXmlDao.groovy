@@ -191,7 +191,11 @@ class ImportXmlDao extends BaseMdbUtils {
                     idsRelobjComponentParams.add(r.getLong("id"))
             }
         } else {
-            idsRelobjComponentParams.add(2525)// Оценка состояния жд пути, балл
+            long ro = apiNSIData().get(ApiNSIData).loadSql("""
+                select id from RelObj
+                where cod like 'RelObj_Ball'
+            """, "").get(0).getLong("id")
+            idsRelobjComponentParams.add(ro)// Оценка состояния жд пути, балл - 2525
         }
         // Находим работу вагона-путеизмерителя - 3394
         Store stWork = apiNSIData().get(ApiNSIData).loadSqlWithParams("""

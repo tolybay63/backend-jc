@@ -19,6 +19,7 @@
         <field name="idPeriodType" parent="long"/>
         <field name="pvPeriodType" parent="long"/>
         <field name="fvPeriodType" parent="long"/>
+        <field name="namePeriodType" parent="string"/>
 
         <field name="idPeriodicity" parent="long"/>
         <field name="Periodicity" parent="double"/>
