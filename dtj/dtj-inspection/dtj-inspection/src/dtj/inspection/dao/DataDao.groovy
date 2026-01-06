@@ -56,9 +56,11 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    void saveBallAndOtstupXml(String domain, Map<String, Object> params) {
+    Store saveBallAndOtstupXml(String domain, Map<String, Object> params) {
         Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "", "Cls_")
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        Map<String, Object> par = new HashMap<>(params)
+        par.remove("store")
         //
         Store st = mdb.createStore(domain)
         List<Map<String, Object>> lstStore = (List<Map<String, Object>>) params.get("store")
@@ -228,12 +230,12 @@ class DataDao extends BaseMdbUtils {
                 if (rPlan != null)
                     continue
                 Map<String, Object> mapIns = r.getValues()
-                mapIns.putAll(params)
+                mapIns.putAll(par)
                 mapIns.put("name", r.getString("id") + "-" + r.getString("PlanDateEnd"))
                 mapIns.put("objWorkPlan", r.getLong("id"))
                 mapIns.put("FactDateEnd", r.getString("PlanDateEnd"))
-                mapIns.put("NumberTrack", r.getLong("nomer_mdk"))
-                mapIns.put("HeadTrack", r.getString("avtor"))
+                mapIns.put("NumberTrack", st.get(0).getLong("nomer_mdk"))
+                mapIns.put("HeadTrack", st.get(0).getString("avtor"))
                 mapIns.remove("id")
                 mapIns.remove("cls")
                 mapIns.remove("beg")
@@ -255,7 +257,7 @@ class DataDao extends BaseMdbUtils {
                     Long beg = r2.getLong("StartKm") * 1000 + (r2.getLong("StartPicket") - 1) * 100 + r2.getLong("StartLink") * 25
                     Long end = r2.getLong("FinishKm") * 1000 + (r2.getLong("FinishPicket") - 1) * 100 + r2.getLong("FinishLink") * 25
                     if (beg <= (r1.getLong("km") + 1) * 1000 && (r1.getLong("km") + 1) * 1000 <= end) {
-                        Map<String, Object> mapIns = new HashMap<>(params)
+                        Map<String, Object> mapIns = new HashMap<>(par)
                         mapIns.put("name", r2.getString("id") + "-" + r1.getString("date_obn"))
                         mapIns.put("relobjComponentParams", relobjComponentParams)
                         mapIns.put("pvComponentParams", pvComponentParams)
@@ -295,8 +297,7 @@ class DataDao extends BaseMdbUtils {
                     Long beg = r2.getLong("StartKm") * 1000 + (r2.getLong("StartPicket") - 1) * 100 + r2.getLong("StartLink") * 25
                     Long end = r2.getLong("FinishKm") * 1000 + (r2.getLong("FinishPicket") - 1) * 100 + r2.getLong("FinishLink") * 25
                     if (beg <= metrOts && metrOts <= end) {
-                        Map<String, Object> mapIns = new HashMap<>(params)
-                        mapIns.remove("store")
+                        Map<String, Object> mapIns = new HashMap<>(par)
                         mapIns.put("name", r2.getString("id") + "-" + r1.getString("datetime_obn"))
                         mapIns.put("relobjComponentParams", indOtstup.get("kod_otstup_" + r1.getString("kod_otstup")).get("id"))
                         mapIns.put("pvComponentParams", pvComponentParams)
@@ -309,6 +310,15 @@ class DataDao extends BaseMdbUtils {
                         mapIns.put("FinishPicket", r1.getLong("pk") + 1)
                         mapIns.put("StartLink", Math.ceil(((metrOts - (r1.getLong("km") + 1) * 1000) % 100) / 25 as double))
                         mapIns.put("FinishLink", Math.ceil(((metrOts - (r1.getLong("km") + 1) * 1000 + r1.getLong("dlina_ots")) % 100) / 25 as double))
+                        if (UtCnv.toInt(mapIns.get("FinishLink")) == 0) {
+                            mapIns.put("FinishLink", 1)
+                            if (UtCnv.toInt(mapIns.get("FinishPicket")) < 10)
+                                mapIns.put("FinishPicket", r1.getLong("pk") + 2)
+                            else {
+                                mapIns.put("StartKm", r1.getLong("km") + 2)
+                                mapIns.put("FinishPicket", 1)
+                            }
+                        }
                         mapIns.put("ParamsLimit", r1.getLong("velich_ots"))
                         mapIns.put("ParamsLimitMax", 0)
                         mapIns.put("ParamsLimitMin", 0)
@@ -336,6 +346,8 @@ class DataDao extends BaseMdbUtils {
                     throw new XError("Не найден запись в Журнале осмотров и проверок на ${r1.getLong('km') + 1} км")
             }
         }
+        //
+        return st
     }
 
     //todo Temporary

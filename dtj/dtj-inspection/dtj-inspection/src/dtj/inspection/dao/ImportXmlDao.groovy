@@ -362,41 +362,41 @@ class ImportXmlDao extends BaseMdbUtils {
                     v25.numberVal as DegreeRetreat
                 from Obj o
                     left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
-                    left join DataPropVal v1 on d1.id=v1.dataprop
+                    left join DataPropVal v1 on d1.id=v1.dataprop and v1.inputtype=3
                     left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Inspection
-                    inner join DataPropVal v2 on d2.id=v2.dataprop ${wheV2}
+                    inner join DataPropVal v2 on d2.id=v2.dataprop and v2.inputtype=3 ${wheV2}
                     left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartKm
-                    left join DataPropVal v3 on d3.id=v3.dataprop
+                    left join DataPropVal v3 on d3.id=v3.dataprop and v3.inputtype=3
                     left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FinishKm
-                    left join DataPropVal v4 on d4.id=v4.dataprop
+                    left join DataPropVal v4 on d4.id=v4.dataprop and v4.inputtype=3
                     left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_StartPicket
-                    left join DataPropVal v5 on d5.id=v5.dataprop
+                    left join DataPropVal v5 on d5.id=v5.dataprop and v5.inputtype=3
                     left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_FinishPicket
-                    left join DataPropVal v6 on d6.id=v6.dataprop
+                    left join DataPropVal v6 on d6.id=v6.dataprop and v6.inputtype=3
                     left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_CreationDateTime
-                    left join DataPropVal v7 on d7.id=v7.dataprop
+                    left join DataPropVal v7 on d7.id=v7.dataprop and v7.inputtype=3
                     left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_ComponentParams
-                    inner join DataPropVal v8 on d8.id=v8.dataprop ${wheV8}
+                    inner join DataPropVal v8 on d8.id=v8.dataprop and v8.inputtype=3 ${wheV8}
                     left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_StartLink
-                    left join DataPropVal v12 on d12.id=v12.dataprop
+                    left join DataPropVal v12 on d12.id=v12.dataprop and v12.inputtype=3
                     left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_FinishLink
-                    left join DataPropVal v13 on d13.id=v13.dataprop
+                    left join DataPropVal v13 on d13.id=v13.dataprop and v13.inputtype=3
                     left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_ParamsLimit
-                    left join DataPropVal v15 on d15.id=v15.dataprop
+                    left join DataPropVal v15 on d15.id=v15.dataprop and v15.inputtype=3
                     left join DataProp d16 on d16.objorrelobj=o.id and d16.prop=:Prop_ParamsLimitMax
-                    left join DataPropVal v16 on d16.id=v16.dataprop
+                    left join DataPropVal v16 on d16.id=v16.dataprop and v16.inputtype=3
                     left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=:Prop_ParamsLimitMin
-                    left join DataPropVal v17 on d17.id=v17.dataprop
+                    left join DataPropVal v17 on d17.id=v17.dataprop and v17.inputtype=3
                     left join DataProp d21 on d21.objorrelobj=o.id and d21.prop=:Prop_NumberRetreat
-                    left join DataPropVal v21 on d21.id=v21.dataprop
+                    left join DataPropVal v21 on d21.id=v21.dataprop and v21.inputtype=3
                     left join DataProp d22 on d22.objorrelobj=o.id and d22.prop=:Prop_StartMeter
-                    left join DataPropVal v22 on d22.id=v22.dataprop
+                    left join DataPropVal v22 on d22.id=v22.dataprop and v22.inputtype=3
                     left join DataProp d23 on d23.objorrelobj=o.id and d23.prop=:Prop_LengthRetreat
-                    left join DataPropVal v23 on d23.id=v23.dataprop
+                    left join DataPropVal v23 on d23.id=v23.dataprop and v23.inputtype=3
                     left join DataProp d24 on d24.objorrelobj=o.id and d24.prop=:Prop_DepthRetreat
-                    left join DataPropVal v24 on d24.id=v24.dataprop
+                    left join DataPropVal v24 on d24.id=v24.dataprop and v24.inputtype=3
                     left join DataProp d25 on d25.objorrelobj=o.id and d25.prop=:Prop_DegreeRetreat
-                    left join DataPropVal v25 on d25.id=v25.dataprop
+                    left join DataPropVal v25 on d25.id=v25.dataprop and v25.inputtype=3
                 where ${whe}
                 order by o.id
             """, map)
@@ -447,41 +447,41 @@ class ImportXmlDao extends BaseMdbUtils {
                     v25.numberVal as DegreeRetreat
                 from Obj o
                     left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
-                    left join DataPropVal v1 on d1.id=v1.dataprop
+                    left join DataPropVal v1 on d1.id=v1.dataprop and v1.inputtype=3
                     left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Inspection
-                    left join DataPropVal v2 on d2.id=v2.dataprop
+                    left join DataPropVal v2 on d2.id=v2.dataprop and v2.inputtype=3
                     left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartKm
-                    left join DataPropVal v3 on d3.id=v3.dataprop
+                    left join DataPropVal v3 on d3.id=v3.dataprop and v3.inputtype=3
                     left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FinishKm
-                    left join DataPropVal v4 on d4.id=v4.dataprop
+                    left join DataPropVal v4 on d4.id=v4.dataprop and v4.inputtype=3
                     left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_StartPicket
-                    left join DataPropVal v5 on d5.id=v5.dataprop
+                    left join DataPropVal v5 on d5.id=v5.dataprop and v5.inputtype=3
                     left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_FinishPicket
-                    left join DataPropVal v6 on d6.id=v6.dataprop
+                    left join DataPropVal v6 on d6.id=v6.dataprop and v6.inputtype=3
                     left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_CreationDateTime
-                    left join DataPropVal v7 on d7.id=v7.dataprop
+                    left join DataPropVal v7 on d7.id=v7.dataprop and v7.inputtype=3
                     left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_ComponentParams
-                    inner join DataPropVal v8 on d8.id=v8.dataprop ${wheV8}
+                    inner join DataPropVal v8 on d8.id=v8.dataprop and v8.inputtype=3 ${wheV8}
                     left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_StartLink
-                    left join DataPropVal v12 on d12.id=v12.dataprop
+                    left join DataPropVal v12 on d12.id=v12.dataprop and v12.inputtype=3
                     left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_FinishLink
-                    left join DataPropVal v13 on d13.id=v13.dataprop
+                    left join DataPropVal v13 on d13.id=v13.dataprop and v13.inputtype=3
                     left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_ParamsLimit
-                    left join DataPropVal v15 on d15.id=v15.dataprop
+                    left join DataPropVal v15 on d15.id=v15.dataprop and v15.inputtype=3
                     left join DataProp d16 on d16.objorrelobj=o.id and d16.prop=:Prop_ParamsLimitMax
-                    left join DataPropVal v16 on d16.id=v16.dataprop
+                    left join DataPropVal v16 on d16.id=v16.dataprop and v16.inputtype=3
                     left join DataProp d17 on d17.objorrelobj=o.id and d17.prop=:Prop_ParamsLimitMin
-                    left join DataPropVal v17 on d17.id=v17.dataprop
+                    left join DataPropVal v17 on d17.id=v17.dataprop and v17.inputtype=3
                     left join DataProp d21 on d21.objorrelobj=o.id and d21.prop=:Prop_NumberRetreat
-                    left join DataPropVal v21 on d21.id=v21.dataprop
+                    left join DataPropVal v21 on d21.id=v21.dataprop and v21.inputtype=3
                     left join DataProp d22 on d22.objorrelobj=o.id and d22.prop=:Prop_StartMeter
-                    left join DataPropVal v22 on d22.id=v22.dataprop
+                    left join DataPropVal v22 on d22.id=v22.dataprop and v22.inputtype=3
                     left join DataProp d23 on d23.objorrelobj=o.id and d23.prop=:Prop_LengthRetreat
-                    left join DataPropVal v23 on d23.id=v23.dataprop
+                    left join DataPropVal v23 on d23.id=v23.dataprop and v23.inputtype=3
                     left join DataProp d24 on d24.objorrelobj=o.id and d24.prop=:Prop_DepthRetreat
-                    left join DataPropVal v24 on d24.id=v24.dataprop
+                    left join DataPropVal v24 on d24.id=v24.dataprop and v24.inputtype=3
                     left join DataProp d25 on d25.objorrelobj=o.id and d25.prop=:Prop_DegreeRetreat
-                    left join DataPropVal v25 on d25.id=v25.dataprop
+                    left join DataPropVal v25 on d25.id=v25.dataprop and v25.inputtype=3
                 where ${whe}
                 order by o.id
             """, map)
