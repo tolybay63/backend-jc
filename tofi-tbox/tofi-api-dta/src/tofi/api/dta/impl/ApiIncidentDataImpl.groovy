@@ -451,7 +451,10 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
 
         long au = 1
         recDPV.set("authUser", au)
-        recDPV.set("inputType", FD_InputType_consts.app)
+        if (params.containsKey("inputType"))
+            recDPV.set("inputType", params.get("inputType"))
+        else
+            recDPV.set("inputType", FD_InputType_consts.app)
         long idDPV = mdb.getNextId("DataPropVal")
         recDPV.set("id", idDPV)
         recDPV.set("ord", idDPV)

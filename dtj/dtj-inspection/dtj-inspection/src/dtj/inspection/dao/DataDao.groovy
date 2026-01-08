@@ -1368,6 +1368,8 @@ class DataDao extends BaseMdbUtils {
             mapIncident.put("InfoApplicant", "" + pms.get("nameLocation") + ", " + pms.get("fullNameUser"))
             mapIncident.remove("id")
             mapIncident.remove("cls")
+            if (pms.containsKey("inputType"))
+                mapIncident.put("inputType", pms.getLong("inputType"))
 
             apiIncidentData().get(ApiIncidentData).saveIncident("ins", mapIncident)
         }
