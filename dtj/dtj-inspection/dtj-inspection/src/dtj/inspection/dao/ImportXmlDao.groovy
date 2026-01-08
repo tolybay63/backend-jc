@@ -19,7 +19,6 @@ import tofi.api.dta.ApiNSIData
 import tofi.api.dta.ApiObjectData
 import tofi.api.dta.ApiPlanData
 import tofi.api.mdl.ApiMeta
-import tofi.api.mdl.model.consts.FD_InputType_consts
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
 
@@ -268,12 +267,11 @@ class ImportXmlDao extends BaseMdbUtils {
             for (StoreRecord r2 in stPlan) {
                 if (r2.getLong("beg") <= (r1.getLong("km") + 1) * 1000 && (r1.getLong("km") + 1) * 1000 <= r2.getLong("end")) {
                     bool = true
-                    break;
+                    break
                 }
             }
             if (bool) {
-                bool = false
-                break;
+                break
             } else {
                 errorImport = true
                 saveLog(UtCnv.toString(infoFile.get("filename")), datetime_create,0, null,

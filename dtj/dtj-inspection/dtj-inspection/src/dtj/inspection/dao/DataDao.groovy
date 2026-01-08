@@ -1609,7 +1609,7 @@ class DataDao extends BaseMdbUtils {
             from PropVal
             where prop=${prop_WorkPlan} and cls=${cls_WorkPlanInspection}
         """, "")
-        long pv = 0
+        long pv
         if (stPV.size() > 0) {
             pv = stPV.get(0).getLong("id")
         } else {
@@ -1756,7 +1756,7 @@ class DataDao extends BaseMdbUtils {
             from PropVal
             where prop=0${map.get("Prop_WorkPlan")} and cls=${cls_WorkPlan}
         """, "")
-        long pv = 0
+        long pv
         if (stPV.size() > 0) {
             pv = stPV.get(0).getLong("id")
         } else {
