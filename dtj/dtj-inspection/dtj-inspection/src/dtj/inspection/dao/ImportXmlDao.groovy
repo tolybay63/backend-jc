@@ -408,7 +408,7 @@ class ImportXmlDao extends BaseMdbUtils {
             Store stIncident = apiIncidentData().get(ApiIncidentData).loadSqlWithParams("""
                 select o.id,
                     v1.propVal as pvParameterLog, v1.obj as objParameterLog,
-                    v6.propVal as pvStatus
+                    v2.propVal as pvStatus
                 from Obj o
                     left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_ParameterLog
                     left join DataPropVal v1 on d1.id=v1.dataprop and v1.inputtype=3
