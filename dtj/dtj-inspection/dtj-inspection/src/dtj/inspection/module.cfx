@@ -18,7 +18,7 @@
                 class = "dtj.inspection.action.DeletefileAction"
         />
 
-        <action name="importXml"
+        <action name="importxml"
                 class = "dtj.inspection.action.ImportAction"
         />
         <type name="dtj.inspection.action.DownFile"

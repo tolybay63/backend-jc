@@ -166,7 +166,7 @@ export default defineComponent({
       fd.append('filename', this.file.name)
 
       this.$axios
-        .post('/importXml', fd, {
+        .post('/importxml', fd, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -189,10 +189,7 @@ export default defineComponent({
               this.isAnalyzed = true
               this.msg = response.data.result.records[0].msg
               this.isFilled = response.data.result.records[0].filled === 1
-              if (this.msg !== "")
-                this.err = true
-              else
-                this.err = false
+              this.err = this.msg !== "";
             })
             .finally(() => {
               this.isFilled = false

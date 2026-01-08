@@ -118,7 +118,7 @@ export default defineConfig((ctx) => {
           target: url,
           changeOrigin: true,
         },
-        "/importXml": {
+        "/importxml": {
           target: url,
           changeOrigin: true,
         },
