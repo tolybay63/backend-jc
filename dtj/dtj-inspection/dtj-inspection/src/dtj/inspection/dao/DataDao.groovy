@@ -153,9 +153,9 @@ class DataDao extends BaseMdbUtils {
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
                 left join DataPropVal v1 on d1.id=v1.dataprop
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Object
-                left join DataPropVal v2 on d2.id=v2.dataprop
+                inner join DataPropVal v2 on d2.id=v2.dataprop ${wheV2}
                 left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartKm
-                inner join DataPropVal v3 on d3.id=v3.dataprop ${wheV2}
+                left join DataPropVal v3 on d3.id=v3.dataprop
                 left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FinishKm
                 left join DataPropVal v4 on d4.id=v4.dataprop
                 left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_StartPicket

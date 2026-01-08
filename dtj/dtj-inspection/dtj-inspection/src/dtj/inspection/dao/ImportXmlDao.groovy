@@ -236,9 +236,9 @@ class ImportXmlDao extends BaseMdbUtils {
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
                 left join DataPropVal v1 on d1.id=v1.dataprop
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Object
-                left join DataPropVal v2 on d2.id=v2.dataprop
+                inner join DataPropVal v2 on d2.id=v2.dataprop ${wheV2}
                 left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartKm
-                inner join DataPropVal v3 on d3.id=v3.dataprop ${wheV2}
+                left join DataPropVal v3 on d3.id=v3.dataprop
                 left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FinishKm
                 left join DataPropVal v4 on d4.id=v4.dataprop
                 left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_StartPicket
@@ -301,8 +301,7 @@ class ImportXmlDao extends BaseMdbUtils {
                 v15.propVal as pvFlagParameter, null as fvFlagParameter,
                 v16.strVal as NumberTrack,
                 v17.strVal as HeadTrack
-            from Obj o 
-                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+            from Obj o
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
                 left join DataPropVal v1 on d1.id=v1.dataprop
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_WorkPlan
@@ -341,7 +340,7 @@ class ImportXmlDao extends BaseMdbUtils {
             String wheV8 = "and v8.relobj in (0${idsRelobjComponentParams.join(",")})"
             mdb.loadQuery(stParameterLog, """
                 select o.id, o.cls,
-                    v3.numberVal * 1000 + v22.numberVal as beg,
+                    v3.numberVal * 1000 + coalesce(v22.numberVal,0) as beg,
                     v1.propVal as pvLocationClsSection, v1.obj as objLocationClsSection,
                     v2.propVal as pvInspection, v2.obj as objInspection, 
                     v3.numberVal as StartKm,
@@ -407,16 +406,16 @@ class ImportXmlDao extends BaseMdbUtils {
             whe = "o.cls=${mapCls.get("Cls_IncidentParameter")}"
             Map<String, Long> mapFV = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_StatusEliminated", "")
             long pv = apiMeta().get(ApiMeta).idPV("FactorVal", mapFV.get("FV_StatusEliminated"), "Prop_Status")
-            String wheV6 = "and v6.propVal not in (${pv})"
+            wheV2 = "and v2.propVal not in (${pv})"
             Store stIncident = apiIncidentData().get(ApiIncidentData).loadSqlWithParams("""
                 select o.id,
                     v1.propVal as pvParameterLog, v1.obj as objParameterLog,
                     v6.propVal as pvStatus
                 from Obj o
                     left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_ParameterLog
-                    left join DataPropVal v1 on d1.id=v1.dataprop
-                    left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_Status
-                    inner join DataPropVal v6 on d6.id=v6.dataprop ${wheV6}
+                    left join DataPropVal v1 on d1.id=v1.dataprop and v1.inputtype=3
+                    left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Status
+                    inner join DataPropVal v2 on d2.id=v2.dataprop and v2.inputtype=3 ${wheV2}
                 where ${whe}
             """, map, "")
             //
@@ -426,7 +425,7 @@ class ImportXmlDao extends BaseMdbUtils {
                 String wheV8 = "and v8.relobj in (0${idsRelobjComponentParams.join(",")})"
                 mdb.loadQuery(stParameterLog2, """
                 select o.id, o.cls,
-                    v3.numberVal * 1000 + v22.numberVal as beg,
+                    v3.numberVal * 1000 + coalesce(v22.numberVal,0) as beg,
                     v1.propVal as pvLocationClsSection, v1.obj as objLocationClsSection,
                     v2.propVal as pvInspection, v2.obj as objInspection, 
                     v3.numberVal as StartKm,
