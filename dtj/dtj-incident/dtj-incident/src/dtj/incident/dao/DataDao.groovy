@@ -165,8 +165,8 @@ class DataDao extends BaseMdbUtils {
         //
         Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_LocationSection", "")
         Store stTmp = loadSqlService("""
-                    select cls from Obj where id=${UtCnv.toLong(params.get("objLocation"))}
-                """, "", "orgstructuredata")
+            select cls from Obj where id=${UtCnv.toLong(params.get("objLocation"))}
+        """, "", "orgstructuredata")
         long clsLocation = stTmp.size() > 0 ? stTmp.get(0).getLong("cls") : 0
         if (clsLocation == mapCls.get("Cls_LocationSection")) {
             Set<Object> idsObjLocation = getIdsObjLocation(UtCnv.toLong(params.get("objLocation")))
@@ -287,13 +287,19 @@ class DataDao extends BaseMdbUtils {
         else {
             whe = "o.cls in (0${stCls.getUniqueValues("id").join(",")})"
             //
-            long pt = UtCnv.toLong(params.get("periodType"))
-            String dte = UtCnv.toString(params.get("date"))
-            tofi.api.mdl.utils.UtPeriod utPeriod = new tofi.api.mdl.utils.UtPeriod()
-            XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(dte), pt, 0)
-            XDate d2 = utPeriod.calcDend(UtCnv.toDate(dte), pt, 0)
-            d2 = d2.addDays(1)
-            wheV17 = "and v17.dateTimeVal between '${d1}' and '${d2}'"
+            if (params.containsKey("periodType")) {
+                long pt = UtCnv.toLong(params.get("periodType"))
+                String dte = UtCnv.toString(params.get("date"))
+                tofi.api.mdl.utils.UtPeriod utPeriod = new tofi.api.mdl.utils.UtPeriod()
+                XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(dte), pt, 0)
+                XDate d2 = utPeriod.calcDend(UtCnv.toDate(dte), pt, 0)
+                d2 = d2.addDays(1)
+                wheV17 = "and v17.dateTimeVal between '${d1}' and '${d2}'"
+            } else {
+                String d1 = "1800-01-01"
+                String d2 = UtCnv.toDate(UtCnv.toString(params.get("date"))).addDays(1).toString()
+                wheV17 = "and v17.dateTimeVal between '${d1}' and '${d2}'"
+            }
             //
             Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_LocationSection", "")
             Store stTmp = loadSqlService("""
