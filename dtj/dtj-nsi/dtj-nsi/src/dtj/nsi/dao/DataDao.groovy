@@ -73,6 +73,35 @@ class DataDao extends BaseMdbUtils {
 
     //-------------------------
 
+    @DaoMethod
+    Store loadTaskForSelect(long objWork, String propCod) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Task", "")
+        Long cls = map.get("Cls_Task")
+        Long pv = apiMeta().get(ApiMeta).idPV("Cls", cls, propCod)
+
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelCls", "RC_TaskWork", "")
+        Store stMemb = loadSqlMeta("""
+            select id from relclsmember 
+            where relcls=${map.get("RC_TaskWork")}
+            order by id
+        """, "")
+
+        Store st = mdb.createStore("Obj.ObjList")
+        mdb.loadQuery(st,"""
+            select r2.obj as id, null as cls, ov2.name as name, ov2.fullname as fullName, null as pv
+            from Relobj o
+                left join relobjmember r1 on o.id = r1.relobj and r1.relclsmember=${stMemb.get(0).getLong("id")}
+                left join relobjmember r2 on o.id = r2.relobj and r2.relclsmember=${stMemb.get(1).getLong("id")}
+                left join objver ov2 on ov2.ownerVer=r2.obj and ov2.lastVer=1
+            where r1.obj=${objWork}
+        """)
+
+        for (StoreRecord r in st) {
+            r.set("cls", cls)
+            r.set("pv", pv)
+        }
+        return st
+    }
 
     @DaoMethod
     Store loadTask(long id) {
