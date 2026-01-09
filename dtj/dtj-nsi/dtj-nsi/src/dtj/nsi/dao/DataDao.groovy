@@ -376,10 +376,17 @@ class DataDao extends BaseMdbUtils {
                         left join RelObjVer v on v.ownerVer=m.relobj and v.lastVer=1
                     where m.obj=${owner}
                 """)
-
                 if (stTemp.size() > 0) {
                     String nm = stTemp.get(0).getString("name")
                     throw new XError("Существуют отношения объектов [${nm}]")
+                }
+                //
+                stTemp = mdb.loadQuery("""
+                    select name from ObjVer where lastVer=1 and objParent=${owner}
+                """)
+                if (stTemp.size() > 0) {
+                    String nm = stTemp.getUniqueValues("name").join(", ")
+                    throw new XError("Существуют дочерние объекты [${nm}]")
                 }
                 //
                 List<String> lstService = new ArrayList<>()
