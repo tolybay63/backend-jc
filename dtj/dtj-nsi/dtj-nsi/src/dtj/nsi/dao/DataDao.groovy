@@ -74,6 +74,144 @@ class DataDao extends BaseMdbUtils {
     //-------------------------
 
     @DaoMethod
+    Store loadSign(Long id) {
+        Map<String, Long> map
+        String whe = "o.id=${id}"
+        if (id == 0) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Sign", "")
+            if (map.isEmpty())
+                throw new XError("NotFoundCod@${"Typ_Sign"}")
+            Store stTmp = loadSqlMeta("""
+                select id from Cls where typ=${map.get("Typ_Sign")}
+            """, "")
+            Set<Object> idsCls = stTmp.getUniqueValues("id")
+            whe = "o.cls in (0${idsCls.join(",")})"
+        }
+        //
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        Store st = mdb.createStore("Obj.Sign")
+        mdb.loadQuery(st,"""
+            select o.id, o.cls, v.objParent as parent, v.name,
+                v1.id as idUser, v1.propVal as pvUser, v1.obj as objUser, null as fullNameUser,
+                v2.id as idCreatedAt, v2.dateTimeVal as CreatedAt,
+                v3.id as idUpdatedAt, v3.dateTimeVal as UpdatedAt
+            from Obj o
+                left join ObjVer v on o.id=v.ownerVer and v.lastVer=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_User
+                left join DataPropVal v1 on v1.dataprop=d1.id
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_CreatedAt
+                left join DataPropVal v2 on v2.dataprop=d2.id
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_UpdatedAt
+                left join DataPropVal v3 on v3.dataprop=d3.id
+            where ${whe}
+        """, map)
+        //... Пересечение
+        Set<Object> idsUser = st.getUniqueValues("objUser")
+        Store stUser = loadSqlService("""
+            select o.id, o.cls, v.fullName
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsUser.join(",")})
+        """, "", "personnaldata")
+        StoreIndex indUser = stUser.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord rUser = indUser.get(r.getLong("objUser"))
+            if (rUser != null)
+                r.set("fullNameUser", rUser.getString("fullName"))
+        }
+        //
+        return st
+    }
+
+    @DaoMethod
+    Store saveSign(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        if (pms.getString("name").isEmpty())
+            throw new XError("Не указан [name]")
+        if (pms.getLong("cls") == 0)
+            throw new XError("Не указан [cls]")
+        //
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "", "Cls_Sign")
+        if (pms.getLong("cls") == map.get("Cls_SignVal")) {
+            if (pms.getLong("parent") == 0)
+                throw new XError("Не указан [parent]")
+        } else if (pms.getLong("cls") == map.get("Cls_Sign")) {
+            if (pms.getLong("parent") != 0)
+                throw new XError("Указан [parent]")
+        }
+        //
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        Map<String, Object> par = new HashMap<>(pms)
+        par.putIfAbsent("fullName", pms.getString("name"))
+
+        if (mode.equalsIgnoreCase("ins")) {
+            String nm = pms.getString("name").trim().toLowerCase()
+            Store st = mdb.loadQuery("""
+                select v.name from Obj o, ObjVer v
+                where o.id=v.ownerVer and v.lastVer=1 and o.cls=${pms.getLong("cls")} and lower(v.name)='${nm}' 
+            """)
+            if (st.size() > 0)
+                throw new XError("[{0}] уже существует", nm)
+            //
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+            //1 Prop_User
+            if (pms.getLong("objUser") > 0)
+                fillProperties(true, "Prop_User", pms)
+            else
+                throw new XError("Не указан [objUser]")
+            //2 Prop_CreatedAt
+            if (!pms.getString("CreatedAt").isEmpty())
+                fillProperties(true, "Prop_CreatedAt", pms)
+            else
+                throw new XError("Не указан [CreatedAt]")
+            //3 Prop_UpdatedAt
+            if (!pms.getString("UpdatedAt").isEmpty())
+                fillProperties(true, "Prop_UpdatedAt", pms)
+            else
+                throw new XError("Не указан [UpdatedAt]")
+            //
+        } else if (mode.equalsIgnoreCase("upd")) {
+            if (pms.getLong("id") == 0)
+                throw new XError("Не указан [id]")
+            //
+            String nm = pms.getString("name").trim().toLowerCase()
+            Store st = mdb.loadQuery("""
+                select v.name from Obj o, ObjVer v
+                where o.id=v.ownerVer and o.id<>${pms.getLong("id")} and 
+                    v.lastVer=1 and o.cls=${pms.getLong("cls")} and lower(v.name)='${nm}' 
+            """)
+            if (st.size() > 0)
+                throw new XError("[{0}] уже существует", nm)
+            //
+            own = pms.getLong("id")
+            eu.updateEntity(par)
+            pms.put("own", own)
+            //1 Prop_User
+            if (pms.getLong("idUser") > 0) {
+                if (pms.getLong("objUser") > 0)
+                    updateProperties( "Prop_User", pms)
+                else
+                    throw new XError("Не указан [objUser]")
+            }else
+                throw new XError("Не указан [idUser]")
+            //2 Prop_UpdatedAt
+            if (pms.getLong("idUpdatedAt") > 0) {
+                if (!pms.getString("UpdatedAt").isEmpty())
+                    updateProperties("Prop_UpdatedAt", pms)
+                else
+                    throw new XError("Не указан [UpdatedAt]")
+            } else
+                throw new XError("Не указан [idUpdatedAt]")
+            //
+        } else {
+            throw new XError("Нейзвестный режим сохранения ('ins', 'upd')")
+        }
+        //
+        return loadSign(own)
+    }
+
+    @DaoMethod
     Store loadTaskForSelect(long objWork, String propCod) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Task", "")
         Long cls = map.get("Cls_Task")
@@ -2099,7 +2237,9 @@ class DataDao extends BaseMdbUtils {
         if ([FD_AttribValType_consts.dt].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_DocumentApprovalDate") ||
                     cod.equalsIgnoreCase("Prop_DocumentStartDate") ||
-                    cod.equalsIgnoreCase("Prop_DocumentEndDate")) {
+                    cod.equalsIgnoreCase("Prop_DocumentEndDate") ||
+                    cod.equalsIgnoreCase("Prop_CreatedAt") ||
+                    cod.equalsIgnoreCase("Prop_UpdatedAt")) {
                 if (params.get(keyValue) != null) {
                     recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
                 }
@@ -2157,7 +2297,8 @@ class DataDao extends BaseMdbUtils {
         if ([FD_PropType_consts.typ].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_DefectsComponent") ||
                     cod.equalsIgnoreCase("Prop_Collections") ||
-                    cod.equalsIgnoreCase("Prop_LocationMulti")) {
+                    cod.equalsIgnoreCase("Prop_LocationMulti") ||
+                    cod.equalsIgnoreCase("Prop_User")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
@@ -2248,7 +2389,9 @@ class DataDao extends BaseMdbUtils {
         if ([FD_AttribValType_consts.dt].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_DocumentApprovalDate") ||
                     cod.equalsIgnoreCase("Prop_DocumentStartDate") ||
-                    cod.equalsIgnoreCase("Prop_DocumentEndDate")) {
+                    cod.equalsIgnoreCase("Prop_DocumentEndDate") ||
+                    cod.equalsIgnoreCase("Prop_CreatedAt") ||
+                    cod.equalsIgnoreCase("Prop_UpdatedAt")) {
                 if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
                     sql = """
                         delete from DataPropVal where id=${idVal};
@@ -2342,7 +2485,8 @@ class DataDao extends BaseMdbUtils {
         if ([FD_PropType_consts.typ].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_DefectsComponent") ||
                     cod.equalsIgnoreCase("Prop_Collections") ||
-                    cod.equalsIgnoreCase("Prop_LocationMulti")) {
+                    cod.equalsIgnoreCase("Prop_LocationMulti") ||
+                    cod.equalsIgnoreCase("Prop_User")) {
                 if (objRef > 0)
                     sql = "update DataPropval set propVal=${propVal}, obj=${objRef}, timeStamp='${tmst}' where id=${idVal}"
                 else {

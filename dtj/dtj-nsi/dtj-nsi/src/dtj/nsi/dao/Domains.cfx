@@ -45,45 +45,6 @@
 
     </domain>
 
-    <domain name="Obj.Station" parent="base">
-        <field name="id" parent="long"/>
-        <field name="cls" parent="long"/>
-        <field name="name" parent="string"/>
-
-        <field name="idStartKm" parent="long"/>
-        <field name="StartKm" parent="double"/>
-
-        <field name="idStartPicket" parent="long"/>
-        <field name="StartPicket" parent="double"/>
-
-        <field name="idFinishKm" parent="long"/>
-        <field name="FinishKm" parent="double"/>
-
-        <field name="idFinishPicket" parent="long"/>
-        <field name="FinishPicket" parent="double"/>
-    </domain>
-
-    <domain name="Obj.Stage" parent="base">
-        <field name="id" parent="long"/>
-        <field name="cls" parent="long"/>
-        <field name="name" parent="string"/>
-
-        <field name="idStartKm" parent="long"/>
-        <field name="StartKm" parent="double"/>
-
-        <field name="idStartPicket" parent="long"/>
-        <field name="StartPicket" parent="double"/>
-
-        <field name="idFinishKm" parent="long"/>
-        <field name="FinishKm" parent="double"/>
-
-        <field name="idFinishPicket" parent="long"/>
-        <field name="FinishPicket" parent="double"/>
-
-        <field name="idStageLength" parent="long"/>
-        <field name="StageLength" parent="double"/>
-    </domain>
-
     <domain name="Obj.ProdArea" parent="base">
         <field name="id" parent="long"/>
         <field name="parent" parent="long"/>
@@ -225,7 +186,6 @@
         <field name="name" parent="string"/>
         <field name="fullName" parent="string"/>
 
-
         <field name="idMeasure" parent="long"/>
         <field name="pvMeasure" parent="long"/>
         <field name="meaMeasure" parent="long"/>
@@ -233,6 +193,23 @@
 
         <field name="idDescription" parent="long"/>
         <field name="Description" parent="string"/>
+    </domain>
+
+    <domain name="Obj.Sign" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="parent" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idUser" parent="long"/>
+        <field name="pvUser" parent="long"/>
+        <field name="objUser" parent="long"/>
+        <field name="fullNameUser" parent="string"/>
+
+        <field name="idCreatedAt" parent="long"/>
+        <field name="CreatedAt" parent="string"/>
+        <field name="idUpdatedAt" parent="long"/>
+        <field name="UpdatedAt" parent="string"/>
     </domain>
 
 </root>
