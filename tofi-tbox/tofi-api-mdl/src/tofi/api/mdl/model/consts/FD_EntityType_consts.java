@@ -1,5 +1,5 @@
 /* THIS FILE GENERATED! NOT MODIFY! */
-package tofi.api.mdl.model.consts;
+package tofi.mdl.consts;
 
 /**
  * Сущности ТОФИ

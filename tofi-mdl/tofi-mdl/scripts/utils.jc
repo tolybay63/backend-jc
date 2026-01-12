@@ -41,15 +41,18 @@ class P extends ProjectScript {
             'FD_DimPropType',
             'FD_DimObjItemType',
             'FD_LinkType',
-            'FD_propStatusMissing',
-            'FD_providerMissing',
+            'FD_PropStatusMissing',
+            'FD_PropProviderMissing',
             'FD_DataBaseType',
             'FD_ScaleType',
             'FD_CubeSType',
             'FD_CubeSDimType',
             'FD_DimMultiPropType',
 	        'FD_CubeSActionType',
-            'FD_SysCodingType'
+            'FD_SysCodingType',
+            'FD_FormatType',
+            'FD_SourceStockType',
+
     ]
 
     void onInclude() {

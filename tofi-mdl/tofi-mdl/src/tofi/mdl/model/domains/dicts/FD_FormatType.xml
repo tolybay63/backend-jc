@@ -1,0 +1,11 @@
+<root>
+    <row id="1" text="txt" vis="1" ord="1" code="txt"/>
+    <row id="2" text="xml" vis="1" ord="2" code="xml"/>
+    <row id="3" text="json" vis="1" ord="3" code="json"/>
+    <row id="4" text="csv" vis="1" ord="4" code="csv"/>
+    <row id="5" text="xls" vis="1" ord="5" code="xls"/>
+    <row id="6" text="dbf" vis="1" ord="6" code="dbf"/>
+    <row id="7" text="mdb" vis="1" ord="7" code="mdb"/>
+    <row id="8" text="map" vis="1" ord="8" code="map"/>
+    <row id="9" text="doc" vis="1" ord="9" code="doc"/>
+</root>

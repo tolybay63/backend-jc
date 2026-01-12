@@ -2,11 +2,11 @@
 package tofi.mdl.consts;
 
 /**
- * При отсутствии значения свойства по указанному статусу
+ * Выбор статуса при его отсутствии
 * <p>
-    * table: FD_StatusNotValue
+    * table: FD_PropStatusMissing
     */
-    public class FD_StatusNotValue_consts {
+    public class FD_PropStatusMissing_consts {
 
     /**
     * Только указанный статус (id=1)

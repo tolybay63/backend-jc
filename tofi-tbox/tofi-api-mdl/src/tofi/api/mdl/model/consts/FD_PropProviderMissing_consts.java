@@ -2,11 +2,11 @@
 package tofi.mdl.consts;
 
 /**
- * При отсутствии значения свойства по указанному поставщику
+ * Выбор поставщика при его отсутствии
 * <p>
-    * table: FD_ProviderNotValue
+    * table: FD_PropProviderMissing
     */
-    public class FD_ProviderNotValue_consts {
+    public class FD_PropProviderMissing_consts {
 
     /**
     * Только указанный поставщик (id=1)
