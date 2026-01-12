@@ -50,7 +50,7 @@ class P extends ProjectScript {
             'FD_DimMultiPropType',
 	        'FD_CubeSActionType',
             'FD_SysCodingType',
-            'FD_FormatType',
+            'FD_DataFormatType',
             'FD_SourceStockType',
 
     ]

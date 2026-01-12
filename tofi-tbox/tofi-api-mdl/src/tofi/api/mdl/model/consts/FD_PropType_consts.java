@@ -1,5 +1,5 @@
 /* THIS FILE GENERATED! NOT MODIFY! */
-package tofi.mdl.consts;
+package tofi.api.mdl.model.consts;
 
 /**
  * Тип свойства

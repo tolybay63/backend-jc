@@ -6,9 +6,9 @@ import jandcode.commons.reflect.*;
 /**
  * Тип системы кодирования
 * <p>
-    * table: FD_FormatType
+    * table: FD_DataFormatType
     */
-    public class FDFormatType_dto {
+    public class FDDataFormatType_dto {
 
     private Long id;
 

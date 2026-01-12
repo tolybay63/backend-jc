@@ -2,21 +2,17 @@ package tofi.api.mdl.impl
 
 import jandcode.commons.UtCnv
 import jandcode.commons.UtString
-import jandcode.commons.error.XError
-import jandcode.commons.variant.IVariantMap
 import jandcode.commons.variant.VariantMap
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
 import tofi.api.mdl.ApiMetaData
-import tofi.api.mdl.model.consts.FD_AttribValType_consts
-import tofi.api.mdl.model.consts.FD_PropType_consts
 import tofi.api.mdl.utils.EntityConst
 import tofi.api.mdl.utils.UtMeterSoft
-import tofi.api.mdl.utils.tree.UtData
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
+import tofi.api.mdl.model.consts.*;
 
 import java.util.stream.Stream
 

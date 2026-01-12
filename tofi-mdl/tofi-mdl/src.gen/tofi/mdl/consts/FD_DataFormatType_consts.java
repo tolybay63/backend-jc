@@ -4,9 +4,9 @@ package tofi.mdl.consts;
 /**
  * Тип системы кодирования
 * <p>
-    * table: FD_FormatType
+    * table: FD_DataFormatType
     */
-    public class FD_FormatType_consts {
+    public class FD_DataFormatType_consts {
 
     /**
     * txt (id=1)

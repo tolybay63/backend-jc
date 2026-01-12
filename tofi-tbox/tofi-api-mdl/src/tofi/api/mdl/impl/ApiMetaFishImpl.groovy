@@ -7,9 +7,9 @@ import jandcode.core.store.Store
 import jandcode.core.store.StoreRecord
 import tofi.api.mdl.ApiMeta
 import tofi.api.mdl.ApiMetaFish
-import tofi.api.mdl.model.consts.FD_PropType_consts
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
+import tofi.api.mdl.model.consts.*;
 
 class ApiMetaFishImpl extends BaseMdbUtils implements ApiMetaFish {
 

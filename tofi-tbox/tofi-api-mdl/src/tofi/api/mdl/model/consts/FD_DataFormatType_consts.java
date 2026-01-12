@@ -1,12 +1,12 @@
 /* THIS FILE GENERATED! NOT MODIFY! */
-package tofi.mdl.consts;
+package tofi.api.mdl.model.consts;
 
 /**
  * Тип системы кодирования
 * <p>
     * table: FD_FormatType
     */
-    public class FD_FormatType_consts {
+    public class FD_DataFormatType_consts {
 
     /**
     * txt (id=1)

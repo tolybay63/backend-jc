@@ -513,9 +513,9 @@
     *
 
 <p>
-    * table: FD_FormatType
+    * table: FD_DataFormatType
     */
-    FD_FormatType: {
+    FD_DataFormatType: {
     /**
     * txt (id=1)
     */

@@ -1,8 +1,8 @@
 package tofi.api.mdl.utils.dimPeriod;
 
 import jandcode.commons.datetime.XDate;
-import tofi.api.mdl.model.consts.FD_PeriodType_consts;
 import tofi.api.mdl.utils.AppConst;
+import tofi.api.mdl.model.consts.*;
 
 public class TofiPeriod {
     protected String name;

@@ -13,13 +13,12 @@ import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
 import tofi.api.mdl.ApiMeta
-import tofi.api.mdl.model.consts.FD_MemberType_consts
-import tofi.api.mdl.model.consts.FD_PropType_consts
 import tofi.api.mdl.utils.CartesianProduct
 import tofi.api.mdl.utils.ClsTreeUtils
 import tofi.api.mdl.utils.EntityMdbUtils
 import tofi.api.mdl.utils.UtPeriod
 import tofi.api.mdl.utils.dbfilestorage.DbFileStorageService
+import tofi.api.mdl.model.consts.*;
 
 class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
 

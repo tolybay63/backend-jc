@@ -519,8 +519,8 @@
             9) doc.
     -->
 
-    <domain name="FD_FormatType" parent="dict.tofi" tag.db="true" title="Тип системы кодирования"/>
-    <dict name="FD_FormatType" parent="base" domain="FD_FormatType"
+    <domain name="FD_DataFormatType" parent="dict.tofi" tag.db="true" title="Тип системы кодирования"/>
+    <dict name="FD_DataFormatType" parent="base" domain="FD_DataFormatType"
           handler="tofi.mdl.model.utils.DictHandler"/>
 
 

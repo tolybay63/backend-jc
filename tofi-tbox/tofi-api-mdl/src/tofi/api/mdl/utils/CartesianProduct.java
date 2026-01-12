@@ -5,9 +5,9 @@ import java.util.List;
 
 public class CartesianProduct {
     /**
-     * декартово произведение списка списков типа <T>
+     * Декартово произведение списка списков типа <T>
      *
-     * @param - список списков типа <T> : lists
+     * @param : список списков типа <T> : lists
      * @return
      */
     static public <T> List<List<T>> result(List<List<T>> lists) {
