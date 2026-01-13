@@ -32,10 +32,9 @@ public class SysCodingMdbUtils extends EntityMdbUtils {
         return st;
     }
 
-    public StoreRecord newRec(long stockGr) {
+    public StoreRecord newRec() {
         Store st = mdb.createStore("SysCoding");
         StoreRecord r = st.add();
-        r.set("parent", stockGr);
         r.set("accessLevel", FD_AccessLevel_consts.common);
         r.set("sysCodingType", FD_SysCodingType_consts.reg);
         return  r;

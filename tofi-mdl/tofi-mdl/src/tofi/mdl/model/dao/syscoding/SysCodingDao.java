@@ -15,23 +15,23 @@ public class SysCodingDao extends BaseModelDao {
         return utils.load();
     }
 
-    public StoreRecord newRec(long stockGr) throws Exception {
-        StockMdbUtils utils = new StockMdbUtils(getMdb(), "SysCoding");
-        return utils.newRec(stockGr);
+    public StoreRecord newRec() throws Exception {
+        SysCodingMdbUtils utils = new SysCodingMdbUtils(getMdb(), "SysCoding");
+        return utils.newRec();
     }
 
     public Store insert(Map<String, Object> rec) throws Exception {
-        StockMdbUtils utils = new StockMdbUtils(getMdb(), "SysCoding");
+        SysCodingMdbUtils utils = new SysCodingMdbUtils(getMdb(), "SysCoding");
         return utils.insert(rec);
     }
 
     public Store update(Map<String, Object> rec) throws Exception {
-        StockMdbUtils utils = new StockMdbUtils(getMdb(), "SysCoding");
+        SysCodingMdbUtils utils = new SysCodingMdbUtils(getMdb(), "SysCoding");
         return utils.update(rec);
     }
 
     public void delete(Map<String, Object> rec) throws Exception {
-        StockMdbUtils utils = new StockMdbUtils(getMdb(), "SysCoding");
+        SysCodingMdbUtils utils = new SysCodingMdbUtils(getMdb(), "SysCoding");
         utils.delete(rec);
     }
 
