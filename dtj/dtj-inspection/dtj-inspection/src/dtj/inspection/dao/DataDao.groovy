@@ -291,7 +291,13 @@ class DataDao extends BaseMdbUtils {
             for (StoreRecord r1 in st) {
                 if (r1.getBoolean("import"))
                     continue
-                Long metrOts = (r1.getLong("km") + 1) * 1000 + r1.getLong("metr")
+                //
+                Long metrOts
+                if (r1.getLong("metr") > 999)
+                    metrOts = (r1.getLong("km") + 1) * 1000 + 1000
+                else
+                    metrOts = (r1.getLong("km") + 1) * 1000 + r1.getLong("metr")
+                //
                 boolean bOk = false
                 for (StoreRecord r2 in stInspection) {
                     Long beg = r2.getLong("StartKm") * 1000 + (r2.getLong("StartPicket") - 1) * 100 + r2.getLong("StartLink") * 25
@@ -308,8 +314,13 @@ class DataDao extends BaseMdbUtils {
                         mapIns.put("FinishKm", r1.getLong("km") + 1)
                         mapIns.put("StartPicket", r1.getLong("pk") + 1)
                         mapIns.put("FinishPicket", r1.getLong("pk") + 1)
+                        /* Линия
                         mapIns.put("StartLink", Math.ceil(((metrOts - (r1.getLong("km") + 1) * 1000) % 100) / 25 as double))
                         mapIns.put("FinishLink", Math.ceil(((metrOts - (r1.getLong("km") + 1) * 1000 + r1.getLong("dlina_ots")) % 100) / 25 as double))
+                        if (UtCnv.toInt(mapIns.get("StartLink")) == 0) {
+                            mapIns.put("StartLink", 4)
+                            mapIns.put("FinishPicket", r1.getLong("pk") + 2)
+                        }
                         if (UtCnv.toInt(mapIns.get("FinishLink")) == 0) {
                             mapIns.put("FinishLink", 1)
                             if (UtCnv.toInt(mapIns.get("FinishPicket")) < 10)
@@ -319,6 +330,13 @@ class DataDao extends BaseMdbUtils {
                                 mapIns.put("FinishPicket", 1)
                             }
                         }
+                        */
+                        mapIns.put("StartLink", Math.ceil(((metrOts - (r1.getLong("km") + 1) * 1000) % 100) / 25 as double))
+                        if (UtCnv.toInt(mapIns.get("StartLink")) == 0) {
+                            mapIns.put("StartLink", 4)
+                        }
+                        mapIns.put("FinishLink", mapIns.get("StartLink"))
+                        //
                         mapIns.put("ParamsLimit", r1.getLong("velich_ots"))
                         mapIns.put("ParamsLimitMax", 0)
                         mapIns.put("ParamsLimitMin", 0)
@@ -334,7 +352,7 @@ class DataDao extends BaseMdbUtils {
                         mapIns.put("nameLocation",  "ПС №" + r1.getString("nomer_mdk"))
                         mapIns.put("fullNameUser",  r1.getString("avtor"))
                         mapIns.put("inputType", FD_InputType_consts.sss)
-                        saveParameterLog("ins", mapIns)
+                        //saveParameterLog("ins", mapIns)
                         //
                         r1.set("import", 1)
                         bOk = true
@@ -1371,7 +1389,8 @@ class DataDao extends BaseMdbUtils {
             if (pms.containsKey("inputType"))
                 mapIncident.put("inputType", pms.getLong("inputType"))
 
-            apiIncidentData().get(ApiIncidentData).saveIncident("ins", mapIncident)
+            if (pms.getInt("DegreeRetreat") > 1 || !pms.containsKey("DegreeRetreat"))
+                apiIncidentData().get(ApiIncidentData).saveIncident("ins", mapIncident)
         }
         //******************************************************
         return stTemp
