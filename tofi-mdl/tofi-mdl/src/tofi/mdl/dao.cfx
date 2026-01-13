@@ -126,6 +126,11 @@
                   method="*"
             />
 
+            <item name="syscoding"
+                  class="tofi.mdl.model.dao.syscoding.SysCodingDao"
+                  method="*"
+            />
+
             //-----------------
             <item name="test"
                   class="tofi.mdl.model.dao.typ.test.TestDao"
