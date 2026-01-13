@@ -321,8 +321,8 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store findLocationOfCoord(Map<String, Object> params) {
-        int beg = UtCnv.toInt(params.get('StartKm')) * 1000 + (UtCnv.toInt(params.get('StartPicket')) - 1) * 100 + UtCnv.toInt(params.get('StartLink')) * 25
-        int end = UtCnv.toInt(params.get('FinishKm')) * 1000 + (UtCnv.toInt(params.get('FinishPicket')) - 1) * 100 + UtCnv.toInt(params.get('FinishLink')) * 25
+        int beg = UtCnv.toInt(params.get('StartKm')) * 1000 + (UtCnv.toInt(params.get('StartPicket')) - 1) * 100 + UtCnv.toInt(params.get('StartLink')) * 25 + 1
+        int end = UtCnv.toInt(params.get('FinishKm')) * 1000 + (UtCnv.toInt(params.get('FinishPicket')) - 1) * 100 + UtCnv.toInt(params.get('FinishLink')) * 25 + 1
         if (beg > end)
             throw new XError("Координаты начала не могут быть больше координаты конца")
 
