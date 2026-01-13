@@ -121,6 +121,10 @@
                   method="*"
             />
 
+            <item name="stock"
+                  class="tofi.mdl.model.dao.stock.StockDao"
+                  method="*"
+            />
 
             //-----------------
             <item name="test"
