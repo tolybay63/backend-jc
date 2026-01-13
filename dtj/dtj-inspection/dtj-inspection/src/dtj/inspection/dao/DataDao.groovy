@@ -352,7 +352,7 @@ class DataDao extends BaseMdbUtils {
                         mapIns.put("nameLocation",  "ПС №" + r1.getString("nomer_mdk"))
                         mapIns.put("fullNameUser",  r1.getString("avtor"))
                         mapIns.put("inputType", FD_InputType_consts.sss)
-                        //saveParameterLog("ins", mapIns)
+                        saveParameterLog("ins", mapIns)
                         //
                         r1.set("import", 1)
                         bOk = true
