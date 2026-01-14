@@ -984,7 +984,7 @@ class DataDao extends BaseMdbUtils {
         par.putIfAbsent("fullName", par.get("name"))
         if (mode.equalsIgnoreCase("ins")) {
             if (pms.getLong("objIncident") > 0) {
-                long pv = apiMeta().get(ApiMeta).idPV("cls", pms.getLong("cls"), "Prop_Incident")
+                long pv = apiMeta().get(ApiMeta).idPV("cls", pms.getLong("clsIncident"), "Prop_Incident")
                 pms.put("pvIncident", pv)
             }
             //
@@ -1209,6 +1209,7 @@ class DataDao extends BaseMdbUtils {
         //WorkPlan
         Map<String, Object> par = new HashMap<>(params)
         par.put("objIncident", UtCnv.toLong(par.get("id")))
+        par.put("clsIncident", UtCnv.toLong(par.get("cls")))
         par.remove("id")
         par.remove("cls")
         savePlan("ins", par)
