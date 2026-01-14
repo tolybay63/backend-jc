@@ -177,6 +177,9 @@
         <field name="idParamsLimitNorm" parent="long"/>
         <field name="ParamsLimitNorm" parent="double"/>
 
+        <field name="objSignMulti" parent="string"/>
+        <field name="nameSignMulti" parent="string"/>
+
     </domain>
 
 

@@ -1129,6 +1129,60 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    void savePropObjMulti( Map<String, Object> params) {
+        long own = UtCnv.toLong(params.get("id"))
+        Boolean isObj = params.get("isObj")
+        String codProp = params.get("codProp")
+        List<Map<String, Object>> objLst = params.get("objOrRelObjLst") as List<Map<String, Object>>
+
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", codProp, "")
+        if (map.isEmpty())
+            throw new XError("NotFoundCod@${codProp}")
+
+        Store stOld = mdb.loadQuery("""
+            select v.id, v.obj
+            from DataProp d
+                left join DataPropVal v on d.id=v.dataprop
+            where d.isObj=${UtCnv.toInt(isObj)} and d.objOrRelObj=${own} and d.prop=${map.get(codProp)}
+        """)
+        Set<Long> idsOld = stOld.getUniqueValues("obj") as Set<Long>
+        Set<Long> idsNew = new HashSet<>()
+        for (Map<String, Object> m in objLst) {
+            idsNew.add(UtCnv.toLong(m.get("id")))
+        }
+
+        Set<Long> idsOldVal = new HashSet<>()
+        //Deleting
+        for (StoreRecord r in stOld) {
+            if (!idsNew.contains(r.getLong("obj"))) {
+                idsOldVal.add(r.getLong("id"))
+            }
+        }
+        if (idsOldVal.size() > 0) {
+            mdb.execQuery("""
+                delete from DataPropVal where id in (${idsOldVal.join(",")});
+                delete from DataProp
+                where id in (
+                    select id from DataProp
+                    except
+                    select dataprop as id from DataPropVal
+                )
+            """)
+        }
+        //
+        Map<String, Object> pms = new HashMap<>()
+        pms.put("own", own)
+        String keyValue = codProp.split("_")[1]
+        for (Map<String, Object> m in objLst) {
+            if (!idsOld.contains(UtCnv.toLong(m.get("id")))) {
+                pms.put("obj" + keyValue, UtCnv.toLong(m.get("id")))
+                pms.put("pv" + keyValue, UtCnv.toLong(m.get("pv")))
+                fillProperties(isObj, codProp, pms)
+            }
+        }
+    }
+
+    @DaoMethod
     Store saveDefects(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         long own
@@ -1732,6 +1786,7 @@ class DataDao extends BaseMdbUtils {
                 v1.id as idParamsLimitMax, v1.numberval as ParamsLimitMax,
                 v2.id as idParamsLimitMin, v2.numberval as ParamsLimitMin,
                 v3.id as idParamsLimitNorm, v3.numberval as ParamsLimitNorm,
+                null as objSignMulti, null as nameSignMulti,
                 rv.cmtver as cmt, ro.ord
             from RelObj ro
             left join RelObjVer rv on ro.id=rv.ownerver and rv.lastver=1
@@ -1752,7 +1807,29 @@ class DataDao extends BaseMdbUtils {
                 node.record.set("number", ind++)
             }
         } as ITreeNodeVisitor)
-
+        //
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_SignMulti", "")
+        Store stMulti = mdb.loadQuery("""
+            select ro.id,
+                string_agg (cast(v1.obj as varchar(2000)), ',' order by v1.obj) as lst,
+                string_agg (cast(ov1.name as varchar(4000)), '; ' order by v1.obj) as lstName
+            from RelObj ro 
+                left join DataProp d1 on d1.isObj=0 and d1.objorrelobj=ro.id and d1.prop=:Prop_SignMulti
+                inner join DataPropVal v1 on d1.id=v1.dataprop
+                left join ObjVer ov1 on ov1.ownerVer=v1.obj and ov1.lastVer=1
+            where ro.id in (0${idsRelObj})
+            group by ro.id
+        """, map)
+        StoreIndex indMulti = stMulti.getIndex("id")
+        //
+        for (StoreRecord record in st) {
+            StoreRecord rec = indMulti.get(record.getLong("id"))
+            if (rec != null) {
+                record.set("objSignMulti", rec.getString("lst"))
+                record.set("nameSignMulti", rec.getString("lstName"))
+            }
+        }
+        //
         return st
     }
 
@@ -2305,7 +2382,8 @@ class DataDao extends BaseMdbUtils {
             if (cod.equalsIgnoreCase("Prop_DefectsComponent") ||
                     cod.equalsIgnoreCase("Prop_Collections") ||
                     cod.equalsIgnoreCase("Prop_LocationMulti") ||
-                    cod.equalsIgnoreCase("Prop_User")) {
+                    cod.equalsIgnoreCase("Prop_User") ||
+                    cod.equalsIgnoreCase("Prop_SignMulti")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
