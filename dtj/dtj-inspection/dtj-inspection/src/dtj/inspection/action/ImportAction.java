@@ -25,7 +25,7 @@ public class ImportAction extends BaseAction {
         return getApp().bean(ApinatorService.class).getApi("inspectiondata");
     }
 
-    protected void onExec() throws Exception {
+    protected void onExec() {
 
         String tempDir = UtCnv.toString(getReq().getHttpServlet().getServletContext().getAttribute("javax.servlet.context.tempdir"));
         if (tempDir == null) {
@@ -34,11 +34,10 @@ public class ImportAction extends BaseAction {
 
         //Оригинальное имя файла
         IVariantMap params = getReq().getParams();
-        String filename = params.getString("filename");
 
         //Сгенирированный файл
         File fle = findFile(tempDir);
-        Store st = null;
+        Store st;
 
         if (fle != null) {
             Mdb mdb = apiInspection().get(ApiInspectionData.class).getMdbForImport();
@@ -48,7 +47,6 @@ public class ImportAction extends BaseAction {
             throw new XError("File not found");
         }
         //
-        //getReq().render("FileName: " + filename);
         List<Map<String, Object>> res = new ArrayList<>();
         for (StoreRecord r : st.getRecords()) {
             res.add(r.getValues());
@@ -57,7 +55,7 @@ public class ImportAction extends BaseAction {
 
     }
 
-    private File findFile(String path) throws Exception {
+    private File findFile(String path) {
         File dir = new File(path);
         for (File item : Objects.requireNonNull(dir.listFiles())) {
             if (!item.isDirectory()) {
