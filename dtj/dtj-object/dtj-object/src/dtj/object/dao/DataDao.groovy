@@ -651,11 +651,10 @@ class DataDao extends BaseMdbUtils {
                 else
                     throw new XError("[PassportVal] не указан")
                 //4 Prop_PassportSignMulti
-                if (objLst.size() == 0) {
+                if (objLst.size() != 0) {
                     parMulti.put("idComplex", pms.getLong("idComplex"))
                     savePropObjMulti(parMulti)
-                }
-                else
+                } else
                     throw new XError("[objPassportSignMulti] не указан")
                 mdb.commit()
             } catch (Exception e) {
@@ -663,7 +662,7 @@ class DataDao extends BaseMdbUtils {
             }
         } else if (mode.equalsIgnoreCase("upd")) {
             //1 Prop_PassportComponentParams
-            if (pms.containsKey("idPassportComplex"))
+            if (!pms.containsKey("idPassportComplex"))
                 throw new XError("[idPassportComplex] не указан")
             //1 Prop_PassportComponentParams
             if (pms.containsKey("idPassportComponentParams"))
@@ -684,11 +683,10 @@ class DataDao extends BaseMdbUtils {
                 else
                     updateProperties("Prop_PassportVal", pms)
             //4 Prop_PassportSignMulti
-            if (objLst.size() == 0) {
+            if (objLst.size() != 0) {
                 parMulti.put("idComplex", pms.getLong("idPassportComplex"))
                 savePropObjMulti(parMulti)
-            }
-            else
+            } else
                 throw new XError("[objPassportSignMulti] не указан")
         } else {
             throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
