@@ -66,6 +66,29 @@
 
     </domain>
 
+    <domain name="Obj.Complex.Passport" parent="base">
+        <field name="id" parent="long"/>
+
+        <field name="idPassportComplex" parent="long"/>
+        <field name="PassportComplex" parent="string"/>
+
+        <field name="idPassportComponentParams" parent="long"/>
+        <field name="relobjPassportComponentParams" parent="long"/>
+        <field name="pvPassportComponentParams" parent="long"/>
+        <field name="namePassportComponentParams" parent="string"/>
+
+        <field name="objPassportSignMulti" parent="string"/>
+        <field name="namePassportSignMulti" parent="string"/>
+
+        <field name="idPassportMeasure" parent="long"/>
+        <field name="meaPassportMeasure" parent="long"/>
+        <field name="pvPassportMeasure" parent="long"/>
+        <field name="namePassportMeasure" parent="string"/>
+
+        <field name="idPassportVal" parent="long"/>
+        <field name="PassportVal" parent="double"/>
+    </domain>
+
 <!--
 
     <domain name="Obj.location" parent="base">

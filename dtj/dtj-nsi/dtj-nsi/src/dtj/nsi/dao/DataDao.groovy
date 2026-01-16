@@ -746,12 +746,21 @@ class DataDao extends BaseMdbUtils {
             where ${whe}
             order by o.id
         """, map)
-
-        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("measure", "Prop_ParamsMeasure", true)
-
-        for (StoreRecord record in st) {
-            record.set("meaParamsMeasure", mapPV.get(record.getLong("pvParamsMeasure")))
+        //Пересечение
+        //Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("measure", "Prop_ParamsMeasure", true)
+        Set<Object> pvs = st.getUniqueValues("pvParamsMeasure")
+        Store stPV = apiMeta().get(ApiMeta).loadSql("""
+            select m.id as mea, pv.id as pv, m.name from Measure m, PropVal pv 
+            where pv.measure=m.id and pv.id in (0${pvs.join(",")})
+        """, "")
+        StoreIndex indPV = stPV.getIndex("pv")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord rec = indPV.get(r.getLong("pvParamsMeasure"))
+            if (rec != null)
+                r.set("meaParamsMeasure", rec.getLong("mea"))
         }
+        //
         return st
     }
 

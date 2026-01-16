@@ -190,25 +190,25 @@
         </domain>
 
         <domain name="Report.Complex.PageContainer" parent="base">
-                <field name="id" parent="long"/>
+            <field name="id" parent="long"/>
 
-                <field name="idPageContainerComplex" parent="long"/>
-                <field name="PageContainerComplex" parent="string"/>
+            <field name="idPageContainerComplex" parent="long"/>
+            <field name="PageContainerComplex" parent="string"/>
 
-                <field name="idLinkToView" parent="long"/>
-                <field name="objLinkToView" parent="long"/>
-                <field name="pvLinkToView" parent="long"/>
-                <field name="nameLinkToView" parent="string"/>
+            <field name="idLinkToView" parent="long"/>
+            <field name="objLinkToView" parent="long"/>
+            <field name="pvLinkToView" parent="long"/>
+            <field name="nameLinkToView" parent="string"/>
 
-                <field name="idWidth" parent="long"/>
-                <field name="fvWidth" parent="long"/>
-                <field name="pvWidth" parent="long"/>
-                <field name="nameWidth" parent="string"/>
+            <field name="idWidth" parent="long"/>
+            <field name="fvWidth" parent="long"/>
+            <field name="pvWidth" parent="long"/>
+            <field name="nameWidth" parent="string"/>
 
-                <field name="idHeight" parent="long"/>
-                <field name="fvHeight" parent="long"/>
-                <field name="pvHeight" parent="long"/>
-                <field name="nameHeight" parent="string"/>
-            </domain>
+            <field name="idHeight" parent="long"/>
+            <field name="fvHeight" parent="long"/>
+            <field name="pvHeight" parent="long"/>
+            <field name="nameHeight" parent="string"/>
+        </domain>
 </root>
 

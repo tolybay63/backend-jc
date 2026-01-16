@@ -519,6 +519,228 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store loadComplexObjectPassport(Long id) {
+        if (id == 0)
+            throw new XError("[id] не указан")
+        List<Map<String, Object>> lstRes = new ArrayList<>()
+        Store st = mdb.createStore("Obj.Complex.Passport")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Passport")
+        mdb.loadQuery(st, """
+            select o.id,
+                v1.id as idPassportComplex, v1.strVal as PassportComplex,
+                v2.id as idPassportComponentParams, v2.propVal as pvPassportComponentParams,
+                    v2.relObj as relobjPassportComponentParams, null as namePassportComponentParams,
+                v3.id as idPassportMeasure, v3.propVal as pvPassportMeasure, null as meaPassportMeasure, null as namePassportMeasure,
+                v4.id as idPassportVal, v4.numberVal as PassportVal
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_PassportComplex
+                inner join DataPropVal v1 on d1.id=v1.dataProp
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_PassportComponentParams
+                inner join DataPropVal v2 on d2.id=v2.dataProp and v2.parent=v1.id
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_PassportMeasure
+                inner join DataPropVal v3 on d3.id=v3.dataProp and v3.parent=v1.id
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_PassportVal
+                inner join DataPropVal v4 on d4.id=v4.dataProp and v4.parent=v1.id
+            where o.id=${id}
+        """, map)
+        if (st.size() == 0)
+            return null
+        //PropMulti
+        Store stMulti = mdb.loadQuery("""
+            select v1.obj as id, null as name
+            from Obj o 
+                left join DataProp d1 on d1.isObj=1 and d1.objorrelobj=o.id and d1.prop=:Prop_PassportSignMulti
+                inner join DataPropVal v1 on d1.id=v1.dataprop and v1.parent=${st[0].getLong("idPassportComplex")}
+            where o.id=${id}
+        """, map)
+        //Пересечение
+        Set<Object> idsSign = stMulti.getUniqueValues("id")
+        Store stSign = loadSqlService("""
+            select o.id, o.cls, v.name
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsSign.join(",")})
+        """, "", "nsidata")
+        //
+        Set<Object> idsComponentParams = st.getUniqueValues("relobjPassportComponentParams")
+        Store stComponentParams = loadSqlService("""
+            select o.id, o.relCls, v.name
+            from RelObj o, RelObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsComponentParams.join(",")})
+        """, "", "nsidata")
+        StoreIndex indComponentParams = stComponentParams.getIndex("id")
+        //
+        Set<Object> pvs = st.getUniqueValues("pvPassportMeasure")
+        Store stPV = apiMeta().get(ApiMeta).loadSql("""
+            select m.id as mea, pv.id as pv, m.name from Measure m, PropVal pv 
+            where pv.measure=m.id and pv.id in (0${pvs.join(",")})
+        """, "")
+        StoreIndex indPV = stPV.getIndex("pv")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord recComponentParams = indComponentParams.get(r.getLong("relobjPassportComponentParams"))
+            if (recComponentParams != null)
+                r.set("namePassportComponentParams", recComponentParams.getString("name"))
+
+            StoreRecord recMeasure = indPV.get(r.getLong("pvPassportMeasure"))
+            if (recMeasure != null) {
+                r.set("meaPassportMeasure", recMeasure.getLong("mea"))
+                r.set("namePassportMeasure", recMeasure.getString("name"))
+            }
+
+//            StoreRecord recMulti = indMulti.get(r.getLong("id"))
+//            if (recMulti != null) {
+//                r.set("objPassportSignMulti", recMulti.getString("lst"))
+//                r.set("namePassportSignMulti", recMulti.getString("lstName"))
+//            }
+        }
+        //
+        return st
+    }
+
+    @DaoMethod
+    void saveComplexObjectPassport(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own = pms.getLong("id")
+        if (own == 0)
+            throw new XError("[id] не указан")
+        pms.put("own", own)
+        //
+        List<Map<String, Object>> objLst = params.get("objPassportSignMulti") as List<Map<String, Object>>
+        Map<String, Object> parMulti = new HashMap<>()
+        parMulti.put("id", own)
+        parMulti.put("isObj", true)
+        parMulti.put("codProp", "Prop_PassportSignMulti")
+        parMulti.put("objOrRelObjLst", objLst)
+        //
+        if (mode.equalsIgnoreCase("ins")) {
+            pms.remove("idComplex")
+            pms.put("PassportComplex", "PassportComplex-" + own + "-" + pms.getString("objLinkToView"))
+            mdb.startTran()
+            try {
+                //0 Parent
+                fillProperties(true, "Prop_PassportComplex", pms)
+                //1 Prop_PassportComponentParams
+                if (pms.getLong("relobjPassportComponentParams") > 0)
+                    fillProperties(true, "Prop_PassportComponentParams", pms)
+                else
+                    throw new XError("[relobjPassportComponentParams] не указан")
+                //2 Prop_PassportMeasure
+                if (pms.getLong("meaPassportMeasure") > 0)
+                    fillProperties(true, "Prop_PassportMeasure", pms)
+                else
+                    throw new XError("[meaPassportMeasure] не указан")
+                //3 Prop_PassportVal
+                if (pms.getDouble("PassportVal") > 0)
+                    fillProperties(true, "Prop_PassportVal", pms)
+                else
+                    throw new XError("[PassportVal] не указан")
+                //4 Prop_PassportSignMulti
+                if (objLst.size() == 0) {
+                    parMulti.put("idComplex", pms.getLong("idComplex"))
+                    savePropObjMulti(parMulti)
+                }
+                else
+                    throw new XError("[objPassportSignMulti] не указан")
+                mdb.commit()
+            } catch (Exception e) {
+                mdb.rollback(e)
+            }
+        } else if (mode.equalsIgnoreCase("upd")) {
+            //1 Prop_PassportComponentParams
+            if (pms.containsKey("idPassportComplex"))
+                throw new XError("[idPassportComplex] не указан")
+            //1 Prop_PassportComponentParams
+            if (pms.containsKey("idPassportComponentParams"))
+                if (pms.getLong("relobjPassportComponentParams") == 0)
+                    throw new XError("[relobjPassportComponentParams] не указан")
+                else
+                    updateProperties("Prop_PassportComponentParams", pms)
+            //2 Prop_PassportMeasure
+            if (pms.containsKey("idPassportMeasure"))
+                if (pms.getLong("meaPassportMeasure") == 0)
+                    throw new XError("[meaPassportMeasure] не указан")
+                else
+                    updateProperties("Prop_PassportMeasure", pms)
+            //3 Prop_PassportVal
+            if (pms.containsKey("idPassportVal"))
+                if (pms.getDouble("PassportVal") == 0)
+                    throw new XError("[PassportVal] не указан")
+                else
+                    updateProperties("Prop_PassportVal", pms)
+            //4 Prop_PassportSignMulti
+            if (objLst.size() == 0) {
+                parMulti.put("idComplex", pms.getLong("idPassportComplex"))
+                savePropObjMulti(parMulti)
+            }
+            else
+                throw new XError("[objPassportSignMulti] не указан")
+        } else {
+            throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
+        }
+        //
+    }
+
+    @DaoMethod
+    void savePropObjMulti( Map<String, Object> params) {
+        long own = UtCnv.toLong(params.get("id"))
+        if (own == 0)
+            throw new XError("[id] не указан")
+        Boolean isObj = params.get("isObj")
+        if (!params.containsKey("isObj"))
+            throw new XError("[isObj] не указан")
+        String codProp = params.get("codProp")
+        if (!params.containsKey("codProp") || codProp == "")
+            throw new XError("[codProp] не указан")
+        List<Map<String, Object>> objLst = params.get("objOrRelObjLst") as List<Map<String, Object>>
+
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", codProp, "")
+        if (map.isEmpty())
+            throw new XError("NotFoundCod@${codProp}")
+
+        Store stOld = mdb.loadQuery("""
+            select v.id, v.obj
+            from DataProp d
+                left join DataPropVal v on d.id=v.dataprop
+            where d.isObj=${UtCnv.toInt(isObj)} and d.objOrRelObj=${own} and d.prop=${map.get(codProp)}
+        """)
+        Set<Long> idsOld = stOld.getUniqueValues("obj") as Set<Long>
+        Set<Long> idsNew = new HashSet<>()
+        for (Map<String, Object> m in objLst) {
+            idsNew.add(UtCnv.toLong(m.get("id")))
+        }
+
+        Set<Long> idsOldVal = new HashSet<>()
+        //Deleting
+        for (StoreRecord r in stOld) {
+            if (!idsNew.contains(r.getLong("obj"))) {
+                idsOldVal.add(r.getLong("id"))
+            }
+        }
+        if (idsOldVal.size() > 0) {
+            mdb.execQuery("""
+                delete from DataPropVal where id in (${idsOldVal.join(",")});
+                delete from DataProp
+                where id in (
+                    select id from DataProp
+                    except
+                    select dataprop as id from DataPropVal
+                )
+            """)
+        }
+        //
+        Map<String, Object> pms = new HashMap<>()
+        pms.put("own", own)
+        if (UtCnv.toLong(params.get("idComplex")) > 0)
+            pms.put("idComplex", UtCnv.toLong(params.get("idComplex")))
+        String keyValue = codProp.split("_")[1]
+        for (Map<String, Object> m in objLst) {
+            if (!idsOld.contains(UtCnv.toLong(m.get("id")))) {
+                pms.put("obj" + keyValue, UtCnv.toLong(m.get("id")))
+                pms.put("pv" + keyValue, UtCnv.toLong(m.get("pv")))
+                fillProperties(isObj, codProp, pms)
+            }
+        }
+    }
+
+    @DaoMethod
     Store loadSection(long obj) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Section", "")
         if (map.isEmpty())
@@ -1137,6 +1359,7 @@ class DataDao extends BaseMdbUtils {
         String keyValue = cod.split("_")[1]
         def objRef = UtCnv.toLong(params.get("obj"+keyValue))
         def propVal = UtCnv.toLong(params.get("pv"+keyValue))
+        def relRef = UtCnv.toLong(params.get("relobj"+keyValue))
 
         Store stProp = apiMeta().get(ApiMeta).getPropInfo(cod)
         //
@@ -1194,19 +1417,29 @@ class DataDao extends BaseMdbUtils {
         //
         StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
         recDPV.set("dataProp", idDP)
-        // Attrib
+        // Complex
+        if ([FD_PropType_consts.complex].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_PassportComplex")) {
+                recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // Attrib Str
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
             if ( cod.equalsIgnoreCase("Prop_Specs") ||
                     cod.equalsIgnoreCase("Prop_LocationDetails") ||
                     cod.equalsIgnoreCase("Prop_Number")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
+                    if (UtCnv.toLong(params.get("idComplex")) > 0)
+                        recDPV.set("parent", params.get("idComplex"))
                 }
             } else {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
             }
         }
-        //
+        // Attrib Multi Str
         if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
             if ( cod.equalsIgnoreCase("Prop_Description")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
@@ -1216,6 +1449,7 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
             }
         }
+        // Attrib Date
         if ([FD_AttribValType_consts.dt].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_InstallationDate") ||
                     cod.equalsIgnoreCase("Prop_CreatedAt") ||
@@ -1233,6 +1467,8 @@ class DataDao extends BaseMdbUtils {
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
                 }
+                if (UtCnv.toLong(params.get("idComplex")) > 0)
+                    recDPV.set("parent", params.get("idComplex"))
             } else {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
             }
@@ -1240,9 +1476,12 @@ class DataDao extends BaseMdbUtils {
 
         // For Measure
         if ([FD_PropType_consts.measure].contains(propType)) {
-            if ( cod.equalsIgnoreCase("Prop_ParamsMeasure")) {
+            if ( cod.equalsIgnoreCase("Prop_ParamsMeasure") ||
+                    cod.equalsIgnoreCase("Prop_PassportMeasure")) {
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
+                    if (UtCnv.toLong(params.get("idComplex")) > 0)
+                        recDPV.set("parent", params.get("idComplex"))
                 }
             } else {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
@@ -1258,12 +1497,15 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_PeriodicityReplacement") ||
                     cod.equalsIgnoreCase("Prop_StageLength") ||
                     cod.equalsIgnoreCase("Prop_StartLink") ||
-                    cod.equalsIgnoreCase("Prop_FinishLink")) {
+                    cod.equalsIgnoreCase("Prop_FinishLink") ||
+                    cod.equalsIgnoreCase("Prop_PassportVal")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     double v = UtCnv.toDouble(params.get(keyValue))
                     v = v / koef
                     if (digit) v = v.round(digit)
                     recDPV.set("numberval", v)
+                    if (UtCnv.toLong(params.get("idComplex")) > 0)
+                        recDPV.set("parent", params.get("idComplex"))
                 }
             } else {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
@@ -1274,10 +1516,26 @@ class DataDao extends BaseMdbUtils {
             if (cod.equalsIgnoreCase("Prop_ObjectType") ||
                     cod.equalsIgnoreCase("Prop_Section") ||
                     cod.equalsIgnoreCase("Prop_User") ||
-                    cod.equalsIgnoreCase("Prop_Client")) {
+                    cod.equalsIgnoreCase("Prop_Client") ||
+                    cod.equalsIgnoreCase("Prop_PassportSignMulti")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
+                    if (UtCnv.toLong(params.get("idComplex")) > 0)
+                        recDPV.set("parent", params.get("idComplex"))
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // For RelTyp
+        if ([FD_PropType_consts.reltyp].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_PassportComponentParams")) {
+                if (relRef > 0) {
+                    recDPV.set("propVal", propVal)
+                    recDPV.set("relobj", relRef)
+                    if (UtCnv.toLong(params.get("idComplex")) > 0)
+                        recDPV.set("parent", params.get("idComplex"))
                 }
             } else {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
@@ -1305,6 +1563,9 @@ class DataDao extends BaseMdbUtils {
         recDPV.set("ord", idDPV)
         recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
         mdb.insertRec("DataPropVal", recDPV, false)
+        if ([FD_PropType_consts.complex].contains(propType)) {
+            params.put("idComplex", idDPV)
+        }
     }
 
     private void updateProperties(String cod, Map<String, Object> params) {
@@ -1313,6 +1574,7 @@ class DataDao extends BaseMdbUtils {
         long idVal = mapProp.getLong("id" + keyValue)
         long propVal = mapProp.getLong("pv" + keyValue)
         long objRef = mapProp.getLong("obj" + keyValue)
+        long relRef = mapProp.getLong("relobj"+keyValue)
         Store stProp = apiMeta().get(ApiMeta).getPropInfo(cod)
         //
         long propType = stProp.get(0).getLong("propType")
@@ -1409,7 +1671,8 @@ class DataDao extends BaseMdbUtils {
 
         // For Measure
         if ([FD_PropType_consts.measure].contains(propType)) {
-            if ( cod.equalsIgnoreCase("Prop_ParamsMeasure") ) {
+            if ( cod.equalsIgnoreCase("Prop_ParamsMeasure") ||
+                    cod.equalsIgnoreCase("Prop_PassportMeasure")) {
                 if (propVal > 0)
                     sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
                 else {
@@ -1437,7 +1700,8 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_PeriodicityReplacement") ||
                     cod.equalsIgnoreCase("Prop_StageLength") ||
                     cod.equalsIgnoreCase("Prop_StartLink") ||
-                    cod.equalsIgnoreCase("Prop_FinishLink")) {
+                    cod.equalsIgnoreCase("Prop_FinishLink") ||
+                    cod.equalsIgnoreCase("Prop_PassportVal")) {
                 if (mapProp[keyValue] != "") {
                     def v = mapProp.getDouble(keyValue)
                     v = v / koef
@@ -1462,9 +1726,29 @@ class DataDao extends BaseMdbUtils {
             if (cod.equalsIgnoreCase("Prop_ObjectType") ||
                     cod.equalsIgnoreCase("Prop_Section") ||
                     cod.equalsIgnoreCase("Prop_User") ||
-                    cod.equalsIgnoreCase("Prop_Client")) {
+                    cod.equalsIgnoreCase("Prop_Client") ||
+                    cod.equalsIgnoreCase("Prop_PassportSignMulti")) {
                 if (objRef > 0)
                     sql = "update DataPropval set propVal=${propVal}, obj=${objRef}, timeStamp='${tmst}' where id=${idVal}"
+                else {
+                    sql = """
+                        delete from DataPropVal where id=${idVal};
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        );
+                    """
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // For RelTyp
+        if ([FD_PropType_consts.reltyp].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_PassportComponentParams")) {
+                if (relRef > 0)
+                    sql = "update DataPropval set propVal=${propVal}, relObj=${relRef}, timeStamp='${tmst}' where id=${idVal}"
                 else {
                     sql = """
                         delete from DataPropVal where id=${idVal};
