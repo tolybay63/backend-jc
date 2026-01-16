@@ -74,7 +74,7 @@ class DataDao extends BaseMdbUtils {
     //-------------------------
 
     @DaoMethod
-    Store loadRelObjByUch1ForSelect(long uch1,  String codProp, String codRelTyp) {
+    Store loadRelObjByUch1ForSelect(long uch1, String codRelTyp, String codProp) {
         if (uch1 == 0)
             throw new XError("Не указан [uch1]")
         if (codProp.isEmpty())
