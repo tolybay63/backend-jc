@@ -74,6 +74,51 @@ class DataDao extends BaseMdbUtils {
     //-------------------------
 
     @DaoMethod
+    Store loadRelObjByUch1ForSelect(long uch1,  String codProp, String codRelTyp) {
+        if (uch1 == 0)
+            throw new XError("Не указан [uch1]")
+        if (codProp.isEmpty())
+            throw new XError("Не указан [codProp]")
+        if (codRelTyp.isEmpty())
+            throw new XError("Не указан [codRelTyp]")
+
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelTyp", codRelTyp, "")
+        Store stMemb = loadSqlMeta("""
+            select id from relclsmember 
+            where relcls in (select id from Relcls where reltyp=${map.get(codRelTyp)})
+            order by id
+        """, "")
+
+        Store stRO = mdb.loadQuery("""
+            select o.id, o.relcls, ov1.name as name, null as pv
+            from Relobj o
+                left join relobjmember r1 on o.id = r1.relobj and r1.relclsmember=${stMemb.get(0).getLong("id")}
+                left join objver ov1 on ov1.ownerVer=r1.obj and ov1.lastVer=1
+                left join relobjmember r2 on o.id = r2.relobj and r2.relclsmember=${stMemb.get(1).getLong("id")}
+            where r2.obj=${uch1}
+        """)
+
+        if (stRO.size() == 0)
+            return stRO
+
+        Set<Object> idsRC = stRO.getUniqueValues("relcls")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", codProp, "")
+        Store stPV = loadSqlMeta("""
+            select id, relcls from PropVal where prop=${map.get(codProp)}
+                and relcls in (0${idsRC.join(",")})
+        """, "")
+        StoreIndex indPV = stPV.getIndex("relcls")
+
+        for (StoreRecord r in stRO) {
+            StoreRecord rec = indPV.get(r.getLong("relcls"))
+            if (rec != null)
+                r.set("pv", rec.getLong("id"))
+        }
+
+        return stRO
+    }
+
+    @DaoMethod
     Store loadSign(Long id) {
         Map<String, Long> map
         String whe = "o.id=${id}"
