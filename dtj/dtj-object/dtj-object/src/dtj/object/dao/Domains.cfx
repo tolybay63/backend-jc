@@ -77,8 +77,8 @@
         <field name="pvPassportComponentParams" parent="long"/>
         <field name="namePassportComponentParams" parent="string"/>
 
-        <field name="objPassportSignMulti" parent="string"/>
-        <field name="namePassportSignMulti" parent="string"/>
+        <field name="objComponent" parent="long"/>
+        <field name="nameComponent" parent="string"/>
 
         <field name="idPassportMeasure" parent="long"/>
         <field name="meaPassportMeasure" parent="long"/>

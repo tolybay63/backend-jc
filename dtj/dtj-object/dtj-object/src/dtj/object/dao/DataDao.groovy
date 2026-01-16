@@ -519,7 +519,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadComplexObjectPassport(Long id) {
+    List<Map<String, Object>> loadComplexObjectPassport(Long id) {
         if (id == 0)
             throw new XError("[id] не указан")
         List<Map<String, Object>> lstRes = new ArrayList<>()
@@ -561,11 +561,26 @@ class DataDao extends BaseMdbUtils {
         """, "", "nsidata")
         //
         Set<Object> idsComponentParams = st.getUniqueValues("relobjPassportComponentParams")
-        Store stComponentParams = loadSqlService("""
-            select o.id, o.relCls, v.name
-            from RelObj o, RelObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsComponentParams.join(",")})
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelTyp", "RT_ParamsComponent", "")
+        Store stMemb = loadSqlMeta("""
+            select id from relclsmember 
+            where relcls in (select id from Relcls where reltyp=${map.get("RT_ParamsComponent")})
+            order by id
+        """, "")
+        Store stRO = loadSqlService("""
+            select o.id, r1.obj as obj1, ov1.name as name1, r2.obj as obj2, ov2.name as name2
+            from Relobj o
+                left join relobjmember r1 on o.id = r1.relobj and r1.relclsmember=${stMemb.get(0).getLong("id")}
+                left join objver ov1 on ov1.ownerVer=r1.obj and ov1.lastVer=1
+                left join relobjmember r2 on o.id = r2.relobj and r2.relclsmember=${stMemb.get(1).getLong("id")}
+                left join objver ov2 on ov2.ownerVer=r2.obj and ov2.lastVer=1
+            where o.id in (0${idsComponentParams.join(",")})
         """, "", "nsidata")
-        StoreIndex indComponentParams = stComponentParams.getIndex("id")
+
+        Map<Long, Object> mapRO = new HashMap<>()
+        for (StoreRecord r in stRO) {
+            mapRO.put(r.getLong("id"), r.getValues())
+        }
         //
         Set<Object> pvs = st.getUniqueValues("pvPassportMeasure")
         Store stPV = apiMeta().get(ApiMeta).loadSql("""
@@ -575,9 +590,9 @@ class DataDao extends BaseMdbUtils {
         StoreIndex indPV = stPV.getIndex("pv")
         //
         for (StoreRecord r in st) {
-            StoreRecord recComponentParams = indComponentParams.get(r.getLong("relobjPassportComponentParams"))
-            if (recComponentParams != null)
-                r.set("namePassportComponentParams", recComponentParams.getString("name"))
+            r.set("namePassportComponentParams", mapRO.get(r.getLong("relobjPassportComponentParams"))["name1"])
+            r.set("nameComponent", mapRO.get(r.getLong("relobjPassportComponentParams"))["name2"])
+            r.set("objComponent", mapRO.get(r.getLong("relobjPassportComponentParams"))["obj2"])
 
             StoreRecord recMeasure = indPV.get(r.getLong("pvPassportMeasure"))
             if (recMeasure != null) {
@@ -585,14 +600,17 @@ class DataDao extends BaseMdbUtils {
                 r.set("namePassportMeasure", recMeasure.getString("name"))
             }
 
-//            StoreRecord recMulti = indMulti.get(r.getLong("id"))
-//            if (recMulti != null) {
-//                r.set("objPassportSignMulti", recMulti.getString("lst"))
-//                r.set("namePassportSignMulti", recMulti.getString("lstName"))
-//            }
+            Map<String, Object> mapRec = r.getValues()
+            List<Map<String, Object>> lstMulti = new ArrayList<>()
+            for (StoreRecord rec in stSign) {
+                Map<String, Object> mapSign = rec.getValues()
+                lstMulti.add(mapSign)
+            }
+            mapRec.put("objPassportSignMulti", lstMulti)
+            lstRes.add(mapRec)
         }
         //
-        return st
+        return lstRes
     }
 
     @DaoMethod
