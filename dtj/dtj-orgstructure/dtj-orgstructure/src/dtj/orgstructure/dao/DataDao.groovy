@@ -186,8 +186,8 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadLocationByWorkAndSectionForSelect(long objWork, long objSection) {
-        Store st = mdb.createStore("Obj.location.coord")
+    List<Map<String, Object>> loadLocationByWorkAndSectionForSelect(long objWork, long objSection) {
+        List<Map<String, Object>> lstRes = new ArrayList<>()
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
         // Поиск Околоток по Источникам работы
         Store stTmp = loadSqlService("""
@@ -200,7 +200,7 @@ class DataDao extends BaseMdbUtils {
             )
         """, "", "nsidata")
         if (stTmp.size() == 0)
-            return st
+            return lstRes
         Set<Object> idsLocation = stTmp.getUniqueValues("obj")
         // Получение координаты места
         stTmp = loadSqlService("""
@@ -223,12 +223,12 @@ class DataDao extends BaseMdbUtils {
             where o.id=${objSection}
         """, "", "objectdata")
         if (stTmp.size() == 0)
-            return st
+            return lstRes
         int dbeg = UtCnv.toInt(stTmp.get(0).get("dbeg"))
         int dend = UtCnv.toInt(stTmp.get(0).get("dend"))
         // Получение координаты Околотков
-        stTmp = mdb.loadQuery("""
-            select o.id, o.cls, v.name, null as pv,
+        Store stRez = mdb.loadQuery("""
+            select o.id, o.cls, v.name,
                 v1.numberVal * 1000 as dbeg,
                 (v2.numberVal + 1) * 1000 as dend
             from Obj o
@@ -239,17 +239,83 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v2 on d2.id=v2.dataprop
             where o.id in (0${idsLocation.join(",")})
         """)
-        if (stTmp.size() == 0)
-            return st
+        if (stRez.size() == 0)
+            return lstRes
+        // Получение Типы объектов по Работе
+        stTmp = loadUch2("RT_Works", objWork, "Typ_ObjectTyp")
+        Set<Object> idsTypObj = stTmp.getUniqueValues("id")
+        StoreIndex indTypObj = stTmp.getIndex("id")
+        // Получение Типы объектов по Околоткам
+        stTmp = mdb.loadQuery("""
+            select o.id,
+                string_agg (cast(v1.obj as varchar(2000)), ',' order by v1.obj) as lst
+            from Obj o 
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_ObjectTypeMulti")}
+                inner join DataPropVal v1 on d1.id=v1.dataprop and v1.obj in (0${idsTypObj.join(",")})
+            where o.id in (0${idsLocation.join(",")})
+            group by o.id
+        """)
+        StoreIndex indLocation = stTmp.getIndex("id")
         //
-        long pv = apiMeta().get(ApiMeta).idPV("Cls", UtCnv.toLong(stTmp.get(0).get("cls")), "Prop_LocationClsSection")
-        for (StoreRecord r in stTmp) {
+        long pv = apiMeta().get(ApiMeta).idPV("Cls", UtCnv.toLong(stRez.get(0).get("cls")), "Prop_LocationClsSection")
+        for (StoreRecord r in stRez) {
             if ((dbeg < r.getInt("dbeg") && r.getInt("dbeg") <= dend) || (dbeg < r.getInt("dend") && r.getInt("dend") <= dend)) {
-                r.set("pv", pv)
-                st.add(r)
+                Map<String, Object> mapRes = r.getValues()
+                mapRes.put("pv", pv)
+                StoreRecord rec = indLocation.get(r.getLong("id"))
+                if (rec != null) {
+                    List<Map<String, Object>> lstOT = new ArrayList<>()
+                    Set<Long> lst = rec.getString("lst").split(",") as Set<Long>
+                    lst.forEach {   {
+                        Map<String, Object> mapR = indTypObj.get(it).getValues()
+                        lstOT.add(mapR)
+                    }}
+                    mapRes.put("objObjectTypeMulti", lstOT)
+                }
+                lstRes.add(mapRes)
             }
         }
+        return lstRes
+    }
+
+    @DaoMethod
+    Store loadUch2(String codRelTyp, long idUch1, String codTyp2) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelTyp", codRelTyp, "")
+
+        Store stTmp = loadSqlMeta("""
+            select id from RelCls where reltyp=${map.get(codRelTyp)}
+        """, "")
+        String idsRelCls = stTmp.getUniqueValues("id").join(",")
+
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", codTyp2, "")
+
+        stTmp = loadSqlMeta("""
+            select id from Cls where typ=${map.get(codTyp2)}
+        """, "")
+        String idsCls2 = stTmp.getUniqueValues("id").join(",")
+
+        Store stRelObj = loadSqlService("""
+            select r2.obj
+            from RelObj o
+                inner join RelObjMember r1 on o.id=r1.relobj and r1.obj=(${idUch1})
+                left join RelObjMember r2 on o.id=r2.relobj and r2.cls in (${idsCls2})
+                left join ObjVer v1 on r1.obj=v1.ownerver and v1.lastver=1
+                left join ObjVer v2 on r2.obj=v2.ownerver and v2.lastver=1
+            where o.relcls in (${idsRelCls})
+        """, "", "nsidata")
         //
+        Set<Object> idsUch2 = stRelObj.getUniqueValues("obj")
+
+        stTmp = loadSqlMeta("""
+            select id from Cls where typ = ${map.get(codTyp2)}
+        """, "")
+        Set<Object> idsCls = stTmp.getUniqueValues("id")
+        Store st = loadSqlService("""
+            select o.id, o.cls, v.name, v.fullname
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
+                and o.id not in (0${idsUch2.join(",")})
+        """, "", "nsidata")
         return st
     }
 
