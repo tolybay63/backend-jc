@@ -186,6 +186,74 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store loadLocationByWorkAndSectionForSelect(long objWork, long objSection) {
+        Store st = mdb.createStore("Obj.location.coord")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        // Поиск Околоток по Источникам работы
+        Store stTmp = loadSqlService("""
+            select v.obj
+            from DataProp d
+                left join DataPropVal v on d.id=v.dataprop
+            where d.isObj=1 and d.prop=${map.get("Prop_LocationMulti")} and d.objOrRelObj in (
+                select v.obj from DataProp d, DataPropVal v
+                where d.id=v.dataprop and d.objorrelobj=${objWork} and d.prop=${map.get("Prop_Collections")}
+            )
+        """, "", "nsidata")
+        if (stTmp.size() == 0)
+            return st
+        Set<Object> idsLocation = stTmp.getUniqueValues("obj")
+        // Получение координаты места
+        stTmp = loadSqlService("""
+            select o.id,
+                v1.numberVal * 1000 + (v3.numberVal - 1) * 100 + (v5.numberVal - 1) * 25 as dbeg,
+                v2.numberVal * 1000 + (v4.numberVal - 1) * 100 + v6.numberVal * 25 as dend
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_StartKm")}
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_FinishKm")}
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_StartPicket")}
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_FinishPicket")}
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_StartLink")}
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=${map.get("Prop_FinishLink")}
+                left join DataPropVal v6 on d6.id=v6.dataprop
+            where o.id=${objSection}
+        """, "", "objectdata")
+        if (stTmp.size() == 0)
+            return st
+        int dbeg = UtCnv.toInt(stTmp.get(0).get("dbeg"))
+        int dend = UtCnv.toInt(stTmp.get(0).get("dend"))
+        // Получение координаты Околотков
+        stTmp = mdb.loadQuery("""
+            select o.id, o.cls, v.name, null as pv,
+                v1.numberVal * 1000 as dbeg,
+                (v2.numberVal + 1) * 1000 as dend
+            from Obj o
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_StartKm")}
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_FinishKm")}
+                left join DataPropVal v2 on d2.id=v2.dataprop
+            where o.id in (0${idsLocation.join(",")})
+        """)
+        if (stTmp.size() == 0)
+            return st
+        //
+        long pv = apiMeta().get(ApiMeta).idPV("Cls", UtCnv.toLong(stTmp.get(0).get("cls")), "Prop_LocationClsSection")
+        for (StoreRecord r in stTmp) {
+            if ((dbeg < r.getInt("dbeg") && r.getInt("dbeg") <= dend) || (dbeg < r.getInt("dend") && r.getInt("dend") <= dend)) {
+                r.set("pv", pv)
+                st.add(r)
+            }
+        }
+        //
+        return st
+    }
+
+    @DaoMethod
     Store loadLocation(long id) {
 
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Location", "")

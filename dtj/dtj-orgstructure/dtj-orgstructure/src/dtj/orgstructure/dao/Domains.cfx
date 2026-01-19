@@ -46,4 +46,15 @@
 
     </domain>
 
+    <domain name="Obj.location.coord" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+        <field name="pv" parent="long"/>
+
+        <field name="dbeg" parent="long"/>
+        <field name="dend" parent="long"/>
+
+    </domain>
+
 </root>

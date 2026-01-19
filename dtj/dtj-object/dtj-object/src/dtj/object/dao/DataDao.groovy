@@ -1366,6 +1366,48 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store loadObjForSelect(String codClsOrTyp) {
+        Map<String, Long> map
+        String sql
+        if (codClsOrTyp.startsWith("Cls_")) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codClsOrTyp, "")
+            if (map.isEmpty())
+                throw new XError("NotFoundCod@${codClsOrTyp}")
+            sql = """
+                select o.id, o.cls, v.name, v.objParent as parent, null as pv 
+                from Obj o, ObjVer v
+                where o.id=v.ownerVer and v.lastVer=1 and o.cls=${map.get(codClsOrTyp)}
+                order by o.cls, o.ord
+            """
+        } else if (codClsOrTyp.startsWith("Typ_")) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", codClsOrTyp, "")
+            if (map.isEmpty())
+                throw new XError("NotFoundCod@${codClsOrTyp}")
+            Store stTmp = loadSqlMeta("""
+                select id from Cls where typ=${map.get(codClsOrTyp)}
+            """, "")
+            Set<Object> idsCls = stTmp.getUniqueValues("id")
+            sql = """
+                select o.id, o.cls, v.objParent as parent, v.name, null as pv 
+                from Obj o, ObjVer v
+                where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
+                order by o.cls, o.ord
+            """
+        } else
+            throw new XError("Неисвезстная сущность")
+
+        Store st = mdb.loadQuery(sql)
+        Set<Object> ids = st.getUniqueValues("id")
+        for (StoreRecord r in st) {
+            if (r.get("parent") != null) {
+                if (!ids.contains(r.getLong("parent")))
+                    r.set("parent", null)
+            }
+        }
+        return st
+    }
+
+    @DaoMethod
     public void fillPropertiesForTest(boolean isObj, String cod, Map<String, Object> params) {
         fillProperties(isObj, cod, params)
     }
