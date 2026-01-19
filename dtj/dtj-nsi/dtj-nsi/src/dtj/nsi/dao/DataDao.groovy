@@ -74,6 +74,38 @@ class DataDao extends BaseMdbUtils {
     //-------------------------
 
     @DaoMethod
+    Store loadSignMultiForSelect(Long objRelObj, String codProp) {
+        List<Map<String, Object>> lst =  new ArrayList<>()
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_SignMulti", "")
+        Store st = mdb.createStore("Obj.ObjList")
+        mdb.loadQuery(st,"""
+            select v1.obj as id, ov1.name
+            from RelObj o
+                left join DataProp d1 on d1.isObj=0 and d1.objorrelobj=o.id and d1.prop=${map.get("Prop_SignMulti")}
+                inner join DataPropVal v1 on d1.id=v1.dataprop
+                left join ObjVer ov1 on ov1.ownerVer=v1.obj and ov1.lastVer=1
+            where o.id=${objRelObj}
+        """)
+        //
+        Set<Object> isd = st.getUniqueValues("id")
+        Store stMulti = mdb.createStore("Obj.ObjList")
+        mdb.loadQuery(stMulti,"""
+            select o.id, o.cls, v.name, v.objParent as parent, null as pv
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and v.objParent in (0${isd.join(",")})
+        """)
+        //
+        Long pv = apiMeta().get(ApiMeta).idPV("Cls", UtCnv.toLong(stMulti.get(0).get("cls")), codProp)
+
+        for (StoreRecord r in stMulti) {
+            r.set("pv", pv)
+        }
+        st.add(stMulti)
+        //
+        return st
+    }
+
+    @DaoMethod
     Store loadRelObjByUch1ForSelect(long uch1, String codRelTyp, String codProp) {
         if (uch1 == 0)
             throw new XError("Не указан [uch1]")
