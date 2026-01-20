@@ -187,6 +187,11 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     List<Map<String, Object>> loadLocationByWorkAndSectionForSelect(long objWork, long objSection) {
+        if (objWork == 0)
+            throw new XError("Не указан [objWork]")
+        if (objSection == 0)
+            throw new XError("Не указан [objSection]")
+        //
         List<Map<String, Object>> lstRes = new ArrayList<>()
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
         // Поиск Околоток по Источникам работы
@@ -227,7 +232,7 @@ class DataDao extends BaseMdbUtils {
         int dbeg = UtCnv.toInt(stTmp.get(0).get("dbeg"))
         int dend = UtCnv.toInt(stTmp.get(0).get("dend"))
         // Получение координаты Околотков
-        Store stRez = mdb.loadQuery("""
+        Store st = mdb.loadQuery("""
             select o.id, o.cls, v.name,
                 v1.numberVal * 1000 as dbeg,
                 (v2.numberVal + 1) * 1000 as dend
@@ -239,7 +244,7 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v2 on d2.id=v2.dataprop
             where o.id in (0${idsLocation.join(",")})
         """)
-        if (stRez.size() == 0)
+        if (st.size() == 0)
             return lstRes
         // Получение Типы объектов по Работе
         stTmp = loadUch2("RT_Works", objWork, "Typ_ObjectTyp")
@@ -257,20 +262,31 @@ class DataDao extends BaseMdbUtils {
         """)
         StoreIndex indLocation = stTmp.getIndex("id")
         //
-        long pv = apiMeta().get(ApiMeta).idPV("Cls", UtCnv.toLong(stRez.get(0).get("cls")), "Prop_LocationClsSection")
-        for (StoreRecord r in stRez) {
+        long pv = apiMeta().get(ApiMeta).idPV("Cls", UtCnv.toLong(st.get(0).get("cls")), "Prop_LocationClsSection")
+        for (StoreRecord r in st) {
             if ((dbeg < r.getInt("dbeg") && r.getInt("dbeg") <= dend) || (dbeg < r.getInt("dend") && r.getInt("dend") <= dend)) {
                 Map<String, Object> mapRes = r.getValues()
                 mapRes.put("pv", pv)
+                //
+                if (dbeg < r.getInt("dbeg"))
+                    mapRes.put("dbeg", r.getInt("dbeg"))
+                else
+                    mapRes.put("dbeg", dbeg)
+                //
+                if (dend <= r.getInt("dend"))
+                    mapRes.put("dend", dend)
+                else
+                    mapRes.put("dend", r.getInt("dend"))
+                //
                 StoreRecord rec = indLocation.get(r.getLong("id"))
                 if (rec != null) {
-                    List<Map<String, Object>> lstOT = new ArrayList<>()
+                    List<Map<String, Object>> lstTypObj = new ArrayList<>()
                     Set<Long> lst = rec.getString("lst").split(",") as Set<Long>
                     lst.forEach {   {
                         Map<String, Object> mapR = indTypObj.get(it).getValues()
-                        lstOT.add(mapR)
+                        lstTypObj.add(mapR)
                     }}
-                    mapRes.put("objObjectTypeMulti", lstOT)
+                    mapRes.put("objObjectTypeMulti", lstTypObj)
                 }
                 lstRes.add(mapRes)
             }
@@ -477,7 +493,6 @@ class DataDao extends BaseMdbUtils {
         pms.put("own", own)
 
         for (Map<String, Object> m in objLst) {
-            idsNew.add(UtCnv.toLong(UtCnv.toLong(m.get("id"))))
             if (!idsOld.contains(m.get("id"))) {
                 pms.put("objObjectTypeMulti", UtCnv.toLong(m.get("id")))
                 pms.put("pvObjectTypeMulti", UtCnv.toLong(m.get("pv")))
