@@ -67,7 +67,7 @@ class DataDao extends BaseMdbUtils {
         return app.bean(ApinatorService).getApi("repairdata")
     }
 
-    //
+    //todo methad savePeriodPlan не используется
     @DaoMethod
     Store savePeriodPlan(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
@@ -95,6 +95,107 @@ class DataDao extends BaseMdbUtils {
         //
         //
         return null
+    }
+
+    @DaoMethod
+    Store saveSeveralPlans(Map<String, Object> params) {
+        Store st = mdb.createStore("Obj.plan")
+        VariantMap pms = new VariantMap(params)
+        long linkCls = pms.getLong("linkCls")
+        long objWork = pms.getLong("objWork")
+        List<Map<String, Object>> objObject = pms.get("objObject") as ArrayList
+        //
+        if (linkCls == 0)
+            throw new XError("Не указан [linkCls]")
+        if (objWork == 0)
+            throw new XError("Не указан [objWork]")
+        if (pms.getLong("pvWork") == 0)
+            throw new XError("Не указан [pvWork]")
+        if (pms.getLong("objLocationClsSection") == 0)
+            throw new XError("Не указан [objLocationClsSection]")
+        if (pms.getLong("pvLocationClsSection") == 0)
+            throw new XError("Не указан [pvLocationClsSection]")
+        if (pms.getLong("objUser") == 0)
+            throw new XError("Не указан [objUser]")
+        if (pms.getLong("pvUser") == 0)
+            throw new XError("Не указан [pvUser]")
+        if (objObject.size() == 0)
+            throw new XError("Не указан [objObject]")
+        if (pms.getString("PlanDateEnd").isEmpty())
+            throw new XError("Не указан [PlanDateEnd]")
+        if (pms.getString("CreatedAt").isEmpty())
+            throw new XError("Не указан [CreatedAt]")
+        if (pms.getString("UpdatedAt").isEmpty())
+            throw new XError("Не указан [UpdatedAt]")
+        //
+        pms.remove("linkCls")
+        pms.remove("objObject")
+        // Поиск класса плана работ по linkCls
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_WorkPlan", "")
+        map.put("linkCls", linkCls)
+        Store stTmp = loadSqlMeta("""
+                with fv as (
+                    select cls,
+                    string_agg (cast(factorval as varchar(2000)), ',' order by factorval) as fvlist
+                    from clsfactorval
+                    where cls=${linkCls}
+                    group by cls
+                )
+                select * from (
+                    select c.cls,
+                    string_agg (cast(c.factorval as varchar(1000)), ',' order by factorval) as fvlist
+                    from clsfactorval c, factor f  
+                    where c.factorval =f.id and c.cls in (
+                        select id from Cls where typ=${map.get("Typ_WorkPlan")}
+                    )
+                    group by c.cls
+                ) t where t.fvlist in (select fv.fvlist from fv)
+            """, "")
+        //
+        if (stTmp.size() > 0)
+            pms.put("cls", stTmp.get(0).getLong("cls"))
+        else
+            throw new XError("Не найден класс сответствующий классу {0}", linkCls)
+        // Проверка обязательных полей
+        objObject.forEach {Map<String, Object> m -> {
+            if (m.size() == 0)
+                return
+            if (UtCnv.toLong(m.get("id")) == 0)
+                throw new XError("Не указан [id] у объекта [{0}]", m.get("name"))
+            if (UtCnv.toLong(m.get("pv")) == 0)
+                throw new XError("Не указан [pv] у объекта [{0}]", m.get("name"))
+            if (UtCnv.toLong(m.get("StartKm")) == 0)
+                throw new XError("Не указан [StartKm] у объекта [{0}]", m.get("name"))
+            if (UtCnv.toLong(m.get("FinishKm")) == 0)
+                throw new XError("Не указан [FinishKm] у объекта [{0}]", m.get("name"))
+            if (UtCnv.toLong(m.get("StartPicket")) == 0)
+                throw new XError("Не указан [StartPicket] у объекта [{0}]", m.get("name"))
+            if (UtCnv.toLong(m.get("FinishPicket")) == 0)
+                throw new XError("Не указан [FinishPicket] у объекта [{0}]", m.get("name"))
+            if (UtCnv.toLong(m.get("StartLink")) == 0)
+                throw new XError("Не указан [StartLink] у объекта [{0}]", m.get("name"))
+            if (UtCnv.toLong(m.get("FinishLink")) == 0)
+                throw new XError("Не указан [FinishLink] у объекта [{0}]", m.get("name"))
+        }}
+        // Создаем план работ на каждый objObject
+        objObject.forEach {Map<String, Object> m -> {
+            if (m.size() == 0)
+                return
+            Map<String, Object> mapIns = new HashMap<>(pms)
+            mapIns.put("name", UtCnv.toString("" + objWork + "-" + UtCnv.toLong(m.get("id")) + "-" + pms.getString("PlanDateEnd")))
+            mapIns.put("objObject", UtCnv.toLong(m.get("id")))
+            mapIns.put("pvObject", UtCnv.toLong(m.get("pv")))
+            mapIns.put("StartKm", UtCnv.toLong(m.get("StartKm")))
+            mapIns.put("FinishKm", UtCnv.toLong(m.get("FinishKm")))
+            mapIns.put("StartPicket", UtCnv.toLong(m.get("StartPicket")))
+            mapIns.put("FinishPicket", UtCnv.toLong(m.get("FinishPicket")))
+            mapIns.put("StartLink", UtCnv.toLong(m.get("StartLink")))
+            mapIns.put("FinishLink", UtCnv.toLong(m.get("FinishLink")))
+            stTmp = savePlan("ins", mapIns)
+            st.add(stTmp)
+        }}
+        //
+        return st
     }
 
     @DaoMethod
