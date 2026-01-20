@@ -2333,11 +2333,18 @@ class DataDao extends BaseMdbUtils {
     Map<String, Object> saveTaskLogFact(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         long own = pms.getLong("id")
+        long objWorkPlan = pms.getLong("objWorkPlan")
+        if (own == 0)
+            throw new XError("Не указан [id]")
+        if (objWorkPlan == 0)
+            throw new XError("Не указан [objWorkPlan]")
+        //
         pms.put("own", own)
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Fact", "")
         pms.put("fvStatus", map.get("FV_Fact"))
-        //Проверка статуса Incident
-        apiRepairData().get(ApiRepairData).checkStatusOfIncident(pms.getLong("objWorkPlan"), "FV_StatusInPlanning", "FV_StatusAtWork")
+        // Замена статуса Incident
+        if (pms.containsKey("FactDateStart"))
+            apiRepairData().get(ApiRepairData).checkStatusOfIncident(objWorkPlan, "FV_StatusInPlanning", "FV_StatusAtWork")
         //1 Prop_User
         if (pms.containsKey("idUser")) {
             if (pms.getLong("objUser") == 0)
