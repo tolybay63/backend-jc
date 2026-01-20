@@ -312,28 +312,16 @@ class DataDao extends BaseMdbUtils {
         """, "")
         String idsCls2 = stTmp.getUniqueValues("id").join(",")
 
-        Store stRelObj = loadSqlService("""
-            select r2.obj
+        Store st = loadSqlService("""
+            select o2.id, o2.cls, v2.name, v2.fullname
             from RelObj o
-                inner join RelObjMember r1 on o.id=r1.relobj and r1.obj=(${idUch1})
+                inner join RelObjMember r1 on o.id=r1.relobj and r1.obj=${idUch1}
                 left join RelObjMember r2 on o.id=r2.relobj and r2.cls in (${idsCls2})
-                left join ObjVer v1 on r1.obj=v1.ownerver and v1.lastver=1
+                left join Obj o2 on r2.obj=o2.id
                 left join ObjVer v2 on r2.obj=v2.ownerver and v2.lastver=1
             where o.relcls in (${idsRelCls})
         """, "", "nsidata")
         //
-        Set<Object> idsUch2 = stRelObj.getUniqueValues("obj")
-
-        stTmp = loadSqlMeta("""
-            select id from Cls where typ = ${map.get(codTyp2)}
-        """, "")
-        Set<Object> idsCls = stTmp.getUniqueValues("id")
-        Store st = loadSqlService("""
-            select o.id, o.cls, v.name, v.fullname
-            from Obj o, ObjVer v
-            where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
-                and o.id not in (0${idsUch2.join(",")})
-        """, "", "nsidata")
         return st
     }
 
