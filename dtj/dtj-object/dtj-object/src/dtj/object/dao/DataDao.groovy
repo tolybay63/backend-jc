@@ -519,6 +519,86 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store loadObjectBySectionAndTypObjAndCoordForSelect(Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long objSection = pms.getLong("objSection")
+        long objObjectType = pms.getLong("objObjectType")
+        int dbeg = pms.getInt("dbeg")
+        int dend = pms.getInt("dend")
+
+        if (objSection == 0)
+            throw new XError("Не указан [objSection]")
+        if (objObjectType == 0)
+            throw new XError("Не указан [objObjectType]")
+        if (dbeg == 0)
+            throw new XError("Не указан [dbeg]")
+        if (dend == 0)
+            throw new XError("Не указан [dend]")
+        //
+        Store st = mdb.createStore("Obj.Served.ForSelect")
+        //
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Object", "")
+        Store stCls = loadSqlMeta("""
+                select id from Cls where typ=${map.get("Typ_Object")}
+            """, "")
+        Set<Object> idsCls = stCls.getUniqueValues("id")
+        //
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        String whe = "o.cls in (${idsCls.join(",")})"
+        Store stTmp = mdb.loadQuery("""
+            select o.id, o.cls, v.name, v.fullName, null as pv,
+                v2.numberVal as StartKm,
+                v3.numberVal as FinishKm,
+                v4.numberVal as StartPicket,
+                v5.numberVal as FinishPicket,
+                v6.numberVal as StartLink,
+                v7.numberVal as FinishLink,
+                v2.numberVal * 1000 + (v4.numberVal - 1) * 100 + (v6.numberVal - 1) * 25 as dbeg,
+                v3.numberVal * 1000 + (v5.numberVal - 1) * 100 + v7.numberVal * 25 as dend
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_ObjectType
+                inner join DataPropVal v1 on d1.id=v1.dataprop and v1.obj=${objObjectType}
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_StartKm
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_FinishKm
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_StartPicket
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_FinishPicket
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_StartLink
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_FinishLink
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_Section
+                inner join DataPropVal v8 on d8.id=v8.dataprop and v8.obj=${objSection}
+            where ${whe} order by o.id
+        """, map)
+        //
+        if (stTmp.size() == 0)
+            return st
+        //
+        idsCls = stTmp.getUniqueValues("cls")
+        Store stPV = loadSqlMeta("""
+            select id, cls  from propval where prop=${map.get("Prop_Object")} and cls in (0${idsCls.join(",")})
+        """, "")
+        StoreIndex indPV = stPV.getIndex("cls")
+
+        for (StoreRecord r in stTmp) {
+            if (dbeg <= r.getInt("dbeg") && r.getInt("dend") <= dend) {
+                StoreRecord rec = indPV.get(r.getLong("cls"))
+                if (rec != null)
+                    r.set("pv", rec.getLong("id"))
+                //
+                st.add(r)
+            }
+        }
+        //
+        return st
+    }
+
+    @DaoMethod
     List<Map<String, Object>> loadComplexObjectPassport(Long id) {
         if (id == 0)
             throw new XError("[id] не указан")
