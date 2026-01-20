@@ -483,7 +483,7 @@ class DataDao extends BaseMdbUtils {
         pms.put("own", own)
 
         for (Map<String, Object> m in objLst) {
-            if (!idsOld.contains(m.get("id"))) {
+            if (!idsOld.contains(UtCnv.toLong(m.get("id")))) {
                 pms.put("objObjectTypeMulti", UtCnv.toLong(m.get("id")))
                 pms.put("pvObjectTypeMulti", UtCnv.toLong(m.get("pv")))
                 fillProperties(true, "Prop_ObjectTypeMulti", pms)
