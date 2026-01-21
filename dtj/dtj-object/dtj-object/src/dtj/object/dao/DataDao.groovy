@@ -128,6 +128,25 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    void deleteComplexData(long id) {
+        Store st = mdb.loadQuery("""
+            select id from DataPropVal where parent=${id}
+        """)
+        if(st.size() == 0)
+            throw new XError("Не найдено комплексное свойство по данному [id]")
+        mdb.execQuery("""
+            delete from DataPropVal where parent=${id};
+            delete from DataPropVal where id=${id};
+            delete from DataProp 
+            where id in (
+                select id from DataProp
+                except
+                select dataProp as id from DataPropVal
+            );
+        """)
+    }
+
+    @DaoMethod
     Store saveObjectServed(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         //
