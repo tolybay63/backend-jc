@@ -627,18 +627,19 @@ class DataDao extends BaseMdbUtils {
             return null
         //PropMulti
         Store stMulti = mdb.loadQuery("""
-            select v1.obj as id, null as name
+            select v1.parent, v1.obj, null as name
             from Obj o 
                 left join DataProp d1 on d1.isObj=1 and d1.objorrelobj=o.id and d1.prop=:Prop_PassportSignMulti
-                inner join DataPropVal v1 on d1.id=v1.dataprop and v1.parent=${st[0].getLong("idPassportComplex")}
+                inner join DataPropVal v1 on d1.id=v1.dataprop
             where o.id=${id}
         """, map)
         //Пересечение
-        Set<Object> idsSign = stMulti.getUniqueValues("id")
+        Set<Object> idsSign = stMulti.getUniqueValues("obj")
         Store stSign = loadSqlService("""
             select o.id, o.cls, v.name
             from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsSign.join(",")})
         """, "", "nsidata")
+        StoreIndex indSign = stSign.getIndex("id")
         //
         Set<Object> idsComponentParams = st.getUniqueValues("relobjPassportComponentParams")
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelTyp", "RT_ParamsComponent", "")
@@ -682,9 +683,14 @@ class DataDao extends BaseMdbUtils {
 
             Map<String, Object> mapRec = r.getValues()
             List<Map<String, Object>> lstMulti = new ArrayList<>()
-            for (StoreRecord rec in stSign) {
-                Map<String, Object> mapSign = rec.getValues()
-                lstMulti.add(mapSign)
+            for (StoreRecord rec in stMulti) {
+                if (r.getLong("idPassportComplex") == rec.getLong("parent")) {
+                    StoreRecord recSign = indSign.get(rec.getLong("obj"))
+                    if (recSign != null) {
+                        Map<String, Object> mapSign = recSign.getValues()
+                        lstMulti.add(mapSign)
+                    }
+                }
             }
             mapRec.put("objPassportSignMulti", lstMulti)
             lstRes.add(mapRec)
@@ -791,11 +797,15 @@ class DataDao extends BaseMdbUtils {
         if (map.isEmpty())
             throw new XError("NotFoundCod@${codProp}")
 
+        String whe = ""
+        if (params.containsKey("idComplex"))
+            whe = "and v.parent=${params.get("idComplex")}"
+
         Store stOld = mdb.loadQuery("""
             select v.id, v.obj
             from DataProp d
                 left join DataPropVal v on d.id=v.dataprop
-            where d.isObj=${UtCnv.toInt(isObj)} and d.objOrRelObj=${own} and d.prop=${map.get(codProp)}
+            where d.isObj=${UtCnv.toInt(isObj)} and d.objOrRelObj=${own} and d.prop=${map.get(codProp)} ${whe}
         """)
         Set<Long> idsOld = stOld.getUniqueValues("obj") as Set<Long>
         Set<Long> idsNew = new HashSet<>()
