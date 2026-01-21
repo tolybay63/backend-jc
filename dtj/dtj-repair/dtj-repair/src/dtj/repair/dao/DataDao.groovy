@@ -2397,6 +2397,45 @@ class DataDao extends BaseMdbUtils {
                 updateProperties("Prop_UpdatedAt", pms)
         }
         //
+        if (pms.containsKey("Number")) {
+            Map<String, Object> mapObj = new HashMap<>()
+            //
+            mapObj.put("own", pms.getLong("objObject"))
+            mapObj.put("Number", pms.getString("Number"))
+            mapObj.put("InstallationDate", pms.getString("FactDateEnd"))
+            mapObj.put("UpdatedAt", pms.getString("UpdatedAt"))
+            mapObj.put("objUser", pms.getLong("objUser"))
+            mapObj.put("pvUser", pms.getLong("pvUser"))
+            //
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+            Store stTmp = loadSqlService("""
+                select o.id, o.cls,
+                    v1.id as idNumber, v1.strVal as Number,
+                    v2.id as idInstallationDate, v2.dateTimeVal as InstallationDate,
+                    v3.id as idUpdatedAt, v3.dateTimeVal as UpdatedAt,
+                    v4.id as idUser, v4.propVal as pvUser, v4.obj as objUser
+                from Obj o
+                    left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Number")}
+                    left join DataPropVal v1 on d1.id=v1.dataprop
+                    left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_InstallationDate")}
+                    left join DataPropVal v2 on d2.id=v2.dataprop
+                    left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_UpdatedAt")}
+                    left join DataPropVal v3 on d3.id=v3.dataprop
+                    left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_User")}
+                    left join DataPropVal v4 on d4.id=v4.dataprop
+                where o.id=${pms.getLong("objObject")}
+            """, "", "objectdata")
+            //
+            for (StoreRecord r in stTmp) {
+                mapObj.put("idNumber", r.getLong("idNumber"))
+                mapObj.put("idInstallationDate", r.getLong("idInstallationDate"))
+                mapObj.put("idUpdatedAt", r.getLong("idUpdatedAt"))
+                mapObj.put("idUser", r.getLong("idUser"))
+            }
+            //
+            apiObjectData().get(ApiObjectData).updateObject(mapObj)
+        }
+        //
         return loadObjTaskLog(own)
     }
 

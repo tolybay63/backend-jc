@@ -70,4 +70,6 @@ public interface ApiObjectData {
     void execSql(String sql);
 
     Store loadObjList(String codClsOrTyp, String codProp, String model);
+
+    long updateObject(Map<String, Object> params);
 }
