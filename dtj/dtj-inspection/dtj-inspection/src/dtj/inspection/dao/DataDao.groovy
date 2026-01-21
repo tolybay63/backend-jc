@@ -2265,51 +2265,52 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Store saveInspection(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
-        //StartLink
-        int beg = pms.getInt('StartKm') * 1000 + pms.getInt('StartPicket') * 100 + pms.getInt('StartLink') * 25
-        int end = pms.getInt('FinishKm') * 1000 + pms.getInt('FinishPicket') * 100 + pms.getInt('FinishLink') * 25
-        if (beg > end)
-            throw new XError("Координаты начала не могут быть больше координаты конца")
         //
-        long objWorkPlan = pms.getLong("objWorkPlan")
-        long pvWorkPlan = pms.getLong("pvWorkPlan")
+        if (!params.containsKey("flag")){
+            int beg = pms.getInt('StartKm') * 1000 + pms.getInt('StartPicket') * 100 + pms.getInt('StartLink') * 25
+            int end = pms.getInt('FinishKm') * 1000 + pms.getInt('FinishPicket') * 100 + pms.getInt('FinishLink') * 25
+            if (beg > end)
+                throw new XError("Координаты начала не могут быть больше координаты конца")
+            //
+            long objWorkPlan = pms.getLong("objWorkPlan")
+            long pvWorkPlan = pms.getLong("pvWorkPlan")
 
-        Store stTmp = mdb.loadQuery("""
-            select d.objorrelobj 
-            from dataprop d, datapropval v
-            where d.id=v.dataprop and v.obj=${objWorkPlan} and v.propval=${pvWorkPlan}
-        """)
-        Set<Object> idsOwn = stTmp.getUniqueValues("objorrelobj")
-        if (!idsOwn.isEmpty()) {
-            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+            Store stTmp = mdb.loadQuery("""
+                select d.objorrelobj 
+                from dataprop d, datapropval v
+                where d.id=v.dataprop and v.obj=${objWorkPlan} and v.propval=${pvWorkPlan}
+            """)
+            Set<Object> idsOwn = stTmp.getUniqueValues("objorrelobj")
 
-            stTmp = mdb.loadQuery("""
-                select o.id,
-                    v3.numberVal * 1000 + coalesce(v5.numberVal,0) * 100 + coalesce(v12.numberVal,0) * 25 as beg,
-                    v4.numberVal * 1000 + coalesce(v6.numberVal,0) * 100 + coalesce(v13.numberVal,0) * 25 as end
-                from Obj o 
-                    left join ObjVer v on o.id=v.ownerver and v.lastver=1
-                   left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartKm
-                    left join DataPropVal v3 on d3.id=v3.dataprop
-                    left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FinishKm
-                    left join DataPropVal v4 on d4.id=v4.dataprop
-                    left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_StartPicket
-                    left join DataPropVal v5 on d5.id=v5.dataprop
-                    left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_FinishPicket
-                    left join DataPropVal v6 on d6.id=v6.dataprop
-                    left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_StartLink
-                    left join DataPropVal v12 on d12.id=v12.dataprop
-                    left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_FinishLink
-                    left join DataPropVal v13 on d13.id=v13.dataprop
-                where o.id in (${idsOwn.join(",")})
-            """, map)
-            boolean bOk = true
-            for (StoreRecord r in stTmp) {
-                if (!(beg > r.getInt("end") || end < r.getInt("beg")))
-                    bOk = false
+            if (!idsOwn.isEmpty()) {
+                Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+                stTmp = mdb.loadQuery("""
+                    select o.id,
+                        v1.numberVal * 1000 + coalesce(v3.numberVal,0) * 100 + coalesce(v5.numberVal,0) * 25 as beg,
+                        v2.numberVal * 1000 + coalesce(v4.numberVal,0) * 100 + coalesce(v6.numberVal,0) * 25 as end
+                    from Obj o
+                        left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_StartKm
+                        left join DataPropVal v1 on d1.id=v1.dataprop
+                        left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_FinishKm
+                        left join DataPropVal v2 on d2.id=v2.dataprop
+                        left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartPicket
+                        left join DataPropVal v3 on d3.id=v3.dataprop
+                        left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FinishPicket
+                        left join DataPropVal v4 on d4.id=v4.dataprop
+                        left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_StartLink
+                        left join DataPropVal v5 on d5.id=v5.dataprop
+                        left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_FinishLink
+                        left join DataPropVal v6 on d6.id=v6.dataprop
+                    where o.id in (${idsOwn.join(",")})
+                """, map)
+                boolean bOk = true
+                for (StoreRecord r in stTmp) {
+                    if (!(beg > r.getInt("end") || end < r.getInt("beg")))
+                        bOk = false
+                }
+                if (!bOk)
+                    throw new XError("По данным координатам существует запись")
             }
-            if (!bOk)
-                throw new XError("По данным координатам существует запись")
         }
         //
         long own
@@ -2506,6 +2507,130 @@ class DataDao extends BaseMdbUtils {
         Map<String, Object> mapRez = new HashMap<>()
         mapRez.put("id", own)
         return loadInspection(mapRez)
+    }
+
+    @DaoMethod
+    Store saveSeveralInspections(Map<String, Object> params) {
+        Store st = mdb.createStore("Obj.inspection")
+        VariantMap pms = new VariantMap(params)
+        List<Map<String, Object>> objWorkPlan = pms.get("objWorkPlan") as ArrayList
+        Set<String> planDateEnd = new HashSet<>()
+        //
+        if (objWorkPlan.size() == 0)
+            throw new XError("Не указан [objWorkPlan]")
+        if (pms.getString("FactDateEnd").isEmpty())
+            throw new XError("Не указан [FactDateEnd]")
+        if (pms.getLong("objUser") == 0)
+            throw new XError("Не указан [objUser]")
+        if (pms.getLong("pvUser") == 0)
+            throw new XError("Не указан [pvUser]")
+        if (pms.getString("CreatedAt").isEmpty())
+            throw new XError("Не указан [CreatedAt]")
+        if (pms.getString("UpdatedAt").isEmpty())
+            throw new XError("Не указан [UpdatedAt]")
+        // Проверка обязательных полей
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        objWorkPlan.forEach {Map<String, Object> m -> {
+            if (m.size() == 0)
+                return
+            //
+            VariantMap pmsVer = new VariantMap(m)
+            if (pmsVer.getLong("id") == 0)
+                throw new XError("Не указан [id] у плана работ [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+            if (pmsVer.getLong("pv") == 0)
+                throw new XError("Не указан [pv] у плана работ [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+            if (pmsVer.getLong("objLocationClsSection") == 0)
+                throw new XError("Не указан [objLocationClsSection] у плана работ [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+            if (pmsVer.getLong("pvLocationClsSection") == 0)
+                throw new XError("Не указан [pvLocationClsSection] у плана работ [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+            if (pmsVer.getLong("StartKm") == 0)
+                throw new XError("Не указан [StartKm] у плана работ [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+            if (pmsVer.getLong("FinishKm") == 0)
+                throw new XError("Не указан [FinishKm] у плана работ [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+            if (pmsVer.getLong("StartPicket") == 0)
+                throw new XError("Не указан [StartPicket] у плана работ [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+            if (pmsVer.getLong("FinishPicket") == 0)
+                throw new XError("Не указан [FinishPicket] у плана работ [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+            if (pmsVer.getLong("StartLink") == 0)
+                throw new XError("Не указан [StartLink] у плана работ [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+            if (pmsVer.getLong("FinishLink") == 0)
+                throw new XError("Не указан [FinishLink] у плана работ [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+            if (pmsVer.getString("PlanDateEnd").isEmpty())
+                throw new XError("Не указан [PlanDateEnd] у плана работ [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+            //
+            planDateEnd.add(pmsVer.getString("PlanDateEnd"))
+            // Проверка Существует ли запись в Журнале осмотров и проверок
+            int beg = pmsVer.getInt('StartKm') * 1000 + pmsVer.getInt('StartPicket') * 100 + pmsVer.getInt('StartLink') * 25
+            int end = pmsVer.getInt('FinishKm') * 1000 + pmsVer.getInt('FinishPicket') * 100 + pmsVer.getInt('FinishLink') * 25
+            if (beg > end)
+                throw new XError("Координаты начала не могут быть больше координаты конца [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+
+            long obj = pmsVer.getLong("id")
+            long pv = pmsVer.getLong("pv")
+
+            Store stTmp = mdb.loadQuery("""
+                select d.objorrelobj
+                from dataprop d, datapropval v
+                where d.id=v.dataprop and v.obj=${obj} and v.propval=${pv}
+            """)
+            Set<Object> idsOwn = stTmp.getUniqueValues("objorrelobj")
+
+            if (!idsOwn.isEmpty()) {
+                stTmp = mdb.loadQuery("""
+                select o.id,
+                    v1.numberVal * 1000 + coalesce(v3.numberVal,0) * 100 + coalesce(v5.numberVal,0) * 25 as beg,
+                    v2.numberVal * 1000 + coalesce(v4.numberVal,0) * 100 + coalesce(v6.numberVal,0) * 25 as end
+                from Obj o
+                    left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_StartKm
+                    left join DataPropVal v1 on d1.id=v1.dataprop
+                    left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_FinishKm
+                    left join DataPropVal v2 on d2.id=v2.dataprop
+                    left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_StartPicket
+                    left join DataPropVal v3 on d3.id=v3.dataprop
+                    left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FinishPicket
+                    left join DataPropVal v4 on d4.id=v4.dataprop
+                    left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_StartLink
+                    left join DataPropVal v5 on d5.id=v5.dataprop
+                    left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_FinishLink
+                    left join DataPropVal v6 on d6.id=v6.dataprop
+                where o.id in (${idsOwn.join(",")})
+            """, map)
+                boolean bOk = true
+                for (StoreRecord r in stTmp) {
+                    if (!(beg > r.getInt("end") || end < r.getInt("beg")))
+                        bOk = false
+                }
+                if (!bOk)
+                    throw new XError("Существует запись в Журнале осмотров и проверок у плана работ [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+            }
+        }}
+        //
+        if (planDateEnd.size() > 1)
+            throw new XError("Выберите плановые работы на одну дату. Выбрано на несколько дат [${planDateEnd.join(", ")}].")
+        // Создаем запись в Журнале осмотров и проверок на каждый objWorkPlan
+        objWorkPlan.forEach {Map<String, Object> m -> {
+            if (m.size() == 0)
+                return
+            //
+            Map<String, Object> mapIns = new HashMap<>(pms)
+            mapIns.put("name", UtCnv.toString("" + UtCnv.toLong(m.get("id")) + "-" + pms.getString("FactDateEnd")))
+            mapIns.put("objWorkPlan", UtCnv.toLong(m.get("id")))
+            mapIns.put("pvWorkPlan", UtCnv.toLong(m.get("pv")))
+            mapIns.put("objLocationClsSection", UtCnv.toLong(m.get("objLocationClsSection")))
+            mapIns.put("pvLocationClsSection", UtCnv.toLong(m.get("pvLocationClsSection")))
+            mapIns.put("StartKm", UtCnv.toLong(m.get("StartKm")))
+            mapIns.put("FinishKm", UtCnv.toLong(m.get("FinishKm")))
+            mapIns.put("StartPicket", UtCnv.toLong(m.get("StartPicket")))
+            mapIns.put("FinishPicket", UtCnv.toLong(m.get("FinishPicket")))
+            mapIns.put("StartLink", UtCnv.toLong(m.get("StartLink")))
+            mapIns.put("FinishLink", UtCnv.toLong(m.get("FinishLink")))
+            mapIns.put("flag", 1)
+            //
+            Store stTmp = saveInspection("ins", mapIns)
+            st.add(stTmp)
+        }}
+        //
+        return st
     }
 
     /**
