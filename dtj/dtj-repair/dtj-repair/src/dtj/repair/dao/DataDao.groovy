@@ -2397,7 +2397,7 @@ class DataDao extends BaseMdbUtils {
                 updateProperties("Prop_UpdatedAt", pms)
         }
         // Новый номер и дата установки объекта
-        if (pms.containsKey("Number")) {
+        if (pms.containsKey("Number") && pms.getString("fullNameWork").contains("приборов СЦБ и другой аппаратуры")) {
             Map<String, Object> mapObj = new HashMap<>()
             //
             if (pms.getLong("objObject") == 0)
@@ -2443,20 +2443,20 @@ class DataDao extends BaseMdbUtils {
                 where o.id=${pms.getLong("objObject")}
             """, "", "objectdata")
             //
-            int periodicityReplacement = 0
+            int periodRep = 0
             for (StoreRecord r in stTmp) {
                 mapObj.put("idNumber", r.getLong("idNumber"))
                 mapObj.put("idInstallationDate", r.getLong("idInstallationDate"))
                 mapObj.put("idUpdatedAt", r.getLong("idUpdatedAt"))
                 mapObj.put("idUser", r.getLong("idUser"))
                 if (r.getInt("PeriodicityReplacement") > 0) {
-                    periodicityReplacement = r.getInt("PeriodicityReplacement")
+                    periodRep = r.getInt("PeriodicityReplacement")
                 }
             }
             //
             apiObjectData().get(ApiObjectData).updateObject(mapObj)
             // Создаем новый план работ по Периодичности замены прибора
-            if (periodicityReplacement > 0) {
+            if (periodRep > 0) {
                 stTmp = loadSqlService("""
                     select o.cls,
                         v1.propVal as pvLocationClsSection, v1.obj as objLocationClsSection,
@@ -2490,9 +2490,9 @@ class DataDao extends BaseMdbUtils {
                     where o.id=${objWorkPlan}
                 """, "Obj.plan", "plandata")
                 //
-                String dte = UtCnv.toDate(pms.getString("FactDateEnd")).toJavaLocalDate().plusYears(periodicityReplacement).toString()
+                String dte = UtCnv.toDate(pms.getString("FactDateEnd")).toJavaLocalDate().plusYears(periodRep).toString()
                 Map<String, Object> mapPlan = stTmp.get(0).getValues()
-                mapPlan.put("name", "" + mapPlan.get("objWork") + "_" + pms.getString("FactDateEnd"))
+                mapPlan.put("name", "" + mapPlan.get("objWork") + "_" + pms.getLong("objObject") + "_" + pms.getString("FactDateEnd"))
                 mapPlan.put("PlanDateEnd", dte)
                 mapPlan.put("CreatedAt", pms.getString("UpdatedAt"))
                 mapPlan.put("UpdatedAt", pms.getString("UpdatedAt"))
