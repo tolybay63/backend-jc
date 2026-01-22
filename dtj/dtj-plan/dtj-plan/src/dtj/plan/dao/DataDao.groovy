@@ -109,6 +109,8 @@ class DataDao extends BaseMdbUtils {
             throw new XError("Не указан [linkCls]")
         if (objWork == 0)
             throw new XError("Не указан [objWork]")
+        if (objObject.size() == 0)
+            throw new XError("Не указан [objObject]")
         if (pms.getLong("pvWork") == 0)
             throw new XError("Не указан [pvWork]")
         if (pms.getLong("objLocationClsSection") == 0)
@@ -119,8 +121,6 @@ class DataDao extends BaseMdbUtils {
             throw new XError("Не указан [objUser]")
         if (pms.getLong("pvUser") == 0)
             throw new XError("Не указан [pvUser]")
-        if (objObject.size() == 0)
-            throw new XError("Не указан [objObject]")
         if (pms.getString("PlanDateEnd").isEmpty())
             throw new XError("Не указан [PlanDateEnd]")
         if (pms.getString("CreatedAt").isEmpty())
@@ -132,7 +132,6 @@ class DataDao extends BaseMdbUtils {
         pms.remove("objObject")
         // Поиск класса плана работ по linkCls
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_WorkPlan", "")
-        map.put("linkCls", linkCls)
         Store stTmp = loadSqlMeta("""
                 with fv as (
                     select cls,
@@ -182,7 +181,7 @@ class DataDao extends BaseMdbUtils {
             if (m.size() == 0)
                 return
             Map<String, Object> mapIns = new HashMap<>(pms)
-            mapIns.put("name", UtCnv.toString("" + objWork + "-" + UtCnv.toLong(m.get("id")) + "-" + pms.getString("PlanDateEnd")))
+            mapIns.put("name", UtCnv.toString("" + objWork + "_" + UtCnv.toLong(m.get("id")) + "_" + pms.getString("PlanDateEnd")))
             mapIns.put("objObject", UtCnv.toLong(m.get("id")))
             mapIns.put("pvObject", UtCnv.toLong(m.get("pv")))
             mapIns.put("StartKm", UtCnv.toLong(m.get("StartKm")))
