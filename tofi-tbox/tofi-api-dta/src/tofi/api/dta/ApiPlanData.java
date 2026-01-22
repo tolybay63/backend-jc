@@ -46,4 +46,6 @@ public interface ApiPlanData {
      */
     boolean checkExistOwners(long clsORrelcls, boolean isObj);
 
+    Long savePlan(String mode, Map<String, Object> params);
+
 }
