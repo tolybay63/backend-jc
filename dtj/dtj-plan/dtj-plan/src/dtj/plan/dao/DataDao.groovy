@@ -1122,81 +1122,10 @@ class DataDao extends BaseMdbUtils {
                     throw new XError("Не найден класс сответствующий классу {0}", linkCls)
                 }
                 //
-                par.put("cls", cls)
+                pms.put("cls", cls)
             }
-            own = eu.insertEntity(par)
-            pms.put("own", own)
-            //1 Prop_LocationClsSection
-            if (pms.getLong("objLocationClsSection") > 0)
-                fillProperties(true, "Prop_LocationClsSection", pms)
-            else
-                throw new XError("[objLocationClsSection] not specified")
-            //2 Prop_Work
-            if (pms.getLong("objWork") > 0)
-                fillProperties(true, "Prop_Work", pms)
-            else
-                throw new XError("[objWork] not specified")
-            //3 Prop_Object
-            if (pms.getLong("objObject") > 0)
-                fillProperties(true, "Prop_Object", pms)
-            else
-                throw new XError("[objObject] not specified")
-            //4 Prop_User
-            if (pms.getLong("objUser") > 0)
-                fillProperties(true, "Prop_User", pms)
-            else
-                throw new XError("[objUser] not specified")
-
-            //5 Prop_StartKm
-            if (pms.getLong("StartKm") > 0)
-                fillProperties(true, "Prop_StartKm", pms)
-            else
-                throw new XError("[StartKm] not specified")
-            //6 Prop_FinishKm
-            if (pms.getLong("FinishKm") > 0)
-                fillProperties(true, "Prop_FinishKm", pms)
-            else
-                throw new XError("[FinishKm] not specified")
-            //7 Prop_StartPicket
-            if (pms.getLong("StartPicket") > 0)
-                fillProperties(true, "Prop_StartPicket", pms)
-            else
-                throw new XError("[StartPicket] not specified")
-            //8 Prop_FinishPicket
-            if (pms.getLong("FinishPicket") > 0)
-                fillProperties(true, "Prop_FinishPicket", pms)
-            else
-                throw new XError("[FinishPicket] not specified")
-            //9 Prop_StartLink
-            if (pms.getLong("StartLink") > 0)
-                fillProperties(true, "Prop_StartLink", pms)
-            else
-                throw new XError("Не указан [StartLink]")
-            //10 Prop_FinishLink
-            if (pms.getLong("FinishLink") > 0)
-                fillProperties(true, "Prop_FinishLink", pms)
-            else
-                throw new XError("Не указан [FinishLink]")
-
-            //11 Prop_PlanDateEnd
-            if (!pms.getString("PlanDateEnd").isEmpty())
-                fillProperties(true, "Prop_PlanDateEnd", pms)
-            else
-                throw new XError("[PlanDateEnd] not specified")
-            //12 Prop_CreatedAt
-            if (!pms.getString("CreatedAt").isEmpty())
-                fillProperties(true, "Prop_CreatedAt", pms)
-            else
-                throw new XError("[CreatedAt] not specified")
-            //13 Prop_UpdatedAt
-            if (!pms.getString("UpdatedAt").isEmpty())
-                fillProperties(true, "Prop_UpdatedAt", pms)
-            else
-                throw new XError("[UpdatedAt] not specified")
-            //14 Prop_Inspection
-            if (pms.getLong("objIncident") > 0)
-                fillProperties(true, "Prop_Incident", pms)
             //
+            own = apiPlanData().get(ApiPlanData).savePlan(mode, pms)
         } else if (mode.equalsIgnoreCase("upd")) {
             own = pms.getLong("id")
             Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_WorkPlan", "")
