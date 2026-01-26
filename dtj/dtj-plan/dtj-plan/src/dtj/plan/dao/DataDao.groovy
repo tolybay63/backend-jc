@@ -98,6 +98,101 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store savePlansPribory(Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        Store stRes = mdb.createStore("Obj.plan")
+        if (pms.getLong("objLocationClsSection") == 0)
+            throw new XError("Не указан [objLocationClsSection]")
+        if (pms.getLong("pvLocationClsSection") == 0)
+            throw new XError("Не указан [pvLocationClsSection]")
+        if (pms.getLong("objUser") == 0)
+            throw new XError("Не указан [objUser]")
+        if (pms.getLong("pvUser") == 0)
+            throw new XError("Не указан [pvUser]")
+        if (pms.getString("date").isEmpty())
+            throw new XError("Не указан [date]")
+        //
+        XDate dt = UtCnv.toDate(pms.getString("date"))
+        pms.put("CreatedAt", UtCnv.toString(UtCnv.toDate(new Date())))
+        pms.put("UpdatedAt", UtCnv.toString(UtCnv.toDate(new Date())))
+        //
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_PriborySCB", "")
+        Store st = loadSqlService("""
+            select o.id, o.cls,
+                v1.numberVal as StartKm,
+                v2.numberVal as FinishKm,
+                v3.numberVal as StartPicket,
+                v4.numberVal as FinishPicket,
+                v5.numberVal as StartLink,
+                v6.numberVal as FinishLink,
+                v7.numberVal as PeriodicityReplacement,
+                v8.dateTimeVal as InstallationDate
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_StartKm")}
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_FinishKm")}
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_StartPicket")}
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_FinishPicket")}
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_StartLink")}
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=${map.get("Prop_FinishLink")}
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=${map.get("Prop_PeriodicityReplacement")}
+                inner join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=${map.get("Prop_InstallationDate")}
+                inner join DataPropVal v8 on d8.id=v8.dataprop
+            where o.cls=${mapCls.get("Cls_PriborySCB")}
+        """, "", "objectdata")
+        //
+        Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("Cls", "Prop_Object", false)
+        long cls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_WorkPlanCorrectional", "").get("Cls_WorkPlanCorrectional")
+        pms.put("cls", cls)
+        Store stTmp = loadSqlService("""
+            select o.id, o.cls from obj o, objVer v
+            where o.id=v.ownerVer and v.lastVer=1
+                and v.name like 'Замены приборов СЦБ и другой аппаратуры'
+        """, "", "nsidata")
+        if (stTmp.size() == 0)
+            throw new XError("Не найден работа [Замены приборов СЦБ и другой аппаратуры]")
+        long objWork = stTmp.get(0).getLong("id")
+        long pvWork = apiMeta().get(ApiMeta).idPV("Cls", stTmp.get(0).getLong("cls"), "Prop_Work")
+        pms.put("objWork", objWork)
+        pms.put("pvWork", pvWork)
+        // Создаем план работ на каждый objObject
+        for (StoreRecord r in st) {
+            if (r.getInt("PeriodicityReplacement") == 0)
+                continue
+            Map<String, Object> mapIns = new HashMap<>(pms)
+            XDate dtNew = r.getDate("InstallationDate").addYears(r.getInt("PeriodicityReplacement"))
+            if (dtNew < dt)
+                continue
+            mapIns.put("name", "" + objWork + "_" + r.getLong("id") + "_" + pms.getString("PlanDateEnd"))
+            mapIns.put("objObject", r.getLong("id"))
+            mapIns.put("pvObject", mapPV.get(r.getLong("cls")))
+            mapIns.put("StartKm", r.getInt("StartKm"))
+            mapIns.put("FinishKm", r.getInt("FinishKm"))
+            mapIns.put("StartPicket", r.getInt("StartPicket"))
+            mapIns.put("FinishPicket", r.getInt("FinishPicket"))
+            mapIns.put("StartLink", r.getInt("StartLink"))
+            mapIns.put("FinishLink", r.getInt("FinishLink"))
+            //
+            if (UtCnv.toString(dtNew).split("-", 2)[1] == "02-29")
+                mapIns.put("PlanDateEnd", UtCnv.toString(dtNew).split("-", 2)[0] + "02-28")
+            else
+                mapIns.put("PlanDateEnd", UtCnv.toString(dtNew))
+            //
+            stTmp = savePlan("ins", mapIns)
+            stRes.add(stTmp)
+        }
+        //
+        return stRes
+    }
+
+    @DaoMethod
     Store saveSeveralPlans(Map<String, Object> params) {
         Store st = mdb.createStore("Obj.plan")
         VariantMap pms = new VariantMap(params)
