@@ -264,7 +264,7 @@ class DataDao extends BaseMdbUtils {
         //
         long pv = apiMeta().get(ApiMeta).idPV("Cls", UtCnv.toLong(st.get(0).get("cls")), "Prop_LocationClsSection")
         for (StoreRecord r in st) {
-            if ((dbeg < r.getInt("dbeg") && r.getInt("dbeg") <= dend) ||
+            if ((dbeg <= r.getInt("dbeg") && r.getInt("dbeg") <= dend) ||
                     (dbeg < r.getInt("dend") && r.getInt("dend") <= dend) ||
                     (dbeg > r.getInt("dbeg") && r.getInt("dend") > dend)) {
                 Map<String, Object> mapRes = r.getValues()
@@ -289,7 +289,7 @@ class DataDao extends BaseMdbUtils {
                         lstTypObj.add(mapR)
                     }}
                     mapRes.put("objObjectTypeMulti", lstTypObj)
-                }
+                } else continue
                 lstRes.add(mapRes)
             }
         }
