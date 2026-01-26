@@ -6,10 +6,12 @@ import jandcode.commons.datetime.XDate
 import jandcode.commons.datetime.XDateTime
 import jandcode.commons.datetime.XDateTimeFormatter
 import jandcode.commons.error.XError
+import jandcode.commons.variant.IVariantFieldsMapper
 import jandcode.commons.variant.VariantMap
 import jandcode.core.auth.AuthService
 import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.mdb.BaseMdbUtils
+import jandcode.core.store.IStoreDictResolver
 import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
@@ -1967,12 +1969,22 @@ class DataDao extends BaseMdbUtils {
         """
         Store st = mdb.loadQuery(sql)
         //mdb.outTable(st)
-        if (st.size()==1) {
+        if (st.size() == 1) {
             long idPV = apiMeta().get(ApiMeta).idPV("cls", st.get(0).getLong("cls"), "Prop_Section")
             st.get(0).set("pv", idPV )
             return st
-        } else
+        } else {
+            for (StoreRecord r in st) {
+                if (beg != r.getInt("beg")) {
+                    long idPV = apiMeta().get(ApiMeta).idPV("cls", r.getLong("cls"), "Prop_Section")
+                    r.set("pv", idPV)
+                    Store stTmp = mdb.createStore("Obj.Station.ForSelect")
+                    stTmp.add(r)
+                    return stTmp
+                }
+            }
             throw new XError("Not Found")
+        }
     }
 
     @DaoMethod
