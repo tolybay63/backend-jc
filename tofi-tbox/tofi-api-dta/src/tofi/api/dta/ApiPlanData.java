@@ -3,6 +3,7 @@ package tofi.api.dta;
 import jandcode.core.store.Store;
 
 import java.util.Map;
+import java.util.Set;
 
 public interface ApiPlanData {
 
@@ -47,5 +48,7 @@ public interface ApiPlanData {
     boolean checkExistOwners(long clsORrelcls, boolean isObj);
 
     Long savePlan(String mode, Map<String, Object> params);
+
+    void deleteObjsPlan(Set<Long> ids);
 
 }

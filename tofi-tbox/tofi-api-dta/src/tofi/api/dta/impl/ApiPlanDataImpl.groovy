@@ -207,6 +207,26 @@ class ApiPlanDataImpl extends BaseMdbUtils implements ApiPlanData {
         return own
     }
 
+    // todo Удаление объектов без проверки - является ли эти объекты значением свойств других объектов
+    @Override
+    void deleteObjsPlan(Set<Long> ids) {
+        if (ids.size() == 0)
+            throw new XError("[ids] not specified")
+        mdb.execQueryNative("""
+            delete from DataPropVal
+            where dataProp in (select id from DataProp where isobj=1 and objorrelobj in (${ids.join(",")}));
+            delete from DataProp where id in (
+                select id from dataprop
+                except
+                select dataProp as id from DataPropVal
+            );
+            delete from SysCod
+            where entityType=1 and entityId in (${ids.join(",")});
+            delete from ObjVer where ownerVer in (${ids.join(",")});
+            delete from Obj where id in (${ids.join(",")});
+        """)
+    }
+
     private void fillProperties(boolean isObj, String cod, Map<String, Object> params) {
         long own = UtCnv.toLong(params.get("own"))
         String keyValue = cod.split("_")[1]

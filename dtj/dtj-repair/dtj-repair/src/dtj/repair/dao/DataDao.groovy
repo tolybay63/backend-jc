@@ -2503,7 +2503,8 @@ class DataDao extends BaseMdbUtils {
                         select o.id, o.cls,
                             v1.propVal as pvWork, v1.obj as objWork,
                             v2.propVal as pvObject, v2.obj as objObject,
-                            v3.dateTimeVal as PlanDateEnd
+                            v3.dateTimeVal as PlanDateEnd,
+                            v4.dateTimeVal as FactDateEnd
                         from Obj o
                             left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Work")}
                             inner join DataPropVal v1 on d1.id=v1.dataprop and v1.obj=${mapPlan.get("objWork")}
@@ -2511,12 +2512,17 @@ class DataDao extends BaseMdbUtils {
                             inner join DataPropVal v2 on d2.id=v2.dataprop and v2.obj=${mapPlan.get("objObject")}
                             left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_PlanDateEnd")}
                             inner join DataPropVal v3 on d3.id=v3.dataprop and v3.datetimeval between '${pms.getString("FactDateEnd")}' and '3333-12-31'
+                            left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_FactDateEnd")}
+                            left join DataPropVal v4 on d4.id=v4.dataprop
                         where o.cls=${mapPlan.get("cls")} and o.id not in (${objWorkPlan})
                     """, "", "plandata")
                     if (stTmp.size() > 0) {
+                        Set<Long> idsPlanDel = new HashSet<>()
                         for (StoreRecord r in stTmp) {
-                            null
+                            if (r.getString("FactDateEnd") == "0000-01-01")
+                                idsPlanDel.add(r.getLong("id"))
                         }
+                        apiPlanData().get(ApiPlanData).deleteObjsPlan(idsPlanDel)
                     }
                     //
                     apiPlanData().get(ApiPlanData).savePlan("ins", mapPlan)
