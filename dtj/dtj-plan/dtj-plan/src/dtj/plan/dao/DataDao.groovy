@@ -67,7 +67,7 @@ class DataDao extends BaseMdbUtils {
         return app.bean(ApinatorService).getApi("repairdata")
     }
 
-    //todo methad savePeriodPlan не используется
+    //todo method savePeriodPlan не используется
     @DaoMethod
     Store savePeriodPlan(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
@@ -97,6 +97,7 @@ class DataDao extends BaseMdbUtils {
         return null
     }
 
+    //todo method savePlansPribory запускается только один раз после установки приложения
     @DaoMethod
     Store savePlansPribory(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)

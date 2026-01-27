@@ -2397,7 +2397,7 @@ class DataDao extends BaseMdbUtils {
                 updateProperties("Prop_UpdatedAt", pms)
         }
         // Новый номер и дата установки объекта
-        if (pms.containsKey("Number") && pms.getString("fullNameWork").contains("приборов СЦБ и другой аппаратуры")) {
+        if (pms.getString("fullNameWork").contains("приборов СЦБ и другой аппаратуры")) {
             Map<String, Object> mapObj = new HashMap<>()
             //
             if (pms.getLong("objObject") == 0)
@@ -2406,8 +2406,6 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("Не указан [objUser]")
             if (pms.getLong("pvUser") == 0)
                 throw new XError("Не указан [pvUser]")
-            if (pms.getString("Number").isEmpty())
-                throw new XError("Не указан [Number]")
             if (pms.getString("FactDateEnd").isEmpty())
                 throw new XError("Не указан [FactDateEnd]")
             if (pms.getString("UpdatedAt").isEmpty())
@@ -2421,6 +2419,7 @@ class DataDao extends BaseMdbUtils {
             mapObj.put("pvUser", pms.getLong("pvUser"))
             //
             map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+            Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_PriborySCB", "")
             Store stTmp = loadSqlService("""
                 select o.id, o.cls, v.name, v.fullName,
                     v1.id as idNumber, v1.strVal as Number,
@@ -2440,66 +2439,88 @@ class DataDao extends BaseMdbUtils {
                     left join DataPropVal v4 on d4.id=v4.dataprop
                     left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_PeriodicityReplacement")}
                     left join DataPropVal v5 on d5.id=v5.dataprop
-                where o.id=${pms.getLong("objObject")}
+                where o.id=${pms.getLong("objObject")} and o.cls=${mapCls.get("Cls_PriborySCB")}
             """, "", "objectdata")
             //
-            int periodRep = 0
-            for (StoreRecord r in stTmp) {
-                mapObj.put("idNumber", r.getLong("idNumber"))
-                mapObj.put("idInstallationDate", r.getLong("idInstallationDate"))
-                mapObj.put("idUpdatedAt", r.getLong("idUpdatedAt"))
-                mapObj.put("idUser", r.getLong("idUser"))
-                if (r.getInt("PeriodicityReplacement") > 0) {
-                    periodRep = r.getInt("PeriodicityReplacement")
+            if (stTmp.size() == 1) {
+                int periodRep = 0
+                for (StoreRecord r in stTmp) {
+                    mapObj.put("idNumber", r.getLong("idNumber"))
+                    mapObj.put("idInstallationDate", r.getLong("idInstallationDate"))
+                    mapObj.put("idUpdatedAt", r.getLong("idUpdatedAt"))
+                    mapObj.put("idUser", r.getLong("idUser"))
+                    if (r.getInt("PeriodicityReplacement") > 0) {
+                        periodRep = r.getInt("PeriodicityReplacement")
+                    }
                 }
-            }
-            //
-            apiObjectData().get(ApiObjectData).updateObject(mapObj)
-            // Создаем новый план работ по Периодичности замены прибора
-            if (periodRep > 0) {
-                stTmp = loadSqlService("""
-                    select o.cls,
-                        v1.propVal as pvLocationClsSection, v1.obj as objLocationClsSection,
-                        v2.propVal as pvObject, v2.obj as objObject,
-                        v3.numberVal as StartKm,
-                        v4.numberVal as FinishKm,
-                        v5.numberVal as StartPicket,
-                        v6.numberVal as FinishPicket,
-                        v7.numberVal as StartLink,
-                        v8.numberVal as FinishLink,
-                        v9.propVal as pvWork, v9.obj as objWork
-                    from Obj o
-                        left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_LocationClsSection")}
-                        left join DataPropVal v1 on d1.id=v1.dataprop
-                        left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_Object")}
-                        left join DataPropVal v2 on d2.id=v2.dataprop
-                        left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_StartKm")}
-                        left join DataPropVal v3 on d3.id=v3.dataprop
-                        left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_FinishKm")}
-                        left join DataPropVal v4 on d4.id=v4.dataprop
-                        left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_StartPicket")}
-                        left join DataPropVal v5 on d5.id=v5.dataprop
-                        left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=${map.get("Prop_FinishPicket")}
-                        left join DataPropVal v6 on d6.id=v6.dataprop
-                        left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=${map.get("Prop_StartLink")}
-                        left join DataPropVal v7 on d7.id=v7.dataprop
-                        left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=${map.get("Prop_FinishLink")}
-                        left join DataPropVal v8 on d8.id=v8.dataprop
-                        left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=${map.get("Prop_Work")}
-                        left join DataPropVal v9 on d9.id=v9.dataprop
-                    where o.id=${objWorkPlan}
-                """, "Obj.plan", "plandata")
                 //
-                String dte = UtCnv.toDate(pms.getString("FactDateEnd")).toJavaLocalDate().plusYears(periodRep).toString()
-                Map<String, Object> mapPlan = stTmp.get(0).getValues()
-                mapPlan.put("name", "" + mapPlan.get("objWork") + "_" + pms.getLong("objObject") + "_" + pms.getString("FactDateEnd"))
-                mapPlan.put("PlanDateEnd", dte)
-                mapPlan.put("CreatedAt", pms.getString("UpdatedAt"))
-                mapPlan.put("UpdatedAt", pms.getString("UpdatedAt"))
-                mapPlan.put("objUser", pms.getLong("objUser"))
-                mapPlan.put("pvUser", pms.getLong("pvUser"))
-                //
-                apiPlanData().get(ApiPlanData).savePlan("ins", mapPlan)
+                apiObjectData().get(ApiObjectData).updateObject(mapObj)
+                // Создаем новый план работ по Периодичности замены прибора
+                if (periodRep > 0) {
+                    stTmp = loadSqlService("""
+                        select o.cls,
+                            v1.propVal as pvLocationClsSection, v1.obj as objLocationClsSection,
+                            v2.propVal as pvObject, v2.obj as objObject,
+                            v3.numberVal as StartKm,
+                            v4.numberVal as FinishKm,
+                            v5.numberVal as StartPicket,
+                            v6.numberVal as FinishPicket,
+                            v7.numberVal as StartLink,
+                            v8.numberVal as FinishLink,
+                            v9.propVal as pvWork, v9.obj as objWork
+                        from Obj o
+                            left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_LocationClsSection")}
+                            left join DataPropVal v1 on d1.id=v1.dataprop
+                            left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_Object")}
+                            left join DataPropVal v2 on d2.id=v2.dataprop
+                            left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_StartKm")}
+                            left join DataPropVal v3 on d3.id=v3.dataprop
+                            left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_FinishKm")}
+                            left join DataPropVal v4 on d4.id=v4.dataprop
+                            left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_StartPicket")}
+                            left join DataPropVal v5 on d5.id=v5.dataprop
+                            left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=${map.get("Prop_FinishPicket")}
+                            left join DataPropVal v6 on d6.id=v6.dataprop
+                            left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=${map.get("Prop_StartLink")}
+                            left join DataPropVal v7 on d7.id=v7.dataprop
+                            left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=${map.get("Prop_FinishLink")}
+                            left join DataPropVal v8 on d8.id=v8.dataprop
+                            left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=${map.get("Prop_Work")}
+                            left join DataPropVal v9 on d9.id=v9.dataprop
+                        where o.id=${objWorkPlan}
+                    """, "Obj.plan", "plandata")
+                    //
+                    String dte = UtCnv.toDate(pms.getString("FactDateEnd")).toJavaLocalDate().plusYears(periodRep).toString()
+                    Map<String, Object> mapPlan = stTmp.get(0).getValues()
+                    mapPlan.put("name", "" + mapPlan.get("objWork") + "_" + pms.getLong("objObject") + "_" + pms.getString("FactDateEnd"))
+                    mapPlan.put("PlanDateEnd", dte)
+                    mapPlan.put("CreatedAt", pms.getString("UpdatedAt"))
+                    mapPlan.put("UpdatedAt", pms.getString("UpdatedAt"))
+                    mapPlan.put("objUser", pms.getLong("objUser"))
+                    mapPlan.put("pvUser", pms.getLong("pvUser"))
+                    //
+                    stTmp = loadSqlService("""
+                        select o.id, o.cls,
+                            v1.propVal as pvWork, v1.obj as objWork,
+                            v2.propVal as pvObject, v2.obj as objObject,
+                            v3.dateTimeVal as PlanDateEnd
+                        from Obj o
+                            left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Work")}
+                            inner join DataPropVal v1 on d1.id=v1.dataprop and v1.obj=${mapPlan.get("objWork")}
+                            left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_Object")}
+                            inner join DataPropVal v2 on d2.id=v2.dataprop and v2.obj=${mapPlan.get("objObject")}
+                            left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_PlanDateEnd")}
+                            inner join DataPropVal v3 on d3.id=v3.dataprop and v3.datetimeval between '${pms.getString("FactDateEnd")}' and '3333-12-31'
+                        where o.cls=${mapPlan.get("cls")} and o.id not in (${objWorkPlan})
+                    """, "", "plandata")
+                    if (stTmp.size() > 0) {
+                        for (StoreRecord r in stTmp) {
+                            null
+                        }
+                    }
+                    //
+                    apiPlanData().get(ApiPlanData).savePlan("ins", mapPlan)
+                }
             }
         }
         //
