@@ -417,7 +417,7 @@
 
     <domain name="FD_SysCodingType" parent="dict.tofi" tag.db="true" title="Тип системы кодирования"/>
     <dict name="FD_SysCodingType" parent="base" domain="FD_SysCodingType"
-          handler="tofi.mdl.model.utils.DictHandler"/>
+          handler="tofi.api.mdl.utils.DictHandler"/>
 
     <!--******************************************************************-->
     <!--Fill Dicts-->

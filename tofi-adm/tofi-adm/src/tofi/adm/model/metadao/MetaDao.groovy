@@ -13,12 +13,12 @@ class MetaDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    public Store loadDictAsStore(String dictName) {
+    Store loadDictAsStore(String dictName) {
         return apiMeta().get(ApiMeta).loadDictAsStore(dictName)
     }
 
     @DaoMethod
-    public Map<Long, String> loadDict(String dictName) {
+    Map<Long, String> loadDict(String dictName) {
         return apiMeta().get(ApiMeta).loadDict(dictName)
     }
 
