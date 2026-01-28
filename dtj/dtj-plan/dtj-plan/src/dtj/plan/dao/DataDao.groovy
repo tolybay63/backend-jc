@@ -1054,7 +1054,8 @@ class DataDao extends BaseMdbUtils {
                 v12.id as idFactDateEnd, v12.dateTimeVal as FactDateEnd,
                 v13.id as idIncident, v13.propVal as pvIncident, v13.obj as objIncident,
                 v14.id as idStartLink, v14.numberVal as StartLink,
-                v15.id as idFinishLink, v15.numberVal as FinishLink
+                v15.id as idFinishLink, v15.numberVal as FinishLink,
+                v16.id as idDescription, v16.multiStrVal as Description
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_LocationClsSection
@@ -1087,6 +1088,8 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v14 on d14.id=v14.dataprop
                 left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_FinishLink
                 left join DataPropVal v15 on d15.id=v15.dataprop
+                left join DataProp d16 on d16.objorrelobj=o.id and d16.prop=:Prop_Description
+                left join DataPropVal v16 on d16.id=v16.dataprop
             where ${whe} ${wheV12}
         """, map)
         //
@@ -1319,6 +1322,13 @@ class DataDao extends BaseMdbUtils {
                     updateProperties("Prop_UpdatedAt", pms)
                 else
                     throw new XError("[UpdatedAt] not specified")
+            }
+            //13 Prop_Description
+            if (pms.containsKey("idDescription")) {
+                updateProperties("Prop_Description", pms)
+            } else {
+                if (!pms.getString("Description").isEmpty())
+                    fillProperties(true, "Prop_Description", pms)
             }
         } else {
             throw new XError("Нейзвестный режим сохранения ('ins', 'upd')")

@@ -203,6 +203,9 @@ class ApiPlanDataImpl extends BaseMdbUtils implements ApiPlanData {
         //14 Prop_Inspection
         if (pms.getLong("objIncident") > 0)
             fillProperties(true, "Prop_Incident", pms)
+        //15 Prop_Description
+        if (!pms.getString("Description").isEmpty())
+            fillProperties(true, "Prop_Description", pms)
         //
         return own
     }
@@ -289,6 +292,16 @@ class ApiPlanDataImpl extends BaseMdbUtils implements ApiPlanData {
         //
         StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
         recDPV.set("dataProp", idDP)
+        // Multi
+        if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_Description")) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
+                    recDPV.set("multiStrVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
         // Date
         if ([FD_AttribValType_consts.dt].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_CreatedAt") ||

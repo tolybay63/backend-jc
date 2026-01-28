@@ -60,6 +60,9 @@
         <field name="idIncident" parent="long"/>
         <field name="pvIncident" parent="long"/>
         <field name="objIncident" parent="long"/>
+
+        <field name="idDescription" parent="long"/>
+        <field name="Description" parent="string"/>
     </domain>
 
     <domain name="Obj.plan.correctional" parent="base">
