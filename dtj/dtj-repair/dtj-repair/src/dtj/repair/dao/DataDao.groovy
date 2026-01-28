@@ -2125,9 +2125,12 @@ class DataDao extends BaseMdbUtils {
         //
         Set<Object> idsObject = st.getUniqueValues("objObject")
         Store stObject = loadSqlService("""
-            select o.id, v.fullName
-            from Obj o, ObjVer v
-            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsObject.join(",")})
+            select o.id, v.fullName, v2.strVal as Number
+            from Obj o
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_Number")}
+                left join DataPropVal v2 on d2.id=v2.dataprop
+            where o.id in (0${idsObject.join(",")})
         """, "", "objectdata")
         StoreIndex indObject = stObject.getIndex("id")
 
@@ -2137,8 +2140,12 @@ class DataDao extends BaseMdbUtils {
             if (rWork != null)
                 r.set("fullNameWork", rWork.getString("fullName"))
             StoreRecord rObject = indObject.get(r.getLong("objObject"))
-            if (rObject != null)
-                r.set("fullNameObject", rObject.getString("fullName"))
+            if (rObject != null) {
+                if (rObject.getString("Number").isEmpty())
+                    r.set("fullNameObject", rObject.getString("fullName") + " [№ б/н]")
+                else
+                    r.set("fullNameObject", rObject.getString("fullName") + " [№ " + rObject.getString("Number") + "]")
+            }
         }
         //
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Section", "")
@@ -2297,7 +2304,7 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Map<String, Object> loadObjTaskLog(long id) {
-        if (id <= 0)
+        if (id == 0)
             throw new XError("[id] не указан")
         //
         Map<String, Object> params = new HashMap<>()
