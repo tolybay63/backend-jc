@@ -271,8 +271,6 @@ class ApiObjectDataImpl extends BaseMdbUtils implements ApiObjectData {
                 throw new XError("Не указан [Number]")
         } else if (!pms.getString("Number").isEmpty()) {
             fillProperties(true, "Prop_Number", pms)
-        } else {
-            throw new XError("[Number] не указан")
         }
         //Prop_InstallationDate
         if (pms.getLong("idInstallationDate") > 0) {

@@ -2516,13 +2516,42 @@ class DataDao extends BaseMdbUtils {
                             left join DataPropVal v4 on d4.id=v4.dataprop
                         where o.cls=${mapPlan.get("cls")} and o.id not in (${objWorkPlan})
                     """, "", "plandata")
+                    //
                     if (stTmp.size() > 0) {
                         Set<Long> idsPlanDel = new HashSet<>()
                         for (StoreRecord r in stTmp) {
                             if (r.getString("FactDateEnd") == "0000-01-01")
                                 idsPlanDel.add(r.getLong("id"))
                         }
-                        apiPlanData().get(ApiPlanData).deleteObjsPlan(idsPlanDel)
+                        //
+                        if (idsPlanDel.size() > 0) {
+                            stTmp = mdb.loadQuery("""
+                                select d.objorrelobj as id
+                                from dataprop d, datapropval v
+                                where d.id=v.dataprop and d.prop=${map.get("Prop_WorkPlan")} and v.obj in (0${idsPlanDel.join(",")})
+                            """)
+                            //
+                            if (stTmp.size() > 0) {
+                                Set<Object> idsTaskLog = stTmp.getUniqueValues("id")
+                                stTmp = mdb.loadQuery("""
+                                    select d.objorrelobj as id
+                                    from dataprop d, datapropval v
+                                    where d.id=v.dataprop and d.prop=${map.get("Prop_TaskLog")} and v.obj in (0${idsTaskLog.join(",")})
+                                """)
+                                //
+                                if (stTmp.size() > 0) {
+                                    for (StoreRecord r in stTmp) {
+                                        deleteObjWithProperties(r.getLong("id"))
+                                    }
+                                }
+                                //
+                                idsTaskLog.forEach {def r -> {
+                                    deleteObjWithoutChecksValidate(UtCnv.toLong(r))
+                                }}
+                            }
+                            //
+                            apiPlanData().get(ApiPlanData).deleteObjsPlan(idsPlanDel)
+                        }
                     }
                     //
                     apiPlanData().get(ApiPlanData).savePlan("ins", mapPlan)
@@ -2541,6 +2570,22 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     void deleteObjWithProperties(long id) {
         validateForDeleteOwner(id)
+        //
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        mdb.execQueryNative("""
+            delete from DataPropVal
+            where dataProp in (select id from DataProp where isobj=1 and objorrelobj=${id});
+            delete from DataProp where id in (
+                select id from dataprop
+                except
+                select dataProp as id from DataPropVal
+            );
+        """)
+        //
+        eu.deleteEntity(id)
+    }
+
+    void deleteObjWithoutChecksValidate(long id) {
         //
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
         mdb.execQueryNative("""
