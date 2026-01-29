@@ -18,6 +18,7 @@ import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
 import tofi.api.adm.ApiAdm
 import tofi.api.dta.*
+import tofi.api.dta.impl.ApiPersonnalDataImpl
 import tofi.api.dta.model.utils.EntityMdbUtils
 import tofi.api.dta.model.utils.UtPeriod
 import tofi.api.mdl.ApiMeta
@@ -68,6 +69,111 @@ class DataDao extends BaseMdbUtils {
         return app.bean(ApinatorService).getApi("repairdata")
     }
     /* =================================================================== */
+
+    @DaoMethod
+    Store loadNotificationUser(long objUser, long flag) {
+        if (objUser == 0)
+            throw new XError("Не указан [objUser]")
+        //
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Notification", "")
+        String dt = UtCnv.toDate(new Date()).toJavaLocalDate().minusDays(3).toString()
+        String whe = ""
+        if (flag == 0) {
+            whe = "o.cls=${map.get("Cls_Notification")} and o.timestamp between '${dt}' and '3333-12-31'"
+        } else if (flag == 1) {
+            whe = "o.cls=${map.get("Cls_Notification")} and o.timestamp between '1800-01-01' and '${dt}'"
+        } else
+            throw new XError("Неизвестный [flag]")
+        //
+        Store st = mdb.createStore("Obj.Notification")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        mdb.loadQuery(st, """
+            select o.id, o.cls, v.name, v.fullName,
+                v2.id as idPersonnel, v2.obj as objPersonnel, v2.propVal as pvPersonnel, v1.name as namePersonnel,
+                v3.id as idDescription, v3.multiStrVal as Description,
+                v4.id as idTimeSending, v4.dateTimeVal as TimeSending,
+                v5.id as idTimeReceiving, v5.dateTimeVal as TimeReceiving,
+                v6.id as idTimeReading, v6.dateTimeVal as TimeReading
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Personnel
+                inner join DataPropVal v2 on d2.id=v2.dataprop and v2.obj=${objUser}
+                left join ObjVer v1 on v2.obj=v1.ownerver and v1.lastver=1
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Description
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_TimeSending
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_TimeReceiving
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_TimeReading
+                left join DataPropVal v6 on d6.id=v6.dataprop
+            where ${whe}
+        """, map)
+        //
+        return st
+    }
+
+    @DaoMethod
+    Store loadNotification(long id) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Notification", "")
+        String whe = "o.cls=${map.get("Cls_Notification")} and o.id=${id}"
+        if (id == 0)
+            whe = "o.cls=${map.get("Cls_Notification")}"
+        //
+        Store st = mdb.createStore("Obj.Notification")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        mdb.loadQuery(st, """
+            select o.id, o.cls, v.name,
+                v2.id as idPersonnel, v2.obj as objPersonnel, v2.propVal as pvPersonnel, v1.name as namePersonnel,
+                v3.id as idDescription, v3.multiStrVal as Description,
+                v4.id as idTimeSending, v4.dateTimeVal as TimeSending,
+                v5.id as idTimeReceiving, v5.dateTimeVal as TimeReceiving,
+                v6.id as idTimeReading, v6.dateTimeVal as TimeReading
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Personnel
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join ObjVer v1 on v2.obj=v1.ownerver and v1.lastver=1
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Description
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_TimeSending
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_TimeReceiving
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_TimeReading
+                left join DataPropVal v6 on d6.id=v6.dataprop
+            where ${whe}
+        """, map)
+        //
+        return st
+    }
+
+    @DaoMethod
+    Store saveNotification(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own = 0
+        //
+        if (mode.equalsIgnoreCase("ins")) {
+            own = apiPersonnalData().get(ApiPersonnalData).saveNotification(mode, params)
+            //
+        } else if (mode.equalsIgnoreCase("upd")) {
+            own = pms.getLong("id")
+            if (own == 0)
+                throw new XError("Не указан [id]")
+            //
+            pms.put("own", own)
+            //1 Prop_TimeReceiving
+            if (pms.getLong("idTimeReceiving") == 0 && !pms.getString("TimeReceiving").isEmpty())
+                fillProperties(true, "Prop_TimeReceiving", pms)
+            //2 Prop_TimeReading
+            if (pms.getLong("idTimeReading") == 0 && !pms.getString("TimeReading").isEmpty())
+                fillProperties(true, "Prop_TimeReading", pms)
+            //
+        } else {
+            throw new XError("Unknown mode")
+        }
+        return loadNotification(own)
+    }
 
     @DaoMethod
     Store loadPersonnalLocationForSelect(long obj, String codProp) {
@@ -543,7 +649,7 @@ class DataDao extends BaseMdbUtils {
         //
         StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
         recDPV.set("dataProp", idDP)
-        // Attrib
+        // Attrib Str
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_TabNumber") ||
                     cod.equalsIgnoreCase("Prop_UserSecondName") ||
@@ -552,37 +658,46 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_UserEmail") ||
                     cod.equalsIgnoreCase("Prop_UserPhone") ||
                     cod.equalsIgnoreCase("Prop_UserId")) {
-                if (params.get(keyValue) != null) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
                 }
             } else {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
             }
         }
-        //
+        // Attrib MultiStr
         if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_Description")) {
-                if (params.get(keyValue) != null) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("multiStrVal", UtCnv.toString(params.get(keyValue)))
                 }
             } else {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
             }
         }
-
+        // Attrib Date
         if ([FD_AttribValType_consts.dt].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_CreatedAt") ||
                     cod.equalsIgnoreCase("Prop_UpdatedAt") ||
                     cod.equalsIgnoreCase("Prop_DateEmployment") ||
                     cod.equalsIgnoreCase("Prop_DateDismissal") ||
                     cod.equalsIgnoreCase("Prop_UserDateBirth")) {
-                if (params.get(keyValue) != null) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
                 }
             } else
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
         }
-
+        // Attrib DateTime
+        if ([FD_AttribValType_consts.dttm].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_TimeReceiving") ||
+                    cod.equalsIgnoreCase("Prop_TimeReading")) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
+                    recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+        }
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_UserSex") ||

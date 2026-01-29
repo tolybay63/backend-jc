@@ -1,6 +1,11 @@
 package tofi.api.dta.impl
 
+import jandcode.commons.UtCnv
+import jandcode.commons.datetime.XDate
+import jandcode.commons.datetime.XDateTime
+import jandcode.commons.datetime.XDateTimeFormatter
 import jandcode.commons.error.XError
+import jandcode.commons.variant.VariantMap
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
@@ -12,7 +17,13 @@ import tofi.api.dta.ApiOrgStructureData
 import tofi.api.dta.ApiPersonnalData
 import tofi.api.dta.ApiPlanData
 import tofi.api.dta.ApiUserData
+import tofi.api.dta.model.utils.EntityMdbUtils
+import tofi.api.dta.model.utils.UtPeriod
 import tofi.api.mdl.ApiMeta
+import tofi.api.mdl.model.consts.FD_AttribValType_consts
+import tofi.api.mdl.model.consts.FD_InputType_consts
+import tofi.api.mdl.model.consts.FD_PeriodType_consts
+import tofi.api.mdl.model.consts.FD_PropType_consts
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
 
@@ -308,6 +319,156 @@ class ApiPersonnalDataImpl extends BaseMdbUtils implements ApiPersonnalData {
         }
         //
         return st
+    }
+
+    @Override
+    Long saveNotification(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own = 0
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        params.putIfAbsent("fullName", pms.getString("name"))
+        //
+        if (mode.equalsIgnoreCase("ins")) {
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Notification", "")
+            params.put("cls", map.get("Cls_Notification"))
+            own = eu.insertEntity(params)
+            pms.put("own", own)
+            //1 Prop_Personnel
+            if (pms.getLong("objPersonnel") > 0)
+                fillProperties(true, "Prop_Personnel", pms)
+            else
+                throw new XError("Не указан [objPersonnel]")
+            //2 Prop_Description
+            if (!pms.getString("Description").isEmpty())
+                fillProperties(true, "Prop_Description", pms)
+            else
+                throw new XError("Не указан [Description]")
+            //3 Prop_TimeSending
+            if (!pms.getString("TimeSending").isEmpty())
+                fillProperties(true, "Prop_TimeSending", pms)
+            else
+                throw new XError("Не указан [TimeSending]")
+            //
+        } else {
+            throw new XError("Unknown mode")
+        }
+        return own
+    }
+
+    private void fillProperties(boolean isObj, String cod, Map<String, Object> params) {
+        long own = UtCnv.toLong(params.get("own"))
+        String keyValue = cod.split("_")[1]
+        def objRef = UtCnv.toLong(params.get("obj" + keyValue))
+        def propVal = UtCnv.toLong(params.get("pv" + keyValue))
+
+        Store stProp = apiMeta().get(ApiMeta).getPropInfo(cod)
+        //
+        long prop = stProp.get(0).getLong("id")
+        long propType = stProp.get(0).getLong("propType")
+        long attribValType = stProp.get(0).getLong("attribValType")
+        //
+        long idDP
+        StoreRecord recDP = mdb.createStoreRecord("DataProp")
+        String whe = isObj ? "and isObj=1 " : "and isObj=0 "
+        if (stProp.get(0).getLong("statusFactor") > 0) {
+            long fv = apiMeta().get(ApiMeta).getDefaultStatus(prop)
+            whe += "and status = ${fv} "
+        } else {
+            whe += "and status is null "
+        }
+        whe += "and provider is null "
+        //todo if (stProp.get(0).getLong("providerTyp") > 0)
+
+        if (stProp.get(0).getLong("providerTyp") > 0) {
+            whe += "and periodType is not null "
+        } else {
+            whe += "and periodType is null"
+        }
+        Store stDP = mdb.loadQuery("""
+            select * from DataProp
+            where objOrRelObj=${own} and prop=${prop} ${whe}
+        """)
+        if (stDP.size() > 0) {
+            idDP = stDP.get(0).getLong("id")
+        } else {
+            recDP.set("isObj", isObj)
+            recDP.set("objOrRelObj", own)
+            recDP.set("prop", prop)
+            if (stProp.get(0).getLong("statusFactor") > 0) {
+                long fv = apiMeta().get(ApiMeta).getDefaultStatus(prop)
+                recDP.set("status", fv)
+            }
+            if (stProp.get(0).getLong("providerTyp") > 0) {
+                //todo
+                // provider
+                //
+            }
+            if (stProp.get(0).getBoolean("dependperiod")) {
+                recDP.set("periodType", FD_PeriodType_consts.year)
+            }
+            idDP = mdb.insertRec("DataProp", recDP, true)
+        }
+        //
+        StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
+        recDPV.set("dataProp", idDP)
+
+        // Attrib multiStr
+        if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_Description")) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
+                    recDPV.set("multiStrVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // Attrib dttm
+        if ([FD_AttribValType_consts.dttm].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_TimeSending") ||
+                    cod.equalsIgnoreCase("Prop_TimeReceiving") ||
+                    cod.equalsIgnoreCase("Prop_TimeReading")) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
+                    recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+        }
+        // For Typ
+        if ([FD_PropType_consts.typ].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_Personnel")) {
+                if (objRef > 0) {
+                    recDPV.set("propVal", propVal)
+                    recDPV.set("obj", objRef)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        //
+        if (recDP.getLong("periodType") > 0) {
+            if (!params.containsKey("dte"))
+                params.put("dte", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE))
+            UtPeriod utPeriod = new UtPeriod()
+            XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(params.get("dte")), recDP.getLong("periodType"), 0)
+            XDate d2 = utPeriod.calcDend(UtCnv.toDate(params.get("dte")), recDP.getLong("periodType"), 0)
+            recDPV.set("dbeg", d1.toString(XDateTimeFormatter.ISO_DATE))
+            recDPV.set("dend", d2.toString(XDateTimeFormatter.ISO_DATE))
+        } else {
+            recDPV.set("dbeg", "1800-01-01")
+            recDPV.set("dend", "3333-12-31")
+        }
+
+        long au = 1
+        recDPV.set("authUser", au)
+        if (params.containsKey("inputType"))
+            recDPV.set("inputType", params.get("inputType"))
+        else
+            recDPV.set("inputType", FD_InputType_consts.app)
+        long idDPV = mdb.getNextId("DataPropVal")
+        recDPV.set("id", idDPV)
+        recDPV.set("ord", idDPV)
+        recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
+        mdb.insertRec("DataPropVal", recDPV, false)
     }
 
     private Store loadSqlService(String sql, String domain, String model) {

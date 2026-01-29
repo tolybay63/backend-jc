@@ -28,4 +28,28 @@
         <field name="nameLocation" parent="string"/>
     </domain>
 
+    <domain name="Obj.Notification" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+        <field name="fullName" parent="string"/>
+
+        <field name="idPersonnel" parent="long"/>
+        <field name="objPersonnel" parent="long"/>
+        <field name="pvPersonnel" parent="long"/>
+        <field name="namePersonnel" parent="string"/>
+
+        <field name="idDescription" parent="long"/>
+        <field name="Description" parent="string"/>
+
+        <field name="idTimeSending" parent="long"/>
+        <field name="TimeSending" parent="string"/>
+
+        <field name="idTimeReceiving" parent="long"/>
+        <field name="TimeReceiving" parent="string"/>
+
+        <field name="idTimeReading" parent="long"/>
+        <field name="TimeReading" parent="string"/>
+    </domain>
+
 </root>

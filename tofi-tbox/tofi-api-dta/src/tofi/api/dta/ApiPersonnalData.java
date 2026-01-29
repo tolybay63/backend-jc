@@ -55,4 +55,6 @@ public interface ApiPersonnalData {
     boolean checkExistOwners(long clsORrelcls, boolean isObj);
 
     Store loadPersonnal(long id);
+
+    Long saveNotification(String mode, Map<String, Object> params);
 }
