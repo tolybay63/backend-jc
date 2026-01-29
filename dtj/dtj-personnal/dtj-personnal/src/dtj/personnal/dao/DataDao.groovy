@@ -108,6 +108,7 @@ class DataDao extends BaseMdbUtils {
                 left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_TimeReading
                 left join DataPropVal v6 on d6.id=v6.dataprop
             where ${whe}
+            order by o.id
         """, map)
         //
         return st
@@ -143,6 +144,7 @@ class DataDao extends BaseMdbUtils {
                 left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_TimeReading
                 left join DataPropVal v6 on d6.id=v6.dataprop
             where ${whe}
+            order by o.id
         """, map)
         //
         return st

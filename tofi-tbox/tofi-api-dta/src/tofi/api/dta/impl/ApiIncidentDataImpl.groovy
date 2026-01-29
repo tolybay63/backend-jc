@@ -10,6 +10,7 @@ import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
 import jandcode.core.store.StoreRecord
 import tofi.api.dta.ApiIncidentData
+import tofi.api.dta.ApiPersonnalData
 import tofi.api.dta.model.utils.EntityMdbUtils
 import tofi.api.dta.model.utils.UtPeriod
 import tofi.api.mdl.ApiMeta
@@ -24,6 +25,9 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
 
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
+    }
+    ApinatorApi apiPersonnalData() {
+        return app.bean(ApinatorService).getApi("personnaldata")
     }
 
 
@@ -223,6 +227,15 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
         else
             throw new XError("[InfoApplicant] not specified")
         //
+        if (!pms.containsKey("inputType")) {
+            Map<String, Object> mapNotif = new HashMap<>()
+            mapNotif.put("name", pms.getString("own") + "_" + pms.getLong("objUser"))
+            mapNotif.put("objPersonnel", pms.getLong("objUser"))
+            mapNotif.put("pvPersonnel", pms.getLong("pvUser"))
+            mapNotif.put("TimeSending", pms.getString("RegistrationDateTime"))
+            mapNotif.put("Description", pms.getString("Description"))
+            apiPersonnalData().get(ApiPersonnalData).saveNotification("ins", mapNotif)
+        }
         return own
     }
 
