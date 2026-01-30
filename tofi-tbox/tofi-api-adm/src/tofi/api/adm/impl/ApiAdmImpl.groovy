@@ -93,12 +93,8 @@ class ApiAdmImpl extends BaseMdbUtils implements ApiAdm {
 
     @Override
     void changePasswd(long user, String oldPasswd, String newPasswd) {
-/*        Store st = mdb.loadQuery("select passwd from AuthUser where id=:id", Map.of("id", user))
-        if (UtString.md5Str(oldPasswd) != st.get(0).getString("passwd")) {
-            throw new XError("Старый пароль неверный")
-        }*/
         String psw = UtString.md5Str(newPasswd)
-        mdb.execQuery("update AuthUser set passwd=${psw} where id=${user}")
+        mdb.execQuery("update AuthUser set passwd='${psw}' where id=${user}")
     }
 
     @Override
