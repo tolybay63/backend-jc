@@ -106,7 +106,7 @@ class ApiAdmImpl extends BaseMdbUtils implements ApiAdm {
             throw new XError("Не найден пользователь с логиом [{0}]", login)
         }
         String psw = UtString.md5Str(newPasswd)
-        mdb.execQuery("update AuthUser set passwd=${psw} where id=${st.get(0).getLong("id")}")
+        mdb.execQuery("update AuthUser set passwd='${psw}' where id=${st.get(0).getLong("id")}")
         return st.get(0).getString("email")
     }
 
