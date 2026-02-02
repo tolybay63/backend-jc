@@ -1944,7 +1944,7 @@ class DataDao extends BaseMdbUtils {
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
 
         int beg = UtCnv.toInt(params.get('StartKm')) * 1000 + UtCnv.toInt(params.get('StartPicket')) * 100 + UtCnv.toInt(params.get('StartLink')) * 25
-        int end = UtCnv.toInt(params.get('FinishKm')) * 1000 + UtCnv.toInt(params.get('FinishPicket')) * 100 + UtCnv.toInt(params.get('FinishLink')) * 25
+        //int end = UtCnv.toInt(params.get('FinishKm')) * 1000 + UtCnv.toInt(params.get('FinishPicket')) * 100 + UtCnv.toInt(params.get('FinishLink')) * 25
 
         String sql = """
             select o.id, o.cls, v.name, null as pv,
@@ -1968,7 +1968,7 @@ class DataDao extends BaseMdbUtils {
                 and v3.numberVal * 1000 + v5.numberVal * 100 + v7.numberVal * 25 >= ${beg}
         """
         Store st = mdb.loadQuery(sql)
-        mdb.outTable(st)
+        //mdb.outTable(st)
         if (st.size() == 1) {
             long idPV = apiMeta().get(ApiMeta).idPV("cls", st.get(0).getLong("cls"), "Prop_Section")
             st.get(0).set("pv", idPV)
