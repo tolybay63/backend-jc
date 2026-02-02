@@ -1,6 +1,7 @@
 package dtj.object.test_obj
 
 import dtj.object.dao.DataDao
+import groovy.json.JsonSlurper
 import jandcode.commons.UtCnv
 import jandcode.core.apx.test.Apx_Test
 import jandcode.core.store.Store
@@ -237,6 +238,22 @@ class Obj_Test extends Apx_Test {
             dao.fillPropertiesForTest(true, "Prop_StartLink", mapProp)
             dao.fillPropertiesForTest(true, "Prop_FinishLink", mapProp)
         }
+    }
+
+    @Test
+    void test_Json() {
+        //def jsonFile = new File('C:\\jc-2\\_info\\objectdata_ObjVer.json')
+        def jsonFile = new File('C:\\jc-2\\_info\\objectdata_DataPropVal.json')
+
+        def slurper = new JsonSlurper()
+
+        List<Map<String, Object>> list = slurper.parse(jsonFile) as List<Map<String, Object>>
+
+        list.each { item ->
+            //mdb.execQueryNative("update ObjVer set fullName='${item.fullname}' where id=${item.id}")
+            mdb.execQueryNative("update DataPropVal set numberval='${item.numberval}' where id=${item.id}")
+        }
+
     }
 
 }
