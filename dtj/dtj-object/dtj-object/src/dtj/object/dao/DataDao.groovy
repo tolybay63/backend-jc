@@ -1965,10 +1965,10 @@ class DataDao extends BaseMdbUtils {
                 left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=${map.get("Prop_FinishLink")}
                 left join DataPropVal v7 on d7.id=v7.dataprop
             where ${whe} and v2.numberVal * 1000 + v4.numberVal * 100 + v6.numberVal * 25 <= ${beg} 
-                --and v3.numberVal * 1000 + v5.numberVal * 100 + v7.numberVal * 25 >= ${end}
+                and v3.numberVal * 1000 + v5.numberVal * 100 + v7.numberVal * 25 >= ${beg}
         """
         Store st = mdb.loadQuery(sql)
-        //mdb.outTable(st)
+        mdb.outTable(st)
         if (st.size() == 1) {
             long idPV = apiMeta().get(ApiMeta).idPV("cls", st.get(0).getLong("cls"), "Prop_Section")
             st.get(0).set("pv", idPV)
