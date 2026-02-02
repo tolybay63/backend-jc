@@ -1965,25 +1965,18 @@ class DataDao extends BaseMdbUtils {
                 left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=${map.get("Prop_FinishLink")}
                 left join DataPropVal v7 on d7.id=v7.dataprop
             where ${whe} and v2.numberVal * 1000 + v4.numberVal * 100 + v6.numberVal * 25 <= ${beg} 
-                and v3.numberVal * 1000 + v5.numberVal * 100 + v7.numberVal * 25 >= ${end}
+                --and v3.numberVal * 1000 + v5.numberVal * 100 + v7.numberVal * 25 >= ${end}
         """
         Store st = mdb.loadQuery(sql)
         //mdb.outTable(st)
         if (st.size() == 1) {
             long idPV = apiMeta().get(ApiMeta).idPV("cls", st.get(0).getLong("cls"), "Prop_Section")
-            st.get(0).set("pv", idPV )
+            st.get(0).set("pv", idPV)
             return st
+        } else if (st.size() == 0) {
+            throw new XError("По начальным координатам объекта не найдено место")
         } else {
-            for (StoreRecord r in st) {
-                if (beg != r.getInt("beg")) {
-                    long idPV = apiMeta().get(ApiMeta).idPV("cls", r.getLong("cls"), "Prop_Section")
-                    r.set("pv", idPV)
-                    Store stTmp = mdb.createStore("Obj.Station.ForSelect")
-                    stTmp.add(r)
-                    return stTmp
-                }
-            }
-            throw new XError("Not Found")
+            throw new XError("По начальным координатам объекта найдено несколько мест")
         }
     }
 
