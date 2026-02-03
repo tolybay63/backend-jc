@@ -1,0 +1,20 @@
+<root>
+
+    <domain name="TableLang" parent="id" tag.db="true"
+            genid.start="1000" genid.step="1" title="Переводы">
+        <!--@ Таблица для многоязычных полей для всех сущностей -->
+
+        <field name="nameTable" parent="string" size="32"/>
+        <field name="idTable" parent="long"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
+        <field name="lang" parent="string" size="5"/>
+
+        <!-- =================== create index =================== -->
+        <dbindex name="i_table" fields="nameTable,idTable,lang" unique="true"/>
+
+    </domain>
+
+
+</root>
