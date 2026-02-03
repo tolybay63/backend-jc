@@ -1,0 +1,566 @@
+<root>
+<row id="1" idDict="1" lang="ru" nameDict="fd_accesslevel" text="Общедоступный уровень"/>
+<row id="2" idDict="2" lang="ru" nameDict="fd_accesslevel" text="Первый уровень"/>
+<row id="3" idDict="3" lang="ru" nameDict="fd_accesslevel" text="Второй уровень"/>
+<row id="4" idDict="4" lang="ru" nameDict="fd_accesslevel" text="Третьий уровень"/>
+<row id="5" idDict="5" lang="ru" nameDict="fd_accesslevel" text="Четвертый уровень"/>
+<row id="6" idDict="6" lang="ru" nameDict="fd_accesslevel" text="Пятый уровень"/>
+<row id="7" idDict="7" lang="ru" nameDict="fd_accesslevel" text="Шестой уровень"/>
+<row id="8" idDict="8" lang="ru" nameDict="fd_accesslevel" text="Седьмой уровень"/>
+<row id="9" idDict="9" lang="ru" nameDict="fd_accesslevel" text="Восьмой уровень"/>
+<row id="10" idDict="10" lang="ru" nameDict="fd_accesslevel" text="Невидимый уровень"/>
+<row id="11" idDict="1" lang="kk" nameDict="fd_accesslevel" text="Қол жетімді деңгей"/>
+<row id="12" idDict="2" lang="kk" nameDict="fd_accesslevel" text="Бірінші деңгей"/>
+<row id="13" idDict="3" lang="kk" nameDict="fd_accesslevel" text="Екінші деңгей"/>
+<row id="14" idDict="4" lang="kk" nameDict="fd_accesslevel" text="Үшінші деңгей"/>
+<row id="15" idDict="5" lang="kk" nameDict="fd_accesslevel" text="Төртінші деңгей"/>
+<row id="16" idDict="6" lang="kk" nameDict="fd_accesslevel" text="Бесінші деңгей"/>
+<row id="17" idDict="7" lang="kk" nameDict="fd_accesslevel" text="Алтыншы деңгей"/>
+<row id="18" idDict="8" lang="kk" nameDict="fd_accesslevel" text="Жетінші деңгей"/>
+<row id="19" idDict="9" lang="kk" nameDict="fd_accesslevel" text="Сегізінші деңгей"/>
+<row id="20" idDict="10" lang="kk" nameDict="fd_accesslevel" text="Көрінбейтін деңгей"/>
+<row id="21" idDict="1" lang="en-US" nameDict="fd_accesslevel" text="Public level"/>
+<row id="22" idDict="2" lang="en-US" nameDict="fd_accesslevel" text="First level"/>
+<row id="23" idDict="3" lang="en-US" nameDict="fd_accesslevel" text="Second level"/>
+<row id="24" idDict="4" lang="en-US" nameDict="fd_accesslevel" text="Third level"/>
+<row id="25" idDict="5" lang="en-US" nameDict="fd_accesslevel" text="Fourth level"/>
+<row id="26" idDict="6" lang="en-US" nameDict="fd_accesslevel" text="Fifth level"/>
+<row id="27" idDict="7" lang="en-US" nameDict="fd_accesslevel" text="Sixth level"/>
+<row id="28" idDict="8" lang="en-US" nameDict="fd_accesslevel" text="Seventh level"/>
+<row id="29" idDict="9" lang="en-US" nameDict="fd_accesslevel" text="Eighth level"/>
+<row id="30" idDict="10" lang="en-US" nameDict="fd_accesslevel" text="Invisible level"/>
+<row id="31" idDict="1" lang="ru" nameDict="fd_attribvaltype" text="Строка"/>
+<row id="32" idDict="2" lang="ru" nameDict="fd_attribvaltype" text="Строка с маской"/>
+<row id="33" idDict="3" lang="ru" nameDict="fd_attribvaltype" text="Дата"/>
+<row id="34" idDict="4" lang="ru" nameDict="fd_attribvaltype" text="Время"/>
+<row id="35" idDict="5" lang="ru" nameDict="fd_attribvaltype" text="Дата и время"/>
+<row id="36" idDict="6" lang="ru" nameDict="fd_attribvaltype" text="Многострочный текст"/>
+<row id="37" idDict="7" lang="ru" nameDict="fd_attribvaltype" text="Файл"/>
+<row id="38" idDict="8" lang="ru" nameDict="fd_attribvaltype" text="Сущность ТОФИ"/>
+<row id="39" idDict="9" lang="ru" nameDict="fd_attribvaltype" text="Период"/>
+<row id="40" idDict="10" lang="ru" nameDict="fd_attribvaltype" text="Однозначный выбор"/>
+<row id="41" idDict="11" lang="ru" nameDict="fd_attribvaltype" text="Многозначный выбор"/>
+<row id="42" idDict="1" lang="kk" nameDict="fd_attribvaltype" text="Жол"/>
+<row id="43" idDict="2" lang="kk" nameDict="fd_attribvaltype" text="Маскалы жол"/>
+<row id="44" idDict="3" lang="kk" nameDict="fd_attribvaltype" text="Күн"/>
+<row id="45" idDict="4" lang="kk" nameDict="fd_attribvaltype" text="Уақыт"/>
+<row id="46" idDict="5" lang="kk" nameDict="fd_attribvaltype" text="Күні мен уақыты"/>
+<row id="47" idDict="6" lang="kk" nameDict="fd_attribvaltype" text="Көп жолды мәтін"/>
+<row id="48" idDict="7" lang="kk" nameDict="fd_attribvaltype" text="Файл"/>
+<row id="49" idDict="8" lang="kk" nameDict="fd_attribvaltype" text="TНФӨ негізі"/>
+<row id="50" idDict="9" lang="kk" nameDict="fd_attribvaltype" text="Кезең"/>
+<row id="51" idDict="10" lang="kk" nameDict="fd_attribvaltype" text="Айқын таңдау"/>
+<row id="52" idDict="11" lang="kk" nameDict="fd_attribvaltype" text="Көп таңдау"/>
+<row id="53" idDict="1" lang="en-US" nameDict="fd_attribvaltype" text="Line"/>
+<row id="54" idDict="2" lang="en-US" nameDict="fd_attribvaltype" text="Line with mask"/>
+<row id="55" idDict="3" lang="en-US" nameDict="fd_attribvaltype" text="Date"/>
+<row id="56" idDict="4" lang="en-US" nameDict="fd_attribvaltype" text="Time"/>
+<row id="57" idDict="5" lang="en-US" nameDict="fd_attribvaltype" text="Date and time"/>
+<row id="58" idDict="6" lang="en-US" nameDict="fd_attribvaltype" text="Multiline text"/>
+<row id="59" idDict="7" lang="en-US" nameDict="fd_attribvaltype" text="File"/>
+<row id="60" idDict="8" lang="en-US" nameDict="fd_attribvaltype" text="The essence of TOFI"/>
+<row id="61" idDict="9" lang="en-US" nameDict="fd_attribvaltype" text="Period"/>
+<row id="62" idDict="10" lang="en-US" nameDict="fd_attribvaltype" text="A clear choice"/>
+<row id="63" idDict="11" lang="en-US" nameDict="fd_attribvaltype" text="Multiple choice"/>
+<row id="64" idDict="1" lang="ru" nameDict="fd_cubesactiontype" text="Формирование куба"/>
+<row id="65" idDict="2" lang="ru" nameDict="fd_cubesactiontype" text="Очистка куба"/>
+<row id="66" idDict="1" lang="kk" nameDict="fd_cubesactiontype" text="Кубтың қалыптасуы"/>
+<row id="67" idDict="2" lang="kk" nameDict="fd_cubesactiontype" text="Текшені тазалау"/>
+<row id="68" idDict="1" lang="en-US" nameDict="fd_cubesactiontype" text="Formation of a cube"/>
+<row id="69" idDict="2" lang="en-US" nameDict="fd_cubesactiontype" text="Cleaning the cube"/>
+<row id="70" idDict="1" lang="ru" nameDict="fd_cubesdimtype" text="Измерение периодов"/>
+<row id="71" idDict="2" lang="ru" nameDict="fd_cubesdimtype" text="Измерение свойств"/>
+<row id="72" idDict="3" lang="ru" nameDict="fd_cubesdimtype" text="Измерение объектов и отношений"/>
+<row id="73" idDict="1" lang="kk" nameDict="fd_cubesdimtype" text="Кезеңдер өлшемі"/>
+<row id="74" idDict="2" lang="kk" nameDict="fd_cubesdimtype" text="Қасиеттер өлшемі"/>
+<row id="75" idDict="3" lang="kk" nameDict="fd_cubesdimtype" text="Объектілер мен қатынастард өлшемі"/>
+<row id="76" idDict="1" lang="en-US" nameDict="fd_cubesdimtype" text="Measuring periods"/>
+<row id="77" idDict="2" lang="en-US" nameDict="fd_cubesdimtype" text="Measuring properties"/>
+<row id="78" idDict="3" lang="en-US" nameDict="fd_cubesdimtype" text="Measuring objects and relationships"/>
+<row id="79" idDict="1" lang="ru" nameDict="fd_cubestype" text="Стандартный куб"/>
+<row id="80" idDict="2" lang="ru" nameDict="fd_cubestype" text="Вычисляемый куб"/>
+<row id="81" idDict="1" lang="kk" nameDict="fd_cubestype" text="Стандартты куб"/>
+<row id="82" idDict="2" lang="kk" nameDict="fd_cubestype" text="Есептелген куб"/>
+<row id="83" idDict="1" lang="en-US" nameDict="fd_cubestype" text="Standard cube"/>
+<row id="84" idDict="2" lang="en-US" nameDict="fd_cubestype" text="Computed Cube"/>
+<row id="85" idDict="1" lang="ru" nameDict="fd_databasetype" text="Пользователи и роли"/>
+<row id="86" idDict="2" lang="ru" nameDict="fd_databasetype" text="Метаданные"/>
+<row id="87" idDict="3" lang="ru" nameDict="fd_databasetype" text="Данные"/>
+<row id="88" idDict="4" lang="ru" nameDict="fd_databasetype" text="Кубы"/>
+<row id="89" idDict="1" lang="kk" nameDict="fd_databasetype" text="Пайдаланушылар мен рөлдер"/>
+<row id="90" idDict="2" lang="kk" nameDict="fd_databasetype" text="Метадеректер"/>
+<row id="91" idDict="3" lang="kk" nameDict="fd_databasetype" text="Деректер"/>
+<row id="92" idDict="4" lang="kk" nameDict="fd_databasetype" text="Кубтар"/>
+<row id="93" idDict="1" lang="en-US" nameDict="fd_databasetype" text="Users and Roles"/>
+<row id="94" idDict="2" lang="en-US" nameDict="fd_databasetype" text="Metadata"/>
+<row id="95" idDict="3" lang="en-US" nameDict="fd_databasetype" text="Data"/>
+<row id="96" idDict="4" lang="en-US" nameDict="fd_databasetype" text="Cuba"/>
+<row id="97" idDict="1" lang="ru" nameDict="fd_dimmultiproptype" text="Статическое измерение многомерного свойства"/>
+<row id="98" idDict="2" lang="ru" nameDict="fd_dimmultiproptype" text="Динамическое измерение многомерного свойства"/>
+<row id="99" idDict="1" lang="kk" nameDict="fd_dimmultiproptype" text="Көпөлшемді қасиеттің статикалық өлшемі"/>
+<row id="100" idDict="2" lang="kk" nameDict="fd_dimmultiproptype" text="Көпөлшемді қасиеттің динамикалық өлшемі"/>
+<row id="101" idDict="1" lang="en-US" nameDict="fd_dimmultiproptype" text="Static measurement of a multidimensional property"/>
+<row id="102" idDict="2" lang="en-US" nameDict="fd_dimmultiproptype" text="Dynamic measurement of multidimensional property"/>
+<row id="103" idDict="1" lang="ru" nameDict="fd_dimobjitemtype" text="Тип объектов"/>
+<row id="104" idDict="2" lang="ru" nameDict="fd_dimobjitemtype" text="Класс объектов"/>
+<row id="105" idDict="3" lang="ru" nameDict="fd_dimobjitemtype" text="Отношение между типами объектов"/>
+<row id="106" idDict="4" lang="ru" nameDict="fd_dimobjitemtype" text="Отношение между классами объектов"/>
+<row id="107" idDict="5" lang="ru" nameDict="fd_dimobjitemtype" text="Участник отношения между типами объектов (тип объектов)"/>
+<row id="108" idDict="6" lang="ru" nameDict="fd_dimobjitemtype" text="Участник отношения между типами объектов (класс объектов)"/>
+<row id="109" idDict="7" lang="ru" nameDict="fd_dimobjitemtype" text="Участник отношения между типами объектов (отношение между типами объектов)"/>
+<row id="110" idDict="8" lang="ru" nameDict="fd_dimobjitemtype" text="Участник отношения между типами объектов (отношение между классами объектов)"/>
+<row id="111" idDict="1" lang="kk" nameDict="fd_dimobjitemtype" text="Объектілердің түрі"/>
+<row id="112" idDict="2" lang="kk" nameDict="fd_dimobjitemtype" text="Объект класы"/>
+<row id="113" idDict="3" lang="kk" nameDict="fd_dimobjitemtype" text="Объектілердің түрлері арасындағы байланыс"/>
+<row id="114" idDict="4" lang="kk" nameDict="fd_dimobjitemtype" text="Объектілер кластары арасындағы байланыс"/>
+<row id="115" idDict="5" lang="kk" nameDict="fd_dimobjitemtype" text="Нысан түрлері арасындағы қатынасқа қатысушы (объект түрі)"/>
+<row id="116" idDict="6" lang="kk" nameDict="fd_dimobjitemtype" text="Нысан түрлері арасындағы қатынасқа қатысушы (объект класы)"/>
+<row id="117" idDict="7" lang="kk" nameDict="fd_dimobjitemtype" text="Объект типтері арасындағы қатынастың қатысушысы (объект түрлері арасындағы қатынас"/>
+<row id="118" idDict="8" lang="kk" nameDict="fd_dimobjitemtype" text="Объект типтері арасындағы қатынастың қатысушысы (объектілер кластары арасындағы қатынас)"/>
+<row id="119" idDict="1" lang="en-US" nameDict="fd_dimobjitemtype" text="Type of objects"/>
+<row id="120" idDict="2" lang="en-US" nameDict="fd_dimobjitemtype" text="Object class"/>
+<row id="121" idDict="3" lang="en-US" nameDict="fd_dimobjitemtype" text="Relationship between object types"/>
+<row id="122" idDict="4" lang="en-US" nameDict="fd_dimobjitemtype" text="Relationship between classes of objects"/>
+<row id="123" idDict="5" lang="en-US" nameDict="fd_dimobjitemtype" text="Participant of the relationship between object types (object type)"/>
+<row id="124" idDict="6" lang="en-US" nameDict="fd_dimobjitemtype" text="Participant of a relationship between object types (object class)"/>
+<row id="125" idDict="7" lang="en-US" nameDict="fd_dimobjitemtype" text="Participant of the relationship between object types (relationship between object types)"/>
+<row id="126" idDict="8" lang="en-US" nameDict="fd_dimobjitemtype" text="Participant of the relationship between object types (relationship between object classes)"/>
+<row id="127" idDict="1" lang="ru" nameDict="fd_dimproptype" text="Иерархия свойств"/>
+<row id="128" idDict="2" lang="ru" nameDict="fd_dimproptype" text="Иерархия значений факторов"/>
+<row id="129" idDict="3" lang="ru" nameDict="fd_dimproptype" text="Список многомерных свойств"/>
+<row id="130" idDict="4" lang="ru" nameDict="fd_dimproptype" text="Измерение многомерного свойства"/>
+<row id="131" idDict="1" lang="kk" nameDict="fd_dimproptype" text="Қасиеттер иерархиясы"/>
+<row id="132" idDict="2" lang="kk" nameDict="fd_dimproptype" text="Факторлық мәндердің иерархиясы"/>
+<row id="133" idDict="3" lang="kk" nameDict="fd_dimproptype" text="Көпөлшемді қасиеттер тізімі"/>
+<row id="134" idDict="4" lang="kk" nameDict="fd_dimproptype" text="Көпөлшемді қасиетті өлшемі"/>
+<row id="135" idDict="1" lang="en-US" nameDict="fd_dimproptype" text="Hierarchy of properties"/>
+<row id="136" idDict="2" lang="en-US" nameDict="fd_dimproptype" text="Hierarchy of factor values"/>
+<row id="137" idDict="3" lang="en-US" nameDict="fd_dimproptype" text="List of multidimensional properties"/>
+<row id="138" idDict="4" lang="en-US" nameDict="fd_dimproptype" text="Measuring a multidimensional property"/>
+<row id="139" idDict="1" lang="ru" nameDict="fd_distributionlaw" text="Равномерный закон распределения"/>
+<row id="140" idDict="2" lang="ru" nameDict="fd_distributionlaw" text="Нормальный закон распределения"/>
+<row id="141" idDict="3" lang="ru" nameDict="fd_distributionlaw" text="Геометрический закон распределения"/>
+<row id="142" idDict="4" lang="ru" nameDict="fd_distributionlaw" text="Закон распределения Бернулли"/>
+<row id="143" idDict="1" lang="kk" nameDict="fd_distributionlaw" text="Біркелкі бөлу заңы"/>
+<row id="144" idDict="2" lang="kk" nameDict="fd_distributionlaw" text="Қалыпты таралу заңы"/>
+<row id="145" idDict="3" lang="kk" nameDict="fd_distributionlaw" text="Геометриялық таралу заңы"/>
+<row id="146" idDict="4" lang="kk" nameDict="fd_distributionlaw" text="Бернуллидің таралу заңы"/>
+<row id="147" idDict="1" lang="en-US" nameDict="fd_distributionlaw" text="Uniform distribution law"/>
+<row id="148" idDict="2" lang="en-US" nameDict="fd_distributionlaw" text="Normal distribution law"/>
+<row id="149" idDict="3" lang="en-US" nameDict="fd_distributionlaw" text="Geometric distribution law"/>
+<row id="150" idDict="4" lang="en-US" nameDict="fd_distributionlaw" text="Bernoulli&#39;s distribution law"/>
+<row id="151" idDict="1" lang="ru" nameDict="fd_entitytype" text="Единица измерения"/>
+<row id="152" idDict="2" lang="ru" nameDict="fd_entitytype" text="Атрибут"/>
+<row id="153" idDict="3" lang="ru" nameDict="fd_entitytype" text="Фактор"/>
+<row id="154" idDict="4" lang="ru" nameDict="fd_entitytype" text="Значение фактора"/>
+<row id="155" idDict="5" lang="ru" nameDict="fd_entitytype" text="Измеритель"/>
+<row id="156" idDict="6" lang="ru" nameDict="fd_entitytype" text="Показатель"/>
+<row id="157" idDict="7" lang="ru" nameDict="fd_entitytype" text="Шкала"/>
+<row id="158" idDict="8" lang="ru" nameDict="fd_entitytype" text="Настройка шкалы"/>
+<row id="159" idDict="9" lang="ru" nameDict="fd_entitytype" text="Роль типа объектов и отношений"/>
+<row id="160" idDict="10" lang="ru" nameDict="fd_entitytype" text="Тип объектов"/>
+<row id="161" idDict="11" lang="ru" nameDict="fd_entitytype" text="Класс объектов"/>
+<row id="162" idDict="12" lang="ru" nameDict="fd_entitytype" text="Система кодирования"/>
+<row id="163" idDict="13" lang="ru" nameDict="fd_entitytype" text="Группа свойств"/>
+<row id="164" idDict="14" lang="ru" nameDict="fd_entitytype" text="Свойство"/>
+<row id="165" idDict="15" lang="ru" nameDict="fd_entitytype" text="Группа измерений многомерного свойства"/>
+<row id="166" idDict="16" lang="ru" nameDict="fd_entitytype" text="Измерения многомерного свойства"/>
+<row id="167" idDict="17" lang="ru" nameDict="fd_entitytype" text="Элементы измерения многомерного свойства"/>
+<row id="168" idDict="18" lang="ru" nameDict="fd_entitytype" text="Группа многомерных свойств"/>
+<row id="169" idDict="19" lang="ru" nameDict="fd_entitytype" text="Многомерные свойства"/>
+<row id="170" idDict="20" lang="ru" nameDict="fd_entitytype" text="Группа характеристических свойств типа объектов"/>
+<row id="171" idDict="21" lang="ru" nameDict="fd_entitytype" text="Отношени между типами объектов"/>
+<row id="172" idDict="22" lang="ru" nameDict="fd_entitytype" text="Отношени между классами объектов"/>
+<row id="173" idDict="23" lang="ru" nameDict="fd_entitytype" text="Группа характеристических свойств отношения между типами объектов"/>
+<row id="174" idDict="24" lang="ru" nameDict="fd_entitytype" text="Измерение периодов"/>
+<row id="175" idDict="25" lang="ru" nameDict="fd_entitytype" text="Группа измерений свойств"/>
+<row id="176" idDict="26" lang="ru" nameDict="fd_entitytype" text="Измерение свойств"/>
+<row id="177" idDict="27" lang="ru" nameDict="fd_entitytype" text="Группа измерений объектов и отношений"/>
+<row id="178" idDict="28" lang="ru" nameDict="fd_entitytype" text="Измерение объектов и отношений"/>
+<row id="179" idDict="29" lang="ru" nameDict="fd_entitytype" text="Перечень базы данных"/>
+<row id="180" idDict="30" lang="ru" nameDict="fd_entitytype" text="Плоские таблицы"/>
+<row id="181" idDict="31" lang="ru" nameDict="fd_entitytype" text="Группа стандартных кубов"/>
+<row id="182" idDict="32" lang="ru" nameDict="fd_entitytype" text="Стандартные кубы"/>
+<row id="183" idDict="1" lang="kk" nameDict="fd_entitytype" text="Өлшем бірлігі"/>
+<row id="184" idDict="2" lang="kk" nameDict="fd_entitytype" text="Атрибут"/>
+<row id="185" idDict="3" lang="kk" nameDict="fd_entitytype" text="Фактор"/>
+<row id="186" idDict="4" lang="kk" nameDict="fd_entitytype" text="Фактордың мәні"/>
+<row id="187" idDict="5" lang="kk" nameDict="fd_entitytype" text="Өлшеуіш"/>
+<row id="188" idDict="6" lang="kk" nameDict="fd_entitytype" text="Көрсеткіш"/>
+<row id="189" idDict="7" lang="kk" nameDict="fd_entitytype" text="Шкала"/>
+<row id="190" idDict="8" lang="kk" nameDict="fd_entitytype" text="Шкала параметрлері"/>
+<row id="191" idDict="9" lang="kk" nameDict="fd_entitytype" text="Объект типі мен қатынастардың рөлі"/>
+<row id="192" idDict="10" lang="kk" nameDict="fd_entitytype" text="Объектілердің түрі"/>
+<row id="193" idDict="11" lang="kk" nameDict="fd_entitytype" text="Объект класы"/>
+<row id="194" idDict="12" lang="kk" nameDict="fd_entitytype" text="Кодтау жүйесі"/>
+<row id="195" idDict="13" lang="kk" nameDict="fd_entitytype" text="Қасиеттер тобы"/>
+<row id="196" idDict="14" lang="kk" nameDict="fd_entitytype" text="Қасиет"/>
+<row id="197" idDict="15" lang="kk" nameDict="fd_entitytype" text="Көпөлшемді қасиеттің өлшемдер тобы"/>
+<row id="198" idDict="16" lang="kk" nameDict="fd_entitytype" text="Көпөлшемді меншіктің өлшемдері"/>
+<row id="199" idDict="17" lang="kk" nameDict="fd_entitytype" text="Көпөлшемді қасиетті өлшеу элементтері"/>
+<row id="200" idDict="18" lang="kk" nameDict="fd_entitytype" text="Көпөлшемді қасиеттер тобы"/>
+<row id="201" idDict="19" lang="kk" nameDict="fd_entitytype" text="Көпөлшемді қасиеттер"/>
+<row id="202" idDict="20" lang="kk" nameDict="fd_entitytype" text="Объекті түрінің сипаттамалық қасиеттері тобы"/>
+<row id="203" idDict="21" lang="kk" nameDict="fd_entitytype" text="Объектілердің түрлері арасындағы байланыстар"/>
+<row id="204" idDict="22" lang="kk" nameDict="fd_entitytype" text="Объектілер кластары арасындағы байланыстар"/>
+<row id="205" idDict="23" lang="kk" nameDict="fd_entitytype" text="Объектілердің типтері арасындағы қатынастың сипатты қасиеттерінің тобы"/>
+<row id="206" idDict="24" lang="kk" nameDict="fd_entitytype" text="Кезеңдер өлшемі"/>
+<row id="207" idDict="25" lang="kk" nameDict="fd_entitytype" text="Кезеңдер өлшемінің тобы"/>
+<row id="208" idDict="26" lang="kk" nameDict="fd_entitytype" text="Қасиеттер өлшемі"/>
+<row id="209" idDict="27" lang="kk" nameDict="fd_entitytype" text="Объектілер мен қатынастардың өлшемдер тобы"/>
+<row id="210" idDict="28" lang="kk" nameDict="fd_entitytype" text="Объектілер мен қатынастарды өлшемі"/>
+<row id="211" idDict="29" lang="kk" nameDict="fd_entitytype" text="Мәліметтер базасының тізімі"/>
+<row id="212" idDict="30" lang="kk" nameDict="fd_entitytype" text="Тегіс кестелер"/>
+<row id="213" idDict="31" lang="kk" nameDict="fd_entitytype" text="Стандартты кубтар тобы"/>
+<row id="214" idDict="32" lang="kk" nameDict="fd_entitytype" text="Стандартты кубтар"/>
+<row id="215" idDict="1" lang="en-US" nameDict="fd_entitytype" text="Unit of measurement"/>
+<row id="216" idDict="2" lang="en-US" nameDict="fd_entitytype" text="Attribute"/>
+<row id="217" idDict="3" lang="en-US" nameDict="fd_entitytype" text="Factor"/>
+<row id="218" idDict="4" lang="en-US" nameDict="fd_entitytype" text="The importance of the factor"/>
+<row id="219" idDict="5" lang="en-US" nameDict="fd_entitytype" text="Meter"/>
+<row id="220" idDict="6" lang="en-US" nameDict="fd_entitytype" text="Indicator"/>
+<row id="221" idDict="7" lang="en-US" nameDict="fd_entitytype" text="Scale"/>
+<row id="222" idDict="8" lang="en-US" nameDict="fd_entitytype" text="Setting up the scale"/>
+<row id="223" idDict="9" lang="en-US" nameDict="fd_entitytype" text="The role of object type and relationships"/>
+<row id="224" idDict="10" lang="en-US" nameDict="fd_entitytype" text="Type of objects"/>
+<row id="225" idDict="11" lang="en-US" nameDict="fd_entitytype" text="Object class"/>
+<row id="226" idDict="12" lang="en-US" nameDict="fd_entitytype" text="Coding system"/>
+<row id="227" idDict="13" lang="en-US" nameDict="fd_entitytype" text="Property Group"/>
+<row id="228" idDict="14" lang="en-US" nameDict="fd_entitytype" text="Property"/>
+<row id="229" idDict="15" lang="en-US" nameDict="fd_entitytype" text="Group of dimensions of a multidimensional property"/>
+<row id="230" idDict="16" lang="en-US" nameDict="fd_entitytype" text="Dimensions of multidimensional property"/>
+<row id="231" idDict="17" lang="en-US" nameDict="fd_entitytype" text="Elements of measurement of multidimensional property"/>
+<row id="232" idDict="18" lang="en-US" nameDict="fd_entitytype" text="Multidimensional properties group"/>
+<row id="233" idDict="19" lang="en-US" nameDict="fd_entitytype" text="Multidimensional properties"/>
+<row id="234" idDict="20" lang="en-US" nameDict="fd_entitytype" text="Group of characteristic properties of an object type"/>
+<row id="235" idDict="21" lang="en-US" nameDict="fd_entitytype" text="Relationships between object types"/>
+<row id="236" idDict="22" lang="en-US" nameDict="fd_entitytype" text="Relationships between classes of objects"/>
+<row id="237" idDict="23" lang="en-US" nameDict="fd_entitytype" text="A group of characteristic properties of the relationship between types of objects"/>
+<row id="238" idDict="24" lang="en-US" nameDict="fd_entitytype" text="Measuring periods"/>
+<row id="239" idDict="25" lang="en-US" nameDict="fd_entitytype" text="Property Measurement Group"/>
+<row id="240" idDict="26" lang="en-US" nameDict="fd_entitytype" text="Measuring properties"/>
+<row id="241" idDict="27" lang="en-US" nameDict="fd_entitytype" text="Group of dimensions of objects and relations"/>
+<row id="242" idDict="28" lang="en-US" nameDict="fd_entitytype" text="Measuring objects and relationships"/>
+<row id="243" idDict="29" lang="en-US" nameDict="fd_entitytype" text="Database list"/>
+<row id="244" idDict="30" lang="en-US" nameDict="fd_entitytype" text="Flat tables"/>
+<row id="245" idDict="31" lang="en-US" nameDict="fd_entitytype" text="Group of standard cubes"/>
+<row id="246" idDict="32" lang="en-US" nameDict="fd_entitytype" text="Standard cubes"/>
+<row id="247" idDict="1" lang="ru" nameDict="fd_inputtype" text="Интерактивный ввод из среды моделирования"/>
+<row id="248" idDict="2" lang="ru" nameDict="fd_inputtype" text="Интерактивный ввод из интерфейса пользователя главного приложения"/>
+<row id="249" idDict="3" lang="ru" nameDict="fd_inputtype" text="Интерактивный ввод из системы сбора данных"/>
+<row id="250" idDict="4" lang="ru" nameDict="fd_inputtype" text="Ввод через ETL-приложение"/>
+<row id="251" idDict="1" lang="kk" nameDict="fd_inputtype" text="Модельдеу ортасынан интерактивті енгізу"/>
+<row id="252" idDict="2" lang="kk" nameDict="fd_inputtype" text="Негізгі қолданбаның пайдаланушы интерфейсінен интерактивті енгізу"/>
+<row id="253" idDict="3" lang="kk" nameDict="fd_inputtype" text="Деректерді жинау жүйесінен интерактивті енгізу"/>
+<row id="254" idDict="4" lang="kk" nameDict="fd_inputtype" text="ETL қолданбасы арқылы енгізу"/>
+<row id="255" idDict="1" lang="en-US" nameDict="fd_inputtype" text="Interactive input from the simulation environment"/>
+<row id="256" idDict="2" lang="en-US" nameDict="fd_inputtype" text="Interactive input from the main application user interface"/>
+<row id="257" idDict="3" lang="en-US" nameDict="fd_inputtype" text="Interactive input from a data collection system"/>
+<row id="258" idDict="4" lang="en-US" nameDict="fd_inputtype" text="Input via ETL application"/>
+<row id="259" idDict="1" lang="ru" nameDict="fd_linktype" text="1. Отсутствует"/>
+<row id="260" idDict="2" lang="ru" nameDict="fd_linktype" text="2. Родительский и дочерний компоненты - участники отношения между типами объектов"/>
+<row id="261" idDict="3" lang="ru" nameDict="fd_linktype" text="3. Дочерний компонент - участник родительского компонента"/>
+<row id="262" idDict="4" lang="ru" nameDict="fd_linktype" text="4. Родительский компонент - участник дочернего компонента"/>
+<row id="263" idDict="5" lang="ru" nameDict="fd_linktype" text="5. Дочерний компонент - значения одного свойства родительского компонента"/>
+<row id="264" idDict="6" lang="ru" nameDict="fd_linktype" text="6. Дочерний компонент - значения одного  свойства участника родительского компонента"/>
+<row id="265" idDict="7" lang="ru" nameDict="fd_linktype" text="7. Участник дочернего компонента - значения одного свойства родительского компонента"/>
+<row id="266" idDict="8" lang="ru" nameDict="fd_linktype" text="8. Участник дочернего компонента - значения одного свойства участника родительского компонента"/>
+<row id="267" idDict="9" lang="ru" nameDict="fd_linktype" text="9. Родительский компонент - значения одного свойства дочернего компонента"/>
+<row id="268" idDict="10" lang="ru" nameDict="fd_linktype" text="10. Родительский компонент - значения одного свойства участника дочернего компонента"/>
+<row id="269" idDict="11" lang="ru" nameDict="fd_linktype" text="11. Участник родительского компонента - значение одного свойства дочернего компонента"/>
+<row id="270" idDict="12" lang="ru" nameDict="fd_linktype" text="12. Участник родительского компонента - значения одного свойства участника дочернего компонента"/>
+<row id="271" idDict="1" lang="kk" nameDict="fd_linktype" text="1. Жоқ"/>
+<row id="272" idDict="2" lang="kk" nameDict="fd_linktype" text="2. Ата-ана және еншілес компоненттер объект типтері арасындағы қатынасқа қатысушылар болып табылады"/>
+<row id="273" idDict="3" lang="kk" nameDict="fd_linktype" text="3. Еншілес компонент - негізгі компоненттің қатысушысы"/>
+<row id="274" idDict="4" lang="kk" nameDict="fd_linktype" text="4. Негізгі компонент - еншілес компоненттің қатысушысы"/>
+<row id="275" idDict="5" lang="kk" nameDict="fd_linktype" text="5. Еншілес компонент – негізгі компоненттің бір қасиетінің мәндері"/>
+<row id="276" idDict="6" lang="kk" nameDict="fd_linktype" text="6. Еншілес компонент – негізгі компонент мүшесінің бір қасиетінің мәндері"/>
+<row id="277" idDict="7" lang="kk" nameDict="fd_linktype" text="7. Еншілес компонент қатысушысы - негізгі компоненттің бір қасиетінің мәндері"/>
+<row id="278" idDict="8" lang="kk" nameDict="fd_linktype" text="8. Еншілес құрамдас мүшесі - негізгі құрамдас мүшесінің бір қасиетінің мәндері"/>
+<row id="279" idDict="9" lang="kk" nameDict="fd_linktype" text="9. Негізгі компонент – еншілес компоненттің бір қасиетінің мәндері"/>
+<row id="280" idDict="10" lang="kk" nameDict="fd_linktype" text="10. Негізгі компонент – еншілес компонент мүшесінің бір қасиетінің мәндері"/>
+<row id="281" idDict="11" lang="kk" nameDict="fd_linktype" text="11. Негізгі компонент мүшесі – еншілес компоненттің бір қасиетінің мәні"/>
+<row id="282" idDict="12" lang="kk" nameDict="fd_linktype" text="12. Негізгі компонент мүшесі - еншілес компонент мүшесінің бір қасиетінің мәндері"/>
+<row id="283" idDict="1" lang="en-US" nameDict="fd_linktype" text="1. None"/>
+<row id="284" idDict="2" lang="en-US" nameDict="fd_linktype" text="2. Parent and child components are participants in the relationship between object types"/>
+<row id="285" idDict="3" lang="en-US" nameDict="fd_linktype" text="3. Child component is a participant of the parent component"/>
+<row id="286" idDict="4" lang="en-US" nameDict="fd_linktype" text="4. Parent component is a participant of the child component"/>
+<row id="287" idDict="5" lang="en-US" nameDict="fd_linktype" text="5. Child component - values of one property of the parent component"/>
+<row id="288" idDict="6" lang="en-US" nameDict="fd_linktype" text="6. Child component - values of one property of the parent component member"/>
+<row id="289" idDict="7" lang="en-US" nameDict="fd_linktype" text="7. Child component participant - values of one property of parent component"/>
+<row id="290" idDict="8" lang="en-US" nameDict="fd_linktype" text="8. Child component member - values of one property of parent component member"/>
+<row id="291" idDict="9" lang="en-US" nameDict="fd_linktype" text="9. Parent component - values of one property of child component"/>
+<row id="292" idDict="10" lang="en-US" nameDict="fd_linktype" text="10. Parent component - values of one property of a child component member"/>
+<row id="293" idDict="11" lang="en-US" nameDict="fd_linktype" text="11. Parent component member - value of one property of child component"/>
+<row id="294" idDict="12" lang="en-US" nameDict="fd_linktype" text="12. Parent component member - values of one property of child component member"/>
+<row id="295" idDict="1" lang="ru" nameDict="fd_membertype" text="Тип объектов"/>
+<row id="296" idDict="2" lang="ru" nameDict="fd_membertype" text="Отношение между типами объектов"/>
+<row id="297" idDict="3" lang="ru" nameDict="fd_membertype" text="Класс объектов"/>
+<row id="298" idDict="4" lang="ru" nameDict="fd_membertype" text="Класс отношений"/>
+<row id="299" idDict="1" lang="kk" nameDict="fd_membertype" text="Объектілердің түрі"/>
+<row id="300" idDict="2" lang="kk" nameDict="fd_membertype" text="Объектілердің түрлері арасындағы байланыс"/>
+<row id="301" idDict="3" lang="kk" nameDict="fd_membertype" text="Объект класы"/>
+<row id="302" idDict="4" lang="kk" nameDict="fd_membertype" text="Қарым-қатынас класы"/>
+<row id="303" idDict="1" lang="en-US" nameDict="fd_membertype" text="Type of objects"/>
+<row id="304" idDict="2" lang="en-US" nameDict="fd_membertype" text="Relationship between object types"/>
+<row id="305" idDict="3" lang="en-US" nameDict="fd_membertype" text="Object class"/>
+<row id="306" idDict="4" lang="en-US" nameDict="fd_membertype" text="Relationship class"/>
+<row id="307" idDict="1" lang="ru" nameDict="fd_meterbehavior" text="Положительное поведение"/>
+<row id="308" idDict="2" lang="ru" nameDict="fd_meterbehavior" text="Отрицательное поведение"/>
+<row id="309" idDict="3" lang="ru" nameDict="fd_meterbehavior" text="Нейтральное поведение"/>
+<row id="310" idDict="1" lang="kk" nameDict="fd_meterbehavior" text="Позитивті мінез-құлық"/>
+<row id="311" idDict="2" lang="kk" nameDict="fd_meterbehavior" text="Жағымсыз мінез-құлық"/>
+<row id="312" idDict="3" lang="kk" nameDict="fd_meterbehavior" text="Бейтарап мінез-құлық"/>
+<row id="313" idDict="1" lang="en-US" nameDict="fd_meterbehavior" text="Positive behavior"/>
+<row id="314" idDict="2" lang="en-US" nameDict="fd_meterbehavior" text="Negative behavior"/>
+<row id="315" idDict="3" lang="en-US" nameDict="fd_meterbehavior" text="Neutral behavior"/>
+<row id="316" idDict="1" lang="ru" nameDict="fd_meterdeterm" text="Детерминированный измеритель"/>
+<row id="317" idDict="2" lang="ru" nameDict="fd_meterdeterm" text="Стохастический измеритель"/>
+<row id="318" idDict="1" lang="kk" nameDict="fd_meterdeterm" text="Детерминистикалық өлшегіш"/>
+<row id="319" idDict="2" lang="kk" nameDict="fd_meterdeterm" text="Стохастикалық өлшегіш"/>
+<row id="320" idDict="1" lang="en-US" nameDict="fd_meterdeterm" text="Deterministic meter"/>
+<row id="321" idDict="2" lang="en-US" nameDict="fd_meterdeterm" text="Stochastic meter"/>
+<row id="322" idDict="1" lang="ru" nameDict="fd_meterstruct" text="Жесткий измеритель"/>
+<row id="323" idDict="2" lang="ru" nameDict="fd_meterstruct" text="Мягкий измеритель"/>
+<row id="324" idDict="1" lang="kk" nameDict="fd_meterstruct" text="Қатты өлшегіш"/>
+<row id="325" idDict="2" lang="kk" nameDict="fd_meterstruct" text="Жұмсақ өлшегіш"/>
+<row id="326" idDict="1" lang="en-US" nameDict="fd_meterstruct" text="Hard measuring device"/>
+<row id="327" idDict="2" lang="en-US" nameDict="fd_meterstruct" text="Soft meter"/>
+<row id="328" idDict="1" lang="ru" nameDict="fd_metertype" text="Интегральный измеритель"/>
+<row id="329" idDict="2" lang="ru" nameDict="fd_metertype" text="Дифференциальный измеритель"/>
+<row id="330" idDict="1" lang="kk" nameDict="fd_metertype" text="Интегралдық өлшегіш"/>
+<row id="331" idDict="2" lang="kk" nameDict="fd_metertype" text="Дифференциалды өлшегіш"/>
+<row id="332" idDict="1" lang="en-US" nameDict="fd_metertype" text="Integral meter"/>
+<row id="333" idDict="2" lang="en-US" nameDict="fd_metertype" text="Differential meter"/>
+<row id="334" idDict="1" lang="ru" nameDict="fd_mode" text="Добавление"/>
+<row id="335" idDict="2" lang="ru" nameDict="fd_mode" text="Изменение"/>
+<row id="336" idDict="3" lang="ru" nameDict="fd_mode" text="Удаление"/>
+<row id="337" idDict="1" lang="kk" nameDict="fd_mode" text="Қосымша"/>
+<row id="338" idDict="2" lang="kk" nameDict="fd_mode" text="Өзгерту"/>
+<row id="339" idDict="3" lang="kk" nameDict="fd_mode" text="Жою"/>
+<row id="340" idDict="1" lang="en-US" nameDict="fd_mode" text="Addition"/>
+<row id="341" idDict="2" lang="en-US" nameDict="fd_mode" text="Change"/>
+<row id="342" idDict="3" lang="en-US" nameDict="fd_mode" text="Removal"/>
+<row id="343" idDict="11" lang="ru" nameDict="fd_multivalentitytype" text="Не определено"/>
+<row id="344" idDict="1" lang="ru" nameDict="fd_multivalentitytype" text="Измеритель"/>
+<row id="345" idDict="7" lang="ru" nameDict="fd_multivalentitytype" text="Атрибут (строка)"/>
+<row id="346" idDict="8" lang="ru" nameDict="fd_multivalentitytype" text="Атрибут (маска)"/>
+<row id="347" idDict="9" lang="ru" nameDict="fd_multivalentitytype" text="Атрибут (дата)"/>
+<row id="348" idDict="2" lang="ru" nameDict="fd_multivalentitytype" text="Значение фактора"/>
+<row id="349" idDict="3" lang="ru" nameDict="fd_multivalentitytype" text="Объект"/>
+<row id="350" idDict="4" lang="ru" nameDict="fd_multivalentitytype" text="Отношение"/>
+<row id="351" idDict="5" lang="ru" nameDict="fd_multivalentitytype" text="Формула"/>
+<row id="352" idDict="6" lang="ru" nameDict="fd_multivalentitytype" text="Алгоритм"/>
+<row id="353" idDict="10" lang="ru" nameDict="fd_multivalentitytype" text="Единица измерения"/>
+<row id="354" idDict="11" lang="kk" nameDict="fd_multivalentitytype" text="Анықталмаған"/>
+<row id="355" idDict="1" lang="kk" nameDict="fd_multivalentitytype" text="метр"/>
+<row id="356" idDict="7" lang="kk" nameDict="fd_multivalentitytype" text="Атрибут (жол)"/>
+<row id="357" idDict="8" lang="kk" nameDict="fd_multivalentitytype" text="Атрибут (маска)"/>
+<row id="358" idDict="9" lang="kk" nameDict="fd_multivalentitytype" text="Атрибут (күн)"/>
+<row id="359" idDict="2" lang="kk" nameDict="fd_multivalentitytype" text="Фактордың мәні"/>
+<row id="360" idDict="3" lang="kk" nameDict="fd_multivalentitytype" text="Нысан"/>
+<row id="361" idDict="4" lang="kk" nameDict="fd_multivalentitytype" text="Қатынас"/>
+<row id="362" idDict="5" lang="kk" nameDict="fd_multivalentitytype" text="Формула"/>
+<row id="363" idDict="6" lang="kk" nameDict="fd_multivalentitytype" text="Алгоритм"/>
+<row id="364" idDict="10" lang="kk" nameDict="fd_multivalentitytype" text="Өлшем бірлігі"/>
+<row id="365" idDict="11" lang="en-US" nameDict="fd_multivalentitytype" text="Not determined"/>
+<row id="366" idDict="1" lang="en-US" nameDict="fd_multivalentitytype" text="Meter"/>
+<row id="367" idDict="7" lang="en-US" nameDict="fd_multivalentitytype" text="Attribute (string)"/>
+<row id="368" idDict="8" lang="en-US" nameDict="fd_multivalentitytype" text="Attribute (mask)"/>
+<row id="369" idDict="9" lang="en-US" nameDict="fd_multivalentitytype" text="Attribute (date)"/>
+<row id="370" idDict="2" lang="en-US" nameDict="fd_multivalentitytype" text="The importance of the factor"/>
+<row id="371" idDict="3" lang="en-US" nameDict="fd_multivalentitytype" text="Object"/>
+<row id="372" idDict="4" lang="en-US" nameDict="fd_multivalentitytype" text="Attitude"/>
+<row id="373" idDict="5" lang="en-US" nameDict="fd_multivalentitytype" text="Formula"/>
+<row id="374" idDict="6" lang="en-US" nameDict="fd_multivalentitytype" text="Algorithm"/>
+<row id="375" idDict="10" lang="en-US" nameDict="fd_multivalentitytype" text="Unit of measurement"/>
+<row id="376" idDict="1" lang="ru" nameDict="fd_periodincludetag" text="Входит начало периода"/>
+<row id="377" idDict="2" lang="ru" nameDict="fd_periodincludetag" text="Входит конец периода"/>
+<row id="378" idDict="3" lang="ru" nameDict="fd_periodincludetag" text="Входит начало и конец периода"/>
+<row id="379" idDict="4" lang="ru" nameDict="fd_periodincludetag" text="Входит начало или конец периода"/>
+<row id="380" idDict="1" lang="kk" nameDict="fd_periodincludetag" text="Мерзім басталып келеді"/>
+<row id="381" idDict="2" lang="kk" nameDict="fd_periodincludetag" text="Мерзім аяқталып келеді"/>
+<row id="382" idDict="3" lang="kk" nameDict="fd_periodincludetag" text="Кезеңнің басы мен соңын қамтиды"/>
+<row id="383" idDict="4" lang="kk" nameDict="fd_periodincludetag" text="Кезеңнің басын немесе аяғын енгізеді"/>
+<row id="384" idDict="1" lang="en-US" nameDict="fd_periodincludetag" text="The beginning of the period is entering"/>
+<row id="385" idDict="2" lang="en-US" nameDict="fd_periodincludetag" text="The end of the period is entering"/>
+<row id="386" idDict="3" lang="en-US" nameDict="fd_periodincludetag" text="Includes the beginning and end of the period"/>
+<row id="387" idDict="4" lang="en-US" nameDict="fd_periodincludetag" text="Enters the beginning or end of the period"/>
+<row id="388" idDict="1" lang="ru" nameDict="fd_periodnametml" text="Полное наименование"/>
+<row id="389" idDict="2" lang="ru" nameDict="fd_periodnametml" text="Краткое наименование"/>
+<row id="390" idDict="3" lang="ru" nameDict="fd_periodnametml" text="Полное наименование с арабскими числами"/>
+<row id="391" idDict="4" lang="ru" nameDict="fd_periodnametml" text="Краткое наименование с арабскими числами"/>
+<row id="392" idDict="5" lang="ru" nameDict="fd_periodnametml" text="Полное наименование с римскими числами"/>
+<row id="393" idDict="6" lang="ru" nameDict="fd_periodnametml" text="Краткое наименование с римскими числами"/>
+<row id="394" idDict="7" lang="ru" nameDict="fd_periodnametml" text="Полное наименование без родительского периода"/>
+<row id="395" idDict="1" lang="kk" nameDict="fd_periodnametml" text="Толық атауы"/>
+<row id="396" idDict="2" lang="kk" nameDict="fd_periodnametml" text="Қысқа атауы"/>
+<row id="397" idDict="3" lang="kk" nameDict="fd_periodnametml" text="Араб цифрларымен толық атауы"/>
+<row id="398" idDict="4" lang="kk" nameDict="fd_periodnametml" text="Араб цифрларымен қысқаша атауы"/>
+<row id="399" idDict="5" lang="kk" nameDict="fd_periodnametml" text="Рим цифрларымен толық атуы"/>
+<row id="400" idDict="6" lang="kk" nameDict="fd_periodnametml" text="Рим цифрларымен қысқаша атауы"/>
+<row id="401" idDict="7" lang="kk" nameDict="fd_periodnametml" text="Ата-анасының кезеңінсіз толық атауы"/>
+<row id="402" idDict="1" lang="en-US" nameDict="fd_periodnametml" text="Full name"/>
+<row id="403" idDict="2" lang="en-US" nameDict="fd_periodnametml" text="Short name"/>
+<row id="404" idDict="3" lang="en-US" nameDict="fd_periodnametml" text="Full name with Arabic numerals"/>
+<row id="405" idDict="4" lang="en-US" nameDict="fd_periodnametml" text="Short name with Arabic numerals"/>
+<row id="406" idDict="5" lang="en-US" nameDict="fd_periodnametml" text="Full name with Roman numerals"/>
+<row id="407" idDict="6" lang="en-US" nameDict="fd_periodnametml" text="Short name with Roman numerals"/>
+<row id="408" idDict="7" lang="en-US" nameDict="fd_periodnametml" text="Full name without parental period"/>
+<row id="409" idDict="11" lang="ru" nameDict="fd_periodtype" text="Год"/>
+<row id="410" idDict="12" lang="ru" nameDict="fd_periodtype" text="Девять месяцев"/>
+<row id="411" idDict="13" lang="ru" nameDict="fd_periodtype" text="Учебный год"/>
+<row id="412" idDict="21" lang="ru" nameDict="fd_periodtype" text="Поугодие"/>
+<row id="413" idDict="22" lang="ru" nameDict="fd_periodtype" text="Полугодие с накоплением"/>
+<row id="414" idDict="23" lang="ru" nameDict="fd_periodtype" text="Семестр"/>
+<row id="415" idDict="31" lang="ru" nameDict="fd_periodtype" text="Квартал"/>
+<row id="416" idDict="32" lang="ru" nameDict="fd_periodtype" text="Квартал с накоплением"/>
+<row id="417" idDict="41" lang="ru" nameDict="fd_periodtype" text="Месяц"/>
+<row id="418" idDict="42" lang="ru" nameDict="fd_periodtype" text="Месяц с накоплением"/>
+<row id="419" idDict="51" lang="ru" nameDict="fd_periodtype" text="Декада"/>
+<row id="420" idDict="52" lang="ru" nameDict="fd_periodtype" text="Декада с накоплением"/>
+<row id="421" idDict="61" lang="ru" nameDict="fd_periodtype" text="Неделя"/>
+<row id="422" idDict="62" lang="ru" nameDict="fd_periodtype" text="Неделя с накоплением"/>
+<row id="423" idDict="71" lang="ru" nameDict="fd_periodtype" text="Сутки"/>
+<row id="424" idDict="72" lang="ru" nameDict="fd_periodtype" text="Сутки с накоплением"/>
+<row id="425" idDict="99" lang="ru" nameDict="fd_periodtype" text="Нестандартный период"/>
+<row id="426" idDict="11" lang="kk" nameDict="fd_periodtype" text="Жыл"/>
+<row id="427" idDict="12" lang="kk" nameDict="fd_periodtype" text="Тоғыз ай"/>
+<row id="428" idDict="13" lang="kk" nameDict="fd_periodtype" text="Оқу жылы"/>
+<row id="429" idDict="21" lang="kk" nameDict="fd_periodtype" text="Бір рахат"/>
+<row id="430" idDict="22" lang="kk" nameDict="fd_periodtype" text="Жинақтаумен жарты жыл"/>
+<row id="431" idDict="23" lang="kk" nameDict="fd_periodtype" text="Семестр"/>
+<row id="432" idDict="31" lang="kk" nameDict="fd_periodtype" text="Тоқсан"/>
+<row id="433" idDict="32" lang="kk" nameDict="fd_periodtype" text="Жинақталған тоқсан"/>
+<row id="434" idDict="41" lang="kk" nameDict="fd_periodtype" text="Ай"/>
+<row id="435" idDict="42" lang="kk" nameDict="fd_periodtype" text="Жинақталған ай"/>
+<row id="436" idDict="51" lang="kk" nameDict="fd_periodtype" text="Онкүндік"/>
+<row id="437" idDict="52" lang="kk" nameDict="fd_periodtype" text="Жинақталған күндік"/>
+<row id="438" idDict="61" lang="kk" nameDict="fd_periodtype" text="Апта"/>
+<row id="439" idDict="62" lang="kk" nameDict="fd_periodtype" text="Жинақталған апта"/>
+<row id="440" idDict="71" lang="kk" nameDict="fd_periodtype" text="Күн"/>
+<row id="441" idDict="72" lang="kk" nameDict="fd_periodtype" text="Жинақталған күн"/>
+<row id="442" idDict="99" lang="kk" nameDict="fd_periodtype" text="Стандартты емес кезең"/>
+<row id="443" idDict="11" lang="en-US" nameDict="fd_periodtype" text="Year"/>
+<row id="444" idDict="12" lang="en-US" nameDict="fd_periodtype" text="Nine months"/>
+<row id="445" idDict="13" lang="en-US" nameDict="fd_periodtype" text="Academic year"/>
+<row id="446" idDict="21" lang="en-US" nameDict="fd_periodtype" text="A pleasure"/>
+<row id="447" idDict="22" lang="en-US" nameDict="fd_periodtype" text="Half year with accumulation"/>
+<row id="448" idDict="23" lang="en-US" nameDict="fd_periodtype" text="Semester"/>
+<row id="449" idDict="31" lang="en-US" nameDict="fd_periodtype" text="Quarter"/>
+<row id="450" idDict="32" lang="en-US" nameDict="fd_periodtype" text="Quarter with accumulation"/>
+<row id="451" idDict="41" lang="en-US" nameDict="fd_periodtype" text="Month"/>
+<row id="452" idDict="42" lang="en-US" nameDict="fd_periodtype" text="Month with accumulation"/>
+<row id="453" idDict="51" lang="en-US" nameDict="fd_periodtype" text="Decade"/>
+<row id="454" idDict="52" lang="en-US" nameDict="fd_periodtype" text="Decade with accumulation"/>
+<row id="455" idDict="61" lang="en-US" nameDict="fd_periodtype" text="Sunday"/>
+<row id="456" idDict="62" lang="en-US" nameDict="fd_periodtype" text="Week with accumulation"/>
+<row id="457" idDict="71" lang="en-US" nameDict="fd_periodtype" text="Day"/>
+<row id="458" idDict="72" lang="en-US" nameDict="fd_periodtype" text="Daily with accumulation"/>
+<row id="459" idDict="99" lang="en-US" nameDict="fd_periodtype" text="Non-standard period"/>
+<row id="460" idDict="1" lang="ru" nameDict="fd_propprovidermissing" text="Только указанный поставщик"/>
+<row id="461" idDict="2" lang="ru" nameDict="fd_propprovidermissing" text="Поставщик по умолчанию"/>
+<row id="462" idDict="3" lang="ru" nameDict="fd_propprovidermissing" text="Любой поставщик, имеющий значение"/>
+<row id="463" idDict="1" lang="kk" nameDict="fd_propprovidermissing" text="Тек көрсетілген жеткізуші"/>
+<row id="464" idDict="2" lang="kk" nameDict="fd_propprovidermissing" text="Әдепкі провайдер"/>
+<row id="465" idDict="3" lang="kk" nameDict="fd_propprovidermissing" text="Маңызды кез келген жеткізуші"/>
+<row id="466" idDict="1" lang="en-US" nameDict="fd_propprovidermissing" text="Only the specified supplier"/>
+<row id="467" idDict="2" lang="en-US" nameDict="fd_propprovidermissing" text="Default provider"/>
+<row id="468" idDict="3" lang="en-US" nameDict="fd_propprovidermissing" text="Any supplier that matters"/>
+<row id="469" idDict="1" lang="ru" nameDict="fd_propstatusmissing" text="Только указанный статус"/>
+<row id="470" idDict="2" lang="ru" nameDict="fd_propstatusmissing" text="Статус по умолчанию"/>
+<row id="471" idDict="3" lang="ru" nameDict="fd_propstatusmissing" text="Любой статус, имеющий значение"/>
+<row id="472" idDict="1" lang="kk" nameDict="fd_propstatusmissing" text="Тек көрсетілген күй"/>
+<row id="473" idDict="2" lang="kk" nameDict="fd_propstatusmissing" text="Әдепкі күй"/>
+<row id="474" idDict="3" lang="kk" nameDict="fd_propstatusmissing" text="Кез келген мәртебе маңызды"/>
+<row id="475" idDict="1" lang="en-US" nameDict="fd_propstatusmissing" text="Only the specified status"/>
+<row id="476" idDict="2" lang="en-US" nameDict="fd_propstatusmissing" text="Default Status"/>
+<row id="477" idDict="3" lang="en-US" nameDict="fd_propstatusmissing" text="Any status that matters"/>
+<row id="478" idDict="1" lang="ru" nameDict="fd_proptype" text="Фактор"/>
+<row id="479" idDict="2" lang="ru" nameDict="fd_proptype" text="Измеритель"/>
+<row id="480" idDict="3" lang="ru" nameDict="fd_proptype" text="Показатель"/>
+<row id="481" idDict="4" lang="ru" nameDict="fd_proptype" text="Атрибут"/>
+<row id="482" idDict="5" lang="ru" nameDict="fd_proptype" text="Тип объектов"/>
+<row id="483" idDict="6" lang="ru" nameDict="fd_proptype" text="Отношение между типами объектов"/>
+<row id="484" idDict="7" lang="ru" nameDict="fd_proptype" text="Единица измерения"/>
+<row id="485" idDict="8" lang="ru" nameDict="fd_proptype" text="Комплексное свойство"/>
+<row id="486" idDict="1" lang="kk" nameDict="fd_proptype" text="Фактор"/>
+<row id="487" idDict="2" lang="kk" nameDict="fd_proptype" text="метр"/>
+<row id="488" idDict="3" lang="kk" nameDict="fd_proptype" text="Көрсеткіш"/>
+<row id="489" idDict="4" lang="kk" nameDict="fd_proptype" text="Атрибут"/>
+<row id="490" idDict="5" lang="kk" nameDict="fd_proptype" text="Объектілердің түрі"/>
+<row id="491" idDict="6" lang="kk" nameDict="fd_proptype" text="Объектілердің түрлері арасындағы байланыс"/>
+<row id="492" idDict="7" lang="kk" nameDict="fd_proptype" text="Өлшем бірлігі"/>
+<row id="493" idDict="8" lang="kk" nameDict="fd_proptype" text="Күрделі қасиет"/>
+<row id="494" idDict="1" lang="en-US" nameDict="fd_proptype" text="Factor"/>
+<row id="495" idDict="2" lang="en-US" nameDict="fd_proptype" text="Meter"/>
+<row id="496" idDict="3" lang="en-US" nameDict="fd_proptype" text="Indicator"/>
+<row id="497" idDict="4" lang="en-US" nameDict="fd_proptype" text="Attribute"/>
+<row id="498" idDict="5" lang="en-US" nameDict="fd_proptype" text="Type of objects"/>
+<row id="499" idDict="6" lang="en-US" nameDict="fd_proptype" text="Relationship between object types"/>
+<row id="500" idDict="7" lang="en-US" nameDict="fd_proptype" text="Unit of measurement"/>
+<row id="501" idDict="8" lang="en-US" nameDict="fd_proptype" text="Complex property"/>
+<row id="502" idDict="1" lang="ru" nameDict="fd_providernotvalue" text="Только указанный поставщик"/>
+<row id="503" idDict="2" lang="ru" nameDict="fd_providernotvalue" text="Поставщик по умолчанию"/>
+<row id="504" idDict="3" lang="ru" nameDict="fd_providernotvalue" text="Любой поставщик, имеющий значение"/>
+<row id="505" idDict="1" lang="kk" nameDict="fd_providernotvalue" text="Тек көрсетілген жеткізуші"/>
+<row id="506" idDict="2" lang="kk" nameDict="fd_providernotvalue" text="Әдепкі провайдер"/>
+<row id="507" idDict="3" lang="kk" nameDict="fd_providernotvalue" text="Маңызды кез келген жеткізуші"/>
+<row id="508" idDict="1" lang="en-US" nameDict="fd_providernotvalue" text="Only the specified supplier"/>
+<row id="509" idDict="2" lang="en-US" nameDict="fd_providernotvalue" text="Default provider"/>
+<row id="510" idDict="3" lang="en-US" nameDict="fd_providernotvalue" text="Any supplier that matters"/>
+<row id="511" idDict="1" lang="ru" nameDict="fd_scaletype" text="Шкала с конечным числом значений"/>
+<row id="512" idDict="2" lang="ru" nameDict="fd_scaletype" text="Шкала с бесконечным числом значений"/>
+<row id="513" idDict="1" lang="kk" nameDict="fd_scaletype" text="Ақырғы мәндер шкаласы"/>
+<row id="514" idDict="2" lang="kk" nameDict="fd_scaletype" text="Мәндердің шексіз саны бар шкала"/>
+<row id="515" idDict="1" lang="en-US" nameDict="fd_scaletype" text="Finite value scale"/>
+<row id="516" idDict="2" lang="en-US" nameDict="fd_scaletype" text="A scale with an infinite number of values"/>
+<row id="517" idDict="1" lang="ru" nameDict="fd_sourcestocktype" text="Файл"/>
+<row id="518" idDict="2" lang="ru" nameDict="fd_sourcestocktype" text="База данных"/>
+<row id="519" idDict="3" lang="ru" nameDict="fd_sourcestocktype" text="Приложение (API)"/>
+<row id="520" idDict="4" lang="ru" nameDict="fd_sourcestocktype" text="Очередь"/>
+<row id="521" idDict="1" lang="kk" nameDict="fd_sourcestocktype" text="Файл"/>
+<row id="522" idDict="2" lang="kk" nameDict="fd_sourcestocktype" text="Мәліметтер қоры"/>
+<row id="523" idDict="3" lang="kk" nameDict="fd_sourcestocktype" text="Қолданба (API)"/>
+<row id="524" idDict="4" lang="kk" nameDict="fd_sourcestocktype" text="Кезек"/>
+<row id="525" idDict="1" lang="en-US" nameDict="fd_sourcestocktype" text="File"/>
+<row id="526" idDict="2" lang="en-US" nameDict="fd_sourcestocktype" text="Database"/>
+<row id="527" idDict="3" lang="en-US" nameDict="fd_sourcestocktype" text="Application (API)"/>
+<row id="528" idDict="4" lang="en-US" nameDict="fd_sourcestocktype" text="Queue"/>
+<row id="529" idDict="1" lang="ru" nameDict="fd_statusnotvalue" text="Только указанный статус"/>
+<row id="530" idDict="2" lang="ru" nameDict="fd_statusnotvalue" text="Статус по умолчанию"/>
+<row id="531" idDict="3" lang="ru" nameDict="fd_statusnotvalue" text="Любой статус, имеющий значение"/>
+<row id="532" idDict="1" lang="kk" nameDict="fd_statusnotvalue" text="Тек көрсетілген күй"/>
+<row id="533" idDict="2" lang="kk" nameDict="fd_statusnotvalue" text="Әдепкі күй"/>
+<row id="534" idDict="3" lang="kk" nameDict="fd_statusnotvalue" text="Кез келген мәртебе маңызды"/>
+<row id="535" idDict="1" lang="en-US" nameDict="fd_statusnotvalue" text="Only the specified status"/>
+<row id="536" idDict="2" lang="en-US" nameDict="fd_statusnotvalue" text="Default Status"/>
+<row id="537" idDict="3" lang="en-US" nameDict="fd_statusnotvalue" text="Any status that matters"/>
+<row id="538" idDict="1" lang="ru" nameDict="fd_storagetype" text="Значение свойства хранится только как стандартное свойство"/>
+<row id="539" idDict="2" lang="ru" nameDict="fd_storagetype" text="Значение свойства хранится только как плоское свойство"/>
+<row id="540" idDict="1" lang="kk" nameDict="fd_storagetype" text="Сипат мәні тек стандартты сипат ретінде сақталады."/>
+<row id="541" idDict="2" lang="kk" nameDict="fd_storagetype" text="Сипат мәні тек жалпақ сипат ретінде сақталады."/>
+<row id="542" idDict="1" lang="en-US" nameDict="fd_storagetype" text="The property value is stored as a standard property only."/>
+<row id="543" idDict="2" lang="en-US" nameDict="fd_storagetype" text="The property value is stored only as a flat property."/>
+<row id="544" idDict="1" lang="ru" nameDict="fd_typcategory" text="Стандартный тип объектов"/>
+<row id="545" idDict="2" lang="ru" nameDict="fd_typcategory" text="Регистр"/>
+<row id="546" idDict="1" lang="kk" nameDict="fd_typcategory" text="Стандартты нысан түрі"/>
+<row id="547" idDict="2" lang="kk" nameDict="fd_typcategory" text="Тіркелу"/>
+<row id="548" idDict="1" lang="en-US" nameDict="fd_typcategory" text="Standard object type"/>
+<row id="549" idDict="2" lang="en-US" nameDict="fd_typcategory" text="Register"/>
+<row id="550" idDict="1" lang="ru" nameDict="fd_visualformat" text="Код"/>
+<row id="551" idDict="2" lang="ru" nameDict="fd_visualformat" text="Краткое наименование"/>
+<row id="552" idDict="3" lang="ru" nameDict="fd_visualformat" text="Полное наименование"/>
+<row id="553" idDict="4" lang="ru" nameDict="fd_visualformat" text="Код и краткое наименование"/>
+<row id="554" idDict="5" lang="ru" nameDict="fd_visualformat" text="Код и полное наименование"/>
+<row id="555" idDict="1" lang="kk" nameDict="fd_visualformat" text="Код"/>
+<row id="556" idDict="2" lang="kk" nameDict="fd_visualformat" text="Қысқа атауы"/>
+<row id="557" idDict="3" lang="kk" nameDict="fd_visualformat" text="Толық атауы"/>
+<row id="558" idDict="4" lang="kk" nameDict="fd_visualformat" text="Код және қысқа атауы"/>
+<row id="559" idDict="5" lang="kk" nameDict="fd_visualformat" text="Код және толық атауы"/>
+<row id="560" idDict="1" lang="en-US" nameDict="fd_visualformat" text="Code"/>
+<row id="561" idDict="2" lang="en-US" nameDict="fd_visualformat" text="Short name"/>
+<row id="562" idDict="3" lang="en-US" nameDict="fd_visualformat" text="Full name"/>
+<row id="563" idDict="4" lang="en-US" nameDict="fd_visualformat" text="Code and short name"/>
+<row id="564" idDict="5" lang="en-US" nameDict="fd_visualformat" text="Code and full name"/>
+</root>
