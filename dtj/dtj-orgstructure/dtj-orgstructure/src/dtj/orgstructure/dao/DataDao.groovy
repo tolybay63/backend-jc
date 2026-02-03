@@ -186,15 +186,14 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    List<Map<String, Object>> loadLocationByWorkAndSectionForSelect(long objWork, long objSection) {
+    List<Map<String, Object>> loadLocationByWorkForSelect(long objWork) {
         if (objWork == 0)
             throw new XError("Не указан [objWork]")
-        if (objSection == 0)
-            throw new XError("Не указан [objSection]")
         //
         List<Map<String, Object>> lstRes = new ArrayList<>()
+        Store st = mdb.createStore("Obj.LocationForSelect")
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
-        // Поиск Околоток по Источникам работы
+        // Поиск Околотков по Источнику работы
         Store stTmp = loadSqlService("""
             select v.obj
             from DataProp d
@@ -207,35 +206,13 @@ class DataDao extends BaseMdbUtils {
         if (stTmp.size() == 0)
             return lstRes
         Set<Object> idsLocation = stTmp.getUniqueValues("obj")
-        // Получение координаты места
-        stTmp = loadSqlService("""
-            select o.id,
-                v1.numberVal * 1000 + (v3.numberVal - 1) * 100 + (v5.numberVal - 1) * 25 as dbeg,
-                v2.numberVal * 1000 + (v4.numberVal - 1) * 100 + v6.numberVal * 25 as dend
-            from Obj o
-                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_StartKm")}
-                left join DataPropVal v1 on d1.id=v1.dataprop
-                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_FinishKm")}
-                left join DataPropVal v2 on d2.id=v2.dataprop
-                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_StartPicket")}
-                left join DataPropVal v3 on d3.id=v3.dataprop
-                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_FinishPicket")}
-                left join DataPropVal v4 on d4.id=v4.dataprop
-                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_StartLink")}
-                left join DataPropVal v5 on d5.id=v5.dataprop
-                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=${map.get("Prop_FinishLink")}
-                left join DataPropVal v6 on d6.id=v6.dataprop
-            where o.id=${objSection}
-        """, "", "objectdata")
-        if (stTmp.size() == 0)
-            return lstRes
-        int dbeg = UtCnv.toInt(stTmp.get(0).get("dbeg"))
-        int dend = UtCnv.toInt(stTmp.get(0).get("dend"))
         // Получение координаты Околотков
-        Store st = mdb.loadQuery("""
+        mdb.loadQuery(st,"""
             select o.id, o.cls, v.name,
                 v1.numberVal * 1000 as dbeg,
-                (v2.numberVal + 1) * 1000 as dend
+                (v2.numberVal + 1) * 1000 as dend,
+                v1.numberVal as StartKm,
+                v2.numberVal as FinishKm
             from Obj o
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_StartKm")}
@@ -243,7 +220,9 @@ class DataDao extends BaseMdbUtils {
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_FinishKm")}
                 left join DataPropVal v2 on d2.id=v2.dataprop
             where o.id in (0${idsLocation.join(",")})
+                order by o.id
         """)
+        //
         if (st.size() == 0)
             return lstRes
         // Получение Типы объектов по Работе
@@ -262,13 +241,70 @@ class DataDao extends BaseMdbUtils {
         """)
         StoreIndex indLocation = stTmp.getIndex("id")
         //
-        long pv = apiMeta().get(ApiMeta).idPV("Cls", UtCnv.toLong(st.get(0).get("cls")), "Prop_LocationClsSection")
+        Long pv = apiMeta().get(ApiMeta).idPV("Cls", UtCnv.toLong(st.get(0).get("cls")), "Prop_LocationClsSection")
         for (StoreRecord r in st) {
-            if ((dbeg <= r.getInt("dbeg") && r.getInt("dbeg") <= dend) ||
-                    (dbeg < r.getInt("dend") && r.getInt("dend") <= dend) ||
-                    (dbeg > r.getInt("dbeg") && r.getInt("dend") > dend)) {
-                Map<String, Object> mapRes = r.getValues()
-                mapRes.put("pv", pv)
+            r.putAt("pv", pv)
+            Map<String, Object> mapRes = r.getValues()
+            StoreRecord rec = indLocation.get(r.getLong("id"))
+            if (rec != null) {
+                List<Map<String, Object>> lstTypObj = new ArrayList<>()
+                Set<Long> lst = rec.getString("lst").split(",") as Set<Long>
+                lst.forEach {   {
+                    Map<String, Object> mapR = indTypObj.get(it).getValues()
+                    lstTypObj.add(mapR)
+                }}
+                mapRes.put("objObjectTypeMulti", lstTypObj)
+            } else continue
+            lstRes.add(mapRes)
+        }
+        //
+        return lstRes
+    }
+
+    @DaoMethod
+    List<Map<String, Object>> loadLocationByWorkAndSectionForSelect(long objWork, long objSection) {
+        if (objWork == 0)
+            throw new XError("Не указан [objWork]")
+        if (objSection == 0)
+            throw new XError("Не указан [objSection]")
+        //
+        List<Map<String, Object>> lstRes = new ArrayList<>()
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        // Поиск Околоток по Источникам работы
+        List<Map<String, Object>> lstLocation = loadLocationByWorkForSelect(objWork)
+        if (lstLocation.size() == 0)
+            return lstRes
+        // Получение координаты места
+        Store stTmp = loadSqlService("""
+            select o.id,
+                v1.numberVal * 1000 + (v3.numberVal - 1) * 100 + (v5.numberVal - 1) * 25 as beg,
+                v2.numberVal * 1000 + (v4.numberVal - 1) * 100 + v6.numberVal * 25 as end
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_StartKm")}
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_FinishKm")}
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_StartPicket")}
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_FinishPicket")}
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_StartLink")}
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=${map.get("Prop_FinishLink")}
+                left join DataPropVal v6 on d6.id=v6.dataprop
+            where o.id=${objSection}
+        """, "", "objectdata")
+        if (stTmp.size() == 0)
+            return lstRes
+        int beg = UtCnv.toInt(stTmp.get(0).get("beg"))
+        int end = UtCnv.toInt(stTmp.get(0).get("end"))
+        //
+        lstLocation.forEach {{
+            VariantMap r = new VariantMap(it)
+            if ((beg <= r.getInt("dbeg") && r.getInt("dbeg") <= end) ||
+                    (beg < r.getInt("dend") && r.getInt("dend") <= end) ||
+                    (beg > r.getInt("dbeg") && r.getInt("dend") > end)) {
+                Map<String, Object> mapRes = new HashMap<>(r)
                 /*/
                 if (dbeg < r.getInt("dbeg"))
                     mapRes.put("dbeg", r.getInt("dbeg"))
@@ -280,19 +316,9 @@ class DataDao extends BaseMdbUtils {
                 else
                     mapRes.put("dend", r.getInt("dend"))
                 /*/
-                StoreRecord rec = indLocation.get(r.getLong("id"))
-                if (rec != null) {
-                    List<Map<String, Object>> lstTypObj = new ArrayList<>()
-                    Set<Long> lst = rec.getString("lst").split(",") as Set<Long>
-                    lst.forEach {   {
-                        Map<String, Object> mapR = indTypObj.get(it).getValues()
-                        lstTypObj.add(mapR)
-                    }}
-                    mapRes.put("objObjectTypeMulti", lstTypObj)
-                } else continue
                 lstRes.add(mapRes)
             }
-        }
+        }}
         return lstRes
     }
 
