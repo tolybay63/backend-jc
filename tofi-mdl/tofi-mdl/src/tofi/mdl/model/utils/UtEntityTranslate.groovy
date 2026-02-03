@@ -11,6 +11,7 @@ import jandcode.core.store.StoreRecord
 
 class UtEntityTranslate extends BaseMdbUtils {
     Mdb mdb
+
     UtEntityTranslate(Mdb mdb) {
         this.mdb = mdb
     }
@@ -18,7 +19,7 @@ class UtEntityTranslate extends BaseMdbUtils {
     Store getTranslatedStore(Store st, String table, String lang, boolean hasVer=false) {
         if (lang.isEmpty())
             throw new XError("lang is empty")
-        String pathKey = mdb.getApp().getAppdir() + File.separator + "tofi-translate-7e9a11966c61.json"
+
         Store stLang = null
         if (!hasVer) {
             stLang = mdb.loadQuery("""
@@ -59,7 +60,7 @@ class UtEntityTranslate extends BaseMdbUtils {
                     rec = indOther.get(r.getString("id"))
 
                 if (rec != null) {
-                    Translator tr = new Translator(pathKey)
+                    Translator tr = new Translator()
                     if (r.findField("name") != null) {
                         String s = tr.translateText(rec.getString("name"), rec.getString("lang"), lang)
                         r.set("name", s)

@@ -1,6 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
 
+    <!-- ********** For multi lang  ************* -->
+
+    <domain name="dict.tofi.lang" parent="dict.base">
+        <field name="id" parent="long" title="id"/>
+        <field name="text" parent="string" size="120" title="valueDict"/>
+        <field name="nameDict" parent="string" size="30" title="nameDict"/>
+        <field name="idDict" parent="long" title="idDict"/>
+        <field name="lang" parent="string" size="5" title="Язык"/>
+    </domain>
+
+    <!-- Словарь multi языков -->
+    <domain name="FD_DictsLang" parent="dict.tofi.lang" tag.db="true" title="Многоязычный словарь"/>
+    <dict name="FD_DictsLang" parent="base" domain="FD_DictsLang"
+          handler="tofi.mdl.model.utils.DictHandler"/>
+
+    <!-- *********************************************************************** -->
+
+
     <domain name="dict.tofi" parent="dict.base">
         <field name="text" parent="string" size="200" title="Наименование"/>
         <field name="vis" parent="boolean" title="Видимость">
