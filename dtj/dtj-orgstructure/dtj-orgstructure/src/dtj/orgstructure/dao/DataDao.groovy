@@ -269,7 +269,7 @@ class DataDao extends BaseMdbUtils {
                     (dbeg > r.getInt("dbeg") && r.getInt("dend") > dend)) {
                 Map<String, Object> mapRes = r.getValues()
                 mapRes.put("pv", pv)
-                //
+                /*/
                 if (dbeg < r.getInt("dbeg"))
                     mapRes.put("dbeg", r.getInt("dbeg"))
                 else
@@ -279,7 +279,7 @@ class DataDao extends BaseMdbUtils {
                     mapRes.put("dend", dend)
                 else
                     mapRes.put("dend", r.getInt("dend"))
-                //
+                /*/
                 StoreRecord rec = indLocation.get(r.getLong("id"))
                 if (rec != null) {
                     List<Map<String, Object>> lstTypObj = new ArrayList<>()
