@@ -15,7 +15,7 @@ class P extends ProjectScript {
                 depends.prod(
                         "jandcode.core.apx",
                         "jandcode.core.db.postgresql",
-                        "exp4j", "jakarta.mail",
+                        "exp4j", "jakarta.mail", "google-cloud-translate",
 	                "tofi-api-adm",
 	                "tofi-api-dta",
         	        "tofi-api-mdl",
