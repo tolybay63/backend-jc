@@ -6,12 +6,19 @@
 
         <field name="cod" parent="f.cod"/>
 
-        <field name="modelName" parent="string" size="32" title="Иентификатор базы данных">
+        <field name="modelName" parent="string" size="32" title="Идентификатор базы данных">
             <!--@ Имя api -->
         </field>
 
         <field name="dataBaseType" parent="FD_DataBaseType/ref"/>
 
+        <!-- =================== create index =================== -->
+        <dbindex name="i_modelName" fields="modelName" unique="true"/>
+
+    </domain>
+
+    <!-- ====================================== -->
+    <domain name="DataBase.lang" parent="DataBase">
         <field name="name" parent="f.name">
             <!-- Наименование базы данных -->
         </field>
@@ -23,11 +30,7 @@
         <field name="cmt" parent="f.cmt">
             <!-- Комментарий -->
         </field>
-
-        <!-- =================== create index =================== -->
-        <dbindex name="i_modelName" fields="modelName" unique="true"/>
-
-
     </domain>
+
 
 </root>

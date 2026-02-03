@@ -22,7 +22,7 @@
     <!--=========================================================-->
     <domain name="FlatTable.full" parent="FlatTable">
         <field name="db" parent="DataBase/ref"/>
-        <field name="nameDb" parent="DataBase/name"/>
+        <field name="nameDb" parent="f.name"/>
         <field name="nameCls" parent="f.name"/>
     </domain>
 

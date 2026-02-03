@@ -13,9 +13,9 @@ public class DataBaseDao extends BaseModelDao {
         return utils.getIdMetaModel();
     }
 
-    public Store load() throws Exception {
+    public Store load(Map<String, Object> params) throws Exception {
         DataBaseMdbUtils utils = new DataBaseMdbUtils(getMdb(), "DataBase");
-        return utils.load();
+        return utils.load(params);
     }
 
     public StoreRecord newRec() throws Exception {

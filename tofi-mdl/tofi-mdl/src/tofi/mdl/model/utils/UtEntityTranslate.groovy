@@ -60,7 +60,7 @@ class UtEntityTranslate extends BaseMdbUtils {
                     rec = indOther.get(r.getString("id"))
 
                 if (rec != null) {
-                    Translator tr = new Translator()
+                    Translator tr = new Translator(mdb)
                     if (r.findField("name") != null) {
                         String s = tr.translateText(rec.getString("name"), rec.getString("lang"), lang)
                         r.set("name", s)
