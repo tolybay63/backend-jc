@@ -540,6 +540,120 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store loadObjectByTypObjAndCoordForSelect(Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long objObjectType = pms.getLong("objObjectType")
+        int beg = pms.getInt("dbeg")
+        int end = pms.getInt("dend")
+
+        if (objObjectType == 0)
+            throw new XError("Не указан [objObjectType]")
+        if (beg == 0)
+            throw new XError("Не указан [dbeg]")
+        if (beg % 1000 > 0)
+            throw new XError("[dbeg] не является кратным 1000")
+        if (end == 0)
+            throw new XError("Не указан [dend]")
+        if (end % 1000 > 0)
+            throw new XError("[dend] не является кратным 1000")
+        if (beg >= end)
+            throw new XError("[dbeg] не может быть больше или равно [dend]")
+        //
+        Store st = mdb.createStore("Obj.Served.ForSelect")
+        //
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Object", "")
+        Store stCls = loadSqlMeta("""
+                select id from Cls where typ=${map.get("Typ_Object")}
+            """, "")
+        Set<Object> idsCls = stCls.getUniqueValues("id")
+        //
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        String whe = "o.cls in (${idsCls.join(",")})"
+        Store stTmp = mdb.loadQuery("""
+            select o.id, o.cls, v.name, v.fullName, null as pv,
+                v2.numberVal as StartKm,
+                v3.numberVal as FinishKm,
+                v4.numberVal as StartPicket,
+                v5.numberVal as FinishPicket,
+                v6.numberVal as StartLink,
+                v7.numberVal as FinishLink,
+                v2.numberVal * 1000 + (v4.numberVal - 1) * 100 + (v6.numberVal - 1) * 25 as beg,
+                v3.numberVal * 1000 + (v5.numberVal - 1) * 100 + v7.numberVal * 25 as end
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_ObjectType
+                inner join DataPropVal v1 on d1.id=v1.dataprop and v1.obj=${objObjectType}
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_StartKm
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_FinishKm
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_StartPicket
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_FinishPicket
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_StartLink
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_FinishLink
+                left join DataPropVal v7 on d7.id=v7.dataprop
+            where ${whe} order by o.id
+        """, map)
+        //
+        if (stTmp.size() == 0)
+            return st
+        //
+        idsCls = stTmp.getUniqueValues("cls")
+        Store stPV = loadSqlMeta("""
+            select id, cls  from propval where prop=${map.get("Prop_Object")} and cls in (0${idsCls.join(",")})
+        """, "")
+        StoreIndex indPV = stPV.getIndex("cls")
+
+        for (StoreRecord r in stTmp) {
+            if ((beg <= r.getInt("beg") && r.getInt("beg") <= end) ||
+                    (beg < r.getInt("end") && r.getInt("end") <= end) ||
+                    (beg > r.getInt("beg") && r.getInt("end") > end)) {
+                //
+                if (beg > r.getInt("beg")) {
+                    r.set("StartKm", UtCnv.toInt(beg / 1000))
+                    if (beg == r.getInt("StartKm") * 1000) {
+                        r.set("StartPicket", 1)
+                        r.set("StartLink", 1)
+                    } else {
+                        throw new XError("[dbeg] не является кратным 1000")
+                    }
+
+                }
+                //
+                if (end < r.getInt("end")) {
+                    r.set("FinishKm", UtCnv.toInt(end / 1000))
+                    if (end == r.getInt("FinishKm") * 1000) {
+                        r.set("FinishKm", r.getInt("FinishKm") - 1)
+                        r.set("FinishPicket", 10)
+                        r.set("FinishLink", 4)
+                    } else {
+                        throw new XError("[dend] не является кратным 1000")
+                        /*
+                        r.set("FinishPicket", UtCnv.toInt((end - r.getInt("FinishKm") * 1000) / 100) + 1)
+                        r.set("FinishLink", Math.ceil((end - r.getInt("FinishKm") * 1000 - (r.getInt("FinishPicket") - 1) * 100) / 25 as double))
+                        if (r.getInt("FinishLink") == 0) {
+                            r.set("FinishPicket", r.getInt("FinishPicket") - 1)
+                            r.set("FinishLink", 4)
+                        }
+                        */
+                    }
+                }
+                //
+                StoreRecord rec = indPV.get(r.getLong("cls"))
+                if (rec != null)
+                    r.set("pv", rec.getLong("id"))
+                //
+                st.add(r)
+            }
+        }
+        //
+        return st
+    }
+
+    @DaoMethod
     Store loadObjectBySectionAndTypObjAndCoordForSelect(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         long objSection = pms.getLong("objSection")
