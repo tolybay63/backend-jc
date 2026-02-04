@@ -228,8 +228,12 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
             throw new XError("[InfoApplicant] not specified")
         //
         if (!pms.containsKey("inputType")) {
+            // Определение группы пользователей
+
+            // Для каждого пользователя группы создается персонализированное уведомление
             Map<String, Object> mapNotif = new HashMap<>()
-            mapNotif.put("name", pms.getString("own") + "_" + pms.getLong("objUser"))
+            mapNotif.put("name", "Cобытие №" + pms.getString("own"))
+            mapNotif.put("fullname", pms.getString("own") + "_" + pms.getLong("objUser"))
             mapNotif.put("objPersonnel", pms.getLong("objUser"))
             mapNotif.put("pvPersonnel", pms.getLong("pvUser"))
             mapNotif.put("TimeSending", pms.getString("RegistrationDateTime"))

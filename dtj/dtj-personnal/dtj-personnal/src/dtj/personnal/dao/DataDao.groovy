@@ -162,13 +162,16 @@ class DataDao extends BaseMdbUtils {
             own = pms.getLong("id")
             if (own == 0)
                 throw new XError("Не указан [id]")
+            Store st = loadNotification(own)
+            if (st.size() == 0)
+                throw new XError("Не найдено уведомление")
             //
             pms.put("own", own)
             //1 Prop_TimeReceiving
-            if (pms.getLong("idTimeReceiving") == 0 && !pms.getString("TimeReceiving").isEmpty())
+            if (st.get(0).getLong("idTimeReceiving") == 0 && !pms.getString("TimeReceiving").isEmpty())
                 fillProperties(true, "Prop_TimeReceiving", pms)
             //2 Prop_TimeReading
-            if (pms.getLong("idTimeReading") == 0 && !pms.getString("TimeReading").isEmpty())
+            if (st.get(0).getLong("idTimeReading") == 0 && !pms.getString("TimeReading").isEmpty())
                 fillProperties(true, "Prop_TimeReading", pms)
             //
         } else {
