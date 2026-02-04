@@ -188,7 +188,7 @@ class ApiPersonnalDataImpl extends BaseMdbUtils implements ApiPersonnalData {
 
         String whe = "o.id=${id}"
         if (id == 0)
-            whe = "o.cls=(${map.get("Cls_Personnel")})"
+            whe = "o.cls=${map.get("Cls_Personnel")}"
 
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
         Store st = mdb.createStore("Obj.Personnal")

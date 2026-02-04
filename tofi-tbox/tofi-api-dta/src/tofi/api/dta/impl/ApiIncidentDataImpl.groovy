@@ -10,6 +10,7 @@ import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
 import jandcode.core.store.StoreRecord
 import tofi.api.dta.ApiIncidentData
+import tofi.api.dta.ApiOrgStructureData
 import tofi.api.dta.ApiPersonnalData
 import tofi.api.dta.model.utils.EntityMdbUtils
 import tofi.api.dta.model.utils.UtPeriod
@@ -28,6 +29,9 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
     }
     ApinatorApi apiPersonnalData() {
         return app.bean(ApinatorService).getApi("personnaldata")
+    }
+    ApinatorApi apiOrgStructure() {
+        return app.bean(ApinatorService).getApi("orgstructuredata")
     }
 
 
@@ -228,17 +232,53 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
             throw new XError("[InfoApplicant] not specified")
         //
         if (!pms.containsKey("inputType")) {
+            Set<Long> idsLocation = new HashSet<>()
             // Определение группы пользователей
-
+            if (pms.getLong("objLocationClsSection") > 0) {
+                map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_LocationSection", "")
+                Store stTmp = apiOrgStructure().get(ApiOrgStructureData).loadSql("""
+                    select o.id, o.cls, v.name, v.objParent as parent
+                    from Obj o, ObjVer v
+                    where o.id=v.ownerVer and v.lastVer=1 and o.cls=${map.get("Cls_LocationSection")}
+                """, "")
+                if (stTmp.size() == 0)
+                    throw new XError("Не определена группа пользователей")
+                //
+                long objLocation = pms.getLong("objLocationClsSection")
+                for (int i = 0; i < stTmp.size(); i++) {
+                    StoreRecord r = stTmp.get(i)
+                    // Условие для перезапуска цикла
+                    if (objLocation == r.getLong("id")) {
+                        idsLocation.add(r.getLong("id"))
+                        if (r.getLong("parent") > 0) {
+                            objLocation = r.getLong("parent")
+                        } else {
+                            break
+                        }
+                        i = 0
+                        continue
+                    }
+                }
+            }
             // Для каждого пользователя группы создается персонализированное уведомление
-            Map<String, Object> mapNotif = new HashMap<>()
-            mapNotif.put("name", "Cобытие №" + pms.getString("own"))
-            mapNotif.put("fullname", pms.getString("own") + "_" + pms.getLong("objUser"))
-            mapNotif.put("objPersonnel", pms.getLong("objUser"))
-            mapNotif.put("pvPersonnel", pms.getLong("pvUser"))
-            mapNotif.put("TimeSending", pms.getString("RegistrationDateTime"))
-            mapNotif.put("Description", pms.getString("Description"))
-            apiPersonnalData().get(ApiPersonnalData).saveNotification("ins", mapNotif)
+            if (idsLocation.size() > 0) {
+                Map<String, Object> mapNotif = new HashMap<>()
+                mapNotif.put("name", "Cобытие №" + pms.getString("own"))
+                mapNotif.put("fullname", pms.getString("own") + "_" + pms.getLong("objUser"))
+                mapNotif.put("TimeSending", pms.getString("RegistrationDateTime"))
+                mapNotif.put("Description", pms.getString("InfoApplicant") + "\n" + pms.getInt("StartKm") + "км " +
+                        pms.getInt("StartPicket") + "пк " + pms.getInt("StartLink") + "зв - " + pms.getInt("FinishKm") +
+                        "км " + pms.getInt("FinishPicket") + "пк " + pms.getInt("FinishLink") + "зв\n" + pms.getString("Description"))
+                //
+                Store stTmp = apiPersonnalData().get(ApiPersonnalData).loadPersonnal(0)
+                for (StoreRecord r in stTmp) {
+                    if(idsLocation.contains(r.getLong("objLocation"))) {
+                        mapNotif.put("objPersonnel", r.getLong("id"))
+                        mapNotif.put("pvPersonnel", apiMeta().get(ApiMeta).idPV("Cls", r.getLong("cls"), "Prop_Personnel"))
+                        apiPersonnalData().get(ApiPersonnalData).saveNotification("ins", mapNotif)
+                    }
+                }
+            }
         }
         return own
     }
