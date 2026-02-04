@@ -209,10 +209,8 @@ class DataDao extends BaseMdbUtils {
         // Получение координаты Околотков
         mdb.loadQuery(st,"""
             select o.id, o.cls, v.name,
-                v1.numberVal * 1000 as dbeg,
-                (v2.numberVal + 1) * 1000 as dend,
-                v1.numberVal as StartKm,
-                v2.numberVal as FinishKm
+                v1.numberVal * 1000 as beg,
+                (v2.numberVal + 1) * 1000 as end
             from Obj o
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_StartKm")}
@@ -301,20 +299,20 @@ class DataDao extends BaseMdbUtils {
         //
         lstLocation.forEach {{
             VariantMap r = new VariantMap(it)
-            if ((beg <= r.getInt("dbeg") && r.getInt("dbeg") <= end) ||
-                    (beg < r.getInt("dend") && r.getInt("dend") <= end) ||
-                    (beg > r.getInt("dbeg") && r.getInt("dend") > end)) {
+            if ((beg <= r.getInt("beg") && r.getInt("beg") <= end) ||
+                    (beg < r.getInt("end") && r.getInt("end") <= end) ||
+                    (beg > r.getInt("beg") && r.getInt("end") > end)) {
                 Map<String, Object> mapRes = new HashMap<>(r)
                 /*/
-                if (dbeg < r.getInt("dbeg"))
-                    mapRes.put("dbeg", r.getInt("dbeg"))
+                if (beg < r.getInt("beg"))
+                    mapRes.put("beg", r.getInt("beg"))
                 else
-                    mapRes.put("dbeg", dbeg)
+                    mapRes.put("beg", beg)
                 //
-                if (dend <= r.getInt("dend"))
-                    mapRes.put("dend", dend)
+                if (end <= r.getInt("end"))
+                    mapRes.put("end", end)
                 else
-                    mapRes.put("dend", r.getInt("dend"))
+                    mapRes.put("end", r.getInt("end"))
                 /*/
                 lstRes.add(mapRes)
             }

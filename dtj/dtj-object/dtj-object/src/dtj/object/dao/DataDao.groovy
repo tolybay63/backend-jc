@@ -543,21 +543,21 @@ class DataDao extends BaseMdbUtils {
     Store loadObjectByTypObjAndCoordForSelect(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         long objObjectType = pms.getLong("objObjectType")
-        int beg = pms.getInt("dbeg")
-        int end = pms.getInt("dend")
+        int beg = pms.getInt("beg")
+        int end = pms.getInt("end")
 
         if (objObjectType == 0)
             throw new XError("Не указан [objObjectType]")
         if (beg == 0)
-            throw new XError("Не указан [dbeg]")
+            throw new XError("Не указан [beg]")
         if (beg % 1000 > 0)
-            throw new XError("[dbeg] не является кратным 1000")
+            throw new XError("[beg] не является кратным 1000")
         if (end == 0)
-            throw new XError("Не указан [dend]")
+            throw new XError("Не указан [end]")
         if (end % 1000 > 0)
-            throw new XError("[dend] не является кратным 1000")
+            throw new XError("[end] не является кратным 1000")
         if (beg >= end)
-            throw new XError("[dbeg] не может быть больше или равно [dend]")
+            throw new XError("[beg] не может быть больше или равно [end]")
         //
         Store st = mdb.createStore("Obj.Served.ForSelect")
         //
@@ -618,7 +618,7 @@ class DataDao extends BaseMdbUtils {
                         r.set("StartPicket", 1)
                         r.set("StartLink", 1)
                     } else {
-                        throw new XError("[dbeg] не является кратным 1000")
+                        throw new XError("[beg] не является кратным 1000")
                     }
 
                 }
@@ -630,7 +630,7 @@ class DataDao extends BaseMdbUtils {
                         r.set("FinishPicket", 10)
                         r.set("FinishLink", 4)
                     } else {
-                        throw new XError("[dend] не является кратным 1000")
+                        throw new XError("[end] не является кратным 1000")
                         /*
                         r.set("FinishPicket", UtCnv.toInt((end - r.getInt("FinishKm") * 1000) / 100) + 1)
                         r.set("FinishLink", Math.ceil((end - r.getInt("FinishKm") * 1000 - (r.getInt("FinishPicket") - 1) * 100) / 25 as double))
@@ -658,17 +658,19 @@ class DataDao extends BaseMdbUtils {
         VariantMap pms = new VariantMap(params)
         long objSection = pms.getLong("objSection")
         long objObjectType = pms.getLong("objObjectType")
-        int dbeg = pms.getInt("dbeg")
-        int dend = pms.getInt("dend")
+        int beg = pms.getInt("beg")
+        int end = pms.getInt("end")
 
         if (objSection == 0)
             throw new XError("Не указан [objSection]")
         if (objObjectType == 0)
             throw new XError("Не указан [objObjectType]")
-        if (dbeg == 0)
-            throw new XError("Не указан [dbeg]")
-        if (dend == 0)
-            throw new XError("Не указан [dend]")
+        if (beg == 0)
+            throw new XError("Не указан [beg]")
+        if (end == 0)
+            throw new XError("Не указан [end]")
+        if (beg >= end)
+            throw new XError("[beg] не может быть больше или равно [end]")
         //
         Store st = mdb.createStore("Obj.Served.ForSelect")
         //
@@ -688,8 +690,8 @@ class DataDao extends BaseMdbUtils {
                 v5.numberVal as FinishPicket,
                 v6.numberVal as StartLink,
                 v7.numberVal as FinishLink,
-                v2.numberVal * 1000 + (v4.numberVal - 1) * 100 + (v6.numberVal - 1) * 25 as dbeg,
-                v3.numberVal * 1000 + (v5.numberVal - 1) * 100 + v7.numberVal * 25 as dend
+                v2.numberVal * 1000 + (v4.numberVal - 1) * 100 + (v6.numberVal - 1) * 25 as beg,
+                v3.numberVal * 1000 + (v5.numberVal - 1) * 100 + v7.numberVal * 25 as end
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_ObjectType
@@ -721,7 +723,7 @@ class DataDao extends BaseMdbUtils {
         StoreIndex indPV = stPV.getIndex("cls")
 
         for (StoreRecord r in stTmp) {
-            if (dbeg <= r.getInt("dbeg") && r.getInt("dend") <= dend) {
+            if (beg <= r.getInt("beg") && r.getInt("end") <= end) {
                 StoreRecord rec = indPV.get(r.getLong("cls"))
                 if (rec != null)
                     r.set("pv", rec.getLong("id"))
