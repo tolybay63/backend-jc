@@ -8,10 +8,13 @@
         <field name="accessLevel" parent="FD_AccessLevel/ref"/>
         <field name="parent" parent="Measure/ref"/>
         <field name="kFromBase" parent="double"/>
+    </domain>
+
+    <!-- ====================================== -->
+    <domain name="Measure.lang" parent="Measure">
         <field name="name" parent="f.name"/>
         <field name="fullName" parent="f.fullName"/>
         <field name="cmt" parent="f.cmt"/>
-
     </domain>
 
 </root>

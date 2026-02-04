@@ -7,6 +7,7 @@ import jandcode.core.dbm.mdb.Mdb;
 import jandcode.core.store.Store;
 import tofi.mdl.consts.FD_PropType_consts;
 import tofi.mdl.model.utils.EntityMdbUtils;
+import tofi.mdl.model.utils.UtEntityTranslate;
 
 import java.util.Map;
 
@@ -21,9 +22,9 @@ public class MeasureMdbUtils extends EntityMdbUtils {
     }
 
     public Store load(Map<String, Object> params) throws Exception {
+        //**************** Используется при обращении из другого модуля
         long measureBase = UtCnv.toLong(params.get("measureBase"));
         long meter = UtCnv.toLong(params.get("meter"));
-
         String whe = "0=0";
         if (measureBase > 0) {
             whe = "id=" + measureBase + " or parent=" + measureBase;
@@ -34,19 +35,24 @@ public class MeasureMdbUtils extends EntityMdbUtils {
                 whe = "id=" + measureBase + " or parent=" + measureBase;
             }
         }
-        //
+        //****************
+
         AuthService authSvc = mdb.getApp().bean(AuthService.class);
         AuthUser au = authSvc.getCurrentUser();
-        //todo AuthUser
-        long al = 10; //au.getAttrs().getLong("accesslevel");
+        long al = au.getAttrs().getLong("accesslevel");
         whe += " and accessLevel <= " + al;
+        long id = UtCnv.toLong(params.get("id"));
+        if (id > 0) {
+            whe += " and id=" + id;
+        }
         //
-        Store st = mdb.createStore("Measure");
+        Store st = mdb.createStore("Measure.lang");
         String sql = "select * from Measure where " + whe;
         mdb.loadQuery(st, sql);
-        mdb.resolveDicts(st);
         //
-        return st;
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        String lang = UtCnv.toString(params.get("lang"));
+        return ut.getTranslatedStore(st,"Measure", lang);
     }
 
     public Store loadBase(Map<String, Object> params) throws Exception {

@@ -21,14 +21,6 @@ import jandcode.commons.reflect.*;
     @FieldProps(dict = "FD_DataBaseType")
     private Long dataBaseType;
 
-    @FieldProps(size = 200)
-    private String name;
-
-    @FieldProps(size = 400)
-    private String fullName;
-
-    private String cmt;
-
     /**
     * id
     */
@@ -52,7 +44,7 @@ import jandcode.commons.reflect.*;
     }
 
     /**
-    * Иентификатор базы данных
+    * Идентификатор базы данных
     */
     public String getModelName() {
     return this.modelName;
@@ -71,39 +63,6 @@ import jandcode.commons.reflect.*;
 
     public void setDataBaseType(Long v) {
     this.dataBaseType = v;
-    }
-
-    /**
-    * Краткое наименование
-    */
-    public String getName() {
-    return this.name;
-    }
-
-    public void setName(String v) {
-    this.name = v;
-    }
-
-    /**
-    * Полное наименование
-    */
-    public String getFullName() {
-    return this.fullName;
-    }
-
-    public void setFullName(String v) {
-    this.fullName = v;
-    }
-
-    /**
-    * Комментарий
-    */
-    public String getCmt() {
-    return this.cmt;
-    }
-
-    public void setCmt(String v) {
-    this.cmt = v;
     }
 
     }

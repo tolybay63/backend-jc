@@ -8,16 +8,23 @@ import org.junit.jupiter.api.Test
 class TableLang_Test extends Apx_Test {
 
     @Test
-    void fill_DataBase() throws Exception {
+    void fill_DataBase() throws Exception { //1
         Store st = mdb.loadQuery("select * from DataBase where 0=0 order by id")
         for (StoreRecord r in st) {
             fill_TableLang("DataBase", r.getLong("id"), r.getString("name"),
                     r.getString("fullName"), r.getString("cmt"), "ru")
         }
-
-
-
     }
+
+    @Test
+    void fill_Measure() throws Exception { //2
+        Store st = mdb.loadQuery("select * from Measure where 0=0 order by id")
+        for (StoreRecord r in st) {
+            fill_TableLang("Measure", r.getLong("id"), r.getString("name"),
+                    r.getString("fullName"), r.getString("cmt"), "ru")
+        }
+    }
+
 
 
     void fill_TableLang(String nameTable, long idTable,
