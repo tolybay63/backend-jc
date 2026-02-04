@@ -39,28 +39,20 @@ public class EntityMdbUtils {
                     where linkType=:linkType and linkId=:linkId
                 """, Map.of("linkType", ent, "linkId", id));
 
-        if (EntityConst.getEntityInfo(ent).getHasVer()) {
-            mdb.execQuery("delete from " + tableName + "Ver where ownerVer=:id", Map.of("id", id));
+        if (EntityConst.getEntityInfo(ent).getHasVer()) { //todo Проверить
+            mdb.execQuery("""
+                delete from TableLang
+                where nameTable=:tb
+                    and idTable in (select id from :tb where lastVer=1 and ownerVer=:id);
+                delete from :tb where ownerVer=:id;
+            """, Map.of("tb", tableName + "Ver", "id", id));
+        } else if (EntityConst.getEntityInfo(ent).getHasTranslate()) {
+            mdb.execQuery("delete from TableLang where nameTable=:tb and idTable=:id", Map.of("tb", tableName, "id", id));
         }
+
         //
         mdb.deleteRec(tableName, id);
     }
-
-    //todo Delete!!!
-/*    public void deleteEntityWithVer(Map<String, Object> rec) throws Exception {
-        long id = UtCnv.toLong(rec.get("id"));
-        String sign = tableName;
-
-        long ent = EntityConst.getNumConst(sign);
-
-        mdb.execQuery("delete from SysCod where linkType=:linkType and linkId=:linkId;\n" +
-                        "delete from " + tableName + "Ver where ownerVer=:id",
-                Map.of("linkType", ent, "linkId", id, "id", id));
-
-        //mdb.commit();
-
-        mdb.deleteRec(tableName, id);
-    }*/
 
     public void deleteEntityVer(Map<String, Object> rec) throws Exception {
         long id = UtCnv.toLong(rec.get("id"));
@@ -84,7 +76,7 @@ public class EntityMdbUtils {
             mdb.execQuery("update " + tableName + "Ver set lastVer=1 where id=" + vers.get(1).getLong("id"));
         }
         //
-
+        mdb.execQuery("delete from TableLang where nameTable=:tb and idTable=:id", Map.of("tb", tableName+"Ver", "id", id));
     }
 
     public void updateEntity(Map<String, Object> rec) throws Exception {
@@ -160,66 +152,75 @@ public class EntityMdbUtils {
                     rV.set("objParent", parent);
             }
             mdb.updateRec(tableName + "Ver", rV);
-        }
-    }
+            //Translate
+            //idTable == idVer;
+            String lang = UtCnv.toString(rec.get("lang"));
+            st = mdb.createStore("TableLang");
+            mdb.loadQuery(st, """
+                        select * from TableLang where nameTable=:tableNameVer and lang=:lang and idTable=:idTable
+                    """, Map.of("tableNameVer", tableName+ "Ver", "lang", lang, "idTable", verId));
 
-    //todo Delete!!!
+            if (st.size() > 1)
+                throw new XError("Не понятно! Проверить...");
+            else if (st.size() == 1) {
+                StoreRecord rLang = st.add(rec);
+                rLang.set("id", st.get(0).getLong("id"));
+                rLang.set("nameTable", tableName+"Ver");
+                rLang.set("idTable", verId);
+                mdb.updateRec("TableLang", rLang);
+            } else if (st.size() == 0) {
+                StoreRecord rLang = st.add(rec);
+                long idLang = mdb.getNextId("TableLang");
+                rLang.set("id", idLang);
+                rLang.set("nameTable", tableName+"Ver");
+                rLang.set("idTable", verId);
+                mdb.insertRec("TableLang", rLang, false);
+            }
+        } else if (EntityConst.getEntityInfo(ent).getHasTranslate()) {
 /*
-    public void updateEntityWithVer(Map<String, Object> rec) throws Exception {
-        long id = UtCnv.toLong(rec.get("id"));
-        StoreRecord oldRec = mdb.loadQueryRecord("select cod from " + tableName + " where id=:id", Map.of("id", id));
-        // Checking cod
-        String cod = UtCnv.toString(rec.get("cod"));
-        String oldCod = oldRec.getString("cod");
-        //
-        if (!UtString.empty(cod) && !cod.equalsIgnoreCase(oldCod)) {
-            checkCod(cod);
-        }
-        //
-        long ent = EntityConst.getNumConst(tableName);
-        // генерим код, если не указан
-        if (cod.isEmpty()) {
-            cod = EntityConst.generateCod(ent, id);
-            rec.put("cod", cod);
-        }
-        // изменяем код
-        if (!cod.equalsIgnoreCase(oldCod)) {
-            mdb.execQuery("""
-                        update SysCod set cod=:cod
-                        where linkType=:linkType and linkId=:linkId
-                    """, Map.of("cod", cod, "linkType", ent, "linkId", id));
-
-            // Изменяем код у константы если таковая была создана
-            //AppConsts_updater...
-
-        }
-        //
-        Store st = mdb.createStore(tableName);
-        StoreRecord r = st.add(rec);
-        mdb.updateRec(tableName, r);
-        //
-        long verId = mdb.loadQuery("select v.id from " + tableName + " t," + tableName + "Ver v " +
-                        "where t.id=v.ownerVer and v.lastVer=1 and t.id=:id",
-                Map.of("id", id)).get(0).getLong("id");
-
-        st = mdb.createStore(tableName + "Ver");
-        StoreRecord rV = st.add(rec);
-        rV.set("id", verId);
-        rV.set("ownerVer", id);
-        rV.set("lastVer", 1);
-        if (rV.getString("dbeg").equals("0000-01-01"))
-            rV.set("dbeg", "1800-01-01");
-        if (rV.getString("dend").equals("0000-01-01"))
-            rV.set("dend", "3333-12-31");
-        if (tableName.equalsIgnoreCase("obj")) {
-            long parent = UtCnv.toLong(rec.get("parent"));
-            if (parent > 0)
-                rV.set("objParent", parent);
-        }
-        mdb.updateRec(tableName + "Ver", rV);
-    }
+    tableName - curTable   rec.get("id") - idTable  rec.get("lang") - lang
 */
+            //idTable == id;
+            String lang = UtCnv.toString(rec.get("lang"));
+            st = mdb.createStore("TableLang");
+            mdb.loadQuery(st, """
+                        select * from TableLang where nameTable=:tableName and lang=:lang and idTable=:idTable
+                    """, Map.of("tableName", tableName, "lang", lang, "idTable", id));
 
+            if (st.size() > 1) {
+                throw new XError("Не понятно! Надо проверить...");
+            } else if (st.size() == 1) {
+                StoreRecord rLang = st.add(rec);
+                rLang.set("id", st.get(0).getLong("id"));
+                rLang.set("nameTable", tableName);
+                rLang.set("idTable", id);
+                mdb.updateRec("TableLang", rLang);
+                //
+                st.clear();
+                mdb.loadQuery(st, """
+                        select * from TableLang where nameTable=:tableName and lang<>:lang and idTable=:idTable
+                    """, Map.of("tableName", tableName, "lang", lang, "idTable", id));
+                if (!rLang.getString("cmt").isEmpty()) {
+                    Translator tr = new Translator(mdb);
+                    for (StoreRecord record : st) {
+                        if (record.getString("cmt").isEmpty()) {
+                            String s = tr.translateText(rLang.getString("cmt"), lang, record.getString("lang"));
+                            record.set("cmt", s);
+                            mdb.updateRec("TableLang", record);
+                        }
+                    }
+                }
+            } else if (st.size() == 0) {
+                StoreRecord rLang = st.add(rec);
+                long idLang = mdb.getNextId("TableLang");
+                rLang.set("id", idLang);
+                rLang.set("nameTable", tableName);
+                rLang.set("idTable", id);
+                mdb.insertRec("TableLang", rLang, false);
+            }
+        }
+
+    }
 
     public void updateEntityVer(Map<String, Object> rec) throws Exception {
         long idVer = UtCnv.toLong(rec.get("id"));
@@ -324,58 +325,27 @@ public class EntityMdbUtils {
             }
             mdb.insertRec(tableName + "Ver", rV, false);
             //
+            if (EntityConst.getEntityInfo(ent).getHasTranslate()) {
+                st = mdb.createStore("TableLang");
+                StoreRecord rLang = st.add(rec);
+                long idLang = mdb.getNextId("TableLang");
+                rLang.set("id", idLang);
+                rLang.set("nameTable", tableName+"Ver");
+                rLang.set("idTable", idVer);
+                mdb.insertRec("TableLang", rLang, false);
+            }
+        } else if (EntityConst.getEntityInfo(ent).getHasTranslate()) {
+            st = mdb.createStore("TableLang");
+            StoreRecord rLang = st.add(rec);
+            long idLang = mdb.getNextId("TableLang");
+            rLang.set("id", idLang);
+            rLang.set("nameTable", tableName);
+            rLang.set("idTable", id);
+            mdb.insertRec("TableLang", rLang, false);
         }
 
         return id;
     }
-
-    //todo Delete!!!
-
-    /*public long insertEntityWithVer(Map<String, Object> rec) throws Exception {
-        Store st = mdb.createStore(tableName);
-        StoreRecord r = st.add(rec);
-        String cod = r.getString("cod");
-        checkCod(cod);
-        long id = mdb.getNextId(tableName);
-        r.set("id", id);
-        //
-        DomainService domainSvc = mdb.getModel().bean(DomainService.class);
-        Domain dm = domainSvc.getDomain(tableName);
-        if (dm.findField("ord") != null) {
-            r.set("ord", id);
-        }
-        //
-        long ent = EntityConst.getNumConst(tableName);
-        if (cod.isEmpty()) {
-            cod = EntityConst.generateCod(ent, id);
-            r.set("cod", cod);
-        }
-        //
-        mdb.insertRec(tableName, r, false);
-        // добавляем код
-        mdb.insertRec("SysCod", Map.of("cod", cod, "linkType", ent, "linkId", id));
-        //
-        st = mdb.createStore(tableName + "Ver");
-        StoreRecord rV = st.add(rec);
-
-        long idVer = mdb.getNextId(tableName + "Ver");
-        rV.set("id", idVer);
-        rV.set("ownerVer", id);
-        rV.set("lastVer", 1);
-        if (rV.getString("dbeg").equals("0000-01-01"))
-            rV.set("dbeg", "1800-01-01");
-        if (rV.getString("dend").equals("0000-01-01"))
-            rV.set("dend", "3333-12-31");
-
-        if (tableName.equalsIgnoreCase("obj")) {
-            long parent = UtCnv.toLong(rec.get("parent"));
-            if (parent > 0)
-                rV.set("objParent", parent);
-        }
-        mdb.insertRec(tableName + "Ver", rV, false);
-        //
-        return id;
-    }*/
 
     public long insertEntityVer(Map<String, Object> rec) throws Exception {
         Store st = mdb.createStore(tableName + "Ver");

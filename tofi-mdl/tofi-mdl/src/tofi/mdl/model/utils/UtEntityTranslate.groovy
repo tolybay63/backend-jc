@@ -23,21 +23,20 @@ class UtEntityTranslate extends BaseMdbUtils {
         Store stLang = null
         if (!hasVer) {
             stLang = mdb.loadQuery("""
-                select name, fullName, cmt, lang, idTable || '_' || lang as keyExact, idTable as key
+                select id, name, fullName, cmt, lang, idTable || '_' || lang as keyExact, idTable as key
                 from TableLang where nameTable='${table}'
-                order by lang
+                order by lang desc
             """)
         }
         if (hasVer) {
             stLang = mdb.loadQuery("""
-                select name, fullName, cmt, lang, idTable || '_' || lang as keyExact, idTable as key
+                select l.id, l.name, l.fullName, l.cmt, lang, idTable || '_' || lang as keyExact, idTable as key
                 from TableLang l, ${table}Ver t where l.nameTable='${table}Ver' and t.id=l.idtable
-                order by lang
+                order by lang desc
             """)
         }
         StoreIndex indExact = stLang.getIndex("keyExact")
         StoreIndex indOther = stLang.getIndex("key")
-
         for (StoreRecord r : st) {
             StoreRecord rec
             if (hasVer)
@@ -50,8 +49,32 @@ class UtEntityTranslate extends BaseMdbUtils {
                     r.set("name", rec.getString("name"))
                 if (r.findField("fullName") != null)
                     r.set("fullName", rec.getString("fullName"))
-                if (r.findField("cmt") != null)
+                if (r.findField("cmt") != null) {
                     r.set("cmt", rec.getString("cmt"))
+
+/*
+                    if (r.getString("cmt").isEmpty() && !rec.getString("cmt").isEmpty() && rec.getString("lang") != lang) {
+                        String s = tr.translateText(rec.getString("cmt"), rec.getString("lang"), lang)
+                        r.set("cmt", s)
+                    } else {
+                        r.set("cmt", rec.getString("cmt"))
+                    }
+*/
+                }
+
+/*                StoreRecord recLg = mdb.createStoreRecord("TableLang", r)
+                //StoreRecord recLg = stLg.add(r)
+                recLg.set("nameTable", table)
+                recLg.set("id", rec.getLong("id"))
+                recLg.set("idTable", r.getLong("id"))
+                if (hasVer) {
+                    recLg.set("nameTable", table + 'Ver')
+                    recLg.set("idTable", r.getLong("verId"))
+                }
+                recLg.set("lang", lang)
+                mdb.updateRec("TableLang", recLg)*/
+
+
             } else {
 
                 if (hasVer)

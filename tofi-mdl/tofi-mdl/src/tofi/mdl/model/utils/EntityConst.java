@@ -198,6 +198,7 @@ public class EntityConst {
         private boolean hasVer;
         private String icon;
         private int vis;
+        private boolean hasTranslate;
 
         /**
          * Числовая константа для сущности = код значения фактора с id=50
@@ -241,6 +242,10 @@ public class EntityConst {
             return hasVer;
         }
 
+        public boolean getHasTranslate() {
+            return hasTranslate;
+        }
+
         public int getVis() {
             return vis;
         }
@@ -256,7 +261,7 @@ public class EntityConst {
     public static String genCodPref = "_";
 
     private static void add(long numConst, String codTemplate, String sign, String tableName, String text,
-                            boolean hasVer, int vis, String icon) {
+                            boolean hasVer, int vis, String icon, boolean hasTranslate) {
         EntityInfo z = new EntityInfo();
         z.numConst = numConst;
         z.codTemplate = genCodPref + codTemplate;
@@ -264,6 +269,7 @@ public class EntityConst {
         z.tableName = tableName;
         z.text = text;
         z.hasVer = hasVer;
+        z.hasTranslate = hasTranslate;
         z.icon = icon;
         z.vis = vis;
         //
@@ -281,43 +287,44 @@ public class EntityConst {
     static {
 
         // дополнительная информация о сущностях
-        // false: Неверсионный, true: Версионный
-        add(Measure, "M_#", "Measure", "Measure", "Единица измерения", false, 1, "measure");
-        add(Attrib, "A_#", "Attrib", "Attrib", "Атрибут", false, 1, "attrib");
-        add(Factor, "F_#", "Factor", "Factor", "Фактор", false, 1, "factor");
-        add(FactorVal, "FV_#", "FactorVal", "Factor", "Значение фактора", false, 1, "factorval");
-        add(Meter, "I_#", "Meter", "Meter", "Измеритель", false, 1, "meter");
-        add(MeterRate, "IP_#", "MeterRate", "MeterRate", "Показатель", false, 1, "meterrate");
-        add(Role, "R_#", "Role", "Role", "Роль типа объектов и отношений", false, 1, "role");
-        add(Typ, "T_#", "Typ", "Typ", "Тип объектов", true, 1, "typ");
-        add(Cls, "C_#", "Cls", "Cls", "Класс объектов", true, 1, "cls");
+        // hasVer: false - Неверсионный, true - Версионный
+        // hasTranslate: true - Многоязычный, false - нет
+        add(Measure, "M_#", "Measure", "Measure", "Единица измерения", false, 1, "measure", true);
+        add(Attrib, "A_#", "Attrib", "Attrib", "Атрибут", false, 1, "attrib", true);
+        add(Factor, "F_#", "Factor", "Factor", "Фактор", false, 1, "factor", true);
+        add(FactorVal, "FV_#", "FactorVal", "Factor", "Значение фактора", false, 1, "factorval", true);
+        add(Meter, "I_#", "Meter", "Meter", "Измеритель", false, 1, "meter", true);
+        add(MeterRate, "IP_#", "MeterRate", "MeterRate", "Показатель", false, 1, "meterrate", true);
+        add(Role, "R_#", "Role", "Role", "Роль типа объектов и отношений", false, 1, "role", true);
+        add(Typ, "T_#", "Typ", "Typ", "Тип объектов", true, 1, "typ", true);
+        add(Cls, "C_#", "Cls", "Cls", "Класс объектов", true, 1, "cls", true);
         //add(Obj, "O_#", "Obj", "Obj", "Объект", true, 1, "obj");
-        add(TypCharGr, "TG_#", "TypCharGr", "TypCharGr", "Группа характеристических свойств типа объектов", false, 1, "typchargr");
-        add(RelTyp, "RT_#", "RelTyp", "RelTyp", "Отношение между типами объектов", true, 1, "reltyp");
-        add(SysCoding, "SC_#", "SysCoding", "SysCoding", "Система кодирования", false, 1, "syscoding");
+        add(TypCharGr, "TG_#", "TypCharGr", "TypCharGr", "Группа характеристических свойств типа объектов", false, 1, "typchargr", true);
+        add(RelTyp, "RT_#", "RelTyp", "RelTyp", "Отношение между типами объектов", true, 1, "reltyp", true);
+        add(SysCoding, "SC_#", "SysCoding", "SysCoding", "Система кодирования", false, 1, "syscoding", true);
         //add(RelObj, "RO_#", "RelObj", "RelObj", "Отношение между объектов", true, 1, "relobj");
-        add(RelTypCharGr, "RG_#", "RelTypCharGr", "RelTypCharGr", "Группа характеристических свойств отношения между типами объектов", false, 1, "reltypchargr");
-        add(PropGr, "PG_#", "PropGr", "PropGr", "Группа свойств", false, 1, "propgr");
-        add(Prop, "P_#", "Prop", "Prop", "Свойство", false, 0, "prop");
-        add(DimMultiPropGr, "DMPG_#", "DimMultiPropGr", "DimMultiPropGr", "Группа измерений многомерного свойства", false, 1, "dimmultiprop");
-        add(DimMultiProp, "DMP_#", "DimMultiProp", "DimMultiProp", "Измерение многомерного свойства", false, 1, "dimmultiprop");
-        add(Scale, "S_#", "Scale", "Scale", "Шкала", false, 1, "scale");
-        add(ScaleAsgn, "SA_#", "ScaleAsgn", "scaleasgn", "Настройка шкалы", false, 1, "scaleasgn");
-        add(MultiPropGr, "MPG_#", "MultiPropGr", "MultiPropGr", "Группа многомерных свойств", false, 1, "multipropgr");
-        add(MultiProp, "MP_#", "MultiProp", "MultiProp", "Многомерные свойства", false, 1, "multiprop");
-        add(DimPeriod, "D_#", "DimPeriod", "DimPeriod", "Измерение периодов", false, 1, "dimperiod");
-        add(DimPropGr, "DPG_#", "DimPropGr", "DimPropGr", "Группа измерения свойств", false, 1, "dimpropgr");
-        add(DimProp, "DP_#", "DimProp", "DimProp", "Измерение свойств", false, 1, "dimprop");
-        add(DimObjGr, "DOG_#", "DimObjGr", "DimObjGr", "Группа измерений объектов и отношений", false, 1, "dimobjgr");
-        add(DimObj, "DO_#", "DimObj", "DimObj", "Измерение объектов и отношений", false, 1, "dimobj");
-        add(DataBase, "DB_#", "DataBase", "DataBase", "Перечень базы данных", false, 1, "database");
-        add(RelCls, "RC_#", "RelCls", "RelCls", "Класс отношений", true, 1, "relcls");
-        add(FlatTable, "FT_#", "FlatTable", "FlatTable", "Плоские таблицы", false, 1, "flattable");
-        add(DimMultiPropItem, "DMPI_#", "DimMultiPropItem", "DimMultiPropItem", "Элементы измерения многомерного свойства", false, 1, "dimmultipropitem");
-        add(CubeSGr, "CSG_#", "CubeSGr", "CubeSGr", "Группа стандартных кубов", false, 1, "cubesgr");
-        add(CubeS, "CS_#", "CubeS", "CubeS", "Стандартные кубы", false, 0, "cubes");
-        add(SourceStockGr, "DSG_#", "SourceStockGr", "SourceStockGr", "Группа источников данных", false, 0, "sourcestockgr");
-        add(SourceStock, "DS_#", "SourceStock", "SourceStock", "Источники данных", false, 0, "sourcestock");
+        add(RelTypCharGr, "RG_#", "RelTypCharGr", "RelTypCharGr", "Группа характеристических свойств отношения между типами объектов", false, 1, "reltypchargr", true);
+        add(PropGr, "PG_#", "PropGr", "PropGr", "Группа свойств", false, 1, "propgr", true);
+        add(Prop, "P_#", "Prop", "Prop", "Свойство", false, 0, "prop", true);
+        add(DimMultiPropGr, "DMPG_#", "DimMultiPropGr", "DimMultiPropGr", "Группа измерений многомерного свойства", false, 1, "dimmultiprop", true);
+        add(DimMultiProp, "DMP_#", "DimMultiProp", "DimMultiProp", "Измерение многомерного свойства", false, 1, "dimmultiprop", true);
+        add(Scale, "S_#", "Scale", "Scale", "Шкала", false, 1, "scale", true);
+        add(ScaleAsgn, "SA_#", "ScaleAsgn", "scaleasgn", "Настройка шкалы", false, 1, "scaleasgn", true);
+        add(MultiPropGr, "MPG_#", "MultiPropGr", "MultiPropGr", "Группа многомерных свойств", false, 1, "multipropgr", true);
+        add(MultiProp, "MP_#", "MultiProp", "MultiProp", "Многомерные свойства", false, 1, "multiprop", true);
+        add(DimPeriod, "D_#", "DimPeriod", "DimPeriod", "Измерение периодов", false, 1, "dimperiod", true);
+        add(DimPropGr, "DPG_#", "DimPropGr", "DimPropGr", "Группа измерения свойств", false, 1, "dimpropgr", true);
+        add(DimProp, "DP_#", "DimProp", "DimProp", "Измерение свойств", false, 1, "dimprop", true);
+        add(DimObjGr, "DOG_#", "DimObjGr", "DimObjGr", "Группа измерений объектов и отношений", false, 1, "dimobjgr", true);
+        add(DimObj, "DO_#", "DimObj", "DimObj", "Измерение объектов и отношений", false, 1, "dimobj", true);
+        add(DataBase, "DB_#", "DataBase", "DataBase", "Перечень базы данных", false, 1, "database", true);
+        add(RelCls, "RC_#", "RelCls", "RelCls", "Класс отношений", true, 1, "relcls", true);
+        add(FlatTable, "FT_#", "FlatTable", "FlatTable", "Плоские таблицы", false, 1, "flattable", true);
+        add(DimMultiPropItem, "DMPI_#", "DimMultiPropItem", "DimMultiPropItem", "Элементы измерения многомерного свойства", false, 1, "dimmultipropitem", true);
+        add(CubeSGr, "CSG_#", "CubeSGr", "CubeSGr", "Группа стандартных кубов", false, 1, "cubesgr", true);
+        add(CubeS, "CS_#", "CubeS", "CubeS", "Стандартные кубы", false, 0, "cubes", true);
+        add(SourceStockGr, "DSG_#", "SourceStockGr", "SourceStockGr", "Группа источников данных", false, 0, "sourcestockgr", true);
+        add(SourceStock, "DS_#", "SourceStock", "SourceStock", "Источники данных", false, 0, "sourcestock", true);
 
 
     }
