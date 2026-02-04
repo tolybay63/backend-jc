@@ -608,7 +608,7 @@ class DataDao extends BaseMdbUtils {
         StoreIndex indPV = stPV.getIndex("cls")
 
         for (StoreRecord r in stTmp) {
-            if ((beg <= r.getInt("beg") && r.getInt("beg") <= end) ||
+            if ((beg <= r.getInt("beg") && r.getInt("beg") < end) ||
                     (beg < r.getInt("end") && r.getInt("end") <= end) ||
                     (beg > r.getInt("beg") && r.getInt("end") > end)) {
                 //
