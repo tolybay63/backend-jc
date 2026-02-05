@@ -18,9 +18,18 @@ class TableLang_Test extends Apx_Test {
 
     @Test
     void fill_Measure() throws Exception { //2
-        Store st = mdb.loadQuery("select * from Measure where 0=0 order by id")
+        Store st = mdb.loadQuery("select * from Measure where 0=0 order by id limit 5")
         for (StoreRecord r in st) {
             fill_TableLang("Measure", r.getLong("id"), r.getString("name"),
+                    r.getString("fullName"), r.getString("cmt"), "ru")
+        }
+    }
+
+    @Test
+    void fill_Attrib() throws Exception { //2
+        Store st = mdb.loadQuery("select * from Attrib where 0=0 order by id")
+        for (StoreRecord r in st) {
+            fill_TableLang("Attrib", r.getLong("id"), r.getString("name"),
                     r.getString("fullName"), r.getString("cmt"), "ru")
         }
     }

@@ -16,6 +16,7 @@ import tofi.apinator.ApinatorApi;
 import tofi.apinator.ApinatorService;
 import tofi.mdl.consts.FD_PropType_consts;
 import tofi.mdl.model.utils.EntityMdbUtils;
+import tofi.mdl.model.utils.UtEntityTranslate;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,83 +56,56 @@ public class FactorMdbUtils extends EntityMdbUtils {
         super(mdb, tableName);
         this.mdb = mdb;
         this.tableName = tableName;
-        //
-/*
-        if (!mdb.getApp().getEnv().isTest())
-            if (!UtCnv.toBoolean(mdb.createDao(AuthDao.class).isLogined().get("success")))
-                throw new XError("notLogined");
-*/
     }
 
     /**
      * Загрузка FactorVal без пагинацией
      *
-     * @param params
-     * @return
-     * @throws Exception
+     * @param params Map
+     * @return Store
      */
     public Store loadFactorVal(Map<String, Object> params) throws Exception {
-        AuthService authSvc = mdb.getApp().bean(AuthService.class);
-        AuthUser au = authSvc.getCurrentUser();
-        //todo AuthUser
-        long al = 10; //au.getAttrs().getLong("accesslevel");
-        params.put("al", al);
-        Store st = mdb.createStore("Factor");
-        mdb.loadQuery(st, "select * from factor where parent=:factor and accessLevel<=:al order by ord", params);
-        mdb.resolveDicts(st);
-        return st;
-    }
-
-    /**
-     * Загрузка Factor с пагинацией
-     *
-     * @param params
-     * @return
-     * @throws Exception
-     */
-    public Map<String, Object> loadFactorPaginate(Map<String, Object> params) throws Exception {
         AuthService authSvc = mdb.getApp().bean(AuthService.class);
         AuthUser au = authSvc.getCurrentUser();
         long al = au.getAttrs().getLong("accesslevel");
         if (al==0)
             throw new XError("notLogined");
+        String whe = "accessLevel<="+al+" and parent="+UtCnv.toLong(params.get("factor"));
+        if (UtCnv.toLong(params.get("id"))>0) {
+            whe = "accessLevel<="+al+" and id="+UtCnv.toLong(params.get("factor"));
+        }
 
-        String sql0 = "select * from factor where parent is null and accessLevel <= " + al + " order by ord";
-        SqlText sqlText = mdb.createSqlText(sql0);
-        Map<String, Object> par = new HashMap<>();
-        String filter = UtCnv.toString(params.get("filter")).trim();
+        Store st = mdb.createStore("Factor.lang");
+        mdb.loadQuery(st, "select * from factor where " + whe + " order by ord");
 
-        //count
-        String sql = "select count(*) as cnt from factor where parent is null and accessLevel <= " + al;
-        sqlText.setSql(sql);
-        if (!filter.isEmpty())
-            sqlText = sqlText.addWhere("name like '%" + filter + "%' or fullName like '%" + filter + "%' or cod like '%" + filter + "%'");
-        int total = mdb.loadQuery(sqlText).get(0).getInt("cnt");
-        int lm = UtCnv.toInt(params.get("limit")) == 0 ? total : UtCnv.toInt(params.get("limit"));
-        Map<String, Object> meta = new HashMap<String, Object>();
-        meta.put("total", total);
-        meta.put("page", UtCnv.toInt(params.get("page")));
-        meta.put("limit", lm);
-        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st, "Factor", UtCnv.toString(params.get("lang")));
+    }
 
-        int offset = (UtCnv.toInt(params.get("page")) - 1) * lm;
-        par.put("offset", offset);
-        par.put("limit", lm);
-        sqlText.setSql(sql0);
-        sqlText.paginate(true);
+    /**
+     * Загрузка Factor
+     *
+     * @param params Map
+     * @return Store
+     */
+    public Store loadFactor(Map<String, Object> params) throws Exception {
+        AuthService authSvc = mdb.getApp().bean(AuthService.class);
+        AuthUser au = authSvc.getCurrentUser();
+        long al = au.getAttrs().getLong("accesslevel");
+        if (al==0)
+            throw new XError("notLogined");
+        String whe = "parent is null and accessLevel <= "+al;
+        if (UtCnv.toLong(params.get("id"))>0) {
+            whe = "id="+UtCnv.toLong(params.get("id")) + " and accessLevel <= "+al;
+        }
 
-        if (!UtCnv.toString(params.get("orderBy")).trim().isEmpty())
-            sqlText = sqlText.replaceOrderBy(UtCnv.toString(params.get("orderBy")));
+        String sql = "select * from factor where " + whe + " order by ord";
 
+        Store st = mdb.createStore("Factor.lang");
+        mdb.loadQuery(st, sql);
 
-        if (!filter.isEmpty())
-            sqlText = sqlText.addWhere("(cod like '%" + filter + "%' or name like '%" + filter + "%' or " +
-                    "fullName like '%" + filter + "%')");
-        Store st = mdb.createStore("Factor");
-        mdb.loadQuery(st, sqlText, par);
-        mdb.resolveDicts(st);
-
-        return Map.of("store", st, "meta", meta);
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st, "Factor", UtCnv.toString(params.get("lang")));
     }
 
 
@@ -197,9 +171,8 @@ public class FactorMdbUtils extends EntityMdbUtils {
     /**
      * Update Factor & FactorVal
      *
-     * @param params
-     * @return
-     * @throws Exception
+     * @param params Map
+     * @return Store
      */
     public Store update(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = (UtCnv.toMap(params.get("rec")));
@@ -210,22 +183,15 @@ public class FactorMdbUtils extends EntityMdbUtils {
         }
         //
         updateEntity(rec);
-        //
         // Загрузка записи
-        Store st = mdb.createStore("Factor");
-
-        mdb.loadQuery(st, "select * from Factor where id=:id", Map.of("id", id));
-        mdb.resolveDicts(st);
-        //mdb.outTable(st);
-        return st;
+        return loadFactor(rec);
     }
 
     /**
      * Insert Factor & FactorVal
      *
-     * @param params
-     * @return
-     * @throws Exception
+     * @param params Map
+     * @return Store
      */
     public Store insert(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
@@ -244,19 +210,17 @@ public class FactorMdbUtils extends EntityMdbUtils {
             }
         }
         //
-
-        Store st = mdb.createStore("Factor");
-        mdb.loadQuery(st, "select * from factor where id=:id", Map.of("id", id));
-        mdb.resolveDicts(st);
-        return st;
+        rec.put("id", id);
+        return loadFactor(rec);
     }
 
-    public StoreRecord loadRec(Map<String, Object> params) throws Exception {
+    public Store loadRec(Map<String, Object> params) throws Exception {
         long id = UtCnv.toLong(params.get("id"));
-        StoreRecord st = mdb.createStoreRecord("Factor");
-        mdb.loadQueryRecord(st, "select * from factor where id=:id", Map.of("id", id));
-        //mdb.resolveDicts(st);
-        return st;
+        Store st = mdb.createStore("Factor.lang");
+        mdb.loadQuery(st, "select * from factor where id=:id", Map.of("id", id));
+
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st, "Factor", UtCnv.toString(params.get("lang")));
     }
 
     public void changeOrdFV(Map<String, Object> params) throws Exception {
