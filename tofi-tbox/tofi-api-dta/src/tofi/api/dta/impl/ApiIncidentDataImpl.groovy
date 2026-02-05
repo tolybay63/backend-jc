@@ -266,9 +266,11 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
                 mapNotif.put("name", "Cобытие №" + pms.getString("own"))
                 mapNotif.put("fullname", pms.getString("own") + "_" + pms.getLong("objUser"))
                 mapNotif.put("TimeSending", pms.getString("RegistrationDateTime"))
-                mapNotif.put("Description", pms.getString("InfoApplicant") + "\n" + pms.getInt("StartKm") + "км " +
-                        pms.getInt("StartPicket") + "пк " + pms.getInt("StartLink") + "зв - " + pms.getInt("FinishKm") +
-                        "км " + pms.getInt("FinishPicket") + "пк " + pms.getInt("FinishLink") + "зв\n" + pms.getString("Description"))
+                mapNotif.put("Description", "Информация о заявителе: " + pms.getString("InfoApplicant") +
+                        "\nОбъект: " + pms.getString("fullNameObject") + "\nКоординаты: " + pms.getInt("StartKm") + "км " +
+                        pms.getInt("StartPicket") + "пк " + pms.getInt("StartLink") + "зв - " +
+                        pms.getInt("FinishKm") + "км " + pms.getInt("FinishPicket") + "пк " +
+                        pms.getInt("FinishLink") + "зв\n" + pms.getString("Description"))
                 //
                 Store stTmp = apiPersonnalData().get(ApiPersonnalData).loadPersonnal(0)
                 for (StoreRecord r in stTmp) {
