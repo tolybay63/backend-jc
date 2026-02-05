@@ -3,7 +3,6 @@ package tofi.mdl.model.dao.factor;
 import jandcode.commons.UtCnv;
 import jandcode.core.dbm.dao.BaseModelDao;
 import jandcode.core.store.Store;
-import jandcode.core.store.StoreRecord;
 
 import java.util.Map;
 

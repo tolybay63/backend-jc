@@ -7,7 +7,6 @@ import jandcode.core.auth.AuthUser;
 import jandcode.core.dbm.mdb.Mdb;
 import jandcode.core.dbm.sql.SqlText;
 import jandcode.core.store.Store;
-import jandcode.core.store.StoreRecord;
 import tofi.mdl.model.utils.EntityMdbUtils;
 import tofi.mdl.model.utils.UtEntityTranslate;
 

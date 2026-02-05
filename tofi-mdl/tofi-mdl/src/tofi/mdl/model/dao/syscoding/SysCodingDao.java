@@ -3,7 +3,6 @@ package tofi.mdl.model.dao.syscoding;
 import jandcode.core.dbm.dao.BaseModelDao;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
-import tofi.mdl.model.dao.stock.StockMdbUtils;
 
 import java.util.Map;
 

@@ -7,10 +7,8 @@ import jandcode.commons.variant.VariantMap;
 import jandcode.core.auth.AuthService;
 import jandcode.core.auth.AuthUser;
 import jandcode.core.dbm.mdb.Mdb;
-import jandcode.core.dbm.sql.SqlText;
 import jandcode.core.std.CfgService;
 import jandcode.core.store.Store;
-import jandcode.core.store.StoreRecord;
 import tofi.api.dta.*;
 import tofi.apinator.ApinatorApi;
 import tofi.apinator.ApinatorService;
@@ -19,7 +17,6 @@ import tofi.mdl.model.utils.EntityMdbUtils;
 import tofi.mdl.model.utils.UtEntityTranslate;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
