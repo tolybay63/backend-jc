@@ -10,6 +10,7 @@ import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
 import jandcode.core.store.StoreRecord
 import tofi.api.dta.ApiIncidentData
+import tofi.api.dta.ApiObjectData
 import tofi.api.dta.ApiOrgStructureData
 import tofi.api.dta.ApiPersonnalData
 import tofi.api.dta.model.utils.EntityMdbUtils
@@ -32,6 +33,9 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
     }
     ApinatorApi apiOrgStructure() {
         return app.bean(ApinatorService).getApi("orgstructuredata")
+    }
+    ApinatorApi apiObjectData() {
+        return app.bean(ApinatorService).getApi("objectdata")
     }
 
 
@@ -280,6 +284,25 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
                         apiPersonnalData().get(ApiPersonnalData).saveNotification("ins", mapNotif)
                     }
                 }
+            } else {
+                Map<String, Object> mapNotif = new HashMap<>()
+                String nameObject = apiObjectData().get(ApiObjectData).loadSql("""
+                    select v.fullname
+                    from Obj o, ObjVer v
+                    where v.ownerver=o.id and v.lastver=1 and o.id=${pms.getLong("objObject")}
+                """, "").get(0).getString("fullname")
+                //
+                mapNotif.put("name", "Cобытие №" + pms.getString("own"))
+                mapNotif.put("fullname", pms.getString("own") + "_" + pms.getLong("objUser"))
+                mapNotif.put("TimeSending", pms.getString("RegistrationDateTime"))
+                mapNotif.put("Description", "Информация о заявителе: " + pms.getString("InfoApplicant") +
+                        "\nОбъект: " + nameObject + "\nКоординаты: " + pms.getInt("StartKm") + "км " +
+                        pms.getInt("StartPicket") + "пк " + pms.getInt("StartLink") + "зв - " +
+                        pms.getInt("FinishKm") + "км " + pms.getInt("FinishPicket") + "пк " +
+                        pms.getInt("FinishLink") + "зв\nОписание: " + pms.getString("Description"))
+                mapNotif.put("objPersonnel", pms.getLong("objUser"))
+                mapNotif.put("pvPersonnel", pms.getLong("pvUser"))
+                apiPersonnalData().get(ApiPersonnalData).saveNotification("ins", mapNotif)
             }
         }
         return own
