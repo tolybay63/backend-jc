@@ -6,6 +6,7 @@ import jandcode.core.dbm.mdb.Mdb;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreField;
 import jandcode.core.store.StoreRecord;
+import tofi.mdl.model.utils.UtEntityTranslate;
 
 import java.util.*;
 
@@ -19,11 +20,11 @@ public class FactorRelMdbUtils {
     /**
      * Загрузка зависимых факторов для указанного фактора
      *
-     * @param params factor
-     * @return
-     * @throws Exception
+     * @param params Map
+     * @return Store
      */
     public Store load(Map<String, Object> params) throws Exception {
+        Store st = mdb.createStore("Factor.lang");
         String sql = """
                     with fvs1 as (
                         select id from factor where parent=:factor
@@ -40,20 +41,20 @@ public class FactorRelMdbUtils {
                     from r
                     left join factor f on r.f2=f.id
                 """;
-        Store st = mdb.createStore("Factor");
-
-        return mdb.loadQuery(st, sql, params);
+        mdb.loadQuery(st, sql, params);
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st, "Factor", UtCnv.toString(params.get("lang")));
     }
 
     /**
      * Выбор зависимого фактора, для комбобокса
      *
-     * @param params
-     * @return
-     * @throws Exception
+     * @param params Map
+     * @return Store
      */
     public Store factor2(Map<String, Object> params) throws Exception {
-        return mdb.loadQuery("""
+        Store st = mdb.createStore("Factor.lang");
+        mdb.loadQuery(st, """
                     with fvs1 as (
                         select id from factor where parent=:factor
                     ),
@@ -70,9 +71,12 @@ public class FactorRelMdbUtils {
                         from r
                         left join factor f on r.f2=f.id
                     )
-                    select id, name from factor where parent is null
+                    select id, '' as name from factor where parent is null
                         and id<>:factor and id not in (select id from zav)
                 """, params);
+
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st, "Factor", UtCnv.toString(params.get("lang")));
     }
 
     public Map<String, Object> factorValRel(Map<String, Object> params) throws Exception {
@@ -80,8 +84,11 @@ public class FactorRelMdbUtils {
         Установка зависимости двух факторов factor1 и factor2. В начале все пары значений не совместные.
         В базу записываются несовместные пары.
         */
-
-        Store stFv2 = mdb.loadQuery("select id, name from factor where parent=:factor2 order by ord", params);
+        Store stFv2 = mdb.loadQuery("select id, '' as name from factor where parent=:factor2 order by ord", params);
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        stFv2 =  ut.getTranslatedStore(stFv2, "Factor", UtCnv.toString(params.get("lang")));
+        //
 
         List<Map<String, Object>> cols = new ArrayList<>();
         cols.add(Map.of("name", "name", "label", "factor1/factor2", "field", "name",
@@ -107,15 +114,19 @@ public class FactorRelMdbUtils {
                     "style", "width: 10%"));
         }
 
-        String sql = "select id, name as name" + sep + String.join(",", sel) + " from factor where parent=:factor1 order by ord";
+        String sql = "select id, '' as name" + sep + String.join(",", sel) + " from factor where parent=:factor1 order by ord";
 
         mdb.loadQuery(stFv1, sql, params);
+        //
+        ut = new UtEntityTranslate(mdb);
+        stFv1 =  ut.getTranslatedStore(stFv1, "Factor", UtCnv.toString(params.get("lang")));
+        //
 
         Store stFvRel = mdb.loadQuery("""
                             select r.id,
                             case when f1.parent = :factor1 then r.factor1 else r.factor2 end as factor1,
                             case when f1.parent = :factor1 then r.factor2 else r.factor1 end as factor2,
-                            r.cmt
+                            '' as cmt
                             from factorvalrel r, factor f1, factor f2
                             where r.factor1=f1.id and r.factor2=f2.id and (
                                 r.factor1 in (select id from factor where parent=:factor1) and r.factor2 in (select id from factor where parent=:factor2)
@@ -124,6 +135,10 @@ public class FactorRelMdbUtils {
                             )
                         """
                 , params);
+        //
+        ut = new UtEntityTranslate(mdb);
+        stFvRel =  ut.getTranslatedStore(stFvRel, "FactorValRel", UtCnv.toString(params.get("lang")));
+        //
 
         //Проставляем значения из базы
         Map<String, String> cmt = new HashMap<>();
@@ -143,18 +158,12 @@ public class FactorRelMdbUtils {
         rez.put("cols", cols);
         rez.put("cmt", cmt);
 
-/*
-        mdb.outTable(stFv1);
-        for (Map m : cols)
-            mdb.outMap(m);
-        mdb.outMap(cmt);
-*/
-
         return rez;
     }
 
     public Store saveFactorValRel(Map<String, Object> factors, Map<String, Object> data) throws Exception {
         //Deleting old values
+        String lang = (String) factors.get("lang");
         Store st = mdb.loadQuery("""
                     select r.id
                     from factorvalrel r, factor f1, factor f2
@@ -169,23 +178,39 @@ public class FactorRelMdbUtils {
         Set<Object> ids = st.getUniqueValues("id");
         String whe = UtString.join(ids, ",");
 
-        if (!whe.isEmpty())
+        if (!whe.isEmpty()) {
             mdb.execQuery("delete from factorvalrel where id in (" + whe + ")");
+            //
+            UtEntityTranslate ut = new UtEntityTranslate(mdb);
+            for (Object o : ids) {
+                long id = UtCnv.toLong(o);
+                ut.deleteFromTableLang("FactorValRel", id);
+            }
+        }
         //
         for (Map.Entry<String, Object> entry : data.entrySet()) {
             String[] f1f2 = UtCnv.toString(entry.getKey()).split("_");
             String cmt = UtCnv.toString(entry.getValue());
             long factor1 = UtCnv.toLong(f1f2[0]);
             long factor2 = UtCnv.toLong(f1f2[1]);
-            long id = mdb.getNextId("factorvalrel");
+            long id = mdb.getNextId("FactorValRel");
             Map<String, Object> rec = new HashMap<>();
             rec.put("id", id);
             rec.put("factor1", factor1);
             rec.put("factor2", factor2);
-            if (!cmt.isEmpty()) {
+/*            if (!cmt.isEmpty()) {
                 rec.put("cmt", cmt);
-            }
-            mdb.insertRec("factorvalrel", rec, false);
+            }*/
+
+            mdb.insertRec("FactorValRel", rec, false);
+            //
+            Map<String, Object> map = new HashMap<>();
+            map.put("table", "FactorValRel");
+            map.put("id", id);
+            map.put("lang", lang);
+            map.put("cmt", cmt);
+            UtEntityTranslate ut = new UtEntityTranslate(mdb);
+            ut.insertToTableLang(map);
         }
         //
         String sql = """
@@ -206,7 +231,12 @@ public class FactorRelMdbUtils {
                     where f.id=:factor2
                 """;
         Store rez = mdb.loadQuery(sql, factors);
-        mdb.resolveDicts(rez);
+
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        rez = ut.getTranslatedStore(rez, "Factor", lang);
+
+        //mdb.resolveDicts(rez);
+
         if (rez.size() > 0) {
             return rez;
         } else {

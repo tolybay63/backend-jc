@@ -6,8 +6,12 @@
         <!-- Несовместные значения факторов и зависимые факторы. -->
         <field name="factor1" parent="Factor/ref"/>
         <field name="factor2" parent="Factor/ref"/>
-        <field name="cmt" parent="f.cmt"/>
-
     </domain>
+
+    <!-- ====================================== -->
+    <domain name="FactorValRel.lang" parent="FactorValRel">
+        <field name="cmt" parent="f.cmt"/>
+    </domain>
+    <!-- ====================================== -->
 
 </root>

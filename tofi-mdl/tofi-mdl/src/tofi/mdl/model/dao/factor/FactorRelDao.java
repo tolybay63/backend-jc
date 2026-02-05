@@ -17,19 +17,6 @@ public class FactorRelDao extends BaseModelDao {
         return u.factor2(params);
     }
 
-/*
-    public StoreRecord insert(Map<String, Object> params) throws Exception {
-        FactorRelMdbUtils u = new FactorRelMdbUtils(getMdb());
-        return u.insert(params);
-    }
-
-    public void delete(Map<String, Object> params) throws Exception {
-        FactorRelMdbUtils u = new FactorRelMdbUtils(getMdb());
-        u.delete(UtCnv.toLong(params.get("id")));
-    }
-*/
-
-
     public Map<String, Object> factorValRel(Map<String, Object> params) throws Exception {
         FactorRelMdbUtils u = new FactorRelMdbUtils(getMdb());
         return u.factorValRel(params);

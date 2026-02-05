@@ -305,7 +305,7 @@ public class FactorMdbUtils extends EntityMdbUtils {
 
         Store st = mdb.createStore("Factor");
         mdb.loadQuery(st, sql);
-        mdb.resolveDicts(st);
+        //mdb.resolveDicts(st);
         return st;
     }
 

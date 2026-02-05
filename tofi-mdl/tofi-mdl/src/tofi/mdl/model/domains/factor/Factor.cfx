@@ -11,13 +11,16 @@
             -->
         </field>
         <field name="cod" parent="f.cod"/>
+        <field name="ord" parent="f.ord"/>
+    </domain>
+
+    <!-- ====================================== -->
+    <domain name="Factor.lang" parent="Factor">
         <field name="name" parent="f.name"/>
         <field name="fullName" parent="f.fullName"/>
         <field name="cmt" parent="f.cmt"/>
-        <field name="ord" parent="f.ord"/>
-
     </domain>
-
+    <!-- ====================================== -->
 
     <domain name="Factor.select" parent="id">
         <field name="name" parent="f.name"/>
@@ -26,5 +29,6 @@
     <domain name="Factor.cfv" parent="Factor">
         <field name="key" parent="long"/>
     </domain>
+
 
 </root>

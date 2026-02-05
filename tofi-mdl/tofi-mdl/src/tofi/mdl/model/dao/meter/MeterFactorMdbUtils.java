@@ -146,8 +146,8 @@ public class MeterFactorMdbUtils {
 
             if (fr.get(0).getLong("cnt") == fv1.get(0).getLong("cnt") * fv2.get(0).getLong("cnt")) {
                 FactorDao factorDao = mdb.createDao(FactorDao.class);
-                StoreRecord f1 = factorDao.loadRec(Map.of("id", factorId));
-                StoreRecord f2 = factorDao.loadRec(Map.of("id", factor));
+                StoreRecord f1 = factorDao.loadRec(Map.of("id", factorId)).get(0);
+                StoreRecord f2 = factorDao.loadRec(Map.of("id", factor)).get(0);
                 if (flag)
                     errorText = UtLang.t("Добавляемый фактор [" + f1.getString("name") + "] не совместим с фактором [" + f2.getString("name") + "]");
                 else

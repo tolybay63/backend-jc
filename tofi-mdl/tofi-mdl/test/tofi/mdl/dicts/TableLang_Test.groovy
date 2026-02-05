@@ -34,6 +34,24 @@ class TableLang_Test extends Apx_Test {
         }
     }
 
+    @Test
+    void fill_Factor() throws Exception { //2
+        Store st = mdb.loadQuery("select * from Factor where parent is null order by ord limit 10")
+        for (StoreRecord r in st) {
+            fill_TableLang("Factor", r.getLong("id"), r.getString("name"),
+                    r.getString("fullName"), r.getString("cmt"), "ru")
+        }
+
+        st = mdb.loadQuery("""
+            select * from Factor where parent in (
+                select id from Factor where parent is null limit 10            
+            ) order by ord
+        """)
+        for (StoreRecord r in st) {
+            fill_TableLang("Factor", r.getLong("id"), r.getString("name"),
+                    r.getString("fullName"), r.getString("cmt"), "ru")
+        }
+    }
 
 
     void fill_TableLang(String nameTable, long idTable,

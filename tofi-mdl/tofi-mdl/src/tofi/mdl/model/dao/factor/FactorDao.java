@@ -9,9 +9,9 @@ import java.util.Map;
 
 public class FactorDao extends BaseModelDao {
 
-    public Map<String, Object> loadFactorPaginate(Map<String, Object> params) throws Exception {
+    public Store loadFactor(Map<String, Object> params) throws Exception {
         FactorMdbUtils u = new FactorMdbUtils(getMdb(), "Factor");
-        return u.loadFactorPaginate(params);
+        return u.loadFactor(params);
     }
 
     public Store loadFactorVal(Map<String, Object> params) throws Exception {
@@ -44,7 +44,7 @@ public class FactorDao extends BaseModelDao {
         return u.insert(params);
     }
 
-    public StoreRecord loadRec(Map<String, Object> params) throws Exception {
+    public Store loadRec(Map<String, Object> params) throws Exception {
         FactorMdbUtils u = new FactorMdbUtils(getMdb(), "Factor");
         return u.loadRec(params);
     }
