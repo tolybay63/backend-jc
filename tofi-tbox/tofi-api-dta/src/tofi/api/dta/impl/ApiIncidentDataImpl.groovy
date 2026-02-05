@@ -267,7 +267,7 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
                 mapNotif.put("fullname", pms.getString("own") + "_" + pms.getLong("objUser"))
                 mapNotif.put("TimeSending", pms.getString("RegistrationDateTime"))
                 mapNotif.put("Description", "Информация о заявителе: " + pms.getString("InfoApplicant") +
-                        "\nОбъект: " + pms.getString("fullNameObject") + "\nКоординаты: " + pms.getInt("StartKm") + "км " +
+                        "\nОбъект: " + pms.getString("nameObject") + "\nКоординаты: " + pms.getInt("StartKm") + "км " +
                         pms.getInt("StartPicket") + "пк " + pms.getInt("StartLink") + "зв - " +
                         pms.getInt("FinishKm") + "км " + pms.getInt("FinishPicket") + "пк " +
                         pms.getInt("FinishLink") + "зв\n" + pms.getString("Description"))
