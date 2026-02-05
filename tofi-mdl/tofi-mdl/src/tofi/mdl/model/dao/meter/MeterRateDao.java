@@ -7,9 +7,9 @@ import java.util.Map;
 
 public class MeterRateDao extends BaseModelDao {
 
-    public Store loadSoftMR(long meter) throws Exception {
+    public Store loadSoftMR(long meter, String lang) throws Exception {
         MeterRateMdbUtils mdbUtils = new MeterRateMdbUtils(getMdb(), "MeterRate");
-        return mdbUtils.loadSoftMR(meter);
+        return mdbUtils.loadSoftMR(meter, lang);
     }
 
     public void createAllSoftMR(long meter) throws Exception {
@@ -33,9 +33,9 @@ public class MeterRateDao extends BaseModelDao {
     }
 
     //-------------------------------
-    public Store loadHardMR(long meter) throws Exception {
+    public Store loadHardMR(long meter, String lang) throws Exception {
         MeterRateMdbUtils mdbUtils = new MeterRateMdbUtils(getMdb(), "MeterRate");
-        return mdbUtils.loadHardMR(meter);
+        return mdbUtils.loadHardMR(meter, lang);
     }
 
     public void insertHardMR(Map<String, Object> params) throws Exception {
@@ -53,9 +53,9 @@ public class MeterRateDao extends BaseModelDao {
         mdbUtils.deleteHardMR(params);
     }
 
-    public Store loadMeterSoftForUpd(long meter) throws Exception {
+    public Store loadMeterSoftForUpd(long meter, String lang) throws Exception {
         MeterRateMdbUtils mdbUtils = new MeterRateMdbUtils(getMdb(), "MeterRate");
-        return mdbUtils.loadMeterSoftForUpd(meter);
+        return mdbUtils.loadMeterSoftForUpd(meter, lang);
     }
 
     public Store loadMeterSoftForUpdSave(Map<String, Object> params) throws Exception {

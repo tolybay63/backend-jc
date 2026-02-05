@@ -15,19 +15,17 @@ import java.text.MessageFormat
 
 class UtMeterSoft {
     Mdb mdb
-    public String domainResult = "MeterRate.soft.tree"
-    public long meter = 0
-    public boolean withNameMeter = true
+    String domainResult = "MeterRate.soft.tree"
+    long meter = 0
+    String lang
+    boolean withNameMeter = true
 
-    UtMeterSoft(Mdb mdb, long meter, boolean withNameMeter = true) {
+    UtMeterSoft(Mdb mdb, long meter, String lang, boolean withNameMeter = true) {
         this.mdb = mdb
         this.meter = meter
+        this.lang = lang
         this.withNameMeter = withNameMeter
     }
-
-/*    String getDbName() {
-        return mdb.getDbSource().getDbDriver().getName()
-    }*/
 
     Store getMeterRatesWithParent() throws Exception {
         String sMeter = null
@@ -48,11 +46,14 @@ class UtMeterSoft {
             where mr.meter=:meter 
             group by m.meterrate
             )
-            select mr.*, fv.fvs, fv.sz
+            select mr.*, fv.fvs, fv.sz, '' as name, '' as fullName, '' as cmt
             from fv
             left join meterrate mr on mr.id=fv.meterrate
         """, [meter: meter])
 
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb)
+        ds = ut.getTranslatedStore(ds,"MeterRate", lang)
         //
 
         Store dsRes = mdb.createStore(domainResult)
@@ -95,7 +96,7 @@ class UtMeterSoft {
 
     Store generateAllMeterRates() throws Exception {
         MeterMdbUtils mdbUtils = new MeterMdbUtils(mdb, "Meter")
-        StoreRecord rM = mdbUtils.loadRec(Map.of("id", meter))
+        StoreRecord rM = mdbUtils.loadRec(Map.of("id", meter, "lang", lang)).get(0)
         if (rM.getLong("meterstruct") != FD_MeterStruct_consts.soft) {
             throw new XError(MessageFormat.format(UtLang.t("Измеритель с кодом [{0}] не является мягкой"), rM.getString("cod")))
         }
@@ -139,7 +140,7 @@ class UtMeterSoft {
                 rr.getInt("ordDim") == l
             }).collect()
 
-            Store dsFV = mdb.createStore("Factor")
+            Store dsFV = mdb.createStore("Factor.lang")
             //
             if (l > 1) {
                 mdb.loadQuery(dsFV, """
@@ -150,10 +151,16 @@ class UtMeterSoft {
             for (StoreRecord rr : dsMFfilter) {
                 long factor = rr.getLong("factor")
                 mdb.loadQuery(dsFV, """
-                    select id,name,fullName,coalesce(parent, 0) as parent, ord 
-                    from Factor where parent is not null and parent=:f order by ord
+                    select id,coalesce(parent, 0) as parent, ord 
+                    from Factor 
+                    where parent is not null and parent=:f 
+                    order by ord
                 """, [f: factor])
             }
+            //
+            UtEntityTranslate ut = new UtEntityTranslate(mdb);
+            dsFV = ut.getTranslatedStore(dsFV,"Factor", lang);
+            //
             List<StoreRecord> lstFV = dsFV.getRecords()
             lstlstFV.add(lstFV)
         }
@@ -234,7 +241,6 @@ class UtMeterSoft {
         return dsRes
     }
 
-
     /**
      * Создание всех показателей мягкого измерителя с учетом зависимости значений факторов каждого измерения
      * @param meter
@@ -243,7 +249,7 @@ class UtMeterSoft {
      */
     void createMeterRates(List<Long> lstFVs) throws Exception {
         MeterMdbUtils mdbUtils = new MeterMdbUtils(mdb, "Meter")
-        StoreRecord rM = mdbUtils.loadRec(Map.of("id", meter))
+        StoreRecord rM = mdbUtils.loadRec(Map.of("id", meter)).get(0)
         if (rM.getLong("meterstruct") != FD_MeterStruct_consts.soft) {
             throw new XError(MessageFormat.format(UtLang.t("Измеритель с кодом [{0}] не является мягкой"), rM.getString("cod")))
         }
@@ -351,7 +357,7 @@ class UtMeterSoft {
         lst.each({ r ->
             fvs.add(r.getLong("id"))
         })
-        int sz = fvs.size()
+        //int sz = fvs.size()
         String whFV = fvs.join(",")
         //
         Store dsFVrel = mdb.loadQuery("""

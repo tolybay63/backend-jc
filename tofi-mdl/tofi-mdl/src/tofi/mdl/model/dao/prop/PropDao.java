@@ -12,9 +12,9 @@ import java.util.Set;
 public class PropDao extends BaseModelDao {
 
 
-    public Store loadPropTree(long propGr) throws Exception {
+    public Store loadPropTree(long propGr, String lang) throws Exception {
         PropMdbUtils u = new PropMdbUtils(getMdb(), "Prop");
-        return u.loadPropTree(propGr);
+        return u.loadPropTree(propGr, lang);
     }
 
 
@@ -149,9 +149,9 @@ public class PropDao extends BaseModelDao {
         u.savePropMeter(params);
     }
 
-    public Store loadPropValEntity(long prop, long entityType) throws Exception {
+    public Store loadPropValEntity(long prop, long entityType, String lang) throws Exception {
         PropMdbUtils u = new PropMdbUtils(getMdb(), "Prop");
-        return u.loadPropValEntity(prop, entityType);
+        return u.loadPropValEntity(prop, entityType, lang);
     }
 
     public Store loadPropValEntityForUpd(long prop, long entityType) throws Exception {
@@ -189,9 +189,9 @@ public class PropDao extends BaseModelDao {
         return u.loadPropValEntityForSelect(prop, entityType);
     }
 
-    public Store loadPropValEntityTreePropForUpd(long prop) throws Exception {
+    public Store loadPropValEntityTreePropForUpd(long prop, String lang) throws Exception {
         PropMdbUtils u = new PropMdbUtils(getMdb(), "Prop");
-        return u.loadPropValEntityTreePropForUpd(prop);
+        return u.loadPropValEntityTreePropForUpd(prop, lang);
     }
 
     public Store loadPropComplex(long prop) throws Exception {

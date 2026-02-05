@@ -31,9 +31,9 @@ public class TypDao extends BaseModelDao {
         return u.insert(params);
     }
 
-    public StoreRecord loadRec(long id) throws Exception {
+    public Store loadRec(Map<String, Object> params) throws Exception {
         TypMdbUtils u = new TypMdbUtils(getMdb(), "Typ");
-        return u.loadRec(id);
+        return u.loadRec(params);
     }
 
     public Store loadTypParent(Map<String, Object> params) throws Exception {
@@ -43,9 +43,9 @@ public class TypDao extends BaseModelDao {
 
 
     //---------------------- TypVer --------------------------------
-    public Store loadVer(long typ) throws Exception {
+    public Store loadVer(long typ, String lang) throws Exception {
         TypMdbUtils u = new TypMdbUtils(getMdb(), "Typ");
-        return u.loadVer(typ);
+        return u.loadVer(typ, lang);
     }
 
     public Store updateVer(Map<String, Object> params) throws Exception {
@@ -113,9 +113,9 @@ public class TypDao extends BaseModelDao {
 
     //---------------------- TypClusterFactor --------------------------------
 
-    public Store loadTypClusterFactor(long typ) throws Exception {
+    public Store loadTypClusterFactor(long typ, String lang) throws Exception {
         TypClusterFactorMdbUtils u = new TypClusterFactorMdbUtils(getMdb());
-        return u.loadTypClusterFactor(typ);
+        return u.loadTypClusterFactor(typ, lang);
     }
 
     public Store insertTypClusterFactor(Map<String, Object> params) throws Exception {
@@ -140,19 +140,19 @@ public class TypDao extends BaseModelDao {
 
     //---------------------- Cls --------------------------------
 
-    public Store loadCls(long typ) throws Exception {
+    public Store loadCls(long typ, String lang) throws Exception {
         ClsMdbUtils u = new ClsMdbUtils(getMdb(), "Cls");
-        return u.loadCls(typ);
+        return u.loadCls(typ, lang);
     }
 
-    public Store loadClsFVforUpd(long typ, long cls) throws Exception {
+    public Store loadClsFVforUpd(long typ, long cls, String lang) throws Exception {
         ClsMdbUtils u = new ClsMdbUtils(getMdb(), "ClsFactorVal");
-        return u.loadClsFVforUpd(typ, cls);
+        return u.loadClsFVforUpd(typ, cls, lang);
     }
 
-    public Store loadClsFV(long typ, long cls) throws Exception {
+    public Store loadClsFV(long typ, long cls, String lang) throws Exception {
         ClsMdbUtils u = new ClsMdbUtils(getMdb(), "ClsFactorVal");
-        return u.loadClsFV(typ, cls);
+        return u.loadClsFV(typ, cls, lang);
     }
 
     public Store insertCls(Map<String, Object> params) throws Exception {
@@ -175,14 +175,14 @@ public class TypDao extends BaseModelDao {
         return u.loadClsTree(params);
     }
 
-    public Store loadClsVer(long cls) throws Exception {
+    public Store loadClsVer(long cls, String lang) throws Exception {
         ClsMdbUtils u = new ClsMdbUtils(getMdb(), "Cls");
-        return u.loadClsVer(cls);
+        return u.loadClsVer(cls, lang);
     }
 
-    public StoreRecord loadRecCls(long id) throws Exception {
+    public Store loadRecCls(long id, String lang) throws Exception {
         ClsMdbUtils u = new ClsMdbUtils(getMdb(), "Cls");
-        return u.loadRecCls(id);
+        return u.loadRecCls(id, lang);
     }
 
     public Store updateClsVer(Map<String, Object> rec) throws Exception {

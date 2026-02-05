@@ -17,6 +17,7 @@ import tofi.apinator.ApinatorService;
 import tofi.mdl.consts.*;
 import tofi.mdl.model.utils.EntityConst;
 import tofi.mdl.model.utils.EntityMdbUtils;
+import tofi.mdl.model.utils.UtEntityTranslate;
 import tofi.mdl.model.utils.UtMeterSoft;
 
 import java.util.*;
@@ -64,7 +65,7 @@ public class PropMdbUtils extends EntityMdbUtils {
 
 
 
-    public Store loadPropTree(long propGr) throws Exception {
+    public Store loadPropTree(long propGr, String lang) throws Exception {
         Store st = mdb.createStore("Prop.rec");
         mdb.loadQuery(st, """
                     select p.*, a.attribvaltype, ac.entitytype, m.meterStruct
@@ -74,7 +75,9 @@ public class PropMdbUtils extends EntityMdbUtils {
                         left join Meter m on p.meter=m.id
                     where p.propGr=:g
                 """, Map.of("g", propGr));
-        return st;
+
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st, "Prop", lang);
     }
 
     public Store loadRec(long id) throws Exception {
@@ -90,7 +93,7 @@ public class PropMdbUtils extends EntityMdbUtils {
                     where p.id=:id
                 """, Map.of("id", id));
 
-        mdb.resolveDicts(st);
+        //mdb.resolveDicts(st);
         return st;
     }
 
@@ -175,7 +178,7 @@ public class PropMdbUtils extends EntityMdbUtils {
         }
     }
 
-    protected void checkStructComplexProp(Map<String, Object> rec) throws Exception {
+    protected void checkStructComplexProp(Map<String, Object> rec) {
         long prop = UtCnv.toLong(rec.get("parent"))>0 ? UtCnv.toLong(rec.get("parent")) : UtCnv.toLong(rec.get("id"));
 
         //todo Запрос ко всем сервисам данных (использовать Pulsar)
@@ -527,7 +530,6 @@ public class PropMdbUtils extends EntityMdbUtils {
         validateUpd(rec);
 
         //
-        //updateEntityWithVer(rec);
         if (UtCnv.toLong(rec.get("parent")) == 0) rec.put("parent", null);
         if (UtCnv.toLong(rec.get("attrib")) == 0) rec.put("attrib", null);
         if (UtCnv.toLong(rec.get("factor")) == 0) rec.put("factor", null);
@@ -546,7 +548,7 @@ public class PropMdbUtils extends EntityMdbUtils {
         mdb.loadQuery(st, """
                     select * from Prop t where t.id=:id
                 """, Map.of("id", id));
-        mdb.resolveDicts(st);
+        //mdb.resolveDicts(st);
         return st;
     }
 
@@ -1165,8 +1167,9 @@ public class PropMdbUtils extends EntityMdbUtils {
         long meter = UtCnv.toLong(params.get("meter"));
         long meterRate = UtCnv.toLong(params.get("meterRate"));
         long pt = FD_PropType_consts.rate;
+        String lang = UtCnv.toString(params.get("lang"));
 
-        UtMeterSoft ut = new UtMeterSoft(mdb, meter, false);
+        UtMeterSoft ut = new UtMeterSoft(mdb, meter, lang, false);
         Store stMR = ut.getMeterRatesWithParent();
         StoreIndex indStMR = stMR.getIndex("id");
         //mdb.outTable(stMR);
@@ -1354,7 +1357,8 @@ public class PropMdbUtils extends EntityMdbUtils {
 
         long meter = UtCnv.toLong(params.get("meter"));
         List<Map<String, Object>> lstCheckeds = (List<Map<String, Object>>) params.get("checkeds");
-        UtMeterSoft utMS = new UtMeterSoft(mdb, meter);
+        String lang = UtCnv.toString(params.get("lang"));
+        UtMeterSoft utMS = new UtMeterSoft(mdb, meter, lang);
         //
         Store stPath = mdb.createStore("MeterRate.hard.path");
         mdb.loadQuery(stPath, "select id, parent from MeterRate where meter=:m", Map.of("m", meter));
@@ -1412,8 +1416,9 @@ public class PropMdbUtils extends EntityMdbUtils {
         long meter = UtCnv.toLong(params.get("meter"));
         //long meterRate = UtCnv.toLong(params.get("meterRate"));
         List<Map<String, Object>> lstCheckeds = (List<Map<String, Object>>) params.get("checkeds");
+        String lang = UtCnv.toString(params.get("lang"));
 
-        UtMeterSoft utMeterSoft = new UtMeterSoft(mdb, meter, false);
+        UtMeterSoft utMeterSoft = new UtMeterSoft(mdb, meter, lang, false);
         Store stPath = utMeterSoft.getMeterRatesWithParent();
         utMeterSoft.setPath(stPath);
         //mdb.outTable(stPath);
@@ -1434,7 +1439,7 @@ public class PropMdbUtils extends EntityMdbUtils {
             StoreRecord r = indStPath.get(id);
             if (!mapIdParent.containsKey(r.getLong("parent"))) {
                 if (r.getString("path").contains(",")) {
-                    List<Long> lstPath = utMeterSoft.strToList((r.getString("path")));
+                    List<Long> lstPath = UtMeterSoft.strToList((r.getString("path")));
                     for (Long aLong : lstPath) {
                         boolean ok = false;
                         if (mapIdParent.containsKey(aLong)) {
@@ -1544,7 +1549,6 @@ public class PropMdbUtils extends EntityMdbUtils {
                 map.put("meterRate", map.get("id"));
                 map.put("id", null);
                 map.put("parent", null);
-                //long id = insertEntityWithVer(map);
                 long id = insertEntity(map);
                 ids.add(id);
             }
@@ -1572,7 +1576,7 @@ public class PropMdbUtils extends EntityMdbUtils {
     }
 
     //----------------------------------------------------------------------------------
-    public Store loadPropValEntity(long prop, long entityType) throws Exception {
+    public Store loadPropValEntity(long prop, long entityType, String lang) throws Exception {
         if (Arrays.asList(FD_EntityType_consts.Factor, FD_EntityType_consts.Type,
                 FD_EntityType_consts.RelTyp, FD_EntityType_consts.Measure).contains(entityType)) {
             return loadPropValEntityList(prop, entityType);
@@ -1580,13 +1584,13 @@ public class PropMdbUtils extends EntityMdbUtils {
                 FD_EntityType_consts.Obj, FD_EntityType_consts.RelObj*/).contains(entityType)) {
             return loadPropValEntityTree(prop, entityType);
         } else if (FD_EntityType_consts.Prop == entityType) {
-            return loadPropValEntityTreeProp(prop);
+            return loadPropValEntityTreeProp(prop, lang);
         } else {
             throw new XError("Не реализован");
         }
     }
 
-    protected Store loadPropValEntityTreeProp(long prop) throws Exception {
+    protected Store loadPropValEntityTreeProp(long prop, String lang) throws Exception {
         Store st = mdb.createStore("PropVal.full.tree");
         String sql = """
                     select 'p_'||p.id as id, 'g_'||p.propGr as parent, p.cod, p.name, p.fullName, pv.id as propVal,
@@ -1677,7 +1681,7 @@ public class PropMdbUtils extends EntityMdbUtils {
         if (whGr.equals("()")) whGr = "(0)";
         Store stPath = mdb.createStore("DomainPath");
         mdb.loadQuery(stPath, "select id, parent, '' as path from Prop where propGr in " + whGr);
-        UtMeterSoft utMeterSoft = new UtMeterSoft(mdb, 0, false);
+        UtMeterSoft utMeterSoft = new UtMeterSoft(mdb, 0, lang, false);
         utMeterSoft.setPath(stPath);
         //mdb.outTable(stPath);
 
@@ -1734,9 +1738,9 @@ public class PropMdbUtils extends EntityMdbUtils {
         return stGr;
     }
 
-    public Store loadPropValEntityTreePropForUpd(long prop) throws Exception {
+    public Store loadPropValEntityTreePropForUpd(long prop, String lang) throws Exception {
         //old values
-        Store stOld = loadPropValEntityTreeProp(prop);
+        Store stOld = loadPropValEntityTreeProp(prop, lang);
         StoreIndex indStOld = stOld.getIndex("id");
 
         Store st = mdb.createStore("PropVal.full.tree");

@@ -31,15 +31,15 @@ public class RelTypDao extends BaseModelDao {
         return u.insert(params);
     }
 
-    public StoreRecord loadRec(Map<String, Object> params) throws Exception {
+    public Store loadRec(Map<String, Object> params) throws Exception {
         RelTypMdbUtils u = new RelTypMdbUtils(getMdb(), "RelTyp");
         return u.loadRec(params);
     }
 
     //---------------------- RelTypVer --------------------------------
-    public Store loadVer(long reltyp) throws Exception {
+    public Store loadVer(long reltyp, String lang) throws Exception {
         RelTypMdbUtils u = new RelTypMdbUtils(getMdb(), "RelTyp");
-        return u.loadVer(reltyp);
+        return u.loadVer(reltyp, lang);
     }
 
     public Store updateVer(Map<String, Object> params) throws Exception {

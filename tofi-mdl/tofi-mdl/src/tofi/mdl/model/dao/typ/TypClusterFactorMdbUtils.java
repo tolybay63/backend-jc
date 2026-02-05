@@ -12,18 +12,12 @@ public class TypClusterFactorMdbUtils {
 
     public TypClusterFactorMdbUtils(Mdb mdb) throws Exception {
         this.mdb = mdb;
-        //
-/*
-        if (!mdb.getApp().getEnv().isTest())
-            if (!UtCnv.toBoolean(mdb.createDao(AuthDao.class).isLogined().get("success")))
-                throw new XError("notLogined");
-*/
     }
 
-    public Store loadTypClusterFactor(long typ) throws Exception {
+    public Store loadTypClusterFactor(long typ, String lang) throws Exception {
         Store st = mdb.createStore("TypClusterFactor.full");
         TypDao typDao = mdb.createDao(TypDao.class);
-        long typParent = typDao.loadRec(typ).getLong("parent");
+        long typParent = typDao.loadRec(Map.of("id", typ, "lang", lang)).get(0).getLong("parent");
 
         mdb.loadQuery(st, """
                   select * from (

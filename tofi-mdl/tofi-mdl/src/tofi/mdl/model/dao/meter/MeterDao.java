@@ -30,7 +30,7 @@ public class MeterDao extends BaseModelDao {
         return u.insert(params);
     }
 
-    public StoreRecord loadRec(Map<String, Object> params) throws Exception {
+    public Store loadRec(Map<String, Object> params) throws Exception {
         MeterMdbUtils u = new MeterMdbUtils(getMdb(), "Meter");
         return u.loadRec(params);
     }

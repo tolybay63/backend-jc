@@ -11,6 +11,7 @@ import jandcode.core.store.StoreRecord;
 import tofi.mdl.consts.FD_PropType_consts;
 import tofi.mdl.consts.FD_StorageType_consts;
 import tofi.mdl.model.utils.EntityMdbUtils;
+import tofi.mdl.model.utils.UtEntityTranslate;
 import tofi.mdl.model.utils.UtMeterSoft;
 
 import java.util.*;
@@ -25,12 +26,6 @@ public class TypMdbUtils extends EntityMdbUtils {
         super(mdb, tableName);
         this.mdb = mdb;
         this.tableName = tableName;
-        //
-/*
-        if (!mdb.getApp().getEnv().isTest())
-            if (!UtCnv.toBoolean(mdb.createDao(AuthDao.class).isLogined().get("success")))
-                throw new XError("notLogined");
-*/
     }
 
 
@@ -42,43 +37,56 @@ public class TypMdbUtils extends EntityMdbUtils {
      * @throws Exception
      */
     public Map<String, Object> loadTypPaginate(Map<String, Object> params) throws Exception {
-
-        String sql = """
-                    select *
-                    from Typ t, TypVer v where t.id=v.ownerVer and v.lastver=1
-                    order by t.ord
-                """;
-        SqlText sqlText = mdb.createSqlText(sql);
-        Map<String, Object> par = new HashMap<>();
-        int offset = (UtCnv.toInt(params.get("page")) - 1) * UtCnv.toInt(params.get("limit"));
-        par.put("offset", offset);
-        par.put("limit", UtCnv.toInt(params.get("limit")));
-        sqlText.setSql(sql);
-        sqlText.paginate(true);
-
-        if (!UtCnv.toString(params.get("orderBy")).trim().isEmpty())
-            sqlText = sqlText.replaceOrderBy(UtCnv.toString(params.get("orderBy")));
-
-        String filter = UtCnv.toString(params.get("filter")).trim();
-        if (!filter.isEmpty())
-            sqlText = sqlText.addWhere("(cod like '%" + filter + "%' or name like '%" + filter + "%' or " +
-                    "fullName like '%" + filter + "%')");
-        Store st = mdb.createStore("Typ.full");
-        mdb.loadQuery(st, sqlText, par);
-        mdb.resolveDicts(st);
-
+        String lang = UtCnv.toString(params.get("lang"));
         //count
-        sql = "select count(*) as cnt from Typ t, TypVer v where t.id=v.ownerVer and v.lastVer=1";
-        sqlText.setSql(sql);
+        String sqlCount = """
+            select count(*) as cnt
+            from Typ t
+                left join TypVer v on t.id=v.ownerVer and v.lastVer=1
+                left join TableLang l on l.nameTable='TypVer' and l.idTable=v.id and l.lang=:lang
+            where 0=0
+        """;
+        SqlText sqlText = mdb.createSqlText(sqlCount);
+        sqlText.setSql(sqlCount);
+        String filter = UtCnv.toString(params.get("filter")).trim();
+        String textFilter = "name like '%" + filter + "%' or fullName like '%" + filter + "%' or cod like '%" + filter + "%' or cmt like '%" + filter + "%'";
         if (!filter.isEmpty())
-            sqlText = sqlText.addWhere("name like '%" + filter + "%' or fullName like '%" + filter + "%' or cod like '%" + filter + "%'");
-        int total = mdb.loadQuery(sqlText).get(0).getInt("cnt");
+            sqlText = sqlText.addWhere(textFilter);
+        int total = mdb.loadQuery(sqlText, Map.of("lang", lang)).get(0).getInt("cnt");
+        int lm = UtCnv.toInt(params.get("rowsPerPage")) == 0 ? total : UtCnv.toInt(params.get("rowsPerPage"));
+        int offset = (UtCnv.toInt(params.get("page")) - 1) * lm;
         Map<String, Object> meta = new HashMap<String, Object>();
         meta.put("total", total);
         meta.put("page", UtCnv.toInt(params.get("page")));
-        meta.put("limit", UtCnv.toInt(params.get("limit")));
+        meta.put("limit", lm);
+        // load
+        String sqlLoad = """
+            select *, v.id as verId
+            from Typ t
+                left join TypVer v on t.id=v.ownerVer and v.lastVer=1
+                left join TableLang l on l.nameTable='TypVer' and l.idTable=v.id and l.lang=:lang
+            where 0=0
+        """;
+        sqlText = mdb.createSqlText(sqlLoad);
+        sqlText.paginate(true);
 
-        return Map.of("store", st, "meta", meta);
+        if (!UtCnv.toString(params.get("sortBy")).trim().isEmpty()) {
+            String orderBy = UtCnv.toString(params.get("sortBy"));
+            if (UtCnv.toBoolean(params.get("descending"))) {
+                orderBy = orderBy + " desc";
+            }
+            sqlText = sqlText.replaceOrderBy(orderBy);
+        }
+
+        if (!filter.isEmpty())
+            sqlText = sqlText.addWhere(textFilter);
+        Store stLoad = mdb.createStore("Typ.lang");
+        mdb.loadQuery(stLoad, sqlText, Map.of("lang", lang, "offset", offset, "limit", lm));
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        stLoad = ut.getTranslatedStore(stLoad,"Typ", lang, true);
+        //
+        return Map.of("store", stLoad, "meta", meta);
     }
 
     /**
@@ -100,23 +108,97 @@ public class TypMdbUtils extends EntityMdbUtils {
      * @throws Exception
      */
     public Store update(Map<String, Object> params) throws Exception {
-        Map<String, Object> rec = (UtCnv.toMap(params.get("rec")));
-
-        long id = UtCnv.toLong(rec.get("id"));
+        long id = UtCnv.toLong(params.get("id"));
         if (id == 0) {
             throw new XError("Поле id должно иметь не нулевое значение");
         }
         //
-        updateEntity(rec);
+        updateEntity(params);
         //
         // Загрузка записи
-        Store st = mdb.createStore("Typ.full");
+        return loadRec(params);
+    }
+
+    /**
+     * Insert Type
+     *
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    public Store insert(Map<String, Object> params) throws Exception {
+        //
+        long id = insertEntity(params);
+        //
+        params.put("id", id);
+        return loadRec(params);
+    }
+
+    public Store loadRec(Map<String, Object> params) throws Exception {
+        long id = UtCnv.toLong(params.get("id"));
+        Store st = mdb.createStore("Typ.lang");
         mdb.loadQuery(st, """
-                    select * from Typ t, TypVer v where t.id=v.ownerVer and v.lastver=1 and t.id=:id
+                    select *, v.id as verId from Typ t, TypVer v where t.id=v.ownerVer and v.lastVer=1 and t.id=:id
                 """, Map.of("id", id));
-        mdb.resolveDicts(st);
-        //mdb.outTable(st);
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        String lang = UtCnv.toString(params.get("lang"));
+        return ut.getTranslatedStore(st,"Typ", lang, true);
+    }
+
+    public Store loadTypParent(Map<String, Object> params) throws Exception {
+        String lang = UtCnv.toString(params.get("lang"));
+        Store st = mdb.createStore("Typ.lang");
+        mdb.loadQuery(st, """
+            select *
+            from Typ
+            where not (id in (select id from Typ where parent>0))
+            order by ord
+        """);
+
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st,"Typ", lang, true);
+    }
+
+    //TypVer
+
+    public Store loadVer(long typ, String lang) throws Exception {
+        Store st = mdb.createStore("TypVer.lang");
+        mdb.loadQuery(st, """
+            select *, v.id as verId
+            from TypVer v
+                left join TableLang l on l.nameTable='TypVer' and l.idTable=v.id and l.lang=:lang
+            where ownerVer=:typ
+            order by dend desc
+         """, Map.of("typ", typ, "lang", lang));
         return st;
+    }
+
+    public Store loadVerRec(long id, String lang) throws Exception {
+        Store st = mdb.createStore("TypVer.lang");
+        mdb.loadQuery(st, """
+            select *, v.id as verId
+            from TypVer v
+                left join TableLang l on l.nameTable='TypVer' and l.idTable=v.id and l.lang=:lang
+            where v.id=:id
+         """, Map.of("id", id, "lang", lang));
+        return st;
+    }
+
+
+    /**
+     * Insert TypeVer
+     *
+     * @param params Map
+     * @return Store
+     * @throws Exception onError
+     */
+    public Store insertVer(Map<String, Object> params) throws Exception {
+        Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
+        //
+        long id = insertEntityVer(rec);
+        //
+        return loadVerRec(id, UtCnv.toString(rec.get("lang")));
     }
 
     /**
@@ -135,87 +217,11 @@ public class TypMdbUtils extends EntityMdbUtils {
         //
         updateEntityVer(rec);
         // Загрузка записи
-        Store st = mdb.createStore("TypVer");
-        mdb.loadQuery(st, "select * from typver where id=:id", Map.of("id", id));
-
-        //mdb.outTable(st);
-        return st;
-    }
-
-    /**
-     * Insert Type
-     *
-     * @param params
-     * @return
-     * @throws Exception
-     */
-    public Store insert(Map<String, Object> params) throws Exception {
-        Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
-        //
-        long id = insertEntity(rec);
-        //
-        Store st = mdb.createStore("Typ.full");
-        mdb.loadQuery(st, """
-                    select * from Typ t, TypVer v where t.id=v.ownerVer and v.lastver=1 and t.id=:id
-                """, Map.of("id", id));
-        mdb.resolveDicts(st);
-        return st;
-    }
-
-    /**
-     * Insert TypeVer
-     *
-     * @param params
-     * @return
-     * @throws Exception
-     */
-    public Store insertVer(Map<String, Object> params) throws Exception {
-        Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
-        //
-        long id = insertEntityVer(rec);
-        //
-        Store st = mdb.createStore("TypVer");
-        mdb.loadQuery(st, "select * from typver where id=:id", Map.of("id", id));
-        //
-        return st;
+        return loadVerRec(id, UtCnv.toString(rec.get("lang")));
     }
 
     public void deleteVer(Map<String, Object> rec) throws Exception {
         deleteEntityVer(rec);
-    }
-
-    public StoreRecord loadRec(long id) throws Exception {
-
-        StoreRecord st = mdb.createStoreRecord("Typ.full");
-        mdb.loadQueryRecord(st, """
-                    select * from Typ t, TypVer v where t.id=v.ownerVer and v.lastver=1 and t.id=:id
-                """, Map.of("id", id));
-        mdb.resolveDicts(st);
-        return st;
-    }
-
-    public Store loadVer(long typ) throws Exception {
-        Store st = mdb.createStore("TypVer");
-        mdb.loadQuery(st, """
-                    select * from typver where ownerver=:typ order by dend desc
-                """, Map.of("typ", typ));
-        return st;
-    }
-
-
-    public Store loadTypParent(Map<String, Object> params) throws Exception {
-        return (
-                mdb.loadQuery("""
-                            select
-                                e.id, e.cod, v.name
-                            from
-                                Typ e, TypVer v
-                            where
-                                e.id=v.ownerVer and v.lastVer=1 and
-                                not (e.id in (select id from Typ where parent>0))
-                            order by e.ord
-                        """)
-        );
     }
 
     //TypCharGr
@@ -357,6 +363,7 @@ public class TypMdbUtils extends EntityMdbUtils {
         long typCharGr = UtCnv.toLong(params.get("typCharGr"));
         long typ = UtCnv.toLong(params.get("typORrel"));
         boolean isFlat = UtCnv.toBoolean(params.get("isFlat"));
+        String lang = UtCnv.toString(params.get("lang"));
         Store st = mdb.createStore("TypCharGrProp.prop");
         String sql = """
                     select
@@ -511,7 +518,7 @@ public class TypMdbUtils extends EntityMdbUtils {
         if (whGr.equals("()")) whGr = "(0)";
         Store stPath = mdb.createStore("DomainPath");
         mdb.loadQuery(stPath, "select id, parent, '' as path from Prop where propGr in " + whGr);
-        UtMeterSoft utMeterSoft = new UtMeterSoft(mdb, 0, false);
+        UtMeterSoft utMeterSoft = new UtMeterSoft(mdb, 0, lang, false);
         utMeterSoft.setPath(stPath);
         //mdb.outTable(stPath);
         StoreIndex indStProp = stPath.getIndex("id");
