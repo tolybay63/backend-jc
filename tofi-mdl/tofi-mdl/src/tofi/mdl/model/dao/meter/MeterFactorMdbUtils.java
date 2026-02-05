@@ -7,6 +7,7 @@ import jandcode.core.dbm.mdb.Mdb;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
 import tofi.mdl.model.dao.factor.FactorDao;
+import tofi.mdl.model.utils.UtEntityTranslate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,27 +19,50 @@ import static jandcode.commons.UtCnv.toLong;
 public class MeterFactorMdbUtils {
     Mdb mdb;
 
-    MeterFactorMdbUtils(Mdb mdb) throws Exception {
+    MeterFactorMdbUtils(Mdb mdb) {
         this.mdb = mdb;
     }
 
     public Store load(Map<String, Object> params) throws Exception {
         long meterId = toLong(params.get("meter"));
+        // for Translate
+        Store stFactor = mdb.createStore("Factor.lang");
+        mdb.loadQuery(stFactor, """
+                    select f.*, '' as name, '' as fullName, '' as cmt
+                    from Factor f, MeterFactor mf
+                    where mf.meter=:id and f.id = mf.factor
+                """, Map.of("id", meterId));
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        String lang = UtCnv.toString(params.get("lang"));
+        ut.getTranslatedStore(stFactor, "Factor", lang);
+        //
+
         Store st = mdb.createStore("MeterFactor.tree");
         mdb.loadQuery(st, """
-                    select mf.id as id, mf.meter, f.id as factor,f.name,f.fullName, f.cod,
-                    mf.ordDim, mf.ordFactorInDim from Factor f, MeterFactor mf
-                    where mf.meter=:id and f.id = mf.factor
+                    select mf.id as id, mf.meter, f.id as factor, l.name, l.fullName, f.cod,
+                    mf.ordDim, mf.ordFactorInDim
+                    from Factor f, MeterFactor mf, TableLang l
+                    where mf.meter=:id and f.id = mf.factor and l.nameTable='Factor' and f.id = l.idTable and l.lang=:lang
                     order by mf.ordDim, mf.ordFactorInDim
-                """, Map.of("id", meterId));
+                """, Map.of("id", meterId, "lang", lang));
+        //
         // дополняем измерениями
+        //String pathKey = mdb.getApp().getAppdir() + File.separator + "triple-cab-444511-s7-d2a53763df4c.json";
+
         Store res = mdb.createStore("MeterFactor.tree");
         StoreRecord lastDimRec = null;
+        String dimension = "Измерение";
+        if (Objects.equals(lang, "kk")) {
+            dimension = "Өлшем"; //tr.translateText(dimension, "ru", "kk");
+        }
+        if (Objects.equals(lang, "en-US")) {
+            dimension = "Measurement"; //tr.translateText(dimension, "ru", "en-US");
+        }
         long id = -1;
         for (StoreRecord r : st) {
             int curDim = r.getInt("ordDim");
             if (lastDimRec == null || lastDimRec.getInt("ordDim") != curDim) {
-                lastDimRec = res.add(Map.of("id", id--, "cod", "Измерение " + curDim, "ordDim", curDim));
+                lastDimRec = res.add(Map.of("id", id--, "cod", dimension + " " + curDim, "ordDim", curDim));
             }
             StoreRecord rc = res.add(r);
             rc.setValue("parent", lastDimRec.getLong("id"));
@@ -56,11 +80,11 @@ public class MeterFactorMdbUtils {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         long factor = UtCnv.toLong(rec.get("factor"));
         if (factor == 0) {
-            throw new XError(UtLang.t("Поле [Фактор] обязательно"), "factor");
+            throw new XError(UtLang.t("Поле [Фактор] обязательно"));
         } else {
             long ordd = UtCnv.toLong(rec.get("ordDim"));
             if (ordd == 0) {
-                throw new XError(UtLang.t("Поле [Порядковый номер измерения] обязательно"), "ordDim");
+                throw new XError(UtLang.t("Поле [Порядковый номер измерения] обязательно"));
             } else {
                 // определяем размер исходный таблицы
                 Store st = mdb.loadQuery("""
@@ -83,7 +107,7 @@ public class MeterFactorMdbUtils {
                     List<Long> factors = new ArrayList<>();
                     for (StoreRecord r : fs)
                         factors.add(r.getLong("factor"));
-                    String text = testFR(factor, factors, true);
+                    String text = testFR(factor, factors, true, UtCnv.toString(params.get("lang")));
                     if (!Objects.equals(text, "")) throw new XError(UtLang.t(text));
                     st = mdb.loadQuery("""
                                 select max(ordDim) as maxd from MeterFactor where meter=:meterId
@@ -117,7 +141,7 @@ public class MeterFactorMdbUtils {
                             }
                         }
                         if (k > 0) {
-                            throw new XError(UtLang.t("Добавление фактора в это измерение невозможно, так как существуют показатели, образованные из элементов этого измерения"));
+                            throw new XError("Добавление фактора в это измерение невозможно, так как существуют показатели, образованные из элементов этого измерения");
                         }
                     }
                 }
@@ -128,7 +152,8 @@ public class MeterFactorMdbUtils {
         }
     }
 
-    public String testFR(long factorId, List<Long> factors, boolean flag) throws Exception {
+    public String testFR(long factorId, List<Long> factors, boolean flag, String lang) throws Exception {
+
         for (long fac : factors) {
             String errorText;
             long factor = toLong(fac);
@@ -146,12 +171,24 @@ public class MeterFactorMdbUtils {
 
             if (fr.get(0).getLong("cnt") == fv1.get(0).getLong("cnt") * fv2.get(0).getLong("cnt")) {
                 FactorDao factorDao = mdb.createDao(FactorDao.class);
-                StoreRecord f1 = factorDao.loadRec(Map.of("id", factorId)).get(0);
-                StoreRecord f2 = factorDao.loadRec(Map.of("id", factor)).get(0);
+                StoreRecord f1 = factorDao.loadRec(Map.of("id", factorId, "lang", lang)).get(0);
+                StoreRecord f2 = factorDao.loadRec(Map.of("id", factor, "lang", lang)).get(0);
+                String text1 = "Добавляемый фактор ["+f1.getString("name") + "] не совместим с фактором ["+f2.getString("name") + "]";
+                String text2 = "Перемещаемый фактор ["+f1.getString("name") + "] не совместим с фактором ["+f2.getString("name") + "]";
+
+                if (lang.equals("kk")) {
+                    text1 = "Қосылған фактор ["+f1.getString("name") + "] ["+f2.getString("name") + "] факторымен үйлесімді емес";
+                    text2 = "Жылжытылған фактор ["+f1.getString("name") + "] ["+f2.getString("name") + "] факторымен үйлесімді емес";
+                }
+                if (lang.equals("en-US")) {
+                    text1 = "The added factor ["+ f1.getString("name") + "] is not compatible with the factor ["+f2.getString("name")+"]";
+                    text2 = "The moving factor ["+ f1.getString("name") + "] is not compatible with the factor ["+f2.getString("name")+"]";
+                }
+
                 if (flag)
-                    errorText = UtLang.t("Добавляемый фактор [" + f1.getString("name") + "] не совместим с фактором [" + f2.getString("name") + "]");
+                    errorText = text1;
                 else
-                    errorText = UtLang.t("Перемещаемый фактор [" + f1.getString("name") + "] не совместим с фактором [" + f2.getString("name") + "]");
+                    errorText = text2;
 
                 return errorText;
             }
@@ -172,7 +209,7 @@ public class MeterFactorMdbUtils {
         if (st.size() > 0) {
             MeterFactorMdbUtils mdbUtils = new MeterFactorMdbUtils(mdb);
             Store ds = mdbUtils.load(Map.of("meter", meterId));
-            throw new XError(UtLang.t("Показатель [" + ds.get(0).getString("cod") + "] [" + ds.get(0).getString("name") + "] образован от значения данного фактора"));
+            throw new XError("Показатель [" + ds.get(0).getString("cod") + "] [" + ds.get(0).getString("name") + "] образован от значения данного фактора");
         } else {
             st = mdb.loadQuery("""
                         select ordDim from MeterFactor where meter=:meterId and factor=:factorId
@@ -208,20 +245,24 @@ public class MeterFactorMdbUtils {
 
     public Store factors(Map<String, Object> params) throws Exception {
         long meter = UtCnv.toLong(params.get("meter"));
-        Store st = mdb.createStore("Factor");
+        Store st = mdb.createStore("Factor.lang");
         String sql = """
-                    select id, name from Factor
+                    select * from Factor
                     where parent is null and id not in (
                         select factor from MeterFactor where meter=:m
                     )
                 """;
         mdb.loadQuery(st, sql, Map.of("m", meter));
-        return st;
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        String lang = UtCnv.toString(params.get("lang"));
+        return ut.getTranslatedStore(st, "Factor", lang);
     }
 
     public void changeOrd(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         boolean up = UtCnv.toBoolean(params.get("up"));
+        String lang = UtCnv.toString(params.get("lang"));
         long meter = UtCnv.toLong(rec.get("meter"));
         long factor = UtCnv.toLong(rec.get("factor"));
         long ordd = UtCnv.toLong(rec.get("ordDim"));
@@ -251,7 +292,7 @@ public class MeterFactorMdbUtils {
                         break;
                     }
                 }
-                String text = testFR(factor, factors, false);
+                String text = testFR(factor, factors, false, lang);
                 if (!Objects.equals(text, "")) throw new XError(UtLang.t(text));
                 //
                 st.get(k).set("ordDim", st.get(k - 1).getLong("ordDim"));
@@ -275,7 +316,7 @@ public class MeterFactorMdbUtils {
                         break;
                     }
                 }
-                String text = testFR(factor, factors, false);
+                String text = testFR(factor, factors, false, lang);
                 if (!Objects.equals(text, "")) throw new XError(UtLang.t(text));
                 //
                 st.get(k).set("ordDim", st.get(k + 1).getLong("ordDim"));
@@ -293,16 +334,22 @@ public class MeterFactorMdbUtils {
         long factor = UtCnv.toLong(rec.get("factor"));
         long ordd = UtCnv.toLong(rec.get("ordDim"));
         long maxDim = UtCnv.toLong(params.get("maxDim"));
+        String lang = UtCnv.toString(params.get("lang"));
         Store st = mdb.loadQuery("""
                     select * from MeterFactor where meter=:meter and ordDim=:ordd
                 """, Map.of("meter", meter, "ordd", ordd));
         if (st.size() == 1) {
-            throw new XError(UtLang.t("Создано максимальное количество измерений"));
+            String txt = "Создано максимальное количество измерений";
+            if (lang.equals("kk"))
+                txt = "Өлшемдердің ең көп саны жасалды";
+            if (lang.equals("en-US"))
+                txt = "Maximum number of dimensions created";
+
+            throw new XError(txt);
         }
         mdb.updateRec("MeterFactor", Map.of("id", UtCnv.toLong(rec.get("id")),
                 "meter", meter, "factor", factor, "ordDim", maxDim, "ordFactorInDim", 1));
     }
     //
-
 
 }

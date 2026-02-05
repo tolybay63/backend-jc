@@ -16,17 +16,21 @@
         <field name="meterBehavior" parent="FD_MeterBehavior/ref"/>
         <field name="minVal" parent="double"/>
         <field name="maxVal" parent="double"/>
+    </domain>
+
+    <!-- ====================================== -->
+    <domain name="Meter.lang" parent="Meter">
         <field name="name" parent="f.name"/>
         <field name="fullName" parent="f.fullName"/>
         <field name="cmt" parent="f.cmt"/>
-
     </domain>
+    <!-- ====================================== -->
+
 
     <domain name="Meter.select" parent="id">
         <field name="name" parent="f.name"/>
         <field name="meterStruct" parent="FD_MeterStruct/ref"/>
         <field name="measure" parent="Measure/ref"/>
     </domain>
-
 
 </root>

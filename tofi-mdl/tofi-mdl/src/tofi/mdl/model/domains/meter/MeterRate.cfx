@@ -8,14 +8,19 @@
         <field name="cod" parent="f.cod"/>
         <field name="accessLevel" parent="FD_AccessLevel/ref"/>
         <field name="parent" parent="MeterRate/ref"/>
+        <field name="ord" parent="f.ord"/>
+    </domain>
+
+    <!-- ====================================== -->
+    <domain name="MeterRate.lang" parent="MeterRate">
         <field name="name" parent="f.name"/>
         <field name="fullName" parent="f.fullName"/>
         <field name="cmt" parent="f.cmt"/>
-        <field name="ord" parent="f.ord"/>
-
     </domain>
+    <!-- ====================================== -->
 
-    <domain name="MeterRate.soft.tree" parent="MeterRate">
+
+    <domain name="MeterRate.soft.tree" parent="MeterRate.lang">
         <field name="parent" parent="string" title="parent"/>
         <field name="fvs" parent="string"/>
         <field name="sz" parent="long"/>
@@ -27,6 +32,7 @@
         <field name="parent" parent="string"/>
         <field name="path" parent="string"/>
     </domain>
+
 
 
 </root>

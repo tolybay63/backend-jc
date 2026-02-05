@@ -9,6 +9,7 @@ import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
 import tofi.mdl.consts.*;
 import tofi.mdl.model.utils.EntityMdbUtils;
+import tofi.mdl.model.utils.UtEntityTranslate;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,24 +26,29 @@ public class MeterMdbUtils extends EntityMdbUtils {
         this.tableName = tableName;
     }
 
-
     /**
      * Загрузка Meter с пагинацией
      *
-     * @param params
-     * @return
-     * @throws Exception
+     * @param params Map
+     * @return Map["store"]["meta"]
      */
     public Map<String, Object> loadMeterPaginate(Map<String, Object> params) throws Exception {
-        String sql0 = "select f.* from Meter f where 0=0 order by f.id";
-        SqlText sqlText = mdb.createSqlText(sql0);
+
+        String lang = UtCnv.toString(params.get("lang"));
         String filter = UtCnv.toString(params.get("filter")).trim();
 
         //count
-        String sql = "select count(*) as cnt from Meter f where 0=0";
-        sqlText.setSql(sql);
+        String sqlCount = """
+            select count(*) as cnt
+            from Meter m
+                left join TableLang l on l.nameTable='Meter' and m.id=l.idTable and
+        """+"l.lang='"+lang+"' where 0=0";
+
+        SqlText sqlText = mdb.createSqlText(sqlCount);
+        sqlText.setSql(sqlCount);
+        String textFilter = "name like '%" + filter + "%' or fullName like '%" + filter + "%' or cod like '%" + filter + "%' or cmt like '%" + filter + "%'";
         if (!filter.isEmpty())
-            sqlText = sqlText.addWhere("name like '%" + filter + "%' or fullName like '%" + filter + "%' or cod like '%" + filter + "%'");
+            sqlText = sqlText.addWhere(textFilter);
         int total = mdb.loadQuery(sqlText).get(0).getInt("cnt");
         int lm = UtCnv.toInt(params.get("rowsPerPage")) == 0 ? total : UtCnv.toInt(params.get("rowsPerPage"));
         Map<String, Object> meta = new HashMap<String, Object>();
@@ -50,11 +56,19 @@ public class MeterMdbUtils extends EntityMdbUtils {
         meta.put("page", UtCnv.toInt(params.get("page")));
         meta.put("limit", lm);
 
-        Map<String, Object> par = new HashMap<>();
+        //query
+        String sqlLoad = """
+            select *
+            from Meter m
+                left join TableLang l on l.nameTable='Meter' and m.id=l.idTable and l.lang=:lang
+            where 0=0
+            order by m.id
+        """;
+
+        sqlText = mdb.createSqlText(sqlLoad);
+
         int offset = (UtCnv.toInt(params.get("page")) - 1) * lm;
-        par.put("offset", offset);
-        par.put("limit", lm);
-        sqlText.setSql(sql0);
+        sqlText.setSql(sqlLoad);
         sqlText.paginate(true);
 
         if (!UtCnv.toString(params.get("sortBy")).trim().isEmpty()) {
@@ -66,20 +80,21 @@ public class MeterMdbUtils extends EntityMdbUtils {
         }
 
         if (!filter.isEmpty())
-            sqlText = sqlText.addWhere("(cod like '%" + filter + "%' or f.name like '%" + filter + "%' or " +
-                    "f.fullName like '%" + filter + "%')");
-        Store st = mdb.createStore("Meter");
-        mdb.loadQuery(st, sqlText, par);
-        mdb.resolveDicts(st);
-
-        return Map.of("store", st, "meta", meta);
+            sqlText = sqlText.addWhere(textFilter);
+        //
+        Store stLoad = mdb.createStore("Meter.lang");
+        mdb.loadQuery(stLoad, sqlText, Map.of("lang", lang, "offset", offset, "limit", lm));
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        stLoad = ut.getTranslatedStore(stLoad,"Meter", lang);
+        //
+        return Map.of("store", stLoad, "meta", meta);
     }
 
     /**
      * Delete Meter
      *
-     * @param
-     * @throws Exception
+     * @param rec Map
      */
 
     public void delete(Map<String, Object> rec) throws Exception {
@@ -89,9 +104,8 @@ public class MeterMdbUtils extends EntityMdbUtils {
     /**
      * Update Meter
      *
-     * @param params
-     * @return
-     * @throws Exception
+     * @param params Map
+     * @return Store
      */
     public Store update(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = (UtCnv.toMap(params.get("rec")));
@@ -104,39 +118,31 @@ public class MeterMdbUtils extends EntityMdbUtils {
         updateEntity(rec);
         //
         // Загрузка записи
-        Store st = mdb.createStore("Meter");
-        mdb.loadQuery(st, "select * from Meter where id=:id", Map.of("id", id));
-        mdb.resolveDicts(st);
-
-        //mdb.outTable(st);
-        return st;
+        return loadRec(Map.of("id", id, "lang", rec.get("lang")));
     }
 
     /**
      * Insert Meter
      *
-     * @param params
-     * @return
-     * @throws Exception
+     * @param params Map
+     * @return  Store
      */
     public Store insert(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         //
         long id = insertEntity(rec);
         //
-        Store st = mdb.createStore("Meter");
-
-        mdb.loadQuery(st, "select * from Meter where id=:id", Map.of("id", id));
-        mdb.resolveDicts(st);
-        return st;
+        return loadRec(Map.of("id", id, "lang", rec.get("lang")));
     }
 
-    public StoreRecord loadRec(Map<String, Object> params) throws Exception {
+    public Store loadRec(Map<String, Object> params) throws Exception {
         long id = UtCnv.toLong(params.get("id"));
-        StoreRecord st = mdb.createStoreRecord("Meter");
-        mdb.loadQueryRecord(st, "select * from Meter where id=:id", Map.of("id", id));
-        mdb.resolveDicts(st);
-        return st;
+        Store st = mdb.createStore("Meter.lang");
+        mdb.loadQuery(st, "select * from Meter where id=:id", Map.of("id", id));
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        String lang = UtCnv.toString(params.get("lang"));
+        return ut.getTranslatedStore(st,"Meter", lang);
     }
 
     public StoreRecord newRec(Map<String, Object> params) throws Exception {
@@ -151,7 +157,6 @@ public class MeterMdbUtils extends EntityMdbUtils {
         rec.set("meterTypeByPeriod", FD_MeterType_consts.integral);
         rec.set("meterTypeByMember", FD_MeterType_consts.integral);
         rec.set("meterBehavior", FD_MeterBehavior_consts.positive);
-        dictSvc.resolveDicts(st);
         return rec;
     }
 
