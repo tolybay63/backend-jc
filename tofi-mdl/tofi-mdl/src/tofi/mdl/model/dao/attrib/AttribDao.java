@@ -8,9 +8,9 @@ import java.util.Map;
 
 public class AttribDao extends BaseModelDao {
 
-    public Map<String, Object> loadAttribPaginate(Map<String, Object> params) throws Exception {
+    public Store loadAttrib(Map<String, Object> params)  throws Exception {
         AttribMdbUtils u = new AttribMdbUtils(getMdb(), "Attrib");
-        return u.loadAttribPaginate(params);
+        return u.loadAttrib(params);
     }
 
     public void delete(Map<String, Object> params) throws Exception {

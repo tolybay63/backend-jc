@@ -89,7 +89,7 @@ public class MeasureMdbUtils extends EntityMdbUtils {
                 mdb.insertRec("PropVal", Map.of("prop", prop, "measure", id), true);
             }
         }
-        return loadRec(id);
+        return load(Map.of("id", id, "lang", rec.get("lang")));
     }
 
     public Store update(Map<String, Object> params) throws Exception {
@@ -97,7 +97,7 @@ public class MeasureMdbUtils extends EntityMdbUtils {
         //
         updateEntity(rec);
         //
-        return loadRec(UtCnv.toLong(rec.get("id")));
+        return load(Map.of("id", rec.get("id"), "lang", rec.get("lang")));
     }
 
     public void delete(Map<String, Object> rec) throws Exception {

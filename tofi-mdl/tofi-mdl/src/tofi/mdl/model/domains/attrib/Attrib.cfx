@@ -12,10 +12,13 @@
                true: да, false: нет
             -->
         </field>
+    </domain>
+
+    <!-- ====================================== -->
+    <domain name="Attrib.lang" parent="Attrib">
         <field name="name" parent="f.name"/>
         <field name="fullName" parent="f.fullName"/>
         <field name="cmt" parent="f.cmt"/>
-
     </domain>
 
 </root>

@@ -9,6 +9,7 @@ import jandcode.core.dbm.sql.SqlText;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
 import tofi.mdl.model.utils.EntityMdbUtils;
+import tofi.mdl.model.utils.UtEntityTranslate;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,12 +22,6 @@ public class AttribMdbUtils extends EntityMdbUtils {
         super(mdb, tableName);
         this.mdb = mdb;
         this.tableName = tableName;
-        //
-/*
-        if (!mdb.getApp().getEnv().isTest())
-            if (!UtCnv.toBoolean(mdb.createDao(AuthDao.class).isLogined().get("success")))
-                throw new XError("notLogined");
-*/
     }
 
     /**
@@ -60,7 +55,7 @@ public class AttribMdbUtils extends EntityMdbUtils {
         Store st = mdb.createStore("Attrib");
 
         mdb.loadQuery(st, sqlText, par);
-        mdb.resolveDicts(st);
+        //mdb.resolveDicts(st);
 
         //count
         sql = "select count(*) as cnt from Attrib where accessLevel <= " + al;
@@ -76,14 +71,32 @@ public class AttribMdbUtils extends EntityMdbUtils {
         return Map.of("store", st, "meta", meta);
     }
 
+    public Store loadAttrib(Map<String, Object> params) throws Exception {
+        AuthService authSvc = mdb.getApp().bean(AuthService.class);
+        AuthUser au = authSvc.getCurrentUser();
+        long al = au.getAttrs().getLong("accesslevel");
+        String whe = " accessLevel <= " + al;
+        long id = UtCnv.toLong(params.get("id"));
+        if (id > 0) {
+            whe += " and id=" + id;
+        }
+        //
+        Store st = mdb.createStore("Attrib.lang");
+        String sql = "select * from Attrib where " + whe;
+        sql += " order by id";
+        mdb.loadQuery(st, sql);
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        String lang = UtCnv.toString(params.get("lang"));
+        return ut.getTranslatedStore(st,"Attrib", lang);
+    }
+
 
     /**
-     * Delete Attrib
      *
-     * @param
-     * @throws Exception
+     * @param rec Map
+     * @throws Exception Exception
      */
-
     public void delete(Map<String, Object> rec) throws Exception {
         deleteEntity(rec);
     }
@@ -91,9 +104,8 @@ public class AttribMdbUtils extends EntityMdbUtils {
     /**
      * Update Factor & FactorVal
      *
-     * @param params
-     * @return
-     * @throws Exception
+     * @param params Map
+     * @return Store
      */
     public Store update(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = (UtCnv.toMap(params.get("rec")));
@@ -104,42 +116,23 @@ public class AttribMdbUtils extends EntityMdbUtils {
         }
         //
         updateEntity(rec);
-        //
         // Загрузка записи
-        Store st = mdb.createStore("Attrib");
-
-        mdb.loadQuery(st, "select * from Attrib where id=:id", Map.of("id", id));
-        mdb.resolveDicts(st);
-        //mdb.outTable(st);
-        return st;
+        return loadAttrib(rec);
     }
 
     /**
      * Insert Attrib
      *
-     * @param params
-     * @return
-     * @throws Exception
+     * @param params Map
+     * @return Store
      */
     public Store insert(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         //
         long id = insertEntity(rec);
         //
-        Store st = mdb.createStore("Attrib");
-        mdb.loadQuery(st, "select * from Attrib where id=:id", Map.of("id", id));
-        mdb.resolveDicts(st);
-
-        return st;
-    }
-
-    public StoreRecord loadRec(Map<String, Object> params) throws Exception {
-        long id = UtCnv.toLong(params.get("id"));
-        StoreRecord st = mdb.createStoreRecord("Attrib");
-        mdb.loadQueryRecord(st, "select * from Attrib where id=:id", Map.of("id", id));
-        mdb.resolveDicts(st);
-
-        return st;
+        rec.put("id", id);
+        return loadAttrib(rec);
     }
 
     public Store loadAttribChar(Map<String, Object> params) throws Exception {

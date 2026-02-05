@@ -211,7 +211,7 @@ public class EntityMdbUtils {
                     }
                 }
             } else if (st.size() == 0) {
-                StoreRecord rLang = st.add(rec);
+                StoreRecord rLang = mdb.createStoreRecord("TableLang", rec);
                 long idLang = mdb.getNextId("TableLang");
                 rLang.set("id", idLang);
                 rLang.set("nameTable", tableName);
