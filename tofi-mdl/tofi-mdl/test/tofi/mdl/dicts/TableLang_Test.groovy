@@ -26,7 +26,7 @@ class TableLang_Test extends Apx_Test {
     }
 
     @Test
-    void fill_Attrib() throws Exception { //2
+    void fill_Attrib() throws Exception { //3
         Store st = mdb.loadQuery("select * from Attrib where 0=0 order by id")
         for (StoreRecord r in st) {
             fill_TableLang("Attrib", r.getLong("id"), r.getString("name"),
@@ -35,24 +35,31 @@ class TableLang_Test extends Apx_Test {
     }
 
     @Test
-    void fill_Factor() throws Exception { //2
-        Store st = mdb.loadQuery("select * from Factor where parent is null order by ord limit 10")
-        for (StoreRecord r in st) {
-            fill_TableLang("Factor", r.getLong("id"), r.getString("name"),
-                    r.getString("fullName"), r.getString("cmt"), "ru")
-        }
-
-        st = mdb.loadQuery("""
-            select * from Factor where parent in (
-                select id from Factor where parent is null limit 10            
-            ) order by ord
-        """)
+    void fill_Factor() throws Exception { //4
+        Store st = mdb.loadQuery("select * from Factor order by id, parent")
         for (StoreRecord r in st) {
             fill_TableLang("Factor", r.getLong("id"), r.getString("name"),
                     r.getString("fullName"), r.getString("cmt"), "ru")
         }
     }
 
+    @Test
+    void fill_Meter() throws Exception { //5
+        Store st = mdb.loadQuery("select * from Meter order by id")
+        for (StoreRecord r in st) {
+            fill_TableLang("Meter", r.getLong("id"), r.getString("name"),
+                    r.getString("fullName"), r.getString("cmt"), "ru")
+        }
+    }
+
+    @Test
+    void fill_MeterRate() throws Exception { //6
+        Store st = mdb.loadQuery("select * from MeterRate order by id")
+        for (StoreRecord r in st) {
+            fill_TableLang("MeterRate", r.getLong("id"), r.getString("name"),
+                    r.getString("fullName"), r.getString("cmt"), "ru")
+        }
+    }
 
     void fill_TableLang(String nameTable, long idTable,
                         String name, String fullName, String cmt, String lang) throws Exception {
