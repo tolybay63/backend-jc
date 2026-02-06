@@ -9,14 +9,9 @@ import java.util.Map;
 
 public class RoleDao extends BaseModelDao {
 
-    public Map<String, Object> loadRolePaginate(Map<String, Object> params) throws Exception {
+    public Store load(Map<String, Object> params) throws Exception {
         RoleMdbUtils u = new RoleMdbUtils(getMdb(), "Role");
-        return u.loadRolePaginate(params);
-    }
-
-    public Store loadRoles(Map<String, Object> params) throws Exception {
-        RoleMdbUtils u = new RoleMdbUtils(getMdb(), "Role");
-        return u.loadRoles(params);
+        return u.load(params);
     }
 
     public void delete(Map<String, Object> params) throws Exception {
@@ -38,6 +33,12 @@ public class RoleDao extends BaseModelDao {
         RoleMdbUtils u = new RoleMdbUtils(getMdb(), "Role");
         return u.loadRec(params);
     }
+
+    public Store loadRoles(String lang) throws Exception {
+        RoleMdbUtils u = new RoleMdbUtils(getMdb(), "Role");
+        return u.loadRoles(lang);
+    }
+
 
 
 }

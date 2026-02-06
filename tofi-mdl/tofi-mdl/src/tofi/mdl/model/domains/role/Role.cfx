@@ -6,9 +6,13 @@
         <!-- Роли типов объектов и отношений между типами объектов -->
         <field name="cod" parent="f.cod"/>
         <field name="accessLevel" parent="FD_AccessLevel/ref"/>
+        <field name="roleTag" parent="string" size="200"/>
+    </domain>
+
+    <!-- ====================================== -->
+    <domain name="Role.lang" parent="Role">
         <field name="name" parent="f.name"/>
         <field name="fullName" parent="f.fullName"/>
-        <field name="roleTag" parent="string" size="200"/>
         <field name="cmt" parent="f.cmt"/>
     </domain>
 
