@@ -3076,7 +3076,7 @@ class DataDao extends BaseMdbUtils {
             return apiClientData().get(ApiClientData).loadSqlWithParams(sql, params, domain)
         else if (model.equalsIgnoreCase("resourcedata"))
             return apiResourceData().get(ApiResourceData).loadSqlWithParams(sql, params, domain)
-        else if (model.equalsIgnoreCase("resourcedata"))
+        else if (model.equalsIgnoreCase("repairdata"))
             return apiRepairData().get(ApiRepairData).loadSqlWithParams(sql, params, domain)
         else
             throw new XError("Unknown model [${model}]")

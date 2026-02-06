@@ -67,11 +67,1060 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiClientData() {
         return app.bean(ApinatorService).getApi("clientdata")
     }
+    ApinatorApi apiResourceData() {
+        return app.bean(ApinatorService).getApi("resourcedata")
+    }
     ApinatorApi apiRepairData() {
         return app.bean(ApinatorService).getApi("repairdata")
     }
 
     //-------------------------
+
+    @DaoMethod
+    Store loadNormativeMaterial(long relobjTaskWork, String lang) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelCls", "RC_TaskWork", "")
+        long pv = apiMeta().get(ApiMeta).idPV("relcls", map.get("RC_TaskWork"), "Prop_TaskWork")
+        //
+        Store st = mdb.createStore("Obj.NormativeMaterial")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        map.put("pvTaskWork", pv)
+        map.put("relobjTaskWork", relobjTaskWork)
+        Map<String, Long> map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_NormativeMaterial", "")
+        map.put("cls", map2.get("Cls_NormativeMaterial"))
+        map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
+        map.put("FV_Plan", map2.get("FV_Plan"))
+
+        mdb.loadQuery(st, """
+            select o.id, o.cls, v.name,
+                v1.id as idMaterial, v1.obj as objMaterial, v1.propVal as pvMaterial, null as nameMaterial,
+                v2.id as idTaskWork, v2.relobj as relobjTaskWork, v2.propVal as pvTaskWork,
+                v3.id as idUser, v3.obj as objUser, v3.propVal as pvUser, null as fullNameUser,
+                v4.id as idValue, v4.numberVal as Value,
+                v6.id as idMeasure, v6.propVal as pvMeasure, null as meaMeasure,
+                v7.id as idCreatedAt, v7.dateTimeVal as CreatedAt,
+                v8.id as idUpdatedAt, v8.dateTimeVal as UpdatedAt
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Material
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_TaskWork
+                inner join DataPropVal v2 on d2.id=v2.dataprop and v2.propVal=:pvTaskWork and v2.relobj=:relobjTaskWork 
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_User
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Value and d4.status=:FV_Plan
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_Measure
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_CreatedAt
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_UpdatedAt
+                left join DataPropVal v8 on d8.id=v8.dataprop
+            where o.cls=:cls
+        """, map)
+        //Пересечение
+        Set<Object> idsMaterial = st.getUniqueValues("objMaterial")
+        Store stMaterial = loadSqlService("""
+            select o.id, o.cls, v.name
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsMaterial.join(",")})
+        """, "", "resourcedata")
+        StoreIndex indMaterial = stMaterial.getIndex("id")
+        //
+        Set<Object> idsUser = st.getUniqueValues("objUser")
+        Store stUser = loadSqlService("""
+            select o.id, o.cls, v.fullName
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsUser.join(",")})
+        """, "", "personnaldata")
+        StoreIndex indUser = stUser.getIndex("id")
+        //
+        Map<Long, Long> mapMea = apiMeta().get(ApiMeta).mapEntityIdFromPV("measure", "Prop_Measure", true)
+        Store stMea = loadSqlMeta("""
+            select id, name from Measure where 0=0
+        """, "")
+        StoreIndex indMea = stMea.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord recMaterial = indMaterial.get(r.getLong("objMaterial"))
+            if (recMaterial != null)
+                r.set("nameMaterial", recMaterial.getString("name"))
+
+            StoreRecord recUser = indUser.get(r.getLong("objUser"))
+            if (recUser != null)
+                r.set("fullNameUser", recUser.getString("fullName"))
+
+            if (r.getLong("pvMeasure") > 0) {
+                r.set("meaMeasure", mapMea.get(r.getLong("pvMeasure")))
+            }
+            StoreRecord rec = indMea.get(r.getLong("meaMeasure"))
+            if (rec != null)
+                r.set("nameMeasure", rec.getString("name"))
+        }
+        //
+        return st
+    }
+
+    @DaoMethod
+    Store saveNormativeMaterial(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long pv = pms.getLong("pvTaskWork")
+        if (pv == 0) {
+            pv = apiMeta().get(ApiMeta).idPV("relcls", pms.getLong("linkCls"), "Prop_TaskWork")
+            pms.put("pvTaskWork", pv)
+        }
+        //
+        Map<String, Long> map
+        if (pms.containsKey("status")) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Fact", "")
+            pms.put("fvStatus", map.get("FV_Fact"))
+        } else {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
+            pms.put("fvStatus", map.get("FV_Plan"))
+        }
+        //
+        String whe = ""
+        if (mode == "upd")
+            whe = "and d.objorrelobj <>" + pms.getLong("id")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_TaskWork", "")
+        Store stOwn = mdb.loadQuery("""
+                select d.objorrelobj as own
+                from DataProp d, DataPropVal v
+                where d.id=v.dataProp and d.prop=${map.get("Prop_TaskWork")} and v.propVal=${pv} 
+                    and v.relobj=${pms.getLong("relobjTaskWork")} ${whe}
+            """)
+        Set<Object> idsOwn = stOwn.getUniqueValues("own")
+        //
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Material", "")
+        map.put("objMaterial", pms.getLong("objMaterial"))
+        stOwn = mdb.loadQuery("""
+                select o.id
+                from Obj o
+                    left join DataProp d on d.objorrelobj=o.id and d.prop=:Prop_Material
+                    inner join DataPropVal v on d.id=v.dataProp and v.obj=:objMaterial                
+                where o.id in (0${idsOwn.join(",")})
+            """, map)
+        if (stOwn.size() > 0)
+            throw new XError("[Материал] уже существует")
+        //
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        if (UtCnv.toString(params.get("name")).trim().isEmpty())
+            throw new XError("[name] не указан")
+        Map<String, Object> par = new HashMap<>(pms)
+        if (mode.equalsIgnoreCase("ins")) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_NormativeMaterial", "")
+            par.put("cls", map.get("Cls_NormativeMaterial"))
+            //
+            par.putIfAbsent("fullName", pms.getString("name"))
+            //
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+
+            //0 Prop_Material
+            if (pms.getLong("objMaterial") == 0)
+                throw new XError("[Material] не указан")
+            else
+                fillProperties(true, "Prop_Material", pms)
+
+            //1 Prop_Measure
+            if (pms.getLong("meaMeasure") > 0)
+                fillProperties(true, "Prop_Measure", pms)
+            else
+                throw new XError("[Единица измерения] не указан")
+            //
+            //2 Prop_TaskWork
+            if (pms.getLong("relobjTaskWork") == 0)
+                throw new XError("[TaskWork] не указан")
+            else
+                fillProperties(true, "Prop_TaskWork", pms)
+            //3 Prop_User
+            if (pms.getLong("objUser") == 0)
+                throw new XError("[User] не указан")
+            else
+                fillProperties(true, "Prop_User", pms)
+            //4 Prop_Value
+            if (pms.getDouble("Value") == 0)
+                throw new XError("[Value] не указан")
+            else
+                fillProperties(true, "Prop_Value", pms)
+            //5 Prop_CreatedAt
+            if (pms.getString("CreatedAt").isEmpty())
+                throw new XError("[CreatedAt] не указан")
+            else
+                fillProperties(true, "Prop_CreatedAt", pms)
+            //6 Prop_UpdatedAt
+            if (pms.getString("UpdatedAt").isEmpty())
+                throw new XError("[UpdatedAt] не указан")
+            else
+                fillProperties(true, "Prop_UpdatedAt", pms)
+
+        } else if (mode.equalsIgnoreCase("upd")) {
+            own = pms.getLong("id")
+            par.putIfAbsent("fullName", pms.getString("name"))
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+
+            //0 Prop_Material
+            if (pms.containsKey("idMaterial"))
+                if (pms.getLong("objMaterial") == 0)
+                    throw new XError("[Material] не указан")
+                else
+                    updateProperties("Prop_Material", pms)
+
+            //1 Prop_Measure
+            if (pms.containsKey("idMeasure")) {
+                if (pms.getLong("meaMeasure") > 0)
+                    updateProperties("Prop_Measure", pms)
+                else
+                    throw new XError("[Единица измерения] не указан")
+            } else {
+                if (pms.getLong("meaMeasure") > 0)
+                    fillProperties(true, "Prop_Measure", pms)
+                else
+                    throw new XError("[Единица измерения] не указан")
+            }
+
+            //2 Prop_User
+            if (pms.containsKey("idUser"))
+                if (pms.getLong("objUser") == 0)
+                    throw new XError("[User] не указан")
+                else
+                    updateProperties("Prop_User", pms)
+
+            //3 Prop_Value
+            if (pms.containsKey("idValue"))
+                if (pms.getDouble("Value") == 0)
+                    throw new XError("[Value] не указан")
+                else
+                    updateProperties("Prop_Value", pms)
+
+            //4 Prop_UpdatedAt
+            if (pms.containsKey("idUpdatedAt"))
+                if (pms.getString("UpdatedAt").isEmpty())
+                    throw new XError("[UpdatedAt] не указан")
+                else
+                    updateProperties("Prop_UpdatedAt", pms)
+        } else {
+            throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
+        }
+        //
+        return loadNormativeMaterial(pms.getLong("relobjTaskWork"), "ru")
+    }
+
+    @DaoMethod
+    Store loadNormativeTool(long relobjTaskWork, String lang) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelCls", "RC_TaskWork", "")
+        long pv = apiMeta().get(ApiMeta).idPV("relcls", map.get("RC_TaskWork"), "Prop_TaskWork")
+        //
+        Store st = mdb.createStore("Obj.NormativeTool")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        map.put("pvTaskWork", pv)
+        map.put("relobjTaskWork", relobjTaskWork)
+        Map<String, Long> map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_NormativeTool", "")
+        map.put("cls", map2.get("Cls_NormativeTool"))
+        map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
+        map.put("FV_Plan", map2.get("FV_Plan"))
+
+        mdb.loadQuery(st, """
+            select o.id, o.cls, v.name,
+                v1.id as idTypTool, v1.obj as objTypTool, v1.propVal as pvTypTool, null as nameTypTool,
+                v2.id as idTaskWork, v2.relobj as relobjTaskWork, v2.propVal as pvTaskWork,
+                v3.id as idUser, v3.obj as objUser, v3.propVal as pvUser, null as fullNameUser,
+                v4.id as idValue, v4.numberVal as Value,
+                v7.id as idCreatedAt, v7.dateTimeVal as CreatedAt,
+                v8.id as idUpdatedAt, v8.dateTimeVal as UpdatedAt
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_TypTool
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_TaskWork
+                inner join DataPropVal v2 on d2.id=v2.dataprop and v2.propVal=:pvTaskWork and v2.relobj=:relobjTaskWork 
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_User
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Value and d4.status=:FV_Plan
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_CreatedAt
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_UpdatedAt
+                left join DataPropVal v8 on d8.id=v8.dataprop
+            where o.cls=:cls
+        """, map)
+        //Пересечение
+        Map<Long, Long> mapFV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", "Prop_TypTool", true)
+        //
+        Set<Object> idsUser = st.getUniqueValues("objUser")
+        Store stUser = loadSqlService("""
+            select o.id, o.cls, v.fullName
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsUser.join(",")})
+        """, "", "personnaldata")
+        StoreIndex indUser = stUser.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord recUser = indUser.get(r.getLong("objUser"))
+            if (recUser != null)
+                r.set("fullNameUser", recUser.getString("fullName"))
+            r.set("fvTypTool", mapFV.get(r.getLong("pvTypTool")))
+        }
+        //
+        Set<Object> fvs = st.getUniqueValues("fvTypTool")
+        Store stFV = loadSqlMeta("""
+            select id, name from Factor where id in (0${fvs.join(",")})
+        """, "")
+        StoreIndex indFV = stFV.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord rec = indFV.get(r.getLong("fvTypTool"))
+            if (rec != null)
+                r.set("nameTypTool", rec.getString("name"))
+        }
+        //
+        return st
+    }
+
+    @DaoMethod
+    Store saveNormativeTool(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long pv = pms.getLong("pvTaskWork")
+        if (pv == 0) {
+            pv = apiMeta().get(ApiMeta).idPV("relcls", pms.getLong("linkCls"), "Prop_TaskWork")
+            pms.put("pvTaskWork", pv)
+        }
+        //
+        Map<String, Long> map
+        if (pms.containsKey("status")) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Fact", "")
+            pms.put("fvStatus", map.get("FV_Fact"))
+        } else {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
+            pms.put("fvStatus", map.get("FV_Plan"))
+        }
+        //
+        String whe = ""
+        if (mode == "upd")
+            whe = "and d.objorrelobj <>" + pms.getLong("id")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_TaskWork", "")
+        Store stOwn = mdb.loadQuery("""
+                select d.objorrelobj as own
+                from DataProp d, DataPropVal v
+                where d.id=v.dataProp and d.prop=${map.get("Prop_TaskWork")} and v.propVal=${pv} 
+                    and v.relobj=${pms.getLong("relobjTaskWork")} ${whe}
+            """)
+        Set<Object> idsOwn = stOwn.getUniqueValues("own")
+        //
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_TypTool", "")
+        map.put("pvTypTool", pms.getLong("pvTypTool"))
+        stOwn = mdb.loadQuery("""
+                select o.id
+                from Obj o
+                    left join DataProp d on d.objorrelobj=o.id and d.prop=:Prop_TypTool
+                    inner join DataPropVal v on d.id=v.dataProp and v.propVal=:pvTypTool                
+                where o.id in (0${idsOwn.join(",")})
+            """, map)
+        if (stOwn.size() > 0)
+            throw new XError("[Инструмент] уже существует")
+        //
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        if (UtCnv.toString(params.get("name")).trim().isEmpty())
+            throw new XError("[name] не указан")
+        Map<String, Object> par = new HashMap<>(pms)
+        if (mode.equalsIgnoreCase("ins")) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_NormativeTool", "")
+            par.put("cls", map.get("Cls_NormativeTool"))
+            //
+            par.putIfAbsent("fullName", pms.getString("name"))
+            //
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+            //1 Prop_TypTool
+            if (pms.getLong("fvTypTool") == 0)
+                throw new XError("[TypTool] не указан")
+            else
+                fillProperties(true, "Prop_TypTool", pms)
+
+            //2 Prop_TaskWork
+            if (pms.getLong("relobjTaskWork") == 0)
+                throw new XError("[TaskWork] не указан")
+            else
+                fillProperties(true, "Prop_TaskWork", pms)
+            //3 Prop_User
+            if (pms.getLong("objUser") == 0)
+                throw new XError("[User] не указан")
+            else
+                fillProperties(true, "Prop_User", pms)
+            //4 Prop_Value
+            if (pms.getDouble("Value") == 0)
+                throw new XError("[Value] не указан")
+            else
+                fillProperties(true, "Prop_Value", pms)
+            //6 Prop_CreatedAt
+            if (pms.getString("CreatedAt").isEmpty())
+                throw new XError("[CreatedAt] не указан")
+            else
+                fillProperties(true, "Prop_CreatedAt", pms)
+            //7 Prop_UpdatedAt
+            if (pms.getString("UpdatedAt").isEmpty())
+                throw new XError("[UpdatedAt] не указан")
+            else
+                fillProperties(true, "Prop_UpdatedAt", pms)
+
+        } else if (mode.equalsIgnoreCase("upd")) {
+            own = pms.getLong("id")
+            par.putIfAbsent("fullName", pms.getString("name"))
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+
+            //1 Prop_TypTool
+            if (pms.containsKey("idTool"))
+                if (pms.getLong("fvTypTool") == 0)
+                    throw new XError("[TypTool] не указан")
+                else
+                    updateProperties("Prop_TypTool", pms)
+
+            //2 Prop_User
+            if (pms.containsKey("idUser"))
+                if (pms.getLong("objUser") == 0)
+                    throw new XError("[User] не указан")
+                else
+                    updateProperties("Prop_User", pms)
+
+            //3 Prop_Value
+            if (pms.containsKey("idValue"))
+                if (pms.getDouble("Value") == 0)
+                    throw new XError("[Value] не указан")
+                else
+                    updateProperties("Prop_Value", pms)
+            //5 Prop_UpdatedAt
+            if (pms.containsKey("idUpdatedAt"))
+                if (pms.getString("UpdatedAt").isEmpty())
+                    throw new XError("[UpdatedAt] не указан")
+                else
+                    updateProperties("Prop_UpdatedAt", pms)
+        } else {
+            throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
+        }
+        //
+        return loadNormativeTool(pms.getLong("relobjTaskWork"), "ru")
+    }
+
+    @DaoMethod
+    Store loadNormativeEquipment(long relobjTaskWork, String lang) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelCls", "RC_TaskWork", "")
+        long pv = apiMeta().get(ApiMeta).idPV("relcls", map.get("RC_TaskWork"), "Prop_TaskWork")
+        //
+        Store st = mdb.createStore("Obj.NormativeEquipment")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        map.put("pvTaskWork", pv)
+        map.put("relobjTaskWork", relobjTaskWork)
+        Map<String, Long> map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_NormativeEquipment", "")
+        map.put("cls", map2.get("Cls_NormativeEquipment"))
+        map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
+        map.put("FV_Plan", map2.get("FV_Plan"))
+
+        mdb.loadQuery(st, """
+            select o.id, o.cls, v.name,
+                v1.id as idTypEquipment, v1.obj as objTypEquipment, v1.propVal as pvTypEquipment, null as nameTypEquipment,
+                v2.id as idTaskWork, v2.relobj as relobjTaskWork, v2.propVal as pvTaskWork,
+                v3.id as idUser, v3.obj as objUser, v3.propVal as pvUser, null as fullNameUser,
+                v4.id as idValue, v4.numberVal as Value,
+                v5.id as idQuantity, v5.numberVal as Quantity,
+                v7.id as idCreatedAt, v7.dateTimeVal as CreatedAt,
+                v8.id as idUpdatedAt, v8.dateTimeVal as UpdatedAt
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_TypEquipment
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_TaskWork
+                inner join DataPropVal v2 on d2.id=v2.dataprop and v2.propVal=:pvTaskWork and v2.relobj=:relobjTaskWork
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_User
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Value and d4.status=:FV_Plan
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_Quantity
+                left join DataPropVal v5 on d5.id=v5.dataprop                
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_CreatedAt
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_UpdatedAt
+                left join DataPropVal v8 on d8.id=v8.dataprop
+            where o.cls=:cls
+        """, map)
+        //Пересечение
+        Map<Long, Long> mapFV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", "Prop_TypEquipment", true)
+        //
+        Set<Object> idsUser = st.getUniqueValues("objUser")
+        Store stUser = loadSqlService("""
+            select o.id, o.cls, v.fullName
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsUser.join(",")})
+        """, "", "personnaldata")
+        StoreIndex indUser = stUser.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord recUser = indUser.get(r.getLong("objUser"))
+            if (recUser != null)
+                r.set("fullNameUser", recUser.getString("fullName"))
+            r.set("fvTypEquipment", mapFV.get(r.getLong("pvTypEquipment")))
+        }
+        //
+        Set<Object> fvs = st.getUniqueValues("fvTypEquipment")
+        Store stFV = loadSqlMeta("""
+            select id, name from Factor where id in (0${fvs.join(",")})
+        """, "")
+        StoreIndex indFV = stFV.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord rec = indFV.get(r.getLong("fvTypEquipment"))
+            if (rec != null)
+                r.set("nameTypEquipment", rec.getString("name"))
+        }
+        //
+        return st
+    }
+
+    @DaoMethod
+    Store saveNormativeEquipment(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long pv = pms.getLong("pvTaskWork")
+        if (pv == 0) {
+            pv = apiMeta().get(ApiMeta).idPV("relcls", pms.getLong("linkCls"), "Prop_TaskWork")
+            pms.put("pvTaskWork", pv)
+        }
+        //
+        Map<String, Long> map
+        if (pms.containsKey("status")) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Fact", "")
+            pms.put("fvStatus", map.get("FV_Fact"))
+        } else {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
+            pms.put("fvStatus", map.get("FV_Plan"))
+        }
+        //
+        String whe = ""
+        if (mode == "upd")
+            whe = "and d.objorrelobj <>" + pms.getLong("id")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_TaskWork", "")
+        Store stOwn = mdb.loadQuery("""
+                select d.objorrelobj as own
+                from DataProp d, DataPropVal v
+                where d.id=v.dataProp and d.prop=${map.get("Prop_TaskWork")} and v.propVal=${pv} 
+                    and v.relobj=${pms.getLong("relobjTaskWork")} ${whe}
+            """)
+        Set<Object> idsOwn = stOwn.getUniqueValues("own")
+        //
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_TypEquipment", "")
+        map.put("pvTypEquipment", pms.getLong("pvTypEquipment"))
+        stOwn = mdb.loadQuery("""
+                select o.id
+                from Obj o
+                    left join DataProp d on d.objorrelobj=o.id and d.prop=:Prop_TypEquipment
+                    inner join DataPropVal v on d.id=v.dataProp and v.propVal=:pvTypEquipment                
+                where o.id in (0${idsOwn.join(",")})
+            """, map)
+        if (stOwn.size() > 0)
+            throw new XError("[Тип техники] уже существует")
+        //
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        if (UtCnv.toString(params.get("name")).trim().isEmpty())
+            throw new XError("[name] не указан")
+        Map<String, Object> par = new HashMap<>(pms)
+        if (mode.equalsIgnoreCase("ins")) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_NormativeEquipment", "")
+            par.put("cls", map.get("Cls_NormativeEquipment"))
+            //
+            par.putIfAbsent("fullName", pms.getString("name"))
+            //
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+
+            //1 Prop_TypEquipment
+            if (pms.getLong("fvTypEquipment") == 0)
+                throw new XError("[TypEquipment] не указан")
+            else
+                fillProperties(true, "Prop_TypEquipment", pms)
+
+            //2 Prop_TaskWork
+            if (pms.getLong("relobjTaskWork") == 0)
+                throw new XError("[TaskWork] не указан")
+            else
+                fillProperties(true, "Prop_TaskWork", pms)
+            //3 Prop_User
+            if (pms.getLong("objUser") == 0)
+                throw new XError("[User] не указан")
+            else
+                fillProperties(true, "Prop_User", pms)
+            //4 Prop_Value
+            if (pms.getDouble("Value") == 0)
+                throw new XError("[Value] не указан")
+            else
+                fillProperties(true, "Prop_Value", pms)
+            //5 Prop_Quantity
+            if (pms.getDouble("Quantity") == 0)
+                throw new XError("[Quantity] не указан")
+            else
+                fillProperties(true, "Prop_Quantity", pms)
+            //6 Prop_CreatedAt
+            if (pms.getString("CreatedAt").isEmpty())
+                throw new XError("[CreatedAt] не указан")
+            else
+                fillProperties(true, "Prop_CreatedAt", pms)
+            //7 Prop_UpdatedAt
+            if (pms.getString("UpdatedAt").isEmpty())
+                throw new XError("[UpdatedAt] не указан")
+            else
+                fillProperties(true, "Prop_UpdatedAt", pms)
+
+        } else if (mode.equalsIgnoreCase("upd")) {
+            own = pms.getLong("id")
+            par.putIfAbsent("fullName", pms.getString("name"))
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+
+            //1 Prop_TypEquipment
+            if (pms.containsKey("idEquipment"))
+                if (pms.getLong("fvTypEquipment") == 0)
+                    throw new XError("[TypEquipment] не указан")
+                else
+                    updateProperties("Prop_TypEquipment", pms)
+
+            //2 Prop_User
+            if (pms.containsKey("idUser"))
+                if (pms.getLong("objUser") == 0)
+                    throw new XError("[User] не указан")
+                else
+                    updateProperties("Prop_User", pms)
+
+            //3 Prop_Value
+            if (pms.containsKey("idValue"))
+                if (pms.getDouble("Value") == 0)
+                    throw new XError("[Value] не указан")
+                else
+                    updateProperties("Prop_Value", pms)
+            //4 Prop_Quantity
+            if (pms.containsKey("idQuantity"))
+                if (pms.getDouble("Quantity") == 0)
+                    throw new XError("[Quantity] не указан")
+                else
+                    updateProperties("Prop_Quantity", pms)
+            //5 Prop_UpdatedAt
+            if (pms.containsKey("idUpdatedAt"))
+                if (pms.getString("UpdatedAt").isEmpty())
+                    throw new XError("[UpdatedAt] не указан")
+                else
+                    updateProperties("Prop_UpdatedAt", pms)
+        } else {
+            throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
+        }
+        //
+        return loadNormativeEquipment(pms.getLong("relobjTaskWork"), "ru")
+    }
+
+    @DaoMethod
+    Store loadNormativeTpService(long relobjTaskWork, String lang) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelCls", "RC_TaskWork", "")
+        long pv = apiMeta().get(ApiMeta).idPV("relcls", map.get("RC_TaskWork"), "Prop_TaskWork")
+        //
+        Store st = mdb.createStore("Obj.NormativeTpService")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        map.put("pvTaskWork", pv)
+        map.put("relobjTaskWork", relobjTaskWork)
+        Map<String, Long> map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_NormativeTpService", "")
+        map.put("cls", map2.get("Cls_NormativeTpService"))
+        map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
+        map.put("FV_Plan", map2.get("FV_Plan"))
+
+        mdb.loadQuery(st, """
+            select o.id, o.cls, v.name,
+                v1.id as idTpService, v1.obj as objTpService, v1.propVal as pvTpService, null as nameTpService,
+                v2.id as idTaskWork, v2.relobj as relobjTaskWork, v2.propVal as pvTaskWork,
+                v3.id as idUser, v3.obj as objUser, v3.propVal as pvUser, null as fullNameUser,
+                v4.id as idValue, v4.numberVal as Value,
+                v7.id as idCreatedAt, v7.dateTimeVal as CreatedAt,
+                v8.id as idUpdatedAt, v8.dateTimeVal as UpdatedAt
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_TpService
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_TaskWork
+                inner join DataPropVal v2 on d2.id=v2.dataprop and v2.propVal=:pvTaskWork and v2.relobj=:relobjTaskWork 
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_User
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Value and d4.status=:FV_Plan
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_CreatedAt
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_UpdatedAt
+                left join DataPropVal v8 on d8.id=v8.dataprop
+            where o.cls=:cls
+        """, map)
+        //Пересечение
+        Set<Object> idsTpService = st.getUniqueValues("objTpService")
+        Store stTpService = loadSqlService("""
+            select o.id, o.cls, v.name
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsTpService.join(",")})
+        """, "", "resourcedata")
+        StoreIndex indTpService = stTpService.getIndex("id")
+        //
+        Set<Object> idsUser = st.getUniqueValues("objUser")
+        Store stUser = loadSqlService("""
+            select o.id, o.cls, v.fullName
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsUser.join(",")})
+        """, "", "personnaldata")
+        StoreIndex indUser = stUser.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord recTpService = indTpService.get(r.getLong("objTpService"))
+            if (recTpService != null)
+                r.set("nameTpService", recTpService.getString("name"))
+
+            StoreRecord recUser = indUser.get(r.getLong("objUser"))
+            if (recUser != null)
+                r.set("fullNameUser", recUser.getString("fullName"))
+        }
+        //
+        return st
+    }
+
+    @DaoMethod
+    Store saveNormativeTpService(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        // Проверка комбинации Отношения <-> Услуга сторонней организации
+        long pv = pms.getLong("pvTaskWork")
+        if (pv == 0) {
+            pv = apiMeta().get(ApiMeta).idPV("relcls", pms.getLong("linkCls"), "Prop_TaskWork")
+            pms.put("pvTaskWork", pv)
+        }
+        //
+        Map<String, Long> map
+        if (pms.containsKey("status")) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Fact", "")
+            pms.put("fvStatus", map.get("FV_Fact"))
+        } else {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
+            pms.put("fvStatus", map.get("FV_Plan"))
+        }
+        //
+        String whe = ""
+        if (mode == "upd")
+            whe = "and d.objorrelobj <>" + pms.getLong("id")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_TaskWork", "")
+        Store stOwn = mdb.loadQuery("""
+                select d.objorrelobj as own
+                from DataProp d, DataPropVal v
+                where d.id=v.dataProp and d.prop=${map.get("Prop_TaskWork")} and v.propVal=${pv} 
+                    and v.relobj=${pms.getLong("relobjTaskWork")} ${whe}
+            """)
+        Set<Object> idsOwn = stOwn.getUniqueValues("own")
+        //
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_TpService", "")
+        map.put("objTpService", pms.getLong("objTpService"))
+        stOwn = mdb.loadQuery("""
+                select o.id
+                from Obj o
+                    left join DataProp d on d.objorrelobj=o.id and d.prop=:Prop_TpService
+                    inner join DataPropVal v on d.id=v.dataProp and v.obj=:objTpService               
+                where o.id in (0${idsOwn.join(",")})
+            """, map)
+        if (stOwn.size() > 0)
+            throw new XError("[Услуга сторонней организации] уже существует")
+        // Создание и изменение объекта
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        if (UtCnv.toString(params.get("name")).trim().isEmpty())
+            throw new XError("[name] не указан")
+        Map<String, Object> par = new HashMap<>(pms)
+        if (mode.equalsIgnoreCase("ins")) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_NormativeTpService", "")
+            par.put("cls", map.get("Cls_NormativeTpService"))
+            //
+            par.putIfAbsent("fullName", pms.getString("name"))
+            //
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+
+            //1 Prop_TpService
+            if (pms.getLong("objTpService") == 0)
+                throw new XError("[TpService] не указан")
+            else
+                fillProperties(true, "Prop_TpService", pms)
+
+            //2 Prop_TaskWork
+            if (pms.getLong("relobjTaskWork") == 0)
+                throw new XError("[TaskWork] не указан")
+            else
+                fillProperties(true, "Prop_TaskWork", pms)
+            //3 Prop_User
+            if (pms.getLong("objUser") == 0)
+                throw new XError("[User] не указан")
+            else
+                fillProperties(true, "Prop_User", pms)
+            //4 Prop_Value
+            if (pms.getDouble("Value") == 0)
+                throw new XError("[Value] не указан")
+            else
+                fillProperties(true, "Prop_Value", pms)
+            //5 Prop_CreatedAt
+            if (pms.getString("CreatedAt").isEmpty())
+                throw new XError("[CreatedAt] не указан")
+            else
+                fillProperties(true, "Prop_CreatedAt", pms)
+            //6 Prop_UpdatedAt
+            if (pms.getString("UpdatedAt").isEmpty())
+                throw new XError("[UpdatedAt] не указан")
+            else
+                fillProperties(true, "Prop_UpdatedAt", pms)
+
+        } else if (mode.equalsIgnoreCase("upd")) {
+            own = pms.getLong("id")
+            par.putIfAbsent("fullName", pms.getString("name"))
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+
+            //1 Prop_TpService
+            if (pms.containsKey("idTpService"))
+                if (pms.getLong("objTpService") == 0)
+                    throw new XError("[TpService] не указан")
+                else
+                    updateProperties("Prop_TpService", pms)
+
+            //2 Prop_User
+            if (pms.containsKey("idUser"))
+                if (pms.getLong("objUser") == 0)
+                    throw new XError("[User] не указан")
+                else
+                    updateProperties("Prop_User", pms)
+
+            //3 Prop_Value
+            if (pms.containsKey("idValue"))
+                if (pms.getDouble("Value") == 0)
+                    throw new XError("[Value] не указан")
+                else
+                    updateProperties("Prop_Value", pms)
+
+            //4 Prop_UpdatedAt
+            if (pms.containsKey("idUpdatedAt"))
+                if (pms.getString("UpdatedAt").isEmpty())
+                    throw new XError("[UpdatedAt] не указан")
+                else
+                    updateProperties("Prop_UpdatedAt", pms)
+        } else {
+            throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
+        }
+        //
+        return loadNormativeTpService(pms.getLong("relobjTaskWork"), "kz")
+    }
+
+    @DaoMethod
+    Store loadNormativePersonnel(long relobjTaskWork, String lang) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelCls", "RC_TaskWork", "")
+        long pv = apiMeta().get(ApiMeta).idPV("relcls", map.get("RC_TaskWork"), "Prop_TaskWork")
+        //
+        Store st = mdb.createStore("Obj.NormativePersonnel")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        map.put("pvTaskWork", pv)
+        map.put("relobjTaskWork", relobjTaskWork)
+        Map<String, Long> map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_NormativePersonnel", "")
+        map.put("cls", map2.get("Cls_NormativePersonnel"))
+        map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
+        map.put("FV_Plan", map2.get("FV_Plan"))
+
+        mdb.loadQuery(st, """
+            select o.id, o.cls, v.name,
+                v1.id as idPosition, v1.propVal as pvPosition, null as fvPosition, null as namePosition,
+                v2.id as idTaskWork, v2.relobj as relobjTaskWork, v2.propVal as pvTaskWork,
+                v3.id as idUser, v3.obj as objUser, v3.propVal as pvUser, null as fullNameUser,
+                v4.id as idValue, v4.numberVal as Value,
+                v5.id as idQuantity, v5.numberVal as Quantity,
+                v7.id as idCreatedAt, v7.dateTimeVal as CreatedAt,
+                v8.id as idUpdatedAt, v8.dateTimeVal as UpdatedAt
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Position
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_TaskWork
+                inner join DataPropVal v2 on d2.id=v2.dataprop and v2.propVal=:pvTaskWork and v2.relobj=:relobjTaskWork 
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_User
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Value and d4.status=:FV_Plan
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_Quantity
+                left join DataPropVal v5 on d5.id=v5.dataprop                
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_CreatedAt
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_UpdatedAt
+                left join DataPropVal v8 on d8.id=v8.dataprop
+            where o.cls=:cls
+        """, map)
+        //Пересечение
+        Set<Object> idsUser = st.getUniqueValues("objUser")
+        Store stUser = loadSqlService("""
+            select o.id, o.cls, v.fullName
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsUser.join(",")})
+        """, "", "personnaldata")
+        StoreIndex indUser = stUser.getIndex("id")
+        //
+        Map<Long, Long> mapFV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", "Prop_Position", true)
+        for (StoreRecord r in st) {
+            StoreRecord recUser = indUser.get(r.getLong("objUser"))
+            if (recUser != null)
+                r.set("fullNameUser", recUser.getString("fullName"))
+            r.set("fvPosition", mapFV.get(r.getLong("pvPosition")))
+        }
+        Set<Object> fvs = st.getUniqueValues("fvPosition")
+        Store stFV = loadSqlMeta("""
+            select id, name from Factor where id in (0${fvs.join(",")})
+        """, "")
+        StoreIndex indFV = stFV.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord rec = indFV.get(r.getLong("fvPosition"))
+            if (rec != null)
+                r.set("namePosition", rec.getString("name"))
+        }
+        return st
+    }
+
+    @DaoMethod
+    Store saveNormativePersonnel(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long pv = pms.getLong("pvTaskWork")
+        if (pv == 0) {
+            pv = apiMeta().get(ApiMeta).idPV("relcls", pms.getLong("linkCls"), "Prop_TaskWork")
+            pms.put("pvTaskWork", pv)
+        }
+        //
+        Map<String, Long> map
+        if (pms.containsKey("status")) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Fact", "")
+            pms.put("fvStatus", map.get("FV_Fact"))
+        } else {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
+            pms.put("fvStatus", map.get("FV_Plan"))
+        }
+        //
+        String whe = ""
+        if (mode == "upd")
+            whe = "and d.objorrelobj <>" + pms.getLong("id")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_TaskWork", "")
+        Store stOwn = mdb.loadQuery("""
+                select d.objorrelobj as own
+                from DataProp d, DataPropVal v
+                where d.id=v.dataProp and d.prop=${map.get("Prop_TaskWork")} and v.propVal=${pv} 
+                    and v.relobj=${pms.getLong("relobjTaskWork")} ${whe}
+            """)
+        Set<Object> idsOwn = stOwn.getUniqueValues("own")
+        //
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Position", "")
+        map.put("pvPosition", pms.getLong("pvPosition"))
+        stOwn = mdb.loadQuery("""
+                select o.id
+                from Obj o
+                    left join DataProp d on d.objorrelobj=o.id and d.prop=:Prop_Position
+                    inner join DataPropVal v on d.id=v.dataProp and v.propVal=:pvPosition                
+                where o.id in (0${idsOwn.join(",")})
+            """, map)
+        if (stOwn.size() > 0)
+            throw new XError("[Position] уже существует")
+        //
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        if (UtCnv.toString(params.get("name")).trim().isEmpty())
+            throw new XError("[name] не указан")
+        Map<String, Object> par = new HashMap<>(pms)
+        if (mode.equalsIgnoreCase("ins")) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_NormativePersonnel", "")
+            par.put("cls", map.get("Cls_NormativePersonnel"))
+            //
+            par.putIfAbsent("fullName", pms.getString("name"))
+            //
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+
+            //1 Prop_Position
+            if (pms.getLong("fvPosition") == 0)
+                throw new XError("[Position] не указан")
+            else
+                fillProperties(true, "Prop_Position", pms)
+
+            //2 Prop_TaskWork
+            if (pms.getLong("relobjTaskWork") == 0)
+                throw new XError("[TaskWork] не указан")
+            else
+                fillProperties(true, "Prop_TaskWork", pms)
+            //3 Prop_User
+            if (pms.getLong("objUser") == 0)
+                throw new XError("[User] не указан")
+            else
+                fillProperties(true, "Prop_User", pms)
+            //4 Prop_Value
+            if (pms.getDouble("Value") == 0)
+                throw new XError("[Value] не указан")
+            else
+                fillProperties(true, "Prop_Value", pms)
+            //5 Prop_CreatedAt
+            if (pms.getString("CreatedAt").isEmpty())
+                throw new XError("[CreatedAt] не указан")
+            else
+                fillProperties(true, "Prop_CreatedAt", pms)
+            //6 Prop_UpdatedAt
+            if (pms.getString("UpdatedAt").isEmpty())
+                throw new XError("[UpdatedAt] не указан")
+            else
+                fillProperties(true, "Prop_UpdatedAt", pms)
+
+            //7 Prop_Quantity
+            if (pms.getDouble("Quantity") == 0)
+                throw new XError("[Quantity] не указан")
+            else
+                fillProperties(true, "Prop_Quantity", pms)
+
+        } else if (mode.equalsIgnoreCase("upd")) {
+            own = pms.getLong("id")
+            par.putIfAbsent("fullName", pms.getString("name"))
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+
+            //1 Prop_Position
+            if (pms.containsKey("idPosition"))
+                if (pms.getLong("fvPosition") == 0)
+                    throw new XError("[Position] не указан")
+                else
+                    updateProperties("Prop_Position", pms)
+
+            //2 Prop_User
+            if (pms.containsKey("idUser"))
+                if (pms.getLong("objUser") == 0)
+                    throw new XError("[User] не указан")
+                else
+                    updateProperties("Prop_User", pms)
+
+            //3 Prop_Value
+            if (pms.containsKey("idValue"))
+                if (pms.getDouble("Value") == 0)
+                    throw new XError("[Value] не указан")
+                else
+                    updateProperties("Prop_Value", pms)
+
+            //4 Prop_UpdatedAt
+            if (pms.containsKey("idUpdatedAt"))
+                if (pms.getString("UpdatedAt").isEmpty())
+                    throw new XError("[UpdatedAt] не указан")
+                else
+                    updateProperties("Prop_UpdatedAt", pms)
+            //7 Prop_Quantity
+            if (pms.containsKey("idQuantity"))
+                if (pms.getDouble("Quantity") == 0)
+                    throw new XError("[Quantity] не указан")
+                else
+                    updateProperties("Prop_Quantity", pms)
+        } else {
+            throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
+        }
+        //
+        return loadNormativePersonnel(pms.getLong("relobjTaskWork"), "ru")
+    }
 
     @DaoMethod
     Store loadSignMultiForSelect(Long objRelObj, String codProp) {
@@ -2320,6 +3369,7 @@ class DataDao extends BaseMdbUtils {
         String keyValue = cod.split("_")[1]
         def objRef = UtCnv.toLong(params.get("obj" + keyValue))
         def propVal = UtCnv.toLong(params.get("pv" + keyValue))
+        def relRef = UtCnv.toLong(params.get("relobj"+keyValue))
 
         Store stProp = apiMeta().get(ApiMeta).getPropInfo(cod)
         //
@@ -2337,7 +3387,9 @@ class DataDao extends BaseMdbUtils {
         StoreRecord recDP = mdb.createStoreRecord("DataProp")
         String whe = isObj ? "and isObj=1 " : "and isObj=0 "
         if (stProp.get(0).getLong("statusFactor") > 0) {
-            long fv = apiMeta().get(ApiMeta).getDefaultStatus(prop)
+            long fv = UtCnv.toLong(params.get("fvStatus"))
+            if (fv == 0)
+                fv = apiMeta().get(ApiMeta).getDefaultStatus(prop)
             whe += "and status = ${fv} "
         } else {
             whe += "and status is null "
@@ -2421,7 +3473,10 @@ class DataDao extends BaseMdbUtils {
             if (cod.equalsIgnoreCase("Prop_Source") ||
                     cod.equalsIgnoreCase("Prop_PeriodType") ||
                     cod.equalsIgnoreCase("Prop_Shape") ||
-                    cod.equalsIgnoreCase("Prop_DefectsCategory")) {
+                    cod.equalsIgnoreCase("Prop_DefectsCategory") ||
+                    cod.equalsIgnoreCase("Prop_Position") ||
+                    cod.equalsIgnoreCase("Prop_TypEquipment") ||
+                    cod.equalsIgnoreCase("Prop_TypTool")) {
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
                 }
@@ -2452,7 +3507,9 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_ParamsLimitMax") ||
                     cod.equalsIgnoreCase("Prop_ParamsLimitMin") ||
                     cod.equalsIgnoreCase("Prop_ParamsLimitNorm") ||
-                    cod.equalsIgnoreCase("Prop_Periodicity")) {
+                    cod.equalsIgnoreCase("Prop_Periodicity") ||
+                    cod.equalsIgnoreCase("Prop_Value") ||
+                    cod.equalsIgnoreCase("Prop_Quantity")) {
                 if (params.get(keyValue) != null) {
                     double v = UtCnv.toDouble(params.get(keyValue))
                     v = v / koef
@@ -2469,10 +3526,25 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_Collections") ||
                     cod.equalsIgnoreCase("Prop_LocationMulti") ||
                     cod.equalsIgnoreCase("Prop_User") ||
-                    cod.equalsIgnoreCase("Prop_SignMulti")) {
+                    cod.equalsIgnoreCase("Prop_SignMulti") ||
+                    cod.equalsIgnoreCase("Prop_TpService") ||
+                    cod.equalsIgnoreCase("Prop_Material")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // For RelTyp
+        if ([FD_PropType_consts.reltyp].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_TaskWork")) {
+                if (relRef > 0) {
+                    recDPV.set("propVal", propVal)
+                    recDPV.set("relobj", relRef)
+                    if (UtCnv.toLong(params.get("idComplex")) > 0)
+                        recDPV.set("parent", params.get("idComplex"))
                 }
             } else {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
@@ -2584,7 +3656,10 @@ class DataDao extends BaseMdbUtils {
             if (cod.equalsIgnoreCase("Prop_Source") ||
                     cod.equalsIgnoreCase("Prop_PeriodType") ||
                     cod.equalsIgnoreCase("Prop_Shape") ||
-                    cod.equalsIgnoreCase("Prop_DefectsCategory")) {
+                    cod.equalsIgnoreCase("Prop_DefectsCategory") ||
+                    cod.equalsIgnoreCase("Prop_Position") ||
+                    cod.equalsIgnoreCase("Prop_TypEquipment") ||
+                    cod.equalsIgnoreCase("Prop_TypTool")) {
                 if (propVal > 0)
                     sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
                 else {
@@ -2632,7 +3707,9 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_ParamsLimitMax") ||
                     cod.equalsIgnoreCase("Prop_ParamsLimitMin") ||
                     cod.equalsIgnoreCase("Prop_ParamsLimitNorm") ||
-                    cod.equalsIgnoreCase("Prop_Periodicity")) {
+                    cod.equalsIgnoreCase("Prop_Periodicity") ||
+                    cod.equalsIgnoreCase("Prop_Value") ||
+                    cod.equalsIgnoreCase("Prop_Quantity")) {
                 if (mapProp.keySet().contains(keyValue) && mapProp[keyValue] != 0) {
                     def v = mapProp.getDouble(keyValue)
                     v = v / koef
@@ -2657,7 +3734,9 @@ class DataDao extends BaseMdbUtils {
             if (cod.equalsIgnoreCase("Prop_DefectsComponent") ||
                     cod.equalsIgnoreCase("Prop_Collections") ||
                     cod.equalsIgnoreCase("Prop_LocationMulti") ||
-                    cod.equalsIgnoreCase("Prop_User")) {
+                    cod.equalsIgnoreCase("Prop_User") ||
+                    cod.equalsIgnoreCase("Prop_TpService") ||
+                    cod.equalsIgnoreCase("Prop_Material")) {
                 if (objRef > 0)
                     sql = "update DataPropval set propVal=${propVal}, obj=${objRef}, timeStamp='${tmst}' where id=${idVal}"
                 else {
@@ -2746,6 +3825,8 @@ class DataDao extends BaseMdbUtils {
             return apiInspectionData().get(ApiInspectionData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("clientdata"))
             return apiClientData().get(ApiClientData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("resourcedata"))
+            return apiResourceData().get(ApiResourceData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("repairdata"))
             return apiRepairData().get(ApiRepairData).loadSql(sql, domain)
         else
