@@ -51,32 +51,8 @@ class UtEntityTranslate extends BaseMdbUtils {
                     r.set("fullName", rec.getString("fullName"))
                 if (r.findField("cmt") != null) {
                     r.set("cmt", rec.getString("cmt"))
-
-/*
-                    if (r.getString("cmt").isEmpty() && !rec.getString("cmt").isEmpty() && rec.getString("lang") != lang) {
-                        String s = tr.translateText(rec.getString("cmt"), rec.getString("lang"), lang)
-                        r.set("cmt", s)
-                    } else {
-                        r.set("cmt", rec.getString("cmt"))
-                    }
-*/
                 }
-
-/*                StoreRecord recLg = mdb.createStoreRecord("TableLang", r)
-                //StoreRecord recLg = stLg.add(r)
-                recLg.set("nameTable", table)
-                recLg.set("id", rec.getLong("id"))
-                recLg.set("idTable", r.getLong("id"))
-                if (hasVer) {
-                    recLg.set("nameTable", table + 'Ver')
-                    recLg.set("idTable", r.getLong("verId"))
-                }
-                recLg.set("lang", lang)
-                mdb.updateRec("TableLang", recLg)*/
-
-
             } else {
-
                 if (hasVer)
                     rec = indOther.get(r.getString("verId"))
                 else
@@ -124,7 +100,7 @@ class UtEntityTranslate extends BaseMdbUtils {
 
     void insertToTableLang(Map<String, Object> params) {
         IVariantMap par = new VariantMap(params)
-        if (par.getString("name").isEmpty())
+        if (par.getString("lang").isEmpty())
             throw new XError("lang is empty")
         // table, idInTable, lang, name, fullName, cmt
         Store st = mdb.createStore("TableLang")

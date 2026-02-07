@@ -6,7 +6,6 @@
         <!-- Роли типы объектов -->
         <field name="typ" parent="Typ/ref"/>
         <field name="role" parent="Role/ref"/>
-        <field name="cmt" parent="f.cmt"/>
     </domain>
 
     <domain name="TypRoleLifeInterval" parent="id" tag.db="true"
@@ -18,10 +17,17 @@
         <field name="typRole" parent="TypRole/ref"/>
         <field name="dbeg" parent="f.dbeg"/>
         <field name="dend" parent="f.dend"/>
+    </domain>
+
+    <domain name="TypRole.lang" parent="TypRole">
         <field name="cmt" parent="f.cmt"/>
     </domain>
 
-    <domain name="TypRole.full" parent="TypRole">
+    <domain name="TypRoleLifeInterval.lang" parent="TypRoleLifeInterval">
+        <field name="cmt" parent="f.cmt"/>
+    </domain>
+
+    <domain name="TypRole.full" parent="TypRole.lang">
         <field name="name" parent="f.name"/>
         <field name="fullName" parent="f.fullName"/>
     </domain>

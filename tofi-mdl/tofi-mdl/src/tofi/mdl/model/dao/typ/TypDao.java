@@ -64,14 +64,14 @@ public class TypDao extends BaseModelDao {
     }
 
     //---------------------- TypRole --------------------------------
-    public Store loadTypRole(long typ) throws Exception {
+    public Store loadTypRole(long id, long typ, String lang) throws Exception {
         TypRoleMdbUtils u = new TypRoleMdbUtils(getMdb());
-        return u.loadTypRole(typ);
+        return u.loadTypRole(id, typ, lang);
     }
 
-    public Store selectTypRole(long typ) throws Exception {
+    public Store selectTypRole(long typ, String lang) throws Exception {
         TypRoleMdbUtils u = new TypRoleMdbUtils(getMdb());
-        return u.selectTypRole(typ);
+        return u.selectTypRole(typ, lang);
     }
 
 
@@ -91,9 +91,9 @@ public class TypDao extends BaseModelDao {
     }
 
     //---------------------- TypRoleLifeInterval --------------------------------
-    public Store loadTypRoleLife(long typRole) throws Exception {
+    public Store loadTypRoleLife(long id, long typRole, String lang) throws Exception {
         TypRoleMdbUtils u = new TypRoleMdbUtils(getMdb());
-        return u.loadTypRoleLife(typRole);
+        return u.loadTypRoleLife(id, typRole, lang);
     }
 
     public Store insertTypRoleLife(Map<String, Object> params) throws Exception {
@@ -113,9 +113,9 @@ public class TypDao extends BaseModelDao {
 
     //---------------------- TypClusterFactor --------------------------------
 
-    public Store loadTypClusterFactor(long typ, String lang) throws Exception {
+    public Store loadTypClusterFactor(long id, long typ, String lang) throws Exception {
         TypClusterFactorMdbUtils u = new TypClusterFactorMdbUtils(getMdb());
-        return u.loadTypClusterFactor(typ, lang);
+        return u.loadTypClusterFactor(id, typ, lang);
     }
 
     public Store insertTypClusterFactor(Map<String, Object> params) throws Exception {
@@ -133,9 +133,9 @@ public class TypDao extends BaseModelDao {
         u.deleteTypClusterFactor(UtCnv.toMap(params.get("rec")));
     }
 
-    public Store loadFactors(long typ, String mode) throws Exception {
+    public Store loadFactors(long typ, String mode, String lang) throws Exception {
         TypClusterFactorMdbUtils u = new TypClusterFactorMdbUtils(getMdb());
-        return u.loadFactors(typ, mode);
+        return u.loadFactors(typ, mode, lang);
     }
 
     //---------------------- Cls --------------------------------
@@ -203,9 +203,14 @@ public class TypDao extends BaseModelDao {
 
     //---------------------- NotExtended --------------------------------
 
-    public Store loadNotExtended(long typ) throws Exception {
+    public Store loadObjTreeSelect(long cls, String lang) throws Exception {
+        ClsMdbUtils u = new ClsMdbUtils(getMdb(), "Cls");
+        return u.loadObjTreeSelect(cls, lang);
+    }
+
+    public Store loadNotExtended(long id, long typ, String lang) throws Exception {
         NotExtendedMdbUtils u = new NotExtendedMdbUtils(getMdb());
-        return u.loadNotExtended(typ);
+        return u.loadNotExtended(id, typ, lang);
     }
 
 

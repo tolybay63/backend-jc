@@ -14,19 +14,33 @@ public class TypClusterFactorMdbUtils {
         this.mdb = mdb;
     }
 
-    public Store loadTypClusterFactor(long typ, String lang) throws Exception {
-        Store st = mdb.createStore("TypClusterFactor.full");
-        TypDao typDao = mdb.createDao(TypDao.class);
-        long typParent = typDao.loadRec(Map.of("id", typ, "lang", lang)).get(0).getLong("parent");
+    public Store loadTypClusterFactor(long id, long typ, String lang) throws Exception {
+        Store st = mdb.createStore("TypClusterFactor.lang");
+        String whe = "";
+        String wheOwn = "";
+        if (id > 0) {
+            whe = "t.id=" + id;
+            wheOwn = " 1 as isOwn ";
+        } else {
+            TypDao typDao = mdb.createDao(TypDao.class);
+            long typParent = typDao.loadRec(Map.of("id", typ, "lang", lang)).get(0).getLong("parent");
+            whe = "(t.typ="+typ+" or t.typ="+typParent+")";
+            wheOwn = " case when t.typ="+ typ + " then 1 else 0 end as isOwn ";
+        }
 
         mdb.loadQuery(st, """
                   select * from (
-                      select t.*, f.name, f.fullName, case when t.typ=:t then 1 else 0 end as isOwn, f.ord
-                      from TypClusterFactor t, Factor f
-                      where t.factor=f.id and (t.typ=:t or t.typ=:tp)
+                      select t.*, l.name, l.fullName, f.cod, f.ord,
+                  """ + wheOwn +
+                  """
+                      from TypClusterFactor t, Factor f, TableLang l
+                      where t.factor=f.id and
+                  """ + whe +
+                  """
+                      and l.nameTable='Factor' and l.idTable=f.id and l.lang=:lang
                   ) a
                   order by isOwn desc, ord
-                """, Map.of("t", typ, "tp", typParent));
+                """, Map.of("lang", lang));
 
         return st;
     }
@@ -38,12 +52,7 @@ public class TypClusterFactorMdbUtils {
         //
         long id = mdb.insertRec("TypClusterFactor", r, true);
         //
-        st = mdb.createStore("TypClusterFactor.full");
-        mdb.loadQuery(st, """
-                  select t.*, f.name, f.fullName, 1 as isOwn from TypClusterFactor t, Factor f
-                  where t.factor=f.id and t.id=:id
-                """, Map.of("id", id));
-        return st;
+        return loadTypClusterFactor(id, 0, UtCnv.toString(params.get("lang")));
     }
 
     public Store updateTypClusterFactor(Map<String, Object> params) throws Exception {
@@ -53,25 +62,19 @@ public class TypClusterFactorMdbUtils {
         StoreRecord r = st.add(rec);
         //
         mdb.updateRec("TypClusterFactor", r);
-
         //
-        st = mdb.createStore("TypClusterFactor.full");
-        mdb.loadQuery(st, """
-                  select t.*, f.name, f.fullName, 1 as isOwn from TypClusterFactor t, Factor f
-                  where t.factor=f.id and t.id=:id
-                """, Map.of("id", id));
-        return st;
-    }
+        return loadTypClusterFactor(id, 0, UtCnv.toString(params.get("lang")));    }
 
     public void deleteTypClusterFactor(Map<String, Object> rec) throws Exception {
         long id = UtCnv.toLong(rec.get("id"));
         mdb.deleteRec("TypClusterFactor", id);
     }
 
-    public Store loadFactors(long typ, String mode) throws Exception {
+    public Store loadFactors(long typ, String mode, String lang) throws Exception {
         if (mode.equals("ins"))
             return mdb.loadQuery("""
-                        select id, name from Factor where parent is null
+                        select f.id, l.name from Factor f, TableLang l
+                        where parent is null and l.idTable=f.id and l.nameTable='Factor' and l.lang=:lang
                             and id not in (
                             select factor from TypClusterFactor where typ=:typ
                         )
@@ -79,8 +82,10 @@ public class TypClusterFactorMdbUtils {
                     """, Map.of("typ", typ));
         else
             return mdb.loadQuery("""
-                        select id, name from Factor where parent is null order by ord
-                    """, Map.of("typ", typ));
+                        select f.id, l.name from Factor f, TableLang l
+                        where parent is null and l.idTable=f.id and l.nameTable='Factor' and l.lang=:lang
+                        order by ord
+                    """, Map.of("typ", typ, "lang", lang));
 
     }
 

@@ -67,10 +67,12 @@ public class DataBaseMdbUtils extends EntityMdbUtils {
         deleteEntity(rec);
     }
 
-    public Store loadDbForSelect() throws Exception {
+    public Store loadDbForSelect(String lang) throws Exception {
         return mdb.loadQuery("""
-                    select id, name from DataBase where dataBaseType=:db
-                """, Map.of("db", FD_DataBaseType_consts.data));
+            select d.id, l.name
+            from database d, TableLang l
+            where dataBaseType=:dbt and d.id=l.idTable and l.nameTable='DataBase' and l.lang=:lang
+        """, Map.of("dbt", FD_DataBaseType_consts.data, "lang", lang));
     }
 
 }

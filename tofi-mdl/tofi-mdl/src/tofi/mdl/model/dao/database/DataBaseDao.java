@@ -38,9 +38,9 @@ public class DataBaseDao extends BaseModelDao {
         utils.delete(rec);
     }
 
-    public Store loadDbForSelect() throws Exception {
+    public Store loadDbForSelect(String lang) throws Exception {
         DataBaseMdbUtils utils = new DataBaseMdbUtils(getMdb(), "DataBase");
-        return utils.loadDbForSelect();
+        return utils.loadDbForSelect(lang);
     }
 
 }

@@ -19,4 +19,10 @@
 
     </domain>
 
+    <domain name="TypVer.lang" parent="TypVer">
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
+    </domain>
+
 </root>

@@ -18,7 +18,7 @@ class TableLang_Test extends Apx_Test {
 
     @Test
     void fill_Measure() throws Exception { //2
-        Store st = mdb.loadQuery("select * from Measure where 0=0 order by id limit 5")
+        Store st = mdb.loadQuery("select * from Measure where 0=0 order by id")
         for (StoreRecord r in st) {
             fill_TableLang("Measure", r.getLong("id"), r.getString("name"),
                     r.getString("fullName"), r.getString("cmt"), "ru")
@@ -60,6 +60,35 @@ class TableLang_Test extends Apx_Test {
                     r.getString("fullName"), r.getString("cmt"), "ru")
         }
     }
+
+    // 7 - Role
+
+    @Test
+    void fill_Typ() throws Exception { //8
+        Store st = mdb.loadQuery("""
+            select v.id, v.name, v.fullName, t.cmt 
+            from Typ t, TypVer v
+            where t.id=v.ownerVer and v.lastVer=1
+        """)
+        for (StoreRecord r in st) {
+            fill_TableLang("TypVer", r.getLong("id"), r.getString("name"),
+                    r.getString("fullName"), r.getString("cmt"), "ru")
+        }
+    }
+
+    @Test
+    void fill_Cls() throws Exception { //9
+        Store st = mdb.loadQuery("""
+            select v.id, v.name, v.fullName, t.cmt 
+            from Cls t, ClsVer v
+            where t.id=v.ownerVer and v.lastVer=1
+        """)
+        for (StoreRecord r in st) {
+            fill_TableLang("ClsVer", r.getLong("id"), r.getString("name"),
+                    r.getString("fullName"), r.getString("cmt"), "ru")
+        }
+    }
+
 
     void fill_TableLang(String nameTable, long idTable,
                         String name, String fullName, String cmt, String lang) throws Exception {

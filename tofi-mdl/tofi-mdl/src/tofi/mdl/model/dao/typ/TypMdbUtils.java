@@ -43,7 +43,7 @@ public class TypMdbUtils extends EntityMdbUtils {
             select count(*) as cnt
             from Typ t
                 left join TypVer v on t.id=v.ownerVer and v.lastVer=1
-                left join TableLang l on l.nameTable='TypVer' and l.idTable=v.id and l.lang=:lang
+                --left join TableLang l on l.nameTable='TypVer' and l.idTable=v.id and l.lang=:lang -----------DELETE
             where 0=0
         """;
         SqlText sqlText = mdb.createSqlText(sqlCount);
@@ -64,7 +64,7 @@ public class TypMdbUtils extends EntityMdbUtils {
             select *, v.id as verId
             from Typ t
                 left join TypVer v on t.id=v.ownerVer and v.lastVer=1
-                left join TableLang l on l.nameTable='TypVer' and l.idTable=v.id and l.lang=:lang
+                -- left join TableLang l on l.nameTable='TypVer' and l.idTable=v.id and l.lang=:lang -----------DELETE
             where 0=0
         """;
         sqlText = mdb.createSqlText(sqlLoad);

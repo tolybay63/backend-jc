@@ -57,9 +57,8 @@ public class ClsMdbUtils extends EntityMdbUtils {
         Store st = mdb.createStore("Cls.lang");
         mdb.loadQuery(st, """
             select *, v.id as verId
-            from Cls c, ClsVer v, TableLang l
+            from Cls c, ClsVer v
             where c.id=v.ownerVer and v.lastVer=1 and c.typ=:typ
-                and l.nameTable='ClsVer' and l.idTable=v.id
         """, Map.of("typ", typ));
 
         UtEntityTranslate ut = new UtEntityTranslate(mdb);
@@ -69,11 +68,10 @@ public class ClsMdbUtils extends EntityMdbUtils {
     public Store loadRecCls(long id, String lang) throws Exception {
         Store st = mdb.createStore("Cls.lang");
         mdb.loadQuery(st, """
-            select *, v.id as verId
-            from Cls c, ClsVer v, TableLang l
+            select c.id, c.cod, c.typ, v.id as verId
+            from Cls c, ClsVer v
             where c.id=v.ownerVer and v.lastVer=1 and c.id=:id
-                and l.nameTable='ClsVer' and l.idTable=v.id
-        """, Map.of("id", id, "lang", lang));
+        """, Map.of("id", id));
         UtEntityTranslate ut = new UtEntityTranslate(mdb);
         return ut.getTranslatedStore(st,"Cls", lang, true);
     }
@@ -112,7 +110,7 @@ public class ClsMdbUtils extends EntityMdbUtils {
     }
 
     public Store loadClsFV(long typ, long cls, String lang) throws Exception {
-        Store st = mdb.createStore("TypClusterFactor.full");
+        Store st = mdb.createStore("TypClusterFactor.lang");
         mdb.loadQuery(st, """
                 select * from (
                   select distinct id, name, fullName, cod, parent, isOwn, ord
@@ -364,6 +362,12 @@ public class ClsMdbUtils extends EntityMdbUtils {
 
     }
 
+    public Store loadObjTreeSelect(long cls, String lang) throws Exception {
+
+
+
+        return null;
+    }
 
 
 }

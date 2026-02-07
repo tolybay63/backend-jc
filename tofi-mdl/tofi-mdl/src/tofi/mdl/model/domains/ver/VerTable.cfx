@@ -40,12 +40,6 @@
             -->
         </field>
 
-        <field name="cmtVer" parent="f.cmt">
-            <!--@
-                Комментарий к версии
-            -->
-        </field>
-
     </domain>
 
 </root>

@@ -10,15 +10,14 @@
         <field name="isUniq" parent="boolean" title="Однозначность кластерного фактора "/>
     </domain>
 
-    <domain name="TypClusterFactor.full" parent="TypClusterFactor">
+    <domain name="TypClusterFactor.lang" parent="TypClusterFactor">
         <field name="name" parent="f.name"/>
         <field name="fullName" parent="f.fullName"/>
         <field name="cod" parent="f.cod"/>
-        <field name="parent" parent="long"/>
         <field name="isOwn" parent="int"/>
     </domain>
 
-    <domain name="TypClusterFactor.tree" parent="TypClusterFactor.full">
+    <domain name="TypClusterFactor.tree" parent="TypClusterFactor.lang">
         <field name="ord" parent="f.ord"/>
         <field name="checked" parent="int"/>
     </domain>

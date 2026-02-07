@@ -4,18 +4,13 @@ import jandcode.commons.UtCnv
 import jandcode.core.dbm.mdb.Mdb
 import jandcode.core.store.Store
 import jandcode.core.store.StoreRecord
+import tofi.mdl.model.utils.UtEntityTranslate
 
 class ClsTreeMdbUtils {
     Mdb mdb;
 
     public ClsTreeMdbUtils(Mdb mdb) throws Exception {
         this.mdb = mdb
-        //
-/*
-        if (!mdb.getApp().getEnv().isTest())
-            if (!UtCnv.toBoolean(mdb.createDao(AuthDao.class).isLogined().get("success")))
-                throw new XError("notLogined");
-*/
     }
 
 /*
@@ -27,9 +22,22 @@ class ClsTreeMdbUtils {
 *
 * */
 
-    public Store loadClsTree(Map<String, Object> params) throws Exception {
+    Store loadClsTree(Map<String, Object> params) throws Exception {
         boolean typNodeVisible = true
         long typId = UtCnv.toLong(params["typ"])
+        String lang = UtCnv.toString(params.get("lang"))
+        //
+        Store stCls = mdb.createStore("Cls.lang")
+        mdb.loadQuery(stCls, """
+            select *, v.id as verId
+            from Cls c, ClsVer v--, TableLang l
+            where c.id=v.ownerVer and v.lastVer=1 and c.typ=:t
+                --and l.nameTable='ClsVer' and l.idTable=v.id and l.lang=:lang
+        """, [t: typId, lang: lang])
+        UtEntityTranslate ut = new UtEntityTranslate(mdb)
+        ut.getTranslatedStore(stCls, "Cls", UtCnv.toString(params.get("lang")), true)
+        //
+
         if (params["typNodeVisible"] != null)
             typNodeVisible = params["typNodeVisible"]
 
@@ -48,6 +56,7 @@ class ClsTreeMdbUtils {
         //Store dsCls
         //Store dsClsPrt
         Map<String, Object> param = new HashMap<>()
+        param.put("lang", params.get("lang"))
         for (StoreRecord rTyp in dsTyp) {
             param.put("own", 1L)
             param.put("typ", rTyp.get("ent"))
@@ -87,15 +96,16 @@ class ClsTreeMdbUtils {
             whe1 = " and c.id=${typId}"
 
         String sFld = "'t_'||c.id as id"
-
+        String lang = UtCnv.toString(params.get("lang"))
         String sql = """
             select * from
             (
-              select c.id as ent,0 as typ,v.name, v.fullName, 
+              select c.id as ent, 0 as typ, l.name, l.fullName, 
                     c.accessLevel, c.cod, 0 as kind, -1 as isOwn, c.parent as typParent,
-                    ${sFld}, null as parent, c.isOpenness, c.cmt
-              from Typ c, TypVer v
+                    ${sFld}, null as parent, c.isOpenness, l.cmt
+              from Typ c, TypVer v, TableLang l
               where c.id=v.ownerVer and v.lastVer=1 ${whe1}
+                and l.nameTable='TypVer' and l.idTable=v.id and l.lang='${lang}'
             ) t
             /**/where 0=0
             order by cod
@@ -110,6 +120,7 @@ class ClsTreeMdbUtils {
 
         long typId = UtCnv.toLong(params.get("typ"))
         int own = UtCnv.toInt(params.get("own"))
+        String lang = UtCnv.toString(params.get("lang"))
 
         String whe2 = " and c.typ=${typId}"
         String whe3 = " and t.id=${typId}"
@@ -122,11 +133,12 @@ class ClsTreeMdbUtils {
             sql = """
                 select * from
                 (
-                    select c.id as ent,c.typ as typ,v.name, v.fullName,
+                    select c.id as ent,c.typ as typ, l.name, l.fullName,
                         c.accessLevel, c.dataBase, c.cod, 1 as kind, 1 as isOwn, ${sFld1},
-                        0 as typParent, c.ord, c.isOpenness, c.cmt
-                    from Cls c, ClsVer v
+                        0 as typParent, c.ord, c.isOpenness, l.cmt
+                    from Cls c, ClsVer v, TableLang l
                     where c.id=v.ownerVer and v.lastVer=1 ${whe2}
+                        and l.nameTable='ClsVer' and idTable=v.id and l.lang='${lang}'
                 ) t
                 /**/where 0=0
                 order by isOwn desc, ord
@@ -138,10 +150,10 @@ class ClsTreeMdbUtils {
                     select c.id as ent,t.id as typ,v.name, v.fullName,
                         c.accessLevel, c.dataBase, c.cod as cod,1 as kind,0 as isOwn, ${sFld2},
                         tp.id as typParent, c.ord, c.isOpenness, c.cmt
-                    from Typ t, TypVer vt, Typ tp, TypVer vtp, Cls c, ClsVer v
+                    from Typ t, TypVer vt, Typ tp, TypVer vtp, Cls c, ClsVer v, TableLang l
                     where t.id=vt.ownerVer and vt.LastVer=1 and t.parent=tp.id and
                         tp.id=vtp.ownerVer and vtp.LastVer=1 and
-                        tp.id=c.typ and c.id=v.ownerVer and v.lastVer=1 and
+                        tp.id=c.typ and c.id=v.ownerVer and v.lastVer=1 and l.nameTable='ClsVer' and idTable=v.id and l.lang='${lang}' and
                         not c.id in (select clsOrObjCls from TypParentNot where typ=t.id and clsOrObjCls is not null and obj is null) ${whe3}
                 ) t
                 /**/where 0=0

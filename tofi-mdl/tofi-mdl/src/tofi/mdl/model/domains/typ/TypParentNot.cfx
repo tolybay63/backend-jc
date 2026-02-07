@@ -12,9 +12,13 @@
         <field name="obj" parent="long"/>
     </domain>
 
-    <domain name="TypParentNot.full" parent="TypParentNot">
-        <field name="nameClass" parent="f.name"/>
-        <field name="nameObj" parent="f.name"/>
+    <domain name="TypParentNot.lang" parent="TypParentNot">
+        <field name="name" parent="f.name">
+            <!-- for nameCls-->
+        </field>
+        <field name="fullName" parent="f.name">
+            <!-- for nameObj-->
+        </field>
         <field name="modelName" parent="string"/>
     </domain>
 

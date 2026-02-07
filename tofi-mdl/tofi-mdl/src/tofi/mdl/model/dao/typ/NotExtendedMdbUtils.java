@@ -5,6 +5,7 @@ import jandcode.commons.error.XError;
 import jandcode.core.dbm.mdb.Mdb;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
+import tofi.mdl.model.utils.UtEntityTranslate;
 
 import java.util.Map;
 
@@ -13,33 +14,26 @@ public class NotExtendedMdbUtils {
 
     public NotExtendedMdbUtils(Mdb mdb) throws Exception {
         this.mdb = mdb;
-        //
-/*
-        if (!mdb.getApp().getEnv().isTest())
-            if (!UtCnv.toBoolean(mdb.createDao(AuthDao.class).isLogined().get("success")))
-                throw new XError("notLogined");
-*/
     }
 
-
-    public Store loadNotExtended(long typ) throws Exception {
-        Store st = mdb.createStore("TypParentNot.full");
+    public Store loadNotExtended(long id, long typ, String lang) throws Exception {
+        Store st = mdb.createStore("TypParentNot.lang");
+        String whe = "t.typ="+typ;
+        if (id > 0)
+            whe = "t.id="+id;
 
         String sql = """
-                    select t.*, v.name as nameClass, d.modelName
-                        --, ov.name as nameObj
+                    select t.*, d.modelName
                     from TypParentNot t
                         Left Join Cls c on t.clsOrObjCls=c.id
                         Left Join ClsVer v on c.id=v.ownerVer and v.lastVer=1
                         Left Join DataBase d on d.id=c.database
-                    where t.typ=:typ
+                    where :whe
                 """;
-        mdb.loadQuery(st, sql, Map.of("typ", typ));
+        mdb.loadQuery(st, sql, Map.of("whe", whe));
         //
-        //todo запрос для получения nameObj
-        //
-
-        return st;
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st,"TypParentNot", lang, false);
     }
 
     protected void validNotExtended(StoreRecord r) throws Exception {
@@ -70,53 +64,31 @@ public class NotExtendedMdbUtils {
     }
 
     public Store insertNotExtended(Map<String, Object> rec) throws Exception {
-        Store st = mdb.createStore("TypParentNot");
+        Store st = mdb.createStore("TypParentNot.lang");
         StoreRecord r = st.add(rec);
         validNotExtended(r);
         long id = mdb.insertRec("TypParentNot", r, true);
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        r.set("id", id);
+        ut.insertToTableLang(r.getValues());
         //
-        st = mdb.createStore("TypParentNot.full");
-        mdb.loadQuery(st, """
-                    select t.*, v.name as nameClass, d.modelName
-                        --, ov.name as nameObj
-                    from TypParentNot t
-                        Left Join Cls c on t.clsOrObjCls=c.id
-                        Left Join ClsVer v on c.id=v.ownerVer and v.lastVer=1
-                        Left Join DataBase d on d.id=c.database
-                    where t.id=:id
-                """, Map.of("id", id));
-        //
-        //todo запрос для получения nameObj
-        //
-        return st;
+        return loadNotExtended(id, r.getLong("typ"), r.getString("lang"));
     }
 
     public Store updateNotExtended(Map<String, Object> rec) throws Exception {
-        Store st = mdb.createStore("TypParentNot");
+        Store st = mdb.createStore("TypParentNot.lang");
         StoreRecord r = st.add(rec);
         validNotExtended(r);
         long id = r.getLong("id");
         mdb.updateRec("TypParentNot", r);
-        //
-        st = mdb.createStore("TypParentNot.full");
-        mdb.loadQuery(st, """
-                    select t.*, v.name as nameClass, d.modelName
-                        --, ov.name as nameObj
-                    from TypParentNot t
-                        Left Join Cls c on t.clsOrObjCls=c.id
-                        Left Join ClsVer v on c.id=v.ownerVer and v.lastVer=1
-                        Left Join DataBase d on d.id=c.database
-                    where t.id=:id
-                """, Map.of("id", id));
-        //
-        //todo запрос для получения nameObj
-        //
-        return st;
+        return loadNotExtended(id, r.getLong("typ"), r.getString("lang"));
     }
-
 
     public void deleteNotExtended(Map<String, Object> rec) throws Exception {
         long id = UtCnv.toLong(rec.get("id"));
         mdb.deleteRec("TypParentNot", id);
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        ut.deleteFromTableLang("TypParentNot", id);
     }
+
 }

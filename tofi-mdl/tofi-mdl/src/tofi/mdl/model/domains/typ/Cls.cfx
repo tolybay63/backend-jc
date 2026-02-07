@@ -24,7 +24,14 @@
 
     <domain name="Cls.full" parent="Cls">
         <include name="VerTable"/>
-
     </domain>
+
+    <domain name="Cls.lang" parent="Cls.full">
+        <field name="verId" parent="long"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
+    </domain>
+
 
 </root>

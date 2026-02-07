@@ -39,7 +39,6 @@
             -->
         </field>
 
-        <field name="cmt" parent="f.cmt"/>
         <field name="ord" parent="f.ord"/>
 
     </domain>
@@ -48,4 +47,10 @@
         <include name="VerTable"/>
     </domain>
 
+    <domain name="Typ.lang" parent="Typ.full">
+        <field name="verId" parent="long"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
+    </domain>
 </root>
