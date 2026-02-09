@@ -154,7 +154,7 @@ class ApiRepairDataImpl extends BaseMdbUtils implements ApiRepairData {
             if (pvStatus == stIncident.get(0).getLong("propVal")) {
                 Map<String, Object> mapPar = new HashMap<>()
                 if (codStatusTo == "FV_StatusEliminated" && stIncident.get(0).getString("dateTimeVal").startsWith("0000-01-01"))
-                    mapPar.put("CloseDateTime", XDateTime.now())
+                    mapPar.put("CloseDateTime", XDateTime.now().toString())
                 //
                 fvStatus = map.get(codStatusTo)
                 pvStatus = apiMeta().get(ApiMeta).idPV("factorVal", fvStatus, "Prop_Status")
