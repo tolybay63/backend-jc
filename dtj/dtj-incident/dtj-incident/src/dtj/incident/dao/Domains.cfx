@@ -82,6 +82,9 @@
         <field name="idAssignDateTime" parent="long"/>
         <field name="AssignDateTime" parent="string"/>
 
+        <field name="idCloseDateTime" parent="long"/>
+        <field name="CloseDateTime" parent="string"/>
+
         <field name="objWorkPlan" parent="long"/>
 
         <field name="objWork" parent="long"/>

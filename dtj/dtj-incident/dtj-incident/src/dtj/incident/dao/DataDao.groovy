@@ -348,7 +348,8 @@ class DataDao extends BaseMdbUtils {
                 v17.id as idRegistrationDateTime, v17.dateTimeVal as RegistrationDateTime,
                 v18.id as idInfoApplicant, v18.strVal as InfoApplicant,
                 v19.id as idLocationClsSection, v19.propVal as pvLocationClsSection, v19.obj as objLocationClsSection,
-                v21.id as idAssignDateTime, v21.dateTimeVal as AssignDateTime
+                v21.id as idAssignDateTime, v21.dateTimeVal as AssignDateTime,
+                v22.id as idCloseDateTime, v22.dateTimeVal as CloseDateTime
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Event")}
@@ -392,6 +393,8 @@ class DataDao extends BaseMdbUtils {
                 ${wheV19}
                 left join DataProp d21 on d21.objorrelobj=o.id and d21.prop=${map.get("Prop_AssignDateTime")}
                 left join DataPropVal v21 on d21.id=v21.dataprop
+                left join DataProp d22 on d22.objorrelobj=o.id and d22.prop=${map.get("Prop_CloseDateTime")}
+                left join DataPropVal v22 on d22.id=v22.dataprop
             where ${whe}
         """
         mdb.loadQuery(st, sql, map)
