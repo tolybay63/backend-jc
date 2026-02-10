@@ -19,12 +19,18 @@
 
         <field name="dataBase" parent="DataBase/ref"/>
         <field name="icon" parent="f.icon"/>
-        <field name="cmt" parent="f.cmt"/>
         <field name="ord" parent="f.ord"/>
     </domain>
 
     <domain name="RelCls.full" parent="RelCls">
         <include name="VerTable"/>
+    </domain>
+
+    <domain name="RelCls.lang" parent="RelCls.full">
+        <field name="verId" parent="long"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
     </domain>
 
 </root>

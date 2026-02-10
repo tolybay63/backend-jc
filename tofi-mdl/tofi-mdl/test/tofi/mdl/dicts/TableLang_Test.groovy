@@ -90,6 +90,19 @@ class TableLang_Test extends Apx_Test {
     }
 
 
+    @Test
+    void fill_RelTyp() throws Exception { //10
+        Store st = mdb.loadQuery("""
+            select v.id, v.name, v.fullName, t.cmt 
+            from RelTyp t, RelTypVer v
+            where t.id=v.ownerVer and v.lastVer=1
+        """)
+        for (StoreRecord r in st) {
+            fill_TableLang("RelTypVer", r.getLong("id"), r.getString("name"),
+                    r.getString("fullName"), r.getString("cmt"), "ru")
+        }
+    }
+
     void fill_TableLang(String nameTable, long idTable,
                         String name, String fullName, String cmt, String lang) throws Exception {
         StoreRecord rec = mdb.createStoreRecord("TableLang")

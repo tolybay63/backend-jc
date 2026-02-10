@@ -6,9 +6,13 @@
             title="Версионная часть отношений между типами объектов">
 
         <field name="ownerVer" parent="RelTyp/ref"/>
-
         <include name="VerTable"/>
+    </domain>
 
+    <domain name="RelTypVer.lang" parent="RelTypVer">
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
     </domain>
 
 </root>

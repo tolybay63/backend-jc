@@ -23,12 +23,18 @@
         </field>
 
         <field name="icon" parent="f.icon"/>
-        <field name="cmt" parent="f.cmt"/>
         <field name="ord" parent="f.ord"/>
     </domain>
 
     <domain name="RelTyp.full" parent="RelTyp">
         <include name="VerTable"/>
+    </domain>
+
+    <domain name="RelTyp.lang" parent="RelTyp.full">
+        <field name="verId" parent="long"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
     </domain>
 
 </root>

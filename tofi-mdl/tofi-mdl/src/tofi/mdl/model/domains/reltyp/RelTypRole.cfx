@@ -6,8 +6,6 @@
         <!-- Роли типы объектов -->
         <field name="relTyp" parent="RelTyp/ref"/>
         <field name="role" parent="Role/ref"/>
-        <field name="cmt" parent="f.cmt"/>
-
     </domain>
 
     <domain name="RelTypRoleLifeInterval" parent="id" tag.db="true"
@@ -20,10 +18,18 @@
         <field name="reltypRole" parent="RelTypRole/ref"/>
         <field name="dbeg" parent="f.dbeg"/>
         <field name="dend" parent="f.dend"/>
+    </domain>
+
+    <domain name="RelTypRole.lang" parent="RelTypRole">
         <field name="cmt" parent="f.cmt"/>
     </domain>
 
-    <domain name="RelTypRole.full" parent="RelTypRole">
+    <domain name="RelTypRoleLifeInterval.lang" parent="RelTypRoleLifeInterval">
+        <field name="cmt" parent="f.cmt"/>
+    </domain>
+
+
+    <domain name="RelTypRole.full" parent="RelTypRole.lang">
         <field name="name" parent="f.name"/>
         <field name="fullName" parent="f.fullName"/>
     </domain>
