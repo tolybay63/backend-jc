@@ -2519,34 +2519,34 @@ class DataDao extends BaseMdbUtils {
             //
             VariantMap pmsVer = new VariantMap(m)
             if (pmsVer.getLong("id") == 0)
-                throw new XError("Не указан [id] у плана работ [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+                throw new XError("Не указан [id] у плана работ [{0}]", m.get("id"))
             if (pmsVer.getLong("pv") == 0)
-                throw new XError("Не указан [pv] у плана работ [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+                throw new XError("Не указан [pv] у плана работ [{0}]", m.get("id"))
             if (pmsVer.getLong("objLocationClsSection") == 0)
-                throw new XError("Не указан [objLocationClsSection] у плана работ [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+                throw new XError("Не указан [objLocationClsSection] у плана работ [{0}]", m.get("id"))
             if (pmsVer.getLong("pvLocationClsSection") == 0)
-                throw new XError("Не указан [pvLocationClsSection] у плана работ [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+                throw new XError("Не указан [pvLocationClsSection] у плана работ [{0}]", m.get("id"))
             if (pmsVer.getLong("StartKm") == 0)
-                throw new XError("Не указан [StartKm] у плана работ [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+                throw new XError("Не указан [StartKm] у плана работ [{0}]", m.get("id"))
             if (pmsVer.getLong("FinishKm") == 0)
-                throw new XError("Не указан [FinishKm] у плана работ [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+                throw new XError("Не указан [FinishKm] у плана работ [{0}]", m.get("id"))
             if (pmsVer.getLong("StartPicket") == 0)
-                throw new XError("Не указан [StartPicket] у плана работ [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+                throw new XError("Не указан [StartPicket] у плана работ [{0}]", m.get("id"))
             if (pmsVer.getLong("FinishPicket") == 0)
-                throw new XError("Не указан [FinishPicket] у плана работ [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+                throw new XError("Не указан [FinishPicket] у плана работ [{0}]", m.get("id"))
             if (pmsVer.getLong("StartLink") == 0)
-                throw new XError("Не указан [StartLink] у плана работ [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+                throw new XError("Не указан [StartLink] у плана работ [{0}]", m.get("id"))
             if (pmsVer.getLong("FinishLink") == 0)
-                throw new XError("Не указан [FinishLink] у плана работ [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+                throw new XError("Не указан [FinishLink] у плана работ [{0}]", m.get("id"))
             if (pmsVer.getString("PlanDateEnd").isEmpty())
-                throw new XError("Не указан [PlanDateEnd] у плана работ [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+                throw new XError("Не указан [PlanDateEnd] у плана работ [{0}]", m.get("id"))
             //
             planDateEnd.add(pmsVer.getString("PlanDateEnd"))
             // Проверка Существует ли запись в Журнале осмотров и проверок
             int beg = pmsVer.getInt('StartKm') * 1000 + pmsVer.getInt('StartPicket') * 100 + pmsVer.getInt('StartLink') * 25
             int end = pmsVer.getInt('FinishKm') * 1000 + pmsVer.getInt('FinishPicket') * 100 + pmsVer.getInt('FinishLink') * 25
             if (beg > end)
-                throw new XError("Координаты начала не могут быть больше координаты конца [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+                throw new XError("Координаты начала не могут быть больше координаты конца, плана работ [{0}]", m.get("id"))
 
             long obj = pmsVer.getLong("id")
             long pv = pmsVer.getLong("pv")
@@ -2584,7 +2584,7 @@ class DataDao extends BaseMdbUtils {
                         bOk = false
                 }
                 if (!bOk)
-                    throw new XError("Существует запись в Журнале осмотров и проверок у плана работ [{0} - {1}]", m.get("fullNameWork"), m.get("fullNameObject"))
+                    throw new XError("Существует запись в Журнале осмотров и проверок у плана работ [{0}]", m.get("id"))
             }
         }}
         //
