@@ -77,6 +77,206 @@ class DataDao extends BaseMdbUtils {
     //-------------------------
 
     @DaoMethod
+    List<Map<String, Object>> loadResourceNormative(long relobjTaskWork, String lang) {
+        //
+        List<Map<String, Object>> lst = new ArrayList<>()
+        Store st = mdb.createStore("RelObj.Normative")
+        //
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelCls", "RC_TaskWork", "")
+        long relCls = map.get("RC_TaskWork")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_WorkCorrectional", "")
+        long uchCls1 = map.get("Cls_WorkCorrectional")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Task", "")
+        long uchCls2 = map.get("Cls_Task")
+
+        String whe = "o.id=${relobjTaskWork}"
+        if (relobjTaskWork == 0) {
+            whe = "o.relcls=${relCls}"
+        }
+
+        mdb.loadQuery(st, """
+            select o.id, o.relCls, v.name, r1.obj as idROM1, r1.cls as clsROM1, v1.name as nameROM1, 
+                r2.obj as idROM2, r2.cls as clsROM2, v2.name as nameROM2
+            from RelObj o
+                left join RelObjVer v on o.id=v.ownerver and v.lastver=1 
+                left join RelObjMember r1 on o.id=r1.relobj and r1.cls=${uchCls1}
+                left join RelObjMember r2 on o.id=r2.relobj and r2.cls=${uchCls2}
+                left join ObjVer v1 on r1.obj=v1.ownerver and v1.lastver=1
+                left join ObjVer v2 on r2.obj=v2.ownerver and v2.lastver=1
+            where ${whe}
+        """)
+        //
+        if (st.size() == 0)
+            return lst
+        //
+        Set<Object> idsRelObj = st.getUniqueValues("id")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "", "Cls_Normative")
+        Map<String, Long> map2 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
+        map.put("FV_Plan", map2.get("FV_Plan"))
+        // Tool
+        Store stTmp = mdb.createStore("Obj.Normative")
+        mdb.loadQuery(stTmp, """
+            select o.id, o.cls, v.name,
+                v1.id as idUser, v1.obj as objUser, v1.propVal as pvUser, null as fullNameUser,
+                v2.id as idTaskWork, v2.relobj as relobjTaskWork, v2.propVal as pvTaskWork,
+                v3.id as idMeasure, v3.propVal as pvMeasure, null as meaMeasure, null as nameMeasure,
+                v4.id as idValue, v4.numberVal as Value,
+                v5.id as idQuantity, v5.numberVal as Quantity,
+                v7.id as idCreatedAt, v7.dateTimeVal as CreatedAt,
+                v8.id as idUpdatedAt, v8.dateTimeVal as UpdatedAt,
+                v9.id as idMaterial, v9.obj as objMaterial, v9.propVal as pvMaterial, null as nameMaterial,
+                v10.id as idTypTool, v10.propVal as pvTypTool, null as fvTypTool, null as nameTypTool,
+                v11.id as idTypEquipment, v11.propVal as pvTypEquipment, null as fvTypEquipment, null as nameTypEquipment,
+                v12.id as idTpService, v12.obj as objTpService, v12.propVal as pvTpService, null as nameTpService,
+                v13.id as idPosition, v13.propVal as pvPosition, null as fvPosition, null as namePosition
+            from Obj o
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_User
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_TaskWork
+                inner join DataPropVal v2 on d2.id=v2.dataprop and v2.relobj in (0${idsRelObj.join(",")})
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Measure
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Value and d4.status=:FV_Plan
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_Quantity
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_CreatedAt
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_UpdatedAt
+                left join DataPropVal v8 on d8.id=v8.dataprop
+                left join DataProp d9 on d9.objorrelobj=o.id and d9.prop=:Prop_Material
+                left join DataPropVal v9 on d9.id=v9.dataprop
+                left join DataProp d10 on d10.objorrelobj=o.id and d10.prop=:Prop_TypTool
+                left join DataPropVal v10 on d10.id=v10.dataprop
+                left join DataProp d11 on d11.objorrelobj=o.id and d11.prop=:Prop_TypEquipment
+                left join DataPropVal v11 on d11.id=v11.dataprop
+                left join DataProp d12 on d12.objorrelobj=o.id and d12.prop=:Prop_TpService
+                left join DataPropVal v12 on d12.id=v12.dataprop
+                left join DataProp d13 on d13.objorrelobj=o.id and d13.prop=:Prop_Position
+                left join DataPropVal v13 on d13.id=v13.dataprop
+            where o.cls in (0${mapCls.values().join(",")})
+        """, map)
+        //Пересечение
+        if (stTmp.size() > 0) {
+            Set<Object> idsUser = stTmp.getUniqueValues("objUser")
+            Store stUser = loadSqlService("""
+                select o.id, o.cls, v.fullName
+                from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsUser.join(",")})
+            """, "", "personnaldata")
+            StoreIndex indUser = stUser.getIndex("id")
+            //
+            Set<Object> idsMaterial = stTmp.getUniqueValues("objMaterial")
+            Store stMaterial = loadSqlService("""
+                select o.id, o.cls, v.name
+                from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsMaterial.join(",")})
+            """, "", "resourcedata")
+            StoreIndex indMaterial = stMaterial.getIndex("id")
+            //
+            Set<Object> idsTpService = stTmp.getUniqueValues("objTpService")
+            Store stTpService = loadSqlService("""
+                select o.id, o.cls, v.name
+                from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsTpService.join(",")})
+            """, "", "resourcedata")
+            StoreIndex indTpService = stTpService.getIndex("id")
+            //
+            Map<Long, Long> mapMea = apiMeta().get(ApiMeta).mapEntityIdFromPV("measure", "Prop_Measure", true)
+            Store stMea = loadSqlMeta("""
+                select id, name from Measure where 0=0
+            """, "")
+            StoreIndex indMea = stMea.getIndex("id")
+            //
+            Set<Object> idsPV = stTmp.getUniqueValues("pvPosition")
+            idsPV.addAll(stTmp.getUniqueValues("pvTypTool"))
+            idsPV.addAll(stTmp.getUniqueValues("pvTypEquipment"))
+            Store stPV = apiMeta().get(ApiMeta).loadSql("""
+                select pv.id, fv.id as fv, fv.name
+                from PropVal pv, Factor fv
+                where fv.id=pv.factorval and pv.id in (0${idsPV.join(",")})
+            """, "")
+            StoreIndex indPV = stPV.getIndex("id")
+            //
+            for (StoreRecord r in stTmp) {
+                StoreRecord recUser = indUser.get(r.getLong("objUser"))
+                if (recUser != null)
+                    r.set("fullNameUser", recUser.getString("fullName"))
+
+                StoreRecord recMaterial = indMaterial.get(r.getLong("objMaterial"))
+                if (recMaterial != null)
+                    r.set("nameMaterial", recMaterial.getString("name"))
+
+                StoreRecord recTpService = indTpService.get(r.getLong("objTpService"))
+                if (recTpService != null)
+                    r.set("nameTpService", recTpService.getString("name"))
+
+                if (r.getLong("pvMeasure") > 0) {
+                    r.set("meaMeasure", mapMea.get(r.getLong("pvMeasure")))
+                }
+                StoreRecord rec = indMea.get(r.getLong("meaMeasure"))
+                if (rec != null)
+                    r.set("nameMeasure", rec.getString("name"))
+
+                if (r.getLong("pvPosition") > 0) {
+                    r.set("fvPosition", indPV.get(r.getLong("pvPosition")).getLong("fv"))
+                    r.set("namePosition", indPV.get(r.getLong("pvPosition")).getString("name"))
+                }
+                if (r.getLong("pvTypTool") > 0) {
+                    r.set("fvTypTool", indPV.get(r.getLong("pvTypTool")).getLong("fv"))
+                    r.set("nameTypTool", indPV.get(r.getLong("pvTypTool")).getString("name"))
+                }
+                if (r.getLong("pvTypEquipment") > 0) {
+                    r.set("fvTypEquipment", indPV.get(r.getLong("pvTypEquipment")).getLong("fv"))
+                    r.set("nameTypEquipment", indPV.get(r.getLong("pvTypEquipment")).getString("name"))
+                }
+            }
+        }
+        //
+        for (StoreRecord r1 in st) {
+            Map<String, Object> mapRes = r1.getValues()
+            List<Map<String, Object>> material = new ArrayList<>()
+            List<Map<String, Object>> tool = new ArrayList<>()
+            List<Map<String, Object>> equipment = new ArrayList<>()
+            List<Map<String, Object>> service = new ArrayList<>()
+            List<Map<String, Object>> personnel = new ArrayList<>()
+            //
+            for (StoreRecord r2 in stTmp) {
+                if (r1.getLong("id") == r2.getLong("relobjTaskWork")) {
+                    if (r2.getLong("cls") == mapCls.get("Cls_NormativeMaterial")) {
+                        material.add(r2.getValues())
+                    }
+                    if (r2.getLong("cls") == mapCls.get("Cls_NormativeTool")) {
+                        tool.add(r2.getValues())
+                    }
+                    if (r2.getLong("cls") == mapCls.get("Cls_NormativeEquipment")) {
+                        equipment.add(r2.getValues())
+                    }
+                    if (r2.getLong("cls") == mapCls.get("Cls_NormativeTpService")) {
+                        service.add(r2.getValues())
+                    }
+                    if (r2.getLong("cls") == mapCls.get("Cls_NormativePersonnel")) {
+                        personnel.add(r2.getValues())
+                    }
+                }
+            }
+            //
+            if (material.size() > 0)
+                mapRes.put("material", material)
+            if (tool.size() > 0)
+                mapRes.put("tool", tool)
+            if (equipment.size() > 0)
+                mapRes.put("equipment", equipment)
+            if (service.size() > 0)
+                mapRes.put("service", service)
+            if (personnel.size() > 0)
+                mapRes.put("personnel", personnel)
+            lst.add(mapRes)
+        }
+        //
+        return lst
+    }
+
+    @DaoMethod
     Store loadNormativeMaterial(long relobjTaskWork, String lang) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelCls", "RC_TaskWork", "")
         long pv = apiMeta().get(ApiMeta).idPV("relcls", map.get("RC_TaskWork"), "Prop_TaskWork")
@@ -322,7 +522,7 @@ class DataDao extends BaseMdbUtils {
 
         mdb.loadQuery(st, """
             select o.id, o.cls, v.name,
-                v1.id as idTypTool, v1.obj as objTypTool, v1.propVal as pvTypTool, null as nameTypTool,
+                v1.id as idTypTool, v1.propVal as pvTypTool, null as fvTypTool, null as nameTypTool,
                 v2.id as idTaskWork, v2.relobj as relobjTaskWork, v2.propVal as pvTaskWork,
                 v3.id as idUser, v3.obj as objUser, v3.propVal as pvUser, null as fullNameUser,
                 v4.id as idValue, v4.numberVal as Value,
@@ -519,7 +719,7 @@ class DataDao extends BaseMdbUtils {
 
         mdb.loadQuery(st, """
             select o.id, o.cls, v.name,
-                v1.id as idTypEquipment, v1.obj as objTypEquipment, v1.propVal as pvTypEquipment, null as nameTypEquipment,
+                v1.id as idTypEquipment, v1.propVal as pvTypEquipment, null as fvTypEquipment, null as nameTypEquipment,
                 v2.id as idTaskWork, v2.relobj as relobjTaskWork, v2.propVal as pvTaskWork,
                 v3.id as idUser, v3.obj as objUser, v3.propVal as pvUser, null as fullNameUser,
                 v4.id as idValue, v4.numberVal as Value,
