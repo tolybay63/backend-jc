@@ -2569,6 +2569,113 @@ class DataDao extends BaseMdbUtils {
         return loadObjTaskLog(own)
     }
 
+    @DaoMethod
+    Long saveTaskLogNormative(String mode, Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        if (mode != "ins")
+            throw new XError("Неизвестный режим сохранения ('ins')")
+        //
+        Map<String, Object> mapTL = new HashMap<>()
+        mapTL.put("name", pms.getString("name"))
+        mapTL.put("objWorkPlan", pms.getLong("objWorkPlan"))
+        mapTL.put("pvWorkPlan", pms.getLong("pvWorkPlan"))
+        mapTL.put("objTask", pms.getLong("idrom2"))
+        mapTL.put("pvTask", apiMeta().get(ApiMeta).idPV("Cls", pms.getLong("clsrom2"), "Prop_Task"))
+        mapTL.put("objUser", pms.getLong("objUser"))
+        mapTL.put("pvUser", pms.getLong("pvUser"))
+        mapTL.put("objLocationClsSection", pms.getLong("objLocationClsSection"))
+        mapTL.put("pvLocationClsSection", pms.getLong("pvLocationClsSection"))
+        mapTL.put("Value", pms.getDouble("Value"))
+        mapTL.put("PlanDateStart", pms.getString("PlanDateStart"))
+        mapTL.put("PlanDateEnd", pms.getString("PlanDateEnd"))
+        mapTL.put("CreatedAt", pms.getString("CreatedAt"))
+        mapTL.put("UpdatedAt", pms.getString("UpdatedAt"))
+
+        Store st = saveTaskLogPlan(mode, mapTL).get("store") as Store
+        List<Map<String, Object>> material = pms.get("material") as ArrayList
+        List<Map<String, Object>> tool = pms.get("tool") as ArrayList
+        List<Map<String, Object>> equipment = pms.get("equipment") as ArrayList
+        List<Map<String, Object>> service = pms.get("service") as ArrayList
+        List<Map<String, Object>> personnel = pms.get("personnel") as ArrayList
+        //
+        long own = st.get(0).getLong("id")
+        long pv = apiMeta().get(ApiMeta).idPV("Cls", st.get(0).getLong("cls"), "Prop_TaskLog")
+        Map<String, Object> mapRes = new HashMap<>()
+        mapRes.put("objTaskLog", own)
+        mapRes.put("pvTaskLog", pv)
+        mapRes.put("objUser", pms.getLong("objUser"))
+        mapRes.put("pvUser", pms.getLong("pvUser"))
+        mapRes.put("CreatedAt", pms.getString("CreatedAt"))
+        mapRes.put("UpdatedAt", pms.getString("UpdatedAt"))
+        //
+        if (material != null) {
+            material.forEach {Map<String, Object> m -> {
+                Map<String, Object> mapNew = new HashMap<>(mapRes)
+                mapNew.put("name", UtCnv.toString(m.get("name")))
+                mapNew.put("objMaterial", UtCnv.toLong(m.get("objMaterial")))
+                mapNew.put("pvMaterial", UtCnv.toLong(m.get("pvMaterial")))
+                mapNew.put("meaMeasure", UtCnv.toLong(m.get("meaMeasure")))
+                mapNew.put("pvMeasure", UtCnv.toLong(m.get("pvMeasure")))
+                mapNew.put("Value", UtCnv.toDouble(m.get("Value")))
+
+                saveResourceMaterial(mode, mapNew)
+            }}
+        }
+        //
+        if (tool != null) {
+            tool.forEach { Map<String, Object> m -> {
+                Map<String, Object> mapNew = new HashMap<>(mapRes)
+                mapNew.put("name", UtCnv.toString(m.get("name")))
+                mapNew.put("fvTypTool", UtCnv.toLong(m.get("fvTypTool")))
+                mapNew.put("pvTypTool", UtCnv.toLong(m.get("pvTypTool")))
+                mapNew.put("Quantity", UtCnv.toLong(m.get("Quantity")))
+                mapNew.put("Value", UtCnv.toDouble(m.get("Value")))
+
+                saveResourceTool(mode, mapNew)
+            }}
+        }
+        //
+        if (equipment != null) {
+            equipment.forEach { Map<String, Object> m -> {
+                Map<String, Object> mapNew = new HashMap<>(mapRes)
+                mapNew.put("name", UtCnv.toString(m.get("name")))
+                mapNew.put("fvTypEquipment", UtCnv.toLong(m.get("fvTypEquipment")))
+                mapNew.put("pvTypEquipment", UtCnv.toLong(m.get("pvTypEquipment")))
+                mapNew.put("Quantity", UtCnv.toLong(m.get("Quantity")))
+                mapNew.put("Value", UtCnv.toDouble(m.get("Value")))
+
+                saveResourceEquipment(mode, mapNew)
+            }}
+        }
+        //
+        if (service != null) {
+            service.forEach { Map<String, Object> m -> {
+                Map<String, Object> mapNew = new HashMap<>(mapRes)
+                mapNew.put("name", UtCnv.toString(m.get("name")))
+                mapNew.put("objTpService", UtCnv.toLong(m.get("objTpService")))
+                mapNew.put("pvTpService", UtCnv.toLong(m.get("pvTpService")))
+                mapNew.put("Value", UtCnv.toDouble(m.get("Value")))
+
+                saveResourceTpService(mode, mapNew)
+            }}
+        }
+        //
+        if (personnel != null) {
+            personnel.forEach { Map<String, Object> m -> {
+                Map<String, Object> mapNew = new HashMap<>(mapRes)
+                mapNew.put("name", UtCnv.toString(m.get("name")))
+                mapNew.put("fvPosition", UtCnv.toLong(m.get("fvPosition")))
+                mapNew.put("pvPosition", UtCnv.toLong(m.get("pvPosition")))
+                mapNew.put("Quantity", UtCnv.toLong(m.get("Quantity")))
+                mapNew.put("Value", UtCnv.toDouble(m.get("Value")))
+
+                saveResourcePersonnel(mode, mapNew)
+            }}
+        }
+        //
+        return own
+    }
+
     /**
      *
      * @param id Id Obj
