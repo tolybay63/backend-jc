@@ -1698,7 +1698,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadWorkPlanUnfinished(Long objLocation, String codCls) {
+    Store loadWorkPlanUnfinished(long objLocation, String codCls) {
         if (objLocation == 0)
             throw new XError("Не найден [objLocation]")
         if (codCls.isEmpty())
@@ -1709,6 +1709,7 @@ class DataDao extends BaseMdbUtils {
         //
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codCls, "")
         long cls_WorkPlan = map.get(codCls)
+        long pv = apiMeta().get(ApiMeta).idPV("Cls", cls_WorkPlan, "Prop_WorkPlan")
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
         //
         Store stTmp = loadSqlService("""
@@ -1768,19 +1769,6 @@ class DataDao extends BaseMdbUtils {
             where o.id in (0${idsWP.join(",")})
             order by v9.dateTimeVal, v11.obj
         """, "Obj.UnfinishedByDate", "plandata")
-        mdb.outTable(st)
-        // find pv...
-        Store stPV = loadSqlMeta("""
-            select id, prop, cls
-            from PropVal
-            where prop=0${map.get("Prop_WorkPlan")} and cls=${cls_WorkPlan}
-        """, "")
-        long pv
-        if (stPV.size() > 0) {
-            pv = stPV.get(0).getLong("id")
-        } else {
-            throw new XError("Не найден [pvWorkPlan]")
-        }
         //
         Set<Object> idsObject = st.getUniqueValues("objObject")
         Store stObject = loadSqlService("""

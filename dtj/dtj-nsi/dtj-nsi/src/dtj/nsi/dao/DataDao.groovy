@@ -75,6 +75,30 @@ class DataDao extends BaseMdbUtils {
     }
 
     //-------------------------
+    @DaoMethod
+    List<Map<String, Object>> loadRelObjResourceNormative(Map<String, Object> params) {
+        List<Map<String, Object>> lst = new ArrayList<>()
+        VariantMap pms = new VariantMap(params)
+        if (pms.getLong("objWork") == 0)
+            throw new XError("Не указан [objWork]")
+        if (pms.getLong("objTask") == 0)
+            throw new XError("Не указан [objTask]")
+        //
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelCls", "RC_TaskWork", "")
+        long relCls = map.get("RC_TaskWork")
+
+        Store st = mdb.loadQuery("""
+            select o.id
+            from RelObj o
+                inner join RelObjMember r1 on o.id=r1.relobj and r1.obj=${pms.getLong("objWork")}
+                inner join RelObjMember r2 on o.id=r2.relobj and r2.obj=${pms.getLong("objTask")}
+            where o.relcls=${relCls}
+        """)
+        if (st.size() == 0)
+            return lst
+
+        return loadResourceNormative(st.get(0).getLong("id"), "ru")
+    }
 
     @DaoMethod
     List<Map<String, Object>> loadResourceNormative(long relobjTaskWork, String lang) {
