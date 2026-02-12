@@ -162,7 +162,7 @@ public class RelClsMdbUtils extends EntityMdbUtils {
 
     //todo ClsVer => RelClsVer
     public Store loadVer(long relcls, String lang) throws Exception {
-        Store st = mdb.createStore("ClsVer.lang");
+        Store st = mdb.createStore("RelClsVer.lang");
         mdb.loadQuery(st, """
             select * from
             RelCls c, RelClsVer v, TableLang l
