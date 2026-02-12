@@ -58,15 +58,15 @@ public class RelTypDao extends BaseModelDao {
     }
 
     //---------------------- TypRole --------------------------------
-    public Store loadRelTypRole(long typ) throws Exception {
+    public Store loadRelTypRole(long id, long reltyp, String lang) throws Exception {
         RelTypRoleMdbUtils u = new RelTypRoleMdbUtils(getMdb());
-        return u.loadRelTypRole(typ);
+        return u.loadRelTypRole(id, reltyp, lang);
 
     }
 
-    public Store selectRelTypRole(long reltyp) throws Exception {
+    public Store selectRelTypRole(long reltyp, String lang) throws Exception {
         RelTypRoleMdbUtils u = new RelTypRoleMdbUtils(getMdb());
-        return u.selectRelTypRole(reltyp);
+        return u.selectRelTypRole(reltyp, lang);
     }
 
     public Store insertRelTypRole(Map<String, Object> params) throws Exception {
@@ -85,9 +85,9 @@ public class RelTypDao extends BaseModelDao {
     }
 
     //---------------------- TypRoleLifeInterval --------------------------------
-    public Store loadRelTypRoleLife(long typRole) throws Exception {
+    public Store loadRelTypRoleLife(long id, long reltypRole, String lang) throws Exception {
         RelTypRoleMdbUtils u = new RelTypRoleMdbUtils(getMdb());
-        return u.loadRelTypRoleLife(typRole);
+        return u.loadRelTypRoleLife(id, reltypRole, lang);
     }
 
     public Store insertRelTypRoleLife(Map<String, Object> params) throws Exception {
@@ -106,9 +106,9 @@ public class RelTypDao extends BaseModelDao {
     }
 
     //---------------------- RelTypMember --------------------------------
-    public Store loadRelTypMember(long reltyp) throws Exception {
+    public Store loadRelTypMember(long reltyp, String lang) throws Exception {
         RelTypMemberMdbUtils u = new RelTypMemberMdbUtils(getMdb());
-        return u.loadRelTypMember(reltyp);
+        return u.loadRelTypMember(reltyp, lang);
     }
 
     public Store insertRelTypMember(Map<String, Object> params) throws Exception {
@@ -208,9 +208,9 @@ public class RelTypDao extends BaseModelDao {
         return u.loadMeasure(prop);
     }
 
-    public Store loadRelTypForSelect() throws Exception {
+    public Store loadRelTypForSelect(String lang) throws Exception {
         RelTypMemberMdbUtils ut = new RelTypMemberMdbUtils(getMdb());
-        return ut.loadRelTypForSelect();
+        return ut.loadRelTypForSelect(lang);
     }
 
     public Store loadRelClsForSelect(long relTyp) throws Exception {

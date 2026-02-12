@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
+
     <domain name="RelClsMember" parent="id" tag.db="true"
             genid.start="1000" genid.step="1" title="Участники класса отношений">
 
@@ -20,7 +21,6 @@
         <field name="fullName" parent="f.fullName"/>
         <field name="cmt" parent="f.cmt"/>
     </domain>
-
 
     <domain name="RelClsMember.all" parent="base">
         <field name="id" parent="string"/>

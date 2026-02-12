@@ -16,6 +16,7 @@ import tofi.mdl.consts.FD_PropType_consts;
 import tofi.mdl.model.dao.typ.ClsTreeMdbUtils;
 import tofi.mdl.model.utils.CartesianProduct;
 import tofi.mdl.model.utils.EntityMdbUtils;
+import tofi.mdl.model.utils.UtEntityTranslate;
 
 import java.util.*;
 
@@ -54,11 +55,22 @@ public class RelClsMdbUtils extends EntityMdbUtils {
 
     //---------------------------------------------------
 
-    public Store load(long relTyp) throws Exception {
-        Store st = mdb.createStore("RelCls.full");
-        return mdb.loadQuery(st, """
-                    select * from RelCls c, RelClsVer v where c.id=v.ownerVer and v.lastVer=1 and c.relTyp=:relTyp
-                """, Map.of("relTyp", relTyp));
+    public Store load(long id, long relTyp, String lang) throws Exception {
+        Store st = mdb.createStore("RelCls.lang");
+        String whe = "c.relTyp=:relTyp";
+        if (id>0)
+            whe = "c.id=:id";
+
+        mdb.loadQuery(st, """
+            select *, v.id as verId
+            from RelCls c
+                left join RelClsVer v on c.id=v.ownerVer and v.lastVer=1
+                left join TableLang l on l.nameTable='RelClsVer' and l.idTable=v.id and l.lang=:lang
+                where
+        """+whe, Map.of("relTyp", relTyp, "lang", lang));
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st,"RelCls", lang, true);
     }
 
 
@@ -137,18 +149,27 @@ public class RelClsMdbUtils extends EntityMdbUtils {
         deleteEntity(rec);
     }
 
-    public StoreRecord loadRec(long id) throws Exception {
-        StoreRecord st = mdb.createStoreRecord("RelCls.full");
-        return mdb.loadQueryRecord(st, """
-                    select * from RelCls c, RelClsVer v where c.id=v.ownerVer and v.lastVer=1 and c.id=:id
-                """, Map.of("id", id));
+    public Store loadRec(long id, String lang) throws Exception {
+        Store st = mdb.createStore("RelCls.lang");
+        mdb.loadQuery(st, """
+            select c.id, c.cod, c.reltyp, v.id as verId
+            from RelCls c, RelClsVer v
+            where c.id=v.ownerVer and v.lastVer=1 and c.id=:id
+        """, Map.of("id", id));
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st,"RelCls", lang, true);
     }
 
-    public Store loadVer(long relcls) throws Exception {
-        Store st = mdb.createStore("RelClsVer");
+    //todo ClsVer => RelClsVer
+    public Store loadVer(long relcls, String lang) throws Exception {
+        Store st = mdb.createStore("ClsVer.lang");
         mdb.loadQuery(st, """
-                    select * from RelClsVer where ownerver=:relcls order by dend desc
-                """, Map.of("relcls", relcls));
+            select * from
+            RelCls c, RelClsVer v, TableLang l
+            where c.id=:id and c.id=v.ownerVer and v.lastVer=1
+                and l.nameTable='RelClsVer' and l.idTable=v.id and l.lang=:lang
+            order by dend desc
+        """, Map.of("id", relcls, "lang", lang));
         return st;
     }
 
@@ -180,30 +201,57 @@ public class RelClsMdbUtils extends EntityMdbUtils {
     }
 
     // RelClsMember
-    public Store loadRelClsMember(long relcls) throws Exception {
-        Store st = mdb.createStore("RelClsMember");
+    public Store loadRelClsMember(long relcls, String lang) throws Exception {
+        Store st = mdb.createStore("RelClsMember.lang");
         mdb.loadQuery(st, """
-                    select m.*
+                    select m.*,
+                        case when l1.id is not null then l1.name else l2.name end as name,
+                        case when l1.id is not null then l1.fullname else l2.fullname end as fullName
                     from RelClsMember m
-                        left join ClsVer cv on cv.ownerver=m.cls and cv.lastVer=1
-                        left join RelClsVer rv on rv.ownerver=m.relclsmemb and rv.lastVer=1
-                        left join RelCls rc on m.relcls=rc.id
+                        left join ClsVer cv on cv.ownerVer=m.cls and cv.lastVer=1
+                        left join TableLang l1 on l1.nameTable='ClsVer' and l1.idTable=cv.id and l1.lang=:lang
+                        left join RelClsVer rv on rv.ownerVer=m.relclsMemb and rv.lastVer=1
+                        left join TableLang l2 on l2.nameTable='RelClsVer' and l2.idTable=rv.id and l2.lang=:lang
                     where m.relcls=:rc
                     order by m.id
-                """, Map.of("rc", relcls));
-        return st;
+                """, Map.of("rc", relcls, "lang", lang));
+
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st,"RelClsMember", lang);
     }
+
+
+    public Store loadRelClsMemberRec(long id, String lang) throws Exception {
+        Store st = mdb.createStore("RelClsMember.lang");
+        mdb.loadQuery(st, """
+                    select m.*,
+                        case when l1.id is not null then l1.name else l2.name end as name,
+                        case when l1.id is not null then l1.fullname else l2.fullname end as fullName
+                    from RelClsMember m
+                        left join ClsVer cv on cv.ownerVer=m.cls and cv.lastVer=1
+                        left join TableLang l1 on l1.nameTable='ClsVer' and l1.idTable=cv.id and l1.lang=:lang
+                        left join RelClsVer rv on rv.ownerVer=m.relclsMemb and rv.lastVer=1
+                        left join TableLang l2 on l2.nameTable='RelClsVer' and l2.idTable=rv.id and l2.lang=:lang
+                    where m.id=:id
+                    order by m.id
+                """, Map.of("id", id, "lang", lang));
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st,"RelClsMember", lang);
+    }
+
 
 
     public Store loadAllMembers(Map<String, Object> params) throws Exception {
         long reltyp = UtCnv.toLong(params.get("relTyp"));
+        String lang = UtCnv.toString(params.get("lang"));
 
         Store stRes = mdb.createStore("RelClsMember.all");
         ClsTreeMdbUtils utCls = new ClsTreeMdbUtils(mdb);
 
         Store stRTM = mdb.loadQuery("""
-                    select id, reltyp, card, membertype,
-                        case when membertype=:mt then typ else reltypmemb end as ent, ord
+                    select id, reltyp, card, memberType,
+                        case when memberType=:mt then typ else reltypMemb end as ent, ord
                     from RelTypMember
                     where reltyp=:rt
                     order by ord
@@ -213,8 +261,8 @@ public class RelClsMdbUtils extends EntityMdbUtils {
         for (StoreRecord r : stRTM) {
             ind++;
             Store stCur = mdb.createStore("RelClsMember.all");
-            if (r.getLong("membertype") == FD_MemberType_consts.typ) {
-                Store stCls = utCls.loadClsTree(Map.of("typ", r.getLong("ent")));
+            if (r.getLong("memberType") == FD_MemberType_consts.typ) {
+                Store stCls = utCls.loadClsTree(Map.of("typ", r.getLong("ent"), "lang", lang));
                 stCur.add(stCls);
                 for (StoreRecord rec : stCur) {
                     rec.set("memberType", FD_MemberType_consts.cls);
@@ -230,19 +278,26 @@ public class RelClsMdbUtils extends EntityMdbUtils {
             } else {
                 Store stRelTyp = mdb.createStore("RelClsMember.all");
                 mdb.loadQuery(stRelTyp, """
-                    select 'r'||'_'|| c.id as id, c.cod, v.name, v.fullName, -1 as isOwn, false as checked, c.id as ent
-                    from RelTyp c, RelTypVer v
-                    where c.id=:id and c.id=v.ownerVer and v.lastVer=1
-                """, Map.of("id", r.getLong("ent")));
+                    select 'r'||'_'|| c.id as id, c.cod, v.name, v.fullName,
+                    -1 as isOwn, false as checked, c.id as ent
+                    from RelTyp c
+                        left join RelTypVer v on c.id=:id and c.id=v.ownerVer and v.lastVer=1
+                        left join TableLang l on l.nameTable='RelTypVer' and l.idTable=v.id and l.lang=:lang
+                    where 0=0
+                """, Map.of("id", r.getLong("ent"), "lang", lang));
                 stRelTyp.get(0).set("id", stRelTyp.get(0).getString("id")+'_'+ind);
                 stRelTyp.get(0).set("ord", ind);
                 stCur.add(stRelTyp.get(0));
                 //
                 Store stRelCls = mdb.createStore("RelClsMember.all");
                 mdb.loadQuery(stRelCls, """
-                    select *, c.id as ent from RelCls c, RelClsVer v
-                    where c.reltyp=:id and c.id=v.ownerVer and v.lastVer=1 order by c.ord
-                """, Map.of("id", r.getLong("ent")));
+                    select *, c.id as ent
+                    from RelCls c
+                        left join RelClsVer v on c.reltyp=:id and c.id=v.ownerVer and v.lastVer=1
+                        left join TableLang l on l.nameTable='RelClsVer' and l.idTable=v.id and l.lang=:lang
+                    where 0=0
+                    order by c.ord
+                """, Map.of("id", r.getLong("ent"), "lang", lang));
 
                 stCur.add(stRelCls);
                 for (StoreRecord rec : stCur) {
@@ -261,8 +316,7 @@ public class RelClsMdbUtils extends EntityMdbUtils {
 
         //mdb.outTable(stRes);
 
-        return stRes;
-    }
+        return stRes;    }
 
     private List<List<Object>> combAll(long relTyp) throws Exception {
 
@@ -290,7 +344,7 @@ public class RelClsMdbUtils extends EntityMdbUtils {
 
     }
 
-    public void createGroupRelCls(long relTyp, List<List<Map<String, Object>>> lists, long db) throws Exception {
+    public void createGroupRelCls(long relTyp, List<List<Map<String, Object>>> lists, long db, String lang) throws Exception {
 
         List<List<Object>> lstlstAll = combAll(relTyp);
 
@@ -328,28 +382,37 @@ public class RelClsMdbUtils extends EntityMdbUtils {
         wheIdsRel = wheIdsRel.isEmpty() ? "(0)" : "(" + wheIdsRel + ")";
         //
 
-        Store stCls = mdb.createStore("Cls.full");
+        Store stCls = mdb.createStore("Cls.lang");
         mdb.loadQuery(stCls, """
-                    select c.id, name,fullName, dataBase from Cls c, ClsVer v where c.id=v.ownerVer and v.lastVer=1
-                    and c.id in
-                """ + wheIds);
+                    select c.id, v.id as verId, l.name, l.fullName, dataBase
+                    from Cls c
+                    left join ClsVer v on c.id=v.ownerVer and v.lastVer=1
+                    left join TableLang l on l.nameTable='ClsVer' and l.idTable=v.id and l.lang=:lang
+                    where c.id in
+                """ + wheIds, Map.of("lang", lang));
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        stCls = ut.getTranslatedStore(stCls, "Cls", lang, true);
         StoreIndex indCls = stCls.getIndex("id");
         //
-        Store stRelCls = mdb.createStore("Cls.full");
+        Store stRelCls = mdb.createStore("RelCls.lang");
         mdb.loadQuery(stRelCls, """
-                    select c.id, name,fullName, dataBase from RelCls c, RelClsVer v where c.id=v.ownerVer and v.lastVer=1
-                    and c.id in
-                """ + wheIdsRel);
+            select c.id, v.id as verId, l.name, l.fullName, dataBase
+            from RelCls c
+            left join RelClsVer v on c.id=v.ownerVer and v.lastVer=1
+            left join TableLang l on l.nameTable='RelClsVer' and l.idTable=v.id and l.lang=:lang
+            where c.id in
+        """ + wheIdsRel, Map.of("lang", lang));
+
+        stRelCls = ut.getTranslatedStore(stRelCls, "RelCls", lang, true);
         StoreIndex indRelCls = stRelCls.getIndex("id");
         //
-        //List<List<Map<String, Object>>> lstlstUch = CartesianProduct.result(lists);
         List<List<Map<String, Object>>> lstlstUch = CartesianProduct.result(listsNew);
 
         Map<String, Object> mapRelClsMem = new HashMap<>();
         lstlstUch.forEach((List<Map<String, Object>> lstUch) -> {
             List<Object> sNm = new ArrayList<>();
             List<Object> sFn = new ArrayList<>();
-            Store stMemcls = mdb.createStore("RelClsMember");
+            Store stMemcls = mdb.createStore("RelClsMember.lang");
             lstUch.forEach((Map<String, Object> u) -> {
                 int memType = UtCnv.toInt(u.get("memType"));
                 int card = UtCnv.toInt(u.get("card"));
@@ -371,9 +434,9 @@ public class RelClsMdbUtils extends EntityMdbUtils {
                     sFn.add(r.getString("fullName"));
                     mapRelClsMem.put("name", r.getString("name"));
                     mapRelClsMem.put("fullName", r.getString("fullName"));
-                    mapRelClsMem.put("memberType", memType);
-                    mapRelClsMem.put("card", card);
                 }
+                mapRelClsMem.put("memberType", memType);
+                mapRelClsMem.put("card", card);
                 stMemcls.add(mapRelClsMem);
             });
             String nm = UtString.join(sNm, " <=> ");
@@ -387,8 +450,8 @@ public class RelClsMdbUtils extends EntityMdbUtils {
                 StoreRecord recRelTyp = mdb.loadQueryRecord("""
                             select accessLevel, isOpenness from RelTyp where id=:id
                         """, Map.of("id", relTyp));
-                map.put("accessLevel", recRelTyp.getLong("accesslevel"));
-                map.put("isOpenness", recRelTyp.getLong("isopenness"));
+                map.put("accessLevel", recRelTyp.getLong("accessLevel"));
+                map.put("isOpenness", recRelTyp.getLong("isOpenness"));
                 //
                 map.put("dataBase", db);
             } catch (Exception e) {
@@ -406,11 +469,13 @@ public class RelClsMdbUtils extends EntityMdbUtils {
 
             if (!lstlstAll.contains(setUch)) {
                 try {
-                    RelClsMdbUtils ut = new RelClsMdbUtils(mdb, "RelCls");
-                    //idRelCls = ut.insertEntityWithVer(map);
-                    idRelCls = ut.insertEntity(map);
+                    RelClsMdbUtils utRC = new RelClsMdbUtils(mdb, "RelCls");
+                    idRelCls = utRC.insertEntity(map);
                     // add to PropVal
-                    Store rProp = mdb.loadQuery("select id, allItem from Prop where reltyp=:rt and proptype=:pt",
+                    //todo Tmp!
+
+/*
+                    Store rProp = mdb.loadQuery("select id, allItem from Prop where reltyp=:rt and propType=:pt",
                             Map.of("rt", relTyp, "pt", FD_PropType_consts.reltyp));
                     if (rProp.size() > 0) {
                         if (rProp.get(0).getBoolean("allItem")) {
@@ -418,15 +483,20 @@ public class RelClsMdbUtils extends EntityMdbUtils {
                             mdb.insertRec("PropVal", Map.of("prop", prop, "relCls", idRelCls), true);
                         }
                     }
+*/
 
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-
+                UtEntityTranslate utET = new UtEntityTranslate(mdb);
                 for (StoreRecord r : stMemcls) {
                     r.set("relCls", idRelCls);
                     try {
-                        mdb.insertRec("RelClsMember", r, true);
+                        StoreRecord rec = mdb.createStoreRecord("RelClsMember", r);
+                        long idRCM = mdb.insertRec("RelClsMember", rec, true);
+                        utET.insertToTableLang(Map.of("table", "RelClsMember", "id", idRCM,
+                                "lang", lang, "name", r.getString("name"),
+                                "fullName", r.getString("name"), "cmt", r.getString("cmt")));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

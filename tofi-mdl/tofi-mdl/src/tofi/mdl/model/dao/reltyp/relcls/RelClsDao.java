@@ -10,9 +10,9 @@ import java.util.Map;
 public class RelClsDao extends BaseModelDao {
 
 
-    public Store load(long relTyp) throws Exception {
+    public Store load(long id, long relTyp, String lang) throws Exception {
         RelClsMdbUtils u = new RelClsMdbUtils(getMdb(), "RelCls");
-        return u.load(relTyp);
+        return u.load(id, relTyp, lang);
     }
 
     public Store insert(Map<String, Object> rec) throws Exception {
@@ -30,14 +30,14 @@ public class RelClsDao extends BaseModelDao {
         u.delete(rec);
     }
 
-    public StoreRecord loadRec(long id) throws Exception {
+    public Store loadRec(long id, String lang) throws Exception {
         RelClsMdbUtils u = new RelClsMdbUtils(getMdb(), "RelCls");
-        return u.loadRec(id);
+        return u.loadRec(id, lang);
     }
 
-    public Store loadVer(long relcls) throws Exception {
+    public Store loadVer(long relcls, String lang) throws Exception {
         RelClsMdbUtils u = new RelClsMdbUtils(getMdb(), "RelCls");
-        return u.loadVer(relcls);
+        return u.loadVer(relcls, lang);
     }
 
     public Store insertVer(Map<String, Object> rec) throws Exception {
@@ -57,9 +57,9 @@ public class RelClsDao extends BaseModelDao {
 
     // RelClsMember
 
-    public Store loadRelClsMember(long relcls) throws Exception {
+    public Store loadRelClsMember(long relcls, String lang) throws Exception {
         RelClsMdbUtils u = new RelClsMdbUtils(getMdb(), "RelCls");
-        return u.loadRelClsMember(relcls);
+        return u.loadRelClsMember(relcls, lang);
     }
 
     public Store loadAllMembers(Map<String, Object> params) throws Exception {
@@ -67,9 +67,9 @@ public class RelClsDao extends BaseModelDao {
         return u.loadAllMembers(params);
     }
 
-    public void createGroupRelCls(long relTyp, List<List<Map<String, Object>>> lists, long db) throws Exception {
+    public void createGroupRelCls(long relTyp, List<List<Map<String, Object>>> lists, long db, String lang) throws Exception {
         RelClsMdbUtils u = new RelClsMdbUtils(getMdb(), "RelCls");
-        u.createGroupRelCls(relTyp, lists, db);
+        u.createGroupRelCls(relTyp, lists, db, lang);
     }
 
     public String deleteGroupRelCls(long relTyp, List<Map<String, Object>> list) throws Exception {

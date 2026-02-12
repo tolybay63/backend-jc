@@ -5,7 +5,9 @@ import jandcode.commons.error.XError;
 import jandcode.core.dbm.mdb.Mdb;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
+import tofi.mdl.model.utils.UtEntityTranslate;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class RelTypMemberMdbUtils {
@@ -14,28 +16,48 @@ public class RelTypMemberMdbUtils {
     public RelTypMemberMdbUtils(Mdb mdb) throws Exception {
         this.mdb = mdb;
         //
-/*
-        if (!mdb.getApp().getEnv().isTest())
-            if (!UtCnv.toBoolean(mdb.createDao(AuthDao.class).isLogined().get("success")))
-                throw new XError("notLogined");
-*/
     }
     //
 
-    public Store loadRelTypMember(long reltyp) throws Exception {
-        Store st = mdb.createStore("RelTypMember.full");
+    public Store loadRelTypMember(long reltyp, String lang) throws Exception {
+        Store st = mdb.createStore("RelTypMember.lang");
         mdb.loadQuery(st, """
                     select m.*,
-                        case when m.membertype=1 then tv.name else rv.name end as memberName
+                        case when m.memberType=1 then l1.name else l2.name end as name,
+                        case when m.memberType=1 then l1.fullName else l2.fullName end as fullName,
+                        case when m.memberType=1 then l1.cmt else l2.cmt end as cmt
                     from RelTypMember m
-                        left join TypVer tv on tv.ownerver=m.typ and tv.lastVer=1
-                        left join RelTypVer rv on rv.ownerver=m.reltypmemb and rv.lastVer=1
+                        left join TypVer tv on tv.ownerVer=m.typ and tv.lastVer=1
+                        left join TableLang l1 on l1.nameTable='TypVer' and l1.idTable=tv.id and l1.lang=:lang
+                        left join RelTypVer rv on rv.ownerVer=m.reltypMemb and rv.lastVer=1
+                        left join TableLang l2 on l2.nameTable='RelTypVer' and l2.idTable=rv.id and l2.lang=:lang
                     where m.reltyp=:rt
                     order by m.ord
-                """, Map.of("rt", reltyp));
-        return st;
+                """, Map.of("rt", reltyp, "lang", lang));
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st,"RelTypMember", lang);
     }
 
+    public Store loadRelTypMemberRec(long id, String lang) throws Exception {
+        Store st = mdb.createStore("RelTypMember.lang");
+        mdb.loadQuery(st, """
+                    select m.*,
+                        case when m.memberType=1 then l1.name else l2.name end as name,
+                        case when m.memberType=1 then l1.fullName else l2.fullName end as fullName,
+                        case when m.memberType=1 then l1.cmt else l2.cmt end as cmt
+                    from RelTypMember m
+                        left join TypVer tv on tv.ownerVer=m.typ and tv.lastVer=1
+                        left join TableLang l1 on l1.nameTable='TypVer' and l1.idTable=tv.id and l1.lang=:lang
+                        left join RelTypVer rv on rv.ownerVer=m.reltypMemb and rv.lastVer=1
+                        left join TableLang l2 on l2.nameTable='RelTypVer' and l2.idTable=rv.id and l2.lang=:lang
+                    where m.id=:id
+                """, Map.of("id", id, "lang", lang));
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st,"RelTypMember", lang);
+
+    }
 
     public Store insertRelTypMember(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
@@ -48,16 +70,17 @@ public class RelTypMemberMdbUtils {
         r.set("ord", id);
         mdb.insertRec("RelTypMember", r, false);
         //
-        st = mdb.createStore("RelTypMember.full");
-        mdb.loadQuery(st, """
-                    select m.*,
-                        case when m.membertype=3 then rv.name else tv.name end as memberName
-                    from RelTypMember m
-                        left join TypVer tv on tv.ownerver=m.typ and tv.lastVer=1
-                        left join RelTypVer rv on rv.ownerver=m.reltypmemb and tv.lastVer=1
-                    where m.id=:id
-                """, Map.of("id", id));
-        return st;
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        Map<String, Object> map = new HashMap<>();
+        map.put("table", "RelTypMember");
+        map.put("id", id);
+        map.put("lang", UtCnv.toString(rec.get("lang")));
+        map.put("name", UtCnv.toString(rec.get("name")));
+        map.put("fullName", UtCnv.toString(rec.get("fullName")));
+        map.put("cmt", UtCnv.toString(rec.get("cmt")));
+        ut.insertToTableLang(map);
+        //
+        return loadRelTypMemberRec(id, UtCnv.toString(rec.get("lang")));
     }
 
     public Store updateRelTypMember(Map<String, Object> params) throws Exception {
@@ -67,18 +90,8 @@ public class RelTypMemberMdbUtils {
         StoreRecord r = st.add(rec);
         //
         mdb.updateRec("RelTypMember", r);
-
         //
-        st = mdb.createStore("RelTypMember.full");
-        mdb.loadQuery(st, """
-                    select m.*,
-                        case when m.membertype=3 then rv.name else tv.name end as memberName
-                    from RelTypMember m
-                        left join TypVer tv on tv.ownerver=m.typ and tv.lastVer=1
-                        left join RelTypVer rv on rv.ownerver=m.reltypmemb and tv.lastVer=1
-                    where m.id=:id
-                """, Map.of("id", id));
-        return st;
+        return loadRelTypMemberRec(id, UtCnv.toString(rec.get("lang")));
     }
 
     public void deleteRelTypMember(Map<String, Object> rec) throws Exception {
@@ -87,6 +100,9 @@ public class RelTypMemberMdbUtils {
         validate(UtCnv.toLong(rec.get("relTyp")), "del");
         //
         mdb.deleteRec("RelTypMember", id);
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        ut.deleteFromTableLang("RelTypMember", id);
     }
 
     protected void validate(long reltyp, String flag) throws Exception {
@@ -144,17 +160,50 @@ public class RelTypMemberMdbUtils {
     }
 
 
-    //todo
-    public Store loadRelTypForSelect() throws Exception {
-        return mdb.loadQuery("""
-                    select t.id, v.name from RelTyp t, RelTypVer v where t.id=v.ownerVer and v.lastVer=1
-                """);
+    public Store loadRelTypForSelect(String lang) throws Exception {
+        Store st = mdb.createStore("RelTyp.lang");
+        mdb.loadQuery(st,"""
+          select t.id, l.name
+          from RelTyp t
+            left join RelTypVer tv on t.id=tv.ownerVer and tv.lastVer=1
+            left join TableLang l on l.nameTable='RelTypVer' and l.idTable=tv.id and l.lang=:lang
+          where 0=0
+        """, Map.of("lang", lang));
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st,"RelTyp", lang, true);
     }
 
-    public Store loadTypForSelect(Map<String, Object> params) throws Exception {
-        return mdb.loadQuery("""
-                    select t.id, v.name from Typ t, TypVer v where t.id=v.ownerVer and v.lastVer=1
-                """);
+    public Store loadTypForSelect(String lang) throws Exception {
+        Store st = mdb.createStore("Typ.lang");
+        mdb.loadQuery(st,"""
+          select t.id, l.name
+          from Typ t
+            left join TypVer tv on t.id=tv.ownerVer and tv.lastVer=1
+            left join TableLang l on l.nameTable='TypVer' and l.idTable=tv.id and l.lang=:lang
+          where 0=0
+        """, Map.of("lang", lang));
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st,"Typ", lang, true);
+    }
+
+    public Store loadRoleForSelect(Map<String, Object> params) throws Exception {
+        long reltyp = UtCnv.toLong(params.get("relTyp"));
+        String lang = UtCnv.toString(params.get("lang"));
+
+        Store st = mdb.createStore("Role.lang");
+        mdb.loadQuery(st,"""
+          select t.id, l2.name, l2.cmt
+          from Role t
+            left join TableLang l2 on l2.nameTable='Role' and l2.idTable=t.id and l2.lang=:lang
+          where t.id not in (select role from RelTypMember where reltyp=:rt)
+        """, Map.of("lang", lang, "rt", reltyp));
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st,"Role", lang);
+
+
     }
 
 }

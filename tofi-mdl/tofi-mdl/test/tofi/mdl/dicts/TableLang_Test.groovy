@@ -69,6 +69,7 @@ class TableLang_Test extends Apx_Test {
             select v.id, v.name, v.fullName, t.cmt 
             from Typ t, TypVer v
             where t.id=v.ownerVer and v.lastVer=1
+            order by v.id
         """)
         for (StoreRecord r in st) {
             fill_TableLang("TypVer", r.getLong("id"), r.getString("name"),
@@ -82,6 +83,7 @@ class TableLang_Test extends Apx_Test {
             select v.id, v.name, v.fullName, t.cmt 
             from Cls t, ClsVer v
             where t.id=v.ownerVer and v.lastVer=1
+            order by v.id
         """)
         for (StoreRecord r in st) {
             fill_TableLang("ClsVer", r.getLong("id"), r.getString("name"),
@@ -96,12 +98,48 @@ class TableLang_Test extends Apx_Test {
             select v.id, v.name, v.fullName, t.cmt 
             from RelTyp t, RelTypVer v
             where t.id=v.ownerVer and v.lastVer=1
+            order by v.id
         """)
         for (StoreRecord r in st) {
             fill_TableLang("RelTypVer", r.getLong("id"), r.getString("name"),
                     r.getString("fullName"), r.getString("cmt"), "ru")
         }
     }
+
+    @Test
+    void fill_RelCls() throws Exception { //11
+        Store st = mdb.loadQuery("""
+            select v.id, v.name, v.fullName, t.cmt 
+            from RelCls t, RelClsVer v
+            where t.id=v.ownerVer and v.lastVer=1
+            order by v.id
+        """)
+
+        for (StoreRecord r in st) {
+            fill_TableLang("RelClsVer", r.getLong("id"), r.getString("name"),
+                    r.getString("fullName"), r.getString("cmt"), "ru")
+        }
+    }
+
+
+    @Test
+    void fill_RelClsMember() throws Exception { //11
+        Store st = mdb.loadQuery("""
+            select id, name, fullName, cmt 
+            from relclsmember
+            where 0=0
+            order by id
+        """)
+
+        for (StoreRecord r in st) {
+            fill_TableLang("RelClsMember", r.getLong("id"), r.getString("name"),
+                    r.getString("fullName"), r.getString("cmt"), "ru")
+        }
+    }
+
+
+
+
 
     void fill_TableLang(String nameTable, long idTable,
                         String name, String fullName, String cmt, String lang) throws Exception {

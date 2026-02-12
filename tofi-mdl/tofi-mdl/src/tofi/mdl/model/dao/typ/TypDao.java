@@ -330,8 +330,8 @@ public class TypDao extends BaseModelDao {
 
 
     //---------------------- Typ For Select --------------------------------
-    public Store loadTypForSelect(Map<String, Object> params) throws Exception {
+    public Store loadTypForSelect(String lang) throws Exception {
         RelTypMemberMdbUtils ut = new RelTypMemberMdbUtils(getMdb());
-        return ut.loadTypForSelect(params);
+        return ut.loadTypForSelect(lang);
     }
 }
