@@ -122,9 +122,8 @@ public class TypMdbUtils extends EntityMdbUtils {
     /**
      * Insert Type
      *
-     * @param params
-     * @return
-     * @throws Exception
+     * @param params Map
+     * @return Store
      */
     public Store insert(Map<String, Object> params) throws Exception {
         //

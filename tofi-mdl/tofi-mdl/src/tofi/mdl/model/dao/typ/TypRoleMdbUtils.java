@@ -56,14 +56,12 @@ public class TypRoleMdbUtils {
 
 
     public Store selectTypRole(long typ, String lang) throws Exception {
-
-
         Store st = mdb.createStore("Role.lang");
         mdb.loadQuery(st,"""
           select t.id, l2.name, l2.cmt
           from Role t
             left join TableLang l2 on l2.nameTable='Role' and l2.idTable=t.id and l2.lang=:lang
-          where t.id not in (select role from TypRole where reltyp=:t)
+          where t.id not in (select role from TypRole where typ=:t)
         """, Map.of("lang", lang, "t", typ));
         //
         UtEntityTranslate ut = new UtEntityTranslate(mdb);

@@ -12,6 +12,7 @@ import jandcode.core.store.StoreRecord;
 import tofi.mdl.consts.FD_PropType_consts;
 
 import java.util.Map;
+import java.util.Objects;
 
 public class EntityMdbUtils {
     Mdb mdb;
@@ -228,17 +229,17 @@ public class EntityMdbUtils {
         //
         Store st = mdb.createStore(tableName + "Ver");
         StoreRecord r = st.add(rec);
-        if (r.getString("dbeg").equals("0000-01-01"))
+        if (Objects.equals(r.getString("dbeg"), "0000-01-01"))
             r.set("dbeg", "1800-01-01");
-        if (r.getString("dend").equals("0000-01-01"))
+        if (Objects.equals(r.getString("dend"), "0000-01-01"))
             r.set("dend", "3333-12-31");
         //dbeg <= dend
         if (r.getDate("dbeg").toJavaLocalDate().isAfter(r.getDate("dend").toJavaLocalDate())) {
-            throw new XError(UtLang.t("Дата начала интервала жизни версии не может быть больше даты конца"));
+            throw new XError("Дата начала интервала жизни версии не может быть больше даты конца");
         }
         //
         Store vers = mdb.createStore(tableName + "Ver");
-        mdb.loadQuery(vers, "select * from " + tableName + "Ver where ownerver=:ow order by dend desc",
+        mdb.loadQuery(vers, "select * from " + tableName + "Ver where ownerVer=:ow order by dend desc",
                 Map.of("ow", ownerVer));
         int k = 0, lastVer = 0;
         for (int i = 0; i < vers.size(); i++) {
@@ -251,26 +252,51 @@ public class EntityMdbUtils {
         if (k == 0) { //first rec
             if (vers.size() > 1) {
                 if (!r.getDate("dbeg").toJavaLocalDate().isAfter(vers.get(k + 1).getDate("dend").toJavaLocalDate())) {
-                    throw new XError(UtLang.t("Дата начала интервала жизни версии должна быть больше даты конца интервала жизни предыдущей версии"));
+                    throw new XError("Дата начала интервала жизни версии должна быть больше даты конца интервала жизни предыдущей версии");
                 }
             }
         } else if (k == vers.size() - 1) { //last rec
             if (!r.getDate("dend").toJavaLocalDate().isBefore(vers.get(k - 1).getDate("dbeg").toJavaLocalDate())) {
-                throw new XError(UtLang.t("Дата конца интервала жизни версии должна быть меньше даты начало интервала жизни следующей версии"));
+                throw new XError("Дата конца интервала жизни версии должна быть меньше даты начало интервала жизни следующей версии");
             }
 
         } else {
             if (!r.getDate("dbeg").toJavaLocalDate().isAfter(vers.get(k + 1).getDate("dend").toJavaLocalDate())) {
-                throw new XError(UtLang.t("Дата начала интервала жизни версии должна быть больше даты конца интервала жизни предыдущей версии"));
+                throw new XError("Дата начала интервала жизни версии должна быть больше даты конца интервала жизни предыдущей версии");
             }
             if (!r.getDate("dend").toJavaLocalDate().isBefore(vers.get(k - 1).getDate("dbeg").toJavaLocalDate())) {
-                throw new XError(UtLang.t("Дата конца интервала жизни версии должна быть меньше даты начало интервала жизни следующей версии"));
+                throw new XError("Дата конца интервала жизни версии должна быть меньше даты начало интервала жизни следующей версии");
             }
         }
         r.set("id", idVer);
         r.set("lastVer", lastVer);
         mdb.updateRec(tableName + "Ver", r);
         //
+        //Translate
+        //idTable == idVer;
+        String lang = UtCnv.toString(rec.get("lang"));
+        st = mdb.createStore("TableLang");
+        mdb.loadQuery(st, """
+            select * from TableLang where nameTable=:tableNameVer and lang=:lang and idTable=:idTable
+        """, Map.of("tableNameVer", tableName+"Ver", "lang", lang, "idTable", idVer));
+
+        if (st.size() > 1)
+            throw new XError("Не понятно! Проверить...");
+        else if (st.size() == 1) {
+            StoreRecord rLang = st.add(rec);
+            rLang.set("id", st.get(0).getLong("id"));
+            rLang.set("nameTable", tableName+"Ver");
+            rLang.set("idTable", idVer);
+            mdb.updateRec("TableLang", rLang);
+        } else if (st.size() == 0) {
+            StoreRecord rLang = st.add(rec);
+            long idLang = mdb.getNextId("TableLang");
+            rLang.set("id", idLang);
+            rLang.set("nameTable", tableName+"Ver");
+            rLang.set("idTable", idVer);
+            mdb.insertRec("TableLang", rLang, false);
+        }
+
     }
 
     public long insertEntity(Map<String, Object> rec) throws Exception {
@@ -352,18 +378,18 @@ public class EntityMdbUtils {
         StoreRecord r = st.add(rec);
         long ownerVer = r.getLong("ownerVer");
         //dbeg <= dend
-        if (r.getString("dbeg").equals("0000-01-01"))
+        if (Objects.equals(r.getString("dbeg"), "0000-01-01"))
             r.set("dbeg", "1800-01-01");
-        if (r.getString("dend").equals("0000-01-01"))
+        if (Objects.equals(r.getString("dend"), "0000-01-01"))
             r.set("dend", "3333-12-31");
         if (r.getDate("dbeg").toJavaLocalDate().isAfter(r.getDate("dend").toJavaLocalDate())) {
-            throw new XError(UtLang.t("Дата начала интервала жизни версии не может быть больше даты конца"));
+            throw new XError("Дата начала интервала жизни версии не может быть больше даты конца");
         }
         //last(dbeg) <= prev(dend)
         StoreRecord prevRec = mdb.loadQuery("select * from " + tableName + "Ver where ownerVer=:ow order by dend desc",
                 Map.of("ow", ownerVer)).get(0);
         if (!r.getDate("dbeg").toJavaLocalDate().isAfter(prevRec.getDate("dend").toJavaLocalDate())) {
-            throw new XError(UtLang.t("Дата начала интервала жизни версии должна быть больше даты начала интервала жизни предыдущей версии"));
+            throw new XError("Дата начала интервала жизни версии должна быть больше даты начала интервала жизни предыдущей версии");
         }
         //
         mdb.execQuery("update " + tableName + "Ver set lastVer=0 where ownerVer=:ow",
@@ -373,8 +399,15 @@ public class EntityMdbUtils {
         long id = mdb.getNextId(tableName + "Ver");
         r.set("id", id);
         r.set("lastVer", 1);
-        //
         mdb.insertRec(tableName + "Ver", r, false);
+        // for Translate
+        Store stLang = mdb.createStore("TableLang");
+        StoreRecord rLang = stLang.add(rec);
+        long idLang = mdb.getNextId("TableLang");
+        rLang.set("id", idLang);
+        rLang.set("nameTable", tableName+"Ver");
+        rLang.set("idTable", id);
+        mdb.insertRec("TableLang", rLang, false);
         //
         return id;
     }
