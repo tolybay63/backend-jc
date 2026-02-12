@@ -28,18 +28,6 @@ public class TypRoleMdbUtils {
         UtEntityTranslate ut = new UtEntityTranslate(mdb);
 
         //Перевод TypRole
-/*
-        Store stTypRole = mdb.createStore("TypRole.lang");
-        mdb.loadQuery(stTypRole, """
-          select t.*, l2.cmt
-          from TypRole t
-            left join TableLang l2 on l2.nameTable='TypRole' and l2.idTable=t.id and l2.lang=:lang
-          where
-        """+whe, Map.of("id", id, "typ", typ, "lang", lang));
-        ut.getTranslatedStore(stTypRole,"TypRole", lang);
-*/
-        //
-
         //Загрузка TypRole: name,fullName from Role, cmt from TypeRole
         Store stLoad = mdb.createStore("TypRole.full");
         mdb.loadQuery(stLoad, """

@@ -17,7 +17,6 @@
 
         <field name="dataBase" parent="DataBase/ref" req="true"/>
 
-        <field name="cmt" parent="f.cmt"/>
         <field name="ord" parent="f.ord"/>
 
     </domain>

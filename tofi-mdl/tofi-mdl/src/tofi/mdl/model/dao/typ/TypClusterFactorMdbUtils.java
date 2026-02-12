@@ -52,7 +52,7 @@ public class TypClusterFactorMdbUtils {
         //
         long id = mdb.insertRec("TypClusterFactor", r, true);
         //
-        return loadTypClusterFactor(id, 0, UtCnv.toString(params.get("lang")));
+        return loadTypClusterFactor(id, 0, UtCnv.toString(rec.get("lang")));
     }
 
     public Store updateTypClusterFactor(Map<String, Object> params) throws Exception {
@@ -75,11 +75,11 @@ public class TypClusterFactorMdbUtils {
             return mdb.loadQuery("""
                         select f.id, l.name from Factor f, TableLang l
                         where parent is null and l.idTable=f.id and l.nameTable='Factor' and l.lang=:lang
-                            and id not in (
+                            and f.id not in (
                             select factor from TypClusterFactor where typ=:typ
                         )
                         order by ord
-                    """, Map.of("typ", typ));
+                    """, Map.of("typ", typ, "lang", lang));
         else
             return mdb.loadQuery("""
                         select f.id, l.name from Factor f, TableLang l

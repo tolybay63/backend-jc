@@ -11,6 +11,7 @@
         <field name="ent" parent="long"/>
         <field name="isOwn" parent="int"/>
         <field name="typParent" parent="long"/>
+        <field name="cmt" parent="f.cmt"/>
     </domain>
 
 

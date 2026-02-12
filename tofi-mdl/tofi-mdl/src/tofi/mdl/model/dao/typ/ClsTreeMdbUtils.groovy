@@ -30,9 +30,9 @@ class ClsTreeMdbUtils {
         Store stCls = mdb.createStore("Cls.lang")
         mdb.loadQuery(stCls, """
             select *, v.id as verId
-            from Cls c, ClsVer v--, TableLang l
+            from Cls c, ClsVer v, TableLang l
             where c.id=v.ownerVer and v.lastVer=1 and c.typ=:t
-                --and l.nameTable='ClsVer' and l.idTable=v.id and l.lang=:lang
+                and l.nameTable='ClsVer' and l.idTable=v.id
         """, [t: typId, lang: lang])
         UtEntityTranslate ut = new UtEntityTranslate(mdb)
         ut.getTranslatedStore(stCls, "Cls", UtCnv.toString(params.get("lang")), true)

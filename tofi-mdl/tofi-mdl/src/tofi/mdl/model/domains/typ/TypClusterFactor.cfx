@@ -13,12 +13,14 @@
     <domain name="TypClusterFactor.lang" parent="TypClusterFactor">
         <field name="name" parent="f.name"/>
         <field name="fullName" parent="f.fullName"/>
+        <field name="parent" parent="long"/>
         <field name="cod" parent="f.cod"/>
         <field name="isOwn" parent="int"/>
     </domain>
 
     <domain name="TypClusterFactor.tree" parent="TypClusterFactor.lang">
         <field name="ord" parent="f.ord"/>
+        <field name="parent" parent="long"/>
         <field name="checked" parent="int"/>
     </domain>
 
