@@ -550,6 +550,7 @@ class DataDao extends BaseMdbUtils {
                 v2.id as idTaskWork, v2.relobj as relobjTaskWork, v2.propVal as pvTaskWork,
                 v3.id as idUser, v3.obj as objUser, v3.propVal as pvUser, null as fullNameUser,
                 v4.id as idValue, v4.numberVal as Value,
+                v5.id as idQuantity, v5.numberVal as Quantity,
                 v7.id as idCreatedAt, v7.dateTimeVal as CreatedAt,
                 v8.id as idUpdatedAt, v8.dateTimeVal as UpdatedAt
             from Obj o 
@@ -562,6 +563,8 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v3 on d3.id=v3.dataprop
                 left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Value and d4.status=:FV_Plan
                 left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_Quantity
+                left join DataPropVal v5 on d5.id=v5.dataprop  
                 left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_CreatedAt
                 left join DataPropVal v7 on d7.id=v7.dataprop
                 left join DataProp d8 on d8.objorrelobj=o.id and d8.prop=:Prop_UpdatedAt
@@ -676,6 +679,11 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("[Value] не указан")
             else
                 fillProperties(true, "Prop_Value", pms)
+            //5 Prop_Quantity
+            if (pms.getDouble("Quantity") == 0)
+                throw new XError("[Quantity] не указан")
+            else
+                fillProperties(true, "Prop_Quantity", pms)
             //6 Prop_CreatedAt
             if (pms.getString("CreatedAt").isEmpty())
                 throw new XError("[CreatedAt] не указан")
@@ -714,6 +722,12 @@ class DataDao extends BaseMdbUtils {
                     throw new XError("[Value] не указан")
                 else
                     updateProperties("Prop_Value", pms)
+            //4 Prop_Quantity
+            if (pms.containsKey("idQuantity"))
+                if (pms.getDouble("Quantity") == 0)
+                    throw new XError("[Quantity] не указан")
+                else
+                    updateProperties("Prop_Quantity", pms)
             //5 Prop_UpdatedAt
             if (pms.containsKey("idUpdatedAt"))
                 if (pms.getString("UpdatedAt").isEmpty())

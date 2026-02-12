@@ -338,6 +338,8 @@
 
         <field name="idValue" parent="long"/>
         <field name="Value" parent="double"/>
+        <field name="idQuantity" parent="long"/>
+        <field name="Quantity" parent="double"/>
 
         <field name="idCreatedAt" parent="long"/>
         <field name="CreatedAt" parent="string"/>
