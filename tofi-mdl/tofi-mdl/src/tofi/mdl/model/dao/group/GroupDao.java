@@ -22,10 +22,10 @@ public class GroupDao extends BaseModelDao {
 
     }
 
-    public StoreRecord loadRec(Map<String, Object> params) throws Exception {
+    public Store loadRec(Map<String, Object> params) throws Exception {
         String tableName = UtCnv.toString(params.get("tableName"));
         GroupMdbUtils u = new GroupMdbUtils(getMdb(), tableName);
-        return u.loadRec(UtCnv.toLong(params.get("id")));
+        return u.loadRec(params);
     }
 
     public StoreRecord newRec(Map<String, Object> params) throws Exception {

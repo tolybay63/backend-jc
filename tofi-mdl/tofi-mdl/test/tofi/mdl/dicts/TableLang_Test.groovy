@@ -121,7 +121,6 @@ class TableLang_Test extends Apx_Test {
     }
 
 
-
     @Test
     void fill_RelCls() throws Exception { //12
         Store st = mdb.loadQuery("""
@@ -153,6 +152,17 @@ class TableLang_Test extends Apx_Test {
         }
     }
 
+    @Test
+    void fill_PropGr() throws Exception { //14
+        Store st = mdb.loadQuery("""
+            select id, name, fullName, cmt from PropGr where 0=0 order by id
+        """)
+
+        for (StoreRecord r in st) {
+            fill_TableLang("PropGr", r.getLong("id"), r.getString("name"),
+                    r.getString("fullName"), r.getString("cmt"), "ru")
+        }
+    }
 
 
     //********************************************************************

@@ -6,6 +6,7 @@ import jandcode.core.dbm.mdb.Mdb;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
 import tofi.mdl.model.utils.EntityMdbUtils;
+import tofi.mdl.model.utils.UtEntityTranslate;
 
 import java.util.Map;
 
@@ -17,18 +18,15 @@ public class GroupMdbUtils extends EntityMdbUtils {
         super(mdb, tableName);
         this.mdb = mdb;
         this.tableName = tableName;
-        //
-/*
-        if (!mdb.getApp().getEnv().isTest())
-            if (!UtCnv.toBoolean(mdb.createDao(AuthDao.class).isLogined().get("success")))
-                throw new XError("notLogined");
-*/
     }
 
 
     public Store loadGroup(Map<String, Object> params) throws Exception {
-        Store st = mdb.createStore(tableName);
-        return mdb.loadQuery(st, "select * from " + tableName);
+        Store st = mdb.createStore(tableName+".lang");
+        mdb.loadQuery(st, "select * from " + tableName);
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st, tableName, UtCnv.toString(params.get("lang")));
     }
 
     public Store loadGroupForSelect(Map<String, Object> params) throws Exception {
@@ -40,18 +38,18 @@ public class GroupMdbUtils extends EntityMdbUtils {
     }
 
 
-    public StoreRecord loadRec(long id) throws Exception {
-        StoreRecord st = mdb.createStoreRecord(tableName);
-        mdb.loadQueryRecord(st, "select * from " + tableName + " where id=" + id);
-        mdb.resolveDicts(st);
-        return st;
+    public Store loadRec(Map<String, Object> params) throws Exception {
+        Store st = mdb.createStore(tableName+".lang");
+        mdb.loadQuery(st, "select * from " + tableName + " where id=" + UtCnv.toLong(params.get("id")));
+
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st, tableName, UtCnv.toString(params.get("lang")));
     }
 
     public StoreRecord newRec() throws Exception {
         Store st = mdb.createStore(tableName);
         StoreRecord r = st.add();
         r.set("accessLevel", 1L);
-        mdb.resolveDicts(r);
         return r;
     }
 
@@ -59,10 +57,9 @@ public class GroupMdbUtils extends EntityMdbUtils {
     public Store insert(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         long id = insertEntity(rec);
-        Store st = mdb.createStore(tableName);
-        mdb.loadQuery(st, "select * from " + tableName + " where id=:id", Map.of("id", id));
-        mdb.resolveDicts(st);
-        return st;
+        //
+        rec.put("id", id);
+        return loadRec(rec);
     }
 
     public Store update(Map<String, Object> params) throws Exception {
