@@ -343,7 +343,7 @@ class ApiIncidentDataImpl extends BaseMdbUtils implements ApiIncidentData {
             }
             //
             if (!params.containsKey("idCloseDateTime"))
-                if (params.get("CloseDateTime") != "")
+                if (!UtCnv.toString(params.get("CloseDateTime")).isEmpty())
                     fillProperties(true, "Prop_CloseDateTime", params)
 
         } else {

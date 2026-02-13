@@ -491,17 +491,11 @@ class DataDao extends BaseMdbUtils {
                     updateProperties("Prop_Material", pms)
 
             //1 Prop_Measure
-            if (pms.containsKey("idMeasure")) {
+            if (pms.containsKey("idMeasure"))
                 if (pms.getLong("meaMeasure") > 0)
                     updateProperties("Prop_Measure", pms)
                 else
-                    throw new XError("[Единица измерения] не указан")
-            } else {
-                if (pms.getLong("meaMeasure") > 0)
-                    fillProperties(true, "Prop_Measure", pms)
-                else
-                    throw new XError("[Единица измерения] не указан")
-            }
+                    throw new XError("[Measure] не указан")
 
             //2 Prop_User
             if (pms.containsKey("idUser"))
