@@ -100,12 +100,12 @@ class ClsTreeMdbUtils {
         String sql = """
             select * from
             (
-              select c.id as ent, 0 as typ, l.name, l.fullName, 
+              select c.id as ent, 0 as typ, v.id as verId, --l.name, l.fullName, 
                     c.accessLevel, c.cod, 0 as kind, -1 as isOwn, c.parent as typParent,
-                    ${sFld}, null as parent, c.isOpenness, l.cmt
-              from Typ c, TypVer v, TableLang l
+                    ${sFld}, null as parent, c.isOpenness--, l.cmt
+              from Typ c, TypVer v--, TableLang l
               where c.id=v.ownerVer and v.lastVer=1 ${whe1}
-                and l.nameTable='TypVer' and l.idTable=v.id and l.lang='${lang}'
+                --and l.nameTable='TypVer' and l.idTable=v.id and l.lang='${lang}'
             ) t
             /**/where 0=0
             order by cod
@@ -113,7 +113,12 @@ class ClsTreeMdbUtils {
 
         Store st = mdb.createStore("ClsTree")
         mdb.loadQuery(st, sql)
-        return st
+
+        UtEntityTranslate ut = new UtEntityTranslate(mdb)
+        return ut.getTranslatedStore(st, "Cls", UtCnv.toString(params.get("lang")), true);
+
+        //mdb.loadQuery(st, sql)
+        //return st
     }
 
     protected Store loadFltCls(Map<String, Object> params) throws Exception {

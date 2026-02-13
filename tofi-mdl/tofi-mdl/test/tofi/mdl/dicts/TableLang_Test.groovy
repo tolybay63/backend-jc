@@ -107,7 +107,23 @@ class TableLang_Test extends Apx_Test {
     }
 
     @Test
-    void fill_RelCls() throws Exception { //11
+    void fill_RelTypMember() throws Exception { //11
+        Store st = mdb.loadQuery("""
+            select id, name, fullName, cmt 
+            from RelTypMember
+            where 0=0
+            order by reltyp, ord
+        """)
+        for (StoreRecord r in st) {
+            fill_TableLang("RelTypMember", r.getLong("id"), r.getString("name"),
+                    r.getString("fullName"), r.getString("cmt"), "ru")
+        }
+    }
+
+
+
+    @Test
+    void fill_RelCls() throws Exception { //12
         Store st = mdb.loadQuery("""
             select v.id, v.name, v.fullName, t.cmt 
             from RelCls t, RelClsVer v
@@ -123,12 +139,12 @@ class TableLang_Test extends Apx_Test {
 
 
     @Test
-    void fill_RelClsMember() throws Exception { //11
+    void fill_RelClsMember() throws Exception { //13
         Store st = mdb.loadQuery("""
             select id, name, fullName, cmt 
             from relclsmember
             where 0=0
-            order by id
+            order by relcls, id
         """)
 
         for (StoreRecord r in st) {
@@ -139,6 +155,7 @@ class TableLang_Test extends Apx_Test {
 
 
 
+    //********************************************************************
 
 
     void fill_TableLang(String nameTable, long idTable,

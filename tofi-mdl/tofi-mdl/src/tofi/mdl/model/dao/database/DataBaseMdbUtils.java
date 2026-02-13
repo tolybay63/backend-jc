@@ -68,11 +68,10 @@ public class DataBaseMdbUtils extends EntityMdbUtils {
     }
 
     public Store loadDbForSelect(String lang) throws Exception {
-        return mdb.loadQuery("""
-            select d.id, l.name
-            from database d, TableLang l
-            where dataBaseType=:dbt and d.id=l.idTable and l.nameTable='DataBase' and l.lang=:lang
-        """, Map.of("dbt", FD_DataBaseType_consts.data, "lang", lang));
+        Store st = mdb.createStore("DataBase.lang");
+        mdb.loadQuery(st, "select * from DataBase where 0=0");
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st,"DataBase", lang);
     }
 
 }

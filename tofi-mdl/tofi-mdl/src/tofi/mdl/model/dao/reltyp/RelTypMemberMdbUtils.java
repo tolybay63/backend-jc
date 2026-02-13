@@ -2,6 +2,8 @@ package tofi.mdl.model.dao.reltyp;
 
 import jandcode.commons.UtCnv;
 import jandcode.commons.error.XError;
+import jandcode.commons.variant.IVariantMap;
+import jandcode.commons.variant.VariantMap;
 import jandcode.core.dbm.mdb.Mdb;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
@@ -91,7 +93,17 @@ public class RelTypMemberMdbUtils {
         //
         mdb.updateRec("RelTypMember", r);
         //
-        return loadRelTypMemberRec(id, UtCnv.toString(rec.get("lang")));
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        IVariantMap map = new VariantMap(rec);
+        st = mdb.loadQuery("""
+            select * from TableLang where nameTable=:table and idTable=:id and lang=:lang
+        """, Map.of("table", "RelTypMember", "id", id, "lang", map.getString("lang")));
+        map.put("id", st.get(0).getLong("id"));
+        map.put("nameTable", "RelTypMember");
+        map.put("idTable", id);
+        ut.updateTableLang(map);
+        //
+        return loadRelTypMemberRec(id, map.getString("lang"));
     }
 
     public void deleteRelTypMember(Map<String, Object> rec) throws Exception {

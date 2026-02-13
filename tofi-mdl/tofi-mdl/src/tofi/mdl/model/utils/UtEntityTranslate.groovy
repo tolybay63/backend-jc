@@ -120,4 +120,12 @@ class UtEntityTranslate extends BaseMdbUtils {
         mdb.insertRec("TableLang", rLang, false)
     }
 
+    void updateTableLang(Map<String, Object> params) throws Exception {
+        if (params.get("lang").toString().isEmpty())
+            throw new XError("lang is empty")
+        Store st = mdb.createStore("TableLang")
+        StoreRecord rec = st.add(params)
+        mdb.updateRec("TableLang", rec)
+    }
+
 }

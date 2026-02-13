@@ -12,6 +12,7 @@
         <field name="isOwn" parent="int"/>
         <field name="typParent" parent="long"/>
         <field name="cmt" parent="f.cmt"/>
+        <field name="verId" parent="long"/>
     </domain>
 
 
