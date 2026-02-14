@@ -71,26 +71,28 @@ class Dict_Test extends Apx_Test {
 
         list.each { item ->
             //mdb.execQueryNative("update ObjVer set fullName='${item.fullname}' where id=${item.id}")
-            mdb.execQueryNative("update DataPropVal set numberval='${item.numberval}' where id=${item.id}")
+            //mdb.execQueryNative("update DataPropVal set numberval='${item.numberval}' where id=${item.id}")
         }
     }
 
     @Test
-    void test_Xml() {
+    void fill_dicts() {
         //def jsonFile = new File('C:\\jc-2\\_info\\objectdata_ObjVer.json')
-        def xmlFile = new File('D:\\jc-projects\\files\\fd_dictslang.json')
+        def jsonFile = new File('D:\\jc-projects\\files\\fd_dictslang.json')
 
         def slurper = new JsonSlurper()
 
-        List<Map<String, Object>> list = slurper.parse(xmlFile) as List<Map<String, Object>>
+        List<Map<String, Object>> list = slurper.parse(jsonFile) as List<Map<String, Object>>
 
         list.each { item ->
             println("${item.id}, '${item.text}', '${item.nameDict}', ${item.idDict}, '${item.lang}'")
 
-/*            mdb.execQueryNative("""
+/*
+            mdb.execQueryNative("""
                 INSERT INTO fd_dictslang (id, text, namedict, iddict, lang)
                 VALUES (${item.id}, '${item.text}', '${item.namedict}', ${item.iddict}, '${item.lang}');
-            """)*/
+            """)
+*/
         }
     }
 
