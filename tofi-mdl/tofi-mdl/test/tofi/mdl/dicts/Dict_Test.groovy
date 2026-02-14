@@ -1,5 +1,7 @@
 package tofi.mdl.dicts
 
+import groovy.json.JsonSlurper
+import groovy.xml.XmlSlurper
 import jandcode.core.apx.test.Apx_Test
 import jandcode.core.store.Store
 import jandcode.core.store.StoreRecord
@@ -56,6 +58,40 @@ class Dict_Test extends Apx_Test {
 
         String textTur = tr.translateText("Привет!", "ru", "tr")
         System.out.println("tr: " + textTur)
+    }
+
+    @Test
+    void test_Json() {
+        //def jsonFile = new File('C:\\jc-2\\_info\\objectdata_ObjVer.json')
+        def jsonFile = new File('C:\\jc-2\\_info\\objectdata_DataPropVal.json')
+
+        def slurper = new JsonSlurper()
+
+        List<Map<String, Object>> list = slurper.parse(jsonFile) as List<Map<String, Object>>
+
+        list.each { item ->
+            //mdb.execQueryNative("update ObjVer set fullName='${item.fullname}' where id=${item.id}")
+            mdb.execQueryNative("update DataPropVal set numberval='${item.numberval}' where id=${item.id}")
+        }
+    }
+
+    @Test
+    void test_Xml() {
+        //def jsonFile = new File('C:\\jc-2\\_info\\objectdata_ObjVer.json')
+        def xmlFile = new File('D:\\jc-projects\\files\\fd_dictslang.json')
+
+        def slurper = new JsonSlurper()
+
+        List<Map<String, Object>> list = slurper.parse(xmlFile) as List<Map<String, Object>>
+
+        list.each { item ->
+            println("${item.id}, '${item.text}', '${item.nameDict}', ${item.idDict}, '${item.lang}'")
+
+/*            mdb.execQueryNative("""
+                INSERT INTO fd_dictslang (id, text, namedict, iddict, lang)
+                VALUES (${item.id}, '${item.text}', '${item.namedict}', ${item.iddict}, '${item.lang}');
+            """)*/
+        }
     }
 
 }

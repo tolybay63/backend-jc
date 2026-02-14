@@ -1135,7 +1135,7 @@ public class PropMdbUtils extends EntityMdbUtils {
 
     //---------------------- PropMeter -------------------------------
 
-    public Store loadPropMeter(long prop) throws Exception {
+    public Store loadPropMeter(long prop, String lang) throws Exception {
         Store st = mdb.createStore("Prop.meter.full");
         mdb.loadQuery(st, """
                     WITH RECURSIVE r AS (
@@ -1160,8 +1160,9 @@ public class PropMdbUtils extends EntityMdbUtils {
             r.set("parent", null);
         });
         //mdb.outTable(st);
-
-        return st;
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st, "Prop", lang, false);
+        //return st;
     }
 
     public Store loadPropMeterForUpd(Map<String, Object> params) throws Exception {

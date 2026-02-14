@@ -37,8 +37,6 @@
                Значение по умолчанию False.
             -->
         </field>
-        <field name="name" parent="f.name"/>
-        <field name="fullName" parent="f.fullName"/>
 
         <field name="attrib" parent="Attrib/ref"/>
         <field name="factor" parent="Factor/ref"/>
@@ -77,8 +75,6 @@
             -->
         </field>
 
-        <field name="name" parent="f.name"/>
-        <field name="fullName" parent="f.fullName"/>
         <field name="ord" parent="f.ord"/>
 
         <field name="measure" parent="Measure/ref">
@@ -104,8 +100,6 @@
             -->
         </field>
 
-        <field name="cmt" parent="f.cmt"/>
-
     </domain>
 
 
@@ -113,7 +107,7 @@
         <field name="meterStruct" parent="FD_MeterStruct/ref"/>
         <field name="attribValType" parent="FD_AttribValType/ref"/>
         <field name="entityType" parent="FD_EntityType/ref"/>
-        <field name="namePropType" parent="string"/>
+        <field name="PropType" parent="ref"/>
         <field name="kfc" parent="double"/>
         <field name="parentPropType" parent="ref"/>
     </domain>

@@ -9,7 +9,7 @@
     <row id="8" idDict="8" nameDict="fd_accesslevel" lang="ru" text="Седьмой уровень"/>
     <row id="9" idDict="9" nameDict="fd_accesslevel" lang="ru" text="Восьмой уровень"/>
     <row id="10" idDict="10" nameDict="fd_accesslevel" lang="ru" text="Невидимый уровень"/>
-    <row id="11" idDict="1" nameDict="fd_accesslevel" lang="kk" text="Қоғамдық деңгей"/>
+    <row id="11" idDict="1" nameDict="fd_accesslevel" lang="kk" text="Қолжетімді деңгей"/>
     <row id="12" idDict="2" nameDict="fd_accesslevel" lang="kk" text="Бірінші деңгей"/>
     <row id="13" idDict="3" nameDict="fd_accesslevel" lang="kk" text="Екінші деңгей"/>
     <row id="14" idDict="4" nameDict="fd_accesslevel" lang="kk" text="Үшінші деңгей"/>
@@ -41,8 +41,8 @@
     <row id="39" idDict="9" nameDict="fd_attribvaltype" lang="ru" text="Период"/>
     <row id="40" idDict="10" nameDict="fd_attribvaltype" lang="ru" text="Однозначный выбор"/>
     <row id="41" idDict="11" nameDict="fd_attribvaltype" lang="ru" text="Многозначный выбор"/>
-    <row id="42" idDict="1" nameDict="fd_attribvaltype" lang="kk" text="Сызық"/>
-    <row id="43" idDict="2" nameDict="fd_attribvaltype" lang="kk" text="Маскамен жіп"/>
+    <row id="42" idDict="1" nameDict="fd_attribvaltype" lang="kk" text="Жол"/>
+    <row id="43" idDict="2" nameDict="fd_attribvaltype" lang="kk" text="Маскалы жол"/>
     <row id="44" idDict="3" nameDict="fd_attribvaltype" lang="kk" text="Күні"/>
     <row id="45" idDict="4" nameDict="fd_attribvaltype" lang="kk" text="Уақыт"/>
     <row id="46" idDict="5" nameDict="fd_attribvaltype" lang="kk" text="Күні мен уақыты"/>
@@ -74,8 +74,8 @@
     <row id="70" idDict="1" nameDict="fd_cubesdimtype" lang="ru" text="Измерение периодов"/>
     <row id="71" idDict="2" nameDict="fd_cubesdimtype" lang="ru" text="Измерение свойств"/>
     <row id="72" idDict="3" nameDict="fd_cubesdimtype" lang="ru" text="Измерение объектов и отношений"/>
-    <row id="73" idDict="1" nameDict="fd_cubesdimtype" lang="kk" text="Өлшеу кезеңдері"/>
-    <row id="74" idDict="2" nameDict="fd_cubesdimtype" lang="kk" text="Қасиеттерді өлшеу"/>
+    <row id="73" idDict="1" nameDict="fd_cubesdimtype" lang="kk" text="Кезеңдер өлшемі"/>
+    <row id="74" idDict="2" nameDict="fd_cubesdimtype" lang="kk" text="Қасиеттер өлшемі"/>
     <row id="75" idDict="3" nameDict="fd_cubesdimtype" lang="kk" text="Объектілер мен қатынастарды өлшеу"/>
     <row id="76" idDict="1" nameDict="fd_cubesdimtype" lang="en-US" text="Measuring periods"/>
     <row id="77" idDict="2" nameDict="fd_cubesdimtype" lang="en-US" text="Measuring properties"/>
@@ -83,8 +83,8 @@
 
     <row id="79" idDict="1" nameDict="fd_cubestype" lang="ru" text="Стандартный куб"/>
     <row id="80" idDict="2" nameDict="fd_cubestype" lang="ru" text="Вычисляемый куб"/>
-    <row id="81" idDict="1" nameDict="fd_cubestype" lang="kk" text="Стандартты текше"/>
-    <row id="82" idDict="2" nameDict="fd_cubestype" lang="kk" text="Есептелген текше"/>
+    <row id="81" idDict="1" nameDict="fd_cubestype" lang="kk" text="Стандартты куб"/>
+    <row id="82" idDict="2" nameDict="fd_cubestype" lang="kk" text="Есептелген куб"/>
     <row id="83" idDict="1" nameDict="fd_cubestype" lang="en-US" text="Standard cube"/>
     <row id="84" idDict="2" nameDict="fd_cubestype" lang="en-US" text="Computed cube"/>
 
@@ -95,7 +95,7 @@
     <row id="89" idDict="1" nameDict="fd_databasetype" lang="kk" text="Пайдаланушылар және рөлдер"/>
     <row id="90" idDict="2" nameDict="fd_databasetype" lang="kk" text="Метадеректер"/>
     <row id="91" idDict="3" nameDict="fd_databasetype" lang="kk" text="Деректер"/>
-    <row id="92" idDict="4" nameDict="fd_databasetype" lang="kk" text="Кубиктер"/>
+    <row id="92" idDict="4" nameDict="fd_databasetype" lang="kk" text="Кубтар"/>
     <row id="93" idDict="1" nameDict="fd_databasetype" lang="en-US" text="Users and roles"/>
     <row id="94" idDict="2" nameDict="fd_databasetype" lang="en-US" text="Metadata"/>
     <row id="95" idDict="3" nameDict="fd_databasetype" lang="en-US" text="Data"/>
@@ -110,15 +110,15 @@
     <row id="103" idDict="7" nameDict="fd_dataformattype" lang="ru" text="mdb"/>
     <row id="104" idDict="8" nameDict="fd_dataformattype" lang="ru" text="map"/>
     <row id="105" idDict="9" nameDict="fd_dataformattype" lang="ru" text="doc"/>
-    <row id="106" idDict="1" nameDict="fd_dataformattype" lang="kk" text="жазу"/>
+    <row id="106" idDict="1" nameDict="fd_dataformattype" lang="kk" text="txt"/>
     <row id="107" idDict="2" nameDict="fd_dataformattype" lang="kk" text="xml"/>
     <row id="108" idDict="3" nameDict="fd_dataformattype" lang="kk" text="json"/>
     <row id="109" idDict="4" nameDict="fd_dataformattype" lang="kk" text="csv"/>
     <row id="110" idDict="5" nameDict="fd_dataformattype" lang="kk" text="xls"/>
     <row id="111" idDict="6" nameDict="fd_dataformattype" lang="kk" text="dbf"/>
     <row id="112" idDict="7" nameDict="fd_dataformattype" lang="kk" text="mdb"/>
-    <row id="113" idDict="8" nameDict="fd_dataformattype" lang="kk" text="карта"/>
-    <row id="114" idDict="9" nameDict="fd_dataformattype" lang="kk" text="құжат"/>
+    <row id="113" idDict="8" nameDict="fd_dataformattype" lang="kk" text="map"/>
+    <row id="114" idDict="9" nameDict="fd_dataformattype" lang="kk" text="doc"/>
     <row id="115" idDict="1" nameDict="fd_dataformattype" lang="en-US" text="txt"/>
     <row id="116" idDict="2" nameDict="fd_dataformattype" lang="en-US" text="xml"/>
     <row id="117" idDict="3" nameDict="fd_dataformattype" lang="en-US" text="json"/>

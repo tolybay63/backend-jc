@@ -218,7 +218,7 @@ class TableLang_Test extends Apx_Test {
     @Test
     void test_TranslateFactor() {
         //translateTable("Factor", "kk")
-        translateTable("ClsVer", "kk")
+        translateTable("Prop", "kk")
     }
 
 
@@ -235,15 +235,13 @@ class TableLang_Test extends Apx_Test {
         mdb.loadQuery(st, """            
             select *
             from tablelang
-            where nameTable='ClsVer' and lang='ru' and 
+            where nameTable='Prop' and lang='ru' and 
             idtable not in (
                 select idTable
                 from tablelang
-                where nameTable='ClsVer' and lang='kk'
+                where nameTable='Prop' and lang='kk'
             )
         """)
-
-
 
         for (StoreRecord rec in st) {
             String nm, fn, cmt = null

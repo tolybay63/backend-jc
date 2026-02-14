@@ -129,9 +129,9 @@ public class PropDao extends BaseModelDao {
         u.savePropRefVal(prop, params);
     }
 
-    public Store loadPropMeter(long prop) throws Exception {
+    public Store loadPropMeter(long prop, String lang) throws Exception {
         PropMdbUtils u = new PropMdbUtils(getMdb(), "Prop");
-        return u.loadPropMeter(prop);
+        return u.loadPropMeter(prop, lang);
     }
 
     public Store loadPropMeterForUpd(Map<String, Object> params) throws Exception {
