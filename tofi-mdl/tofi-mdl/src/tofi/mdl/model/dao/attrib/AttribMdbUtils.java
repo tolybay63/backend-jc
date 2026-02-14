@@ -164,7 +164,7 @@ public class AttribMdbUtils extends EntityMdbUtils {
         Store st = mdb.createStore("AttribChar");
 
         mdb.loadQuery(st, "select * from AttribChar where id=:id", Map.of("id", id));
-        mdb.resolveDicts(st);
+        //mdb.resolveDicts(st);
 
         //mdb.outTable(st);
         return st;

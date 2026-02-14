@@ -18,9 +18,9 @@ public class PropDao extends BaseModelDao {
     }
 
 
-    public Store loadRec(long id) throws Exception {
+    public Store loadRec(long id, String lang) throws Exception {
         PropMdbUtils u = new PropMdbUtils(getMdb(), "Prop");
-        return u.loadRec(id);
+        return u.loadRec(id, lang);
     }
 
     public StoreRecord newRec(long propGroup) throws Exception {
@@ -119,14 +119,14 @@ public class PropDao extends BaseModelDao {
         return u.loadPropVal(prop, entity, lang);
     }
 
-    public Store loadPropValForUpd(long prop) throws Exception {
+    public Store loadPropValForUpd(long prop, String lang) throws Exception {
         PropMdbUtils u = new PropMdbUtils(getMdb(), "Prop");
-        return u.loadPropValForUpd(prop);
+        return u.loadPropValForUpd(prop, lang);
     }
 
-    public void savePropRefVal(long prop, List<Map<String, Object>> params) throws Exception {
+    public void savePropRefVal(long prop, List<Map<String, Object>> params, String lang) throws Exception {
         PropMdbUtils u = new PropMdbUtils(getMdb(), "Prop");
-        u.savePropRefVal(prop, params);
+        u.savePropRefVal(prop, params, lang);
     }
 
     public Store loadPropMeter(long prop, String lang) throws Exception {
@@ -159,9 +159,9 @@ public class PropDao extends BaseModelDao {
         return u.loadPropValEntityForUpd(prop, entityType);
     }
 
-    public void savePropEntityVal(long prop, List<Map<String, Object>> lstData) throws Exception {
+    public void savePropEntityVal(long prop, List<Map<String, Object>> lstData, String lang) throws Exception {
         PropMdbUtils u = new PropMdbUtils(getMdb(), "Prop");
-        u.savePropEntityVal(prop, lstData);
+        u.savePropEntityVal(prop, lstData, lang);
     }
 
     public Store loadAllPropForSelect() throws Exception {
@@ -204,9 +204,9 @@ public class PropDao extends BaseModelDao {
         return u.newRecComplex(rec);
     }
 
-    public String getParentName(long propGr, long parent) throws Exception {
+    public String getParentName(long propGr, long parent, String lang) throws Exception {
         PropMdbUtils u = new PropMdbUtils(getMdb(), "Prop");
-        return u.getParentName(propGr, parent);
+        return u.getParentName(propGr, parent, lang);
     }
 
     public Store loadItemsComplexProp(long prop) throws Exception {

@@ -80,7 +80,7 @@ public class PropMdbUtils extends EntityMdbUtils {
         return ut.getTranslatedStore(st, "Prop", lang);
     }
 
-    public Store loadRec(long id) throws Exception {
+    public Store loadRec(long id, String lang) throws Exception {
         Store st = mdb.createStore("Prop.rec");
         mdb.loadQuery(st, """
                     select coalesce (p.measure, m.measure) as measure, p.*, a.attribvaltype, ac.entitytype, m.meterStruct,
@@ -93,8 +93,9 @@ public class PropMdbUtils extends EntityMdbUtils {
                     where p.id=:id
                 """, Map.of("id", id));
 
-        //mdb.resolveDicts(st);
-        return st;
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st, "Prop", lang);
+
     }
 
     public StoreRecord newRec(long propGroup) throws Exception {
@@ -308,12 +309,12 @@ public class PropMdbUtils extends EntityMdbUtils {
         mdb.loadQuery(st, """
                     select * from Prop t where t.id=:id
                 """, Map.of("id", id));
-        mdb.resolveDicts(st);
+
         return st;
     }
 
     protected void validateUpd(Map<String, Object> rec) throws Exception {
-        StoreRecord recOld = loadRec(UtCnv.toLong(rec.get("id"))).get(0);
+        StoreRecord recOld = loadRec(UtCnv.toLong(rec.get("id")), UtCnv.toString(rec.get("lang"))).get(0);
         //
         haveData(recOld.getValues(), rec);
         //
@@ -544,12 +545,15 @@ public class PropMdbUtils extends EntityMdbUtils {
 
         updateEntity(rec);
         // Загрузка записи
+        return loadRec(id, UtCnv.toString(rec.get("lang")));
+/*
         Store st = mdb.createStore("Prop");
         mdb.loadQuery(st, """
                     select * from Prop t where t.id=:id
                 """, Map.of("id", id));
         //mdb.resolveDicts(st);
         return st;
+*/
     }
 
     protected void deleteFromCharGr(Map<String, Object> rec) throws Exception {
@@ -1020,8 +1024,8 @@ public class PropMdbUtils extends EntityMdbUtils {
         return ut.getTranslatedStore(st, table, lang, hasVer);
     }
 
-    public Store loadPropValForUpd(long prop) throws Exception {
-        StoreRecord rec = loadRec(prop).get(0);
+    public Store loadPropValForUpd(long prop, String lang) throws Exception {
+        StoreRecord rec = loadRec(prop, lang).get(0);
         String entity = "Factor";
         long entityId = rec.getLong("factor");
         if (UtCnv.toLong(rec.get("propType")) == FD_PropType_consts.typ) {
@@ -1100,8 +1104,8 @@ public class PropMdbUtils extends EntityMdbUtils {
         return st.size() > 0;
     }
 
-    public void savePropRefVal(long prop, List<Map<String, Object>> params) throws Exception {
-        StoreRecord rec = loadRec(prop).get(0);
+    public void savePropRefVal(long prop, List<Map<String, Object>> params, String lang) throws Exception {
+        StoreRecord rec = loadRec(prop, lang).get(0);
         String fld = "factorVal";
         if (UtCnv.toLong(rec.get("propType")) == FD_PropType_consts.typ) {
             fld = "cls";
@@ -2023,8 +2027,8 @@ public class PropMdbUtils extends EntityMdbUtils {
 
     }
 
-    public void savePropEntityVal(long prop, List<Map<String, Object>> lstData) throws Exception {
-        StoreRecord rec = loadRec(prop).get(0);
+    public void savePropEntityVal(long prop, List<Map<String, Object>> lstData, String lang) throws Exception {
+        StoreRecord rec = loadRec(prop, lang).get(0);
         long entityType = rec.getLong("entityType");
         String fldId = "id";
         if (Arrays.asList(FD_EntityType_consts.FactorVal, FD_EntityType_consts.Cls,
@@ -2172,14 +2176,17 @@ public class PropMdbUtils extends EntityMdbUtils {
         return r;
     }
 
-    public String getParentName(long propGr, long parent) throws Exception {
+    public String getParentName(long propGr, long parent, String lang) throws Exception {
         if (parent == 0) {
-            return mdb.loadQuery("select name from PropGr where id=:id",
-                    Map.of("id", propGr)).get(0).getString("name");
+            return mdb.loadQuery("""
+                select l.name from PropGr p, TableLang l
+                where p.id=:id and l.nameTable=:table and l.idTable=p.id and l.lang=:lang
+            """, Map.of("id", propGr, "table", "PropGr", "lang", lang)).get(0).getString("name");
         } else {
-            return mdb.loadQuery("select name from Prop where id=:id",
-                    Map.of("id", parent)).get(0).getString("name");
-        }
+            return mdb.loadQuery("""
+                select l.name from Prop p, TableLang l
+                where p.id=:id and l.nameTable=:table and l.idTable=p.id and l.lang=:lang
+            """, Map.of("id", propGr, "table", "Prop", "lang", lang)).get(0).getString("name");        }
     }
 
     //

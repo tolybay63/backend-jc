@@ -107,9 +107,11 @@
         <field name="meterStruct" parent="FD_MeterStruct/ref"/>
         <field name="attribValType" parent="FD_AttribValType/ref"/>
         <field name="entityType" parent="FD_EntityType/ref"/>
-        <field name="PropType" parent="ref"/>
         <field name="kfc" parent="double"/>
         <field name="parentPropType" parent="ref"/>
+        <field name="name" parent="string"/>
+        <field name="fullName" parent="string"/>
+        <field name="cmt" parent="string"/>
     </domain>
 
     <domain name="Prop.meter" parent="id">

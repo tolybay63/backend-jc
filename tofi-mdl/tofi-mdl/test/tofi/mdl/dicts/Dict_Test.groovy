@@ -90,7 +90,7 @@ class Dict_Test extends Apx_Test {
 /*
             mdb.execQueryNative("""
                 INSERT INTO fd_dictslang (id, text, namedict, iddict, lang)
-                VALUES (${item.id}, '${item.text}', '${item.namedict}', ${item.iddict}, '${item.lang}');
+                VALUES (${item.id}, '${item.text}', '${item.nameDict}', ${item.idDict}, '${item.lang}');
             """)
 */
         }
