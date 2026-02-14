@@ -4,6 +4,7 @@ import jandcode.core.apx.test.Apx_Test
 import jandcode.core.store.Store
 import jandcode.core.store.StoreRecord
 import org.junit.jupiter.api.Test
+import tofi.mdl.model.utils.Translator
 
 class TableLang_Test extends Apx_Test {
 
@@ -120,7 +121,7 @@ class TableLang_Test extends Apx_Test {
         }
     }
 
-
+    //******************
     @Test
     void fill_RelCls() throws Exception { //12
         Store st = mdb.loadQuery("""
@@ -136,6 +137,25 @@ class TableLang_Test extends Apx_Test {
         }
     }
 
+/*
+    @Test
+    void update_RelClsVer() throws Exception { //12
+        Store st = mdb.loadQuery("""
+            select * from tablelang where nameTable='RelClsVer' and lang='ru'
+            order by id
+        """)
+        for (StoreRecord r in st) {
+            def arr = r.getString("name").split("<=>")
+            String nm = arr[0].trim() + " \u21D4 " + arr[1].trim()
+            mdb.execQuery("""
+                update TableLang set name='${nm}', fullName='${nm}' where id=${r.getLong("id")}
+            """)
+        }
+
+    }
+*/
+
+    //******************
 
     @Test
     void fill_RelClsMember() throws Exception { //13
@@ -164,6 +184,18 @@ class TableLang_Test extends Apx_Test {
         }
     }
 
+    @Test
+    void fill_Prop() throws Exception { //15
+        Store st = mdb.loadQuery("""
+            select id, name, fullName, cmt from Prop where 0=0 order by id
+        """)
+
+        for (StoreRecord r in st) {
+            fill_TableLang("Prop", r.getLong("id"), r.getString("name"),
+                    r.getString("fullName"), r.getString("cmt"), "ru")
+        }
+    }
+
 
     //********************************************************************
 
@@ -179,5 +211,60 @@ class TableLang_Test extends Apx_Test {
         rec.set("lang", lang)
         mdb.insertRec("TableLang", rec, true)
     }
+
+
+    //********************************************************************
+
+    @Test
+    void test_TranslateFactor() {
+        //translateTable("Factor", "kk")
+        translateTable("ClsVer", "kk")
+    }
+
+
+
+    void translateTable(String table, String lang) throws Exception {
+        Translator tr = new Translator(mdb)
+        Store st = mdb.createStore("TableLang")
+/*
+        mdb.loadQuery(st, """
+            select * from TableLang where nameTable='${table}' and lang='ru';
+        """)
+*/
+
+        mdb.loadQuery(st, """            
+            select *
+            from tablelang
+            where nameTable='ClsVer' and lang='ru' and 
+            idtable not in (
+                select idTable
+                from tablelang
+                where nameTable='ClsVer' and lang='kk'
+            )
+        """)
+
+
+
+        for (StoreRecord rec in st) {
+            String nm, fn, cmt = null
+            nm = tr.translateText(rec.getString("name"), "ru", lang)
+            fn = nm
+            if (!rec.getString("fullName").isEmpty() && rec.getString("name") != rec.getString("fullName"))
+                fn = tr.translateText(rec.getString("fullName"), "ru", lang)
+
+
+            if (!rec.getString("cmt").isEmpty())
+                cmt = tr.translateText(rec.getString("cmt"), "ru", lang)
+
+            StoreRecord rr = mdb.createStoreRecord("TableLang", rec)
+            rr.set("id", null)
+            rr.set("name", nm)
+            rr.set("fullName", fn)
+            rr.set("cmt", cmt)
+            rr.set("lang", lang)
+            mdb.insertRec("TableLang", rr, true)
+        }
+    }
+
 
 }

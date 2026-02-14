@@ -30,6 +30,7 @@
         <field name="checked" parent="boolean"/>
         <field name="entId" parent="ref"/>
         <field name="parent" parent="ref"/>
+        <field name="verId" parent="ref"/>
     </domain>
 
     <domain name="PropVal.full.tree" parent="base">
@@ -46,6 +47,7 @@
         <field name="isEntity" parent="boolean"/>
         <field name="propType" parent="long"/>
         <field name="ord" parent="f.ord"/>
+        <field name="verId" parent="ref"/>
     </domain>
 
 

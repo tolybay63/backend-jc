@@ -801,8 +801,8 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
                 }
                 stMemcls.add(mapRelClsMem)
             })
-            String nm = UtString.join(sNm, " <=> ")
-            String fn = UtString.join(sFn, " <=> ")
+            String nm = UtString.join(sNm, " ⇔ ")
+            String fn = UtString.join(sFn, " ⇔ ")
             long idRelCls = 0
             Map<String, Object> map = new HashMap<>()
             map.put("relTyp", relTyp)

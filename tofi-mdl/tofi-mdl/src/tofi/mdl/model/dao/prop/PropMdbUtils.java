@@ -977,36 +977,47 @@ public class PropMdbUtils extends EntityMdbUtils {
         return UtString.join(codsPeriodForInfo, ",");
     }
 
-    public Store loadPropVal(long prop, String entity) throws Exception {
+    public Store loadPropVal(long prop, String entity, String lang) throws Exception {
         Store st = mdb.createStore("PropVal.full");
-        String sql = switch (entity) {
-            case "Factor" -> """
-                        select p.*, f.cod, f.name, f.fullName
-                        from PropVal p, Factor f
-                        where p.prop=:p and p.factorVal=f.id
-                    """;
-            case "Typ" -> """
-                        select p.*, o.cod, v.name, v.fullName
-                        from PropVal p, Cls o, ClsVer v
-                        where p.prop=:p and p.cls=o.id and o.id=v.ownerVer and v.lastVer=1
-                    """;
-            case "RelTyp" -> """
-                        select p.*, o.cod, v.name, v.fullName
-                        from PropVal p, RelCls o, RelClsVer v
-                        where p.prop=:p and p.relCls=o.id and o.id=v.ownerVer and v.lastVer=1
-                    """;
-            case "Measure" -> """
-                        select m.id, m.cod, m.name, m.fullName, m.parent
-                        from PropVal p, Measure m
-                        where p.prop=:p and p.measure=m.id
-                    """;
-            default -> "";
-        };
+        String sql = "";
+        String table = "";
+        boolean hasVer = false;
+        if (Objects.equals(entity, "Factor")) {
+            sql = """
+                select f.*
+                from PropVal p, Factor f
+                where p.prop=:p and p.factorVal=f.id
+            """;
+            table = "Factor";
+        } else if (Objects.equals(entity, "Typ")) {
+            sql = """
+                select p.*, o.cod, v.id as verId
+                from PropVal p, Cls o, ClsVer v
+                where p.prop=:p and p.cls=o.id and o.id=v.ownerVer and v.lastVer=1
+            """;
+            hasVer = true;
+            table = "Cls";
+        } else if (Objects.equals(entity, "RelTyp")) {
+            sql = """
+                select p.*, o.cod, v.id as verId
+                from PropVal p, RelCls o, RelClsVer v
+                where p.prop=:p and p.relCls=o.id and o.id=v.ownerVer and v.lastVer=1
+            """;
+            hasVer = true;
+            table = "RelCls";
+        } else if (Objects.equals(entity, "Measure")) {
+            sql = """
+                select m.id, m.cod, m.parent
+                from PropVal p, Measure m
+                where p.prop=:p and p.measure=m.id
+            """;
+            table = "Measure";
+        }
 
         mdb.loadQuery(st, sql, Map.of("p", prop));
 
-        //mdb.outTable(st);
-        return st;
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st, table, lang, hasVer);
     }
 
     public Store loadPropValForUpd(long prop) throws Exception {

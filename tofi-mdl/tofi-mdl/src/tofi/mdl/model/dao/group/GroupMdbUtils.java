@@ -70,10 +70,13 @@ public class GroupMdbUtils extends EntityMdbUtils {
         }
         updateEntity(rec);
         // Загрузка записи
+        return loadRec(rec);
+/*
         Store st = mdb.createStore(tableName);
         mdb.loadQuery(st, "select * from " + tableName + " where id=:id", Map.of("id", id));
         mdb.resolveDicts(st);
         return st;
+*/
     }
 
     public void delete(Map<String, Object> rec) throws Exception {
