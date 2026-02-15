@@ -38,9 +38,6 @@
         <field name="sysCodingType" parent="FD_SysCodingType/ref"/>
         <field name="sgnSeparator" parent="string" size="20"/>
         <field name="sourceStock" parent="SourceStock/ref"/>
-        <field name="name" parent="f.name"/>
-        <field name="fullName" parent="f.fullName"/>
-        <field name="cmt" parent="f.cmt"/>
     </domain>
 
     <domain name="SysCodingItem" parent="id" tag.db="true"
@@ -53,6 +50,19 @@
         <field name="maskReg" parent="string" size="1000"/>
         <field name="cmt" parent="f.cmt"/>
         <field name="ord" parent="f.ord"/>
+    </domain>
+
+    <!-- *********************************** -->
+    <domain name="SysCoding.lang" parent="SysCoding">
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
+    </domain>
+
+    <domain name="SysCodingItem.lang" parent="SysCodingItem">
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
     </domain>
 
 </root>

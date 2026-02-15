@@ -10,7 +10,12 @@
         <field name="name" parent="f.name"/>
         <field name="fullName" parent="f.fullName"/>
         <field name="cmt" parent="f.cmt"/>
+    </domain>
 
+    <domain name="SourceStockGr.lang" parent="SourceStockGr">
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
     </domain>
 
 

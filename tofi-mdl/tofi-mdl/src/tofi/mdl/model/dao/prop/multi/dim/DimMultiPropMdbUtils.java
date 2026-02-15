@@ -12,6 +12,7 @@ import tofi.mdl.consts.FD_AccessLevel_consts;
 import tofi.mdl.consts.FD_DimMultiPropType_consts;
 import tofi.mdl.consts.FD_MultiValEntityType_consts;
 import tofi.mdl.model.utils.EntityMdbUtils;
+import tofi.mdl.model.utils.UtEntityTranslate;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,17 +35,17 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
         r.set("dimMultiPropGr", propGr);
         r.set("accessLevel", FD_AccessLevel_consts.common);
         r.set("dimMultiPropType", FD_DimMultiPropType_consts.stat);
-        mdb.resolveDicts(st);
         return st;
     }
 
-    public Store loadDimMultiProp(long propGr) throws Exception {
+    public Store loadDimMultiProp(long propGr, String lang) throws Exception {
 
-        Store st = mdb.createStore("DimMultiProp");
+        Store st = mdb.createStore("DimMultiProp.lang");
         String sql = "select * from DimMultiProp where dimMultiPropGr=:gr";
         mdb.loadQuery(st, sql, Map.of("gr", propGr));
-        mdb.resolveDicts(st);
-        return st;
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st, "DimMultiProp", lang);
     }
 
     public Store insert(Map<String, Object> params) throws Exception {

@@ -8,6 +8,7 @@ import jandcode.core.store.StoreRecord;
 import tofi.mdl.consts.FD_AccessLevel_consts;
 import tofi.mdl.consts.FD_SysCodingType_consts;
 import tofi.mdl.model.utils.EntityMdbUtils;
+import tofi.mdl.model.utils.UtEntityTranslate;
 
 import java.util.Map;
 
@@ -23,12 +24,14 @@ public class SysCodingMdbUtils extends EntityMdbUtils {
 
 
 
-    public Store load() throws Exception {
-        Store st = mdb.createStore("SysCoding");
+    public Store load(String lang) throws Exception {
+        Store st = mdb.createStore("SysCoding.lang");
         mdb.loadQuery(st, """
             select * from SysCoding where 0=0
         """);
-        return st;
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st, "SysCoding", lang);
     }
 
     public StoreRecord newRec() {
@@ -39,12 +42,20 @@ public class SysCodingMdbUtils extends EntityMdbUtils {
         return  r;
     }
 
+    private Store loadRec(long id, String lang) throws Exception {
+        Store st = mdb.createStore("SysCoding.lang");
+        mdb.loadQuery(st, """
+            select * from SysCoding where id=:id
+        """, Map.of("id", id));
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st, "SysCoding", lang);
+    }
+
     public Store insert(Map<String, Object> rec) throws Exception {
         long id = insertEntity(rec);
-
-        Store st = mdb.createStore("SysCoding");
-        mdb.loadQuery(st, "select * from SysCoding where id=:id", Map.of("id", id));
-        return st;
+        //
+        return loadRec(id, UtCnv.toString(rec.get("lang")));
     }
 
     public Store update(Map<String, Object> rec) throws Exception {
@@ -53,10 +64,7 @@ public class SysCodingMdbUtils extends EntityMdbUtils {
             throw new XError("Поле id должно иметь не нулевое значение");
         }
         updateEntity(rec);
-
-        Store st = mdb.createStore("SysCoding");
-        mdb.loadQuery(st, "select * from SysCoding where id=:id", Map.of("id", id));
-        return st;
+        return loadRec(id, UtCnv.toString(rec.get("lang")));
     }
 
     public void delete(Map<String, Object> rec) throws Exception {

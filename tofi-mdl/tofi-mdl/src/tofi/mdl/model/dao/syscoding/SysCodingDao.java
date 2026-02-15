@@ -9,9 +9,9 @@ import java.util.Map;
 public class SysCodingDao extends BaseModelDao {
 
 
-    public Store load() throws Exception {
+    public Store load(String lang) throws Exception {
         SysCodingMdbUtils utils = new SysCodingMdbUtils(getMdb(), "SysCoding");
-        return utils.load();
+        return utils.load(lang);
     }
 
     public StoreRecord newRec() throws Exception {

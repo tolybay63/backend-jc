@@ -41,8 +41,6 @@
             -->
         </field>
 
-        <field name="name" parent="f.name"/>
-        <field name="fullName" parent="f.fullName"/>
         <field name="ord" parent="f.ord"/>
 
         <field name="fillMore" parent="int">
@@ -61,13 +59,15 @@
             -->
         </field>
 
-        <field name="cmt" parent="f.cmt"/>
-
     </domain>
 
     <!-- ========================================================= -->
 
-
+    <domain name="MultiProp.lang" parent="MultiProp">
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
+    </domain>
 
 
 </root>

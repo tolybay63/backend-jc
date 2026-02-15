@@ -9,10 +9,6 @@
 
         <field name="parent" parent="SourceStock/ref"/>
 
-        <field name="name" parent="f.name"/>
-
-        <field name="fullName" parent="f.fullName"/>
-
         <field name="sourceStockType" parent="FD_SourceStockType/ref"
                title="Тип источника данных" req="true">
         </field>
@@ -87,9 +83,12 @@
 
         <field name="ord" parent="f.ord"/>
 
-        <field name="cmt" parent="f.cmt">
-        </field>
+    </domain>
 
+    <domain name="SourceStock.lang" parent="SourceStock">
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
     </domain>
 
 

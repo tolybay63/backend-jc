@@ -9,9 +9,9 @@ import java.util.Map;
 public class StockDao extends BaseModelDao {
 
 
-    public Store loadStocks(long stockGr) throws Exception {
+    public Store loadStocks(long stockGr, String lang) throws Exception {
         StockMdbUtils utils = new StockMdbUtils(getMdb(), "SourceStock");
-        return utils.loadStocks(stockGr);
+        return utils.loadStocks(stockGr, lang);
     }
 
     public StoreRecord newRec(long stockGr) throws Exception {
@@ -34,9 +34,9 @@ public class StockDao extends BaseModelDao {
         utils.delete(rec);
     }
 
-    public Store loadStockForSelect() throws Exception {
+    public Store loadStockForSelect(String lang) throws Exception {
         StockMdbUtils utils = new StockMdbUtils(getMdb(), "SourceStock");
-        return utils.loadStockForSelect();
+        return utils.loadStockForSelect(lang);
     }
 
 }

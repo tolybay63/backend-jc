@@ -197,7 +197,19 @@ class TableLang_Test extends Apx_Test {
     }
 
     @Test
-    void fill_SysCoding() throws Exception { //15
+    void fill_SourceStock() throws Exception { //17
+        Store st = mdb.loadQuery("""
+            select id, name, fullName, cmt from SourceStock where 0=0 order by id
+        """)
+
+        for (StoreRecord r in st) {
+            fill_TableLang("SourceStock", r.getLong("id"), r.getString("name"),
+                    r.getString("fullName"), r.getString("cmt"), "ru")
+        }
+    }
+
+    @Test
+    void fill_SysCoding() throws Exception { //17
         Store st = mdb.loadQuery("""
             select id, name, fullName, cmt from SysCoding where 0=0 order by id
         """)
@@ -229,18 +241,37 @@ class TableLang_Test extends Apx_Test {
     //********************************************************************
 
     @Test
+    void test_Translate_DataBase() {
+        //translateTable("Attrib", "kk")
+        translateTable("DataBase", "en-US")
+    }
+
+    @Test
+    void test_Translate_Attrib() {
+        translateTable("Attrib", "kk")
+        translateTable("Attrib", "en-US")
+    }
+
+
+    @Test
     void test_TranslateFactor() {
         translateTable("SysCoding", "kk")
         //translateTable("Prop", "kk")
     }
 
+    @Test
+    void test_Translate_SourceStock() {
+        translateTable("SourceStock", "kk")
+    }
 
 
+
+    /* ************************************************************** */
     void translateTable(String table, String lang) throws Exception {
         Translator tr = new Translator(mdb)
         Store st = mdb.createStore("TableLang")
         mdb.loadQuery(st, """
-            select * from TableLang where nameTable='${table}' and lang='ru';
+            select * from TableLang where nameTable='${table}' and lang='ru' order by id;
         """)
 
 /*

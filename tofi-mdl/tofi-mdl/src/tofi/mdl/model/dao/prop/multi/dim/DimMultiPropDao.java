@@ -13,9 +13,9 @@ public class DimMultiPropDao extends BaseModelDao {
         return u.newRec(propGr);
     }
 
-    public Store loadDimMultiProp(long propGr) throws Exception {
+    public Store loadDimMultiProp(long propGr, String lang) throws Exception {
         DimMultiPropMdbUtils u = new DimMultiPropMdbUtils(getMdb(), "DimMultiProp");
-        return u.loadDimMultiProp(propGr);
+        return u.loadDimMultiProp(propGr, lang);
     }
 
     public Store insert(Map<String, Object> params) throws Exception {

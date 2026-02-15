@@ -14,9 +14,9 @@ public class MultiPropDao extends BaseModelDao {
         return ut.newRecMultiProp(propGr);
     }
 
-    public Store loadMultiProp(long propGr) throws Exception {
+    public Store loadMultiProp(long propGr, String lang) throws Exception {
         MultiPropMdbUtils ut = new MultiPropMdbUtils(getMdb(), "MultiProp");
-        return ut.loadMultiProp(propGr);
+        return ut.loadMultiProp(propGr, lang);
     }
 
     public void deleteMultiProp(Map<String, Object> params) throws Exception {
@@ -92,10 +92,9 @@ public class MultiPropDao extends BaseModelDao {
         return ut.saveProvider(rec, mode);
     }
 
-
-    public Store loadRec(long pm) throws Exception {
+    public Store loadRec(long id, String lang) throws Exception {
         MultiPropMdbUtils ut = new MultiPropMdbUtils(getMdb(), "MultiProp");
-        return ut.loadRec(pm);
+        return ut.loadRec(id, lang);
     }
 
     public Store loadMultiPropDim(long pm) throws Exception {

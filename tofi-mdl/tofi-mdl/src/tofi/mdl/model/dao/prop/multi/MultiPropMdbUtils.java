@@ -10,6 +10,7 @@ import jandcode.core.store.StoreRecord;
 import tofi.mdl.consts.FD_AccessLevel_consts;
 import tofi.mdl.consts.FD_PeriodType_consts;
 import tofi.mdl.model.utils.EntityMdbUtils;
+import tofi.mdl.model.utils.UtEntityTranslate;
 
 import java.util.*;
 
@@ -22,12 +23,6 @@ public class MultiPropMdbUtils extends EntityMdbUtils {
         super(mdb, tableName);
         this.mdb = mdb;
         this.tableName = tableName;
-        //
-/*
-        if (!mdb.getApp().getEnv().isTest())
-            if (!UtCnv.toBoolean(mdb.createDao(AuthDao.class).isLogined().get("success")))
-                throw new XError("notLogined");
-*/
     }
 
     public Store newRecMultiProp(long propGr) throws Exception {
@@ -38,33 +33,27 @@ public class MultiPropMdbUtils extends EntityMdbUtils {
         r.set("isUniq", true);
         r.set("isDependValueOnPeriod", true);
         r.set("fillMore", 1);
-        mdb.resolveDicts(st);
         return st;
     }
 
-    public Store loadMultiProp(long propGr) throws Exception {
-
-        Store st = mdb.createStore("MultiProp");
-        String sql = """
-                    select *
-                    from MultiProp
-                    where multiPropGr=:gr
-                    order by ord
-                """;
-        mdb.loadQuery(st, sql, Map.of("gr", propGr));
-        mdb.resolveDicts(st);
-        return st;
+    public Store loadMultiProp(long propGr, String lang) throws Exception {
+        Store st = mdb.createStore("MultiProp.lang");
+        mdb.loadQuery(st, """
+            select * from MultiProp where multiPropGr=:gr order by ord
+        """, Map.of("gr", propGr));
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st, "MultiProp", lang);
     }
 
-    public Store loadRec(long id) throws Exception {
-        Store st = mdb.createStore("MultiProp");
-        String sql = """
-                    select *
-                    from MultiProp where id=:id
-                """;
-        mdb.loadQuery(st, sql, Map.of("id", id));
-        mdb.resolveDicts(st);
-        return st;
+    public Store loadRec(long id, String lang) throws Exception {
+        Store st = mdb.createStore("MultiProp.lang");
+        mdb.loadQuery(st, """
+            select * from MultiProp where id=:id
+        """, Map.of("id", id));
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st, "MultiProp", lang);
     }
 
     public void deleteMultiProp(Map<String, Object> params) throws Exception {
