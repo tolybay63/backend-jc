@@ -306,16 +306,19 @@ public class FactorMdbUtils extends EntityMdbUtils {
         return st;
     }
 
-    public Store loadForSelect() throws Exception {
+    public Store loadForSelect(String lang) throws Exception {
         AuthService authSvc = mdb.getApp().bean(AuthService.class);
         AuthUser au = authSvc.getCurrentUser();
         //todo AuthUser
-        long al = 10; //au.getAttrs().getLong("accesslevel");
+        long al = au.getAttrs().getLong("accesslevel");
 
         Store st = mdb.createStore("Factor.select");
-        return mdb.loadQuery(st, """
-                    select id, name from Factor where parent is null and accessLevel<=:al order by ord
-                """, Map.of("al", al));
+        mdb.loadQuery(st, """
+            select * from Factor where parent is null and accessLevel<=:al order by ord
+        """, Map.of("al", al));
+
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st,"Factor", lang);
     }
 
     public Store getFactor(long fv) throws Exception {

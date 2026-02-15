@@ -175,12 +175,11 @@ public class RelTypMemberMdbUtils {
     public Store loadRelTypForSelect(String lang) throws Exception {
         Store st = mdb.createStore("RelTyp.lang");
         mdb.loadQuery(st,"""
-          select t.id, l.name
+          select t.*, v.id as verId, v.dbeg, v.dend
           from RelTyp t
             left join RelTypVer tv on t.id=tv.ownerVer and tv.lastVer=1
-            left join TableLang l on l.nameTable='RelTypVer' and l.idTable=tv.id and l.lang=:lang
           where 0=0
-        """, Map.of("lang", lang));
+        """);
         //
         UtEntityTranslate ut = new UtEntityTranslate(mdb);
         return ut.getTranslatedStore(st,"RelTyp", lang, true);

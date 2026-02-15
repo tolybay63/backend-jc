@@ -23,9 +23,9 @@ public class FactorDao extends BaseModelDao {
         return u.loadFactorTree(params);
     }
 
-    public Store loadForSelect() throws Exception {
+    public Store loadForSelect(String lang) throws Exception {
         FactorMdbUtils u = new FactorMdbUtils(getMdb(), "Factor");
-        return u.loadForSelect();
+        return u.loadForSelect(lang);
     }
 
     public void delete(Map<String, Object> params) throws Exception {

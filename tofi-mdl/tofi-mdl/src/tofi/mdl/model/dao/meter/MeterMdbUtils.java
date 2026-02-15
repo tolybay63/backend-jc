@@ -160,9 +160,11 @@ public class MeterMdbUtils extends EntityMdbUtils {
         return rec;
     }
 
-    public Store loadForSelect() throws Exception {
+    public Store loadForSelect(String lang) throws Exception {
         Store st = mdb.createStore("Meter.select");
-        return mdb.loadQuery(st, "select id, name, meterStruct, measure from Meter where 0=0");
+        mdb.loadQuery(st, "select id, meterStruct, measure from Meter where 0=0");
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st,"Meter", lang);
     }
 
 

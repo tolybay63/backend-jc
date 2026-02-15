@@ -40,9 +40,9 @@ public class MeterDao extends BaseModelDao {
         return u.newRec(params);
     }
 
-    public Store loadForSelect() throws Exception {
+    public Store loadForSelect(String lang) throws Exception {
         MeterMdbUtils u = new MeterMdbUtils(getMdb(), "Meter");
-        return u.loadForSelect();
+        return u.loadForSelect(lang);
     }
 
 }
