@@ -177,7 +177,7 @@ public class RelTypMemberMdbUtils {
         mdb.loadQuery(st,"""
           select t.*, v.id as verId, v.dbeg, v.dend
           from RelTyp t
-            left join RelTypVer tv on t.id=tv.ownerVer and tv.lastVer=1
+            left join RelTypVer v on t.id=v.ownerVer and v.lastVer=1
           where 0=0
         """);
         //
