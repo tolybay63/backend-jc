@@ -305,12 +305,13 @@ public class PropMdbUtils extends EntityMdbUtils {
         }
 
         //----------------------------------------------------
-        Store st = mdb.createStore("Prop");
+        return loadRec(id, UtCnv.toString(rec.get("lang")));
+
+/*        Store st = mdb.createStore("Prop");
         mdb.loadQuery(st, """
                     select * from Prop t where t.id=:id
                 """, Map.of("id", id));
-
-        return st;
+        return st;*/
     }
 
     protected void validateUpd(Map<String, Object> rec) throws Exception {
@@ -546,14 +547,6 @@ public class PropMdbUtils extends EntityMdbUtils {
         updateEntity(rec);
         // Загрузка записи
         return loadRec(id, UtCnv.toString(rec.get("lang")));
-/*
-        Store st = mdb.createStore("Prop");
-        mdb.loadQuery(st, """
-                    select * from Prop t where t.id=:id
-                """, Map.of("id", id));
-        //mdb.resolveDicts(st);
-        return st;
-*/
     }
 
     protected void deleteFromCharGr(Map<String, Object> rec) throws Exception {
@@ -823,17 +816,17 @@ public class PropMdbUtils extends EntityMdbUtils {
         return mdb.loadQuery(st, "select * from PropPeriodType where prop=:p", Map.of("p", prop));
     }
 
-    public Store loadPropPeriodTypeForUpd(long prop) throws Exception {
+    public Store loadPropPeriodTypeForUpd(long prop, String lang) throws Exception {
         Store st = mdb.createStore("PropPeriodType.full");
         String sql = """
                     select p.id, p.text as name, t.id as idInTable,
                         case when t.periodType is null then false else true end as checked
-                    from FD_PeriodType p
+                    from FD_DictsLang p
                         left join PropPeriodType t on t.prop=:p and p.id=t.periodType
-                    where p.vis=1
-                    order by p.ord
+                    where p.vis=1 and p.nameDict='fd_periodtype' and p.lang=:lang
+                    order by p.id
                 """;
-        return mdb.loadQuery(st, sql, Map.of("p", prop));
+        return mdb.loadQuery(st, sql, Map.of("p", prop,  "lang", lang));
     }
 
     private Store sqlLoad(String sql, String domain, String model) throws Exception {

@@ -104,9 +104,9 @@ public class PropDao extends BaseModelDao {
         return u.loadPropPeriodType(prop);
     }
 
-    public Store loadPropPeriodTypeForUpd(long prop) throws Exception {
+    public Store loadPropPeriodTypeForUpd(long prop, String lang) throws Exception {
         PropMdbUtils u = new PropMdbUtils(getMdb(), "Prop");
-        return u.loadPropPeriodTypeForUpd(prop);
+        return u.loadPropPeriodTypeForUpd(prop, lang);
     }
 
     public String savePropPeriodType(long prop, String metaModel, List<Map<String, Object>> params) throws Exception {
