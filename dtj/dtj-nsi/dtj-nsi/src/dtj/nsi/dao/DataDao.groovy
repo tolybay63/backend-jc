@@ -909,7 +909,7 @@ class DataDao extends BaseMdbUtils {
             pms.put("own", own)
 
             //1 Prop_TypEquipment
-            if (pms.containsKey("idEquipment"))
+            if (pms.containsKey("idTypEquipment"))
                 if (pms.getLong("fvTypEquipment") == 0)
                     throw new XError("[TypEquipment] не указан")
                 else
