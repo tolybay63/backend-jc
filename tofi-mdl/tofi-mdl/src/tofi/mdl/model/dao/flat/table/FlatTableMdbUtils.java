@@ -21,10 +21,11 @@ public class FlatTableMdbUtils extends EntityMdbUtils {
     }
 
     public Store loadTables(Map<String, Object> params) throws Exception {
-        Store st = mdb.createStore("FlatTable");
+        String lang = UtCnv.toString(params.get("lang"));
+        Store st = mdb.createStore("FlatTable.lang");
         mdb.loadQuery(st, "select * from FlatTable where 0=0");
-        //mdb.outTable(st);
-        return st;
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st, "FlatTable", lang);
     }
 
     public Store load(long id, String lang) throws Exception {

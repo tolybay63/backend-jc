@@ -225,80 +225,65 @@ public class TypMdbUtils extends EntityMdbUtils {
 
     //TypCharGr
 
-    public Store loadTypCharGr() throws Exception {
-        Store st = mdb.createStore("TypCharGr.full");
+    public Store loadTypCharGr(long id, String lang) throws Exception {
+        String whe = " 0=0 order by tcg.ord";
+        if (id > 0)
+            whe = " tcg.id=" + id + " order by tcg.ord";
+
+        Store st = mdb.createStore("TypCharGr.lang");
         mdb.loadQuery(st, """
-                    select tcg.*, tv."name" as typName, fv."name" as fvName, t1.dbs, t1.dbNames
+                    select tcg.*, ltv."name" as typName, lf."name" as fvName, t1.dbs, t1.dbNames
                     from typchargr tcg
                     inner join (
                         select t.typ, t.factorval,
                             string_agg (distinct  cast(t.db as varchar(4000)), ',' ) as dbs,
                             string_agg (distinct  cast(t.name as varchar(4000)), ', ' ) as dbNames
                         from (
-                            select distinct c.typ, cfv.factorval, c."database" as db, d.name
+                            select distinct c.typ, cfv.factorval, c."database" as db, ld.name
                             from cls c
                             inner join clsfactorval cfv on c.id=cfv.cls
-                            left join "database" d on c.database=d.id
+                            left join TableLang ld on ld.nameTable='DataBase' and ld.idTable=c.database and ld.lang=:lang
                             where 0=0
                             order by c.typ, cfv.factorval
                         ) t
                         group by t.typ, t.factorval
                     ) t1 on tcg.typ=t1.typ and tcg.factorval=t1.factorval
                     left join TypVer tv on tv.ownerver=tcg.typ and tv.lastVer=1
+                    left join TableLang ltv on ltv.nameTable='TypVer' and ltv.idTable=tv.id and ltv.lang=:lang
                     left join Factor fv on fv.id=tcg.factorval
-                    order by tcg.ord
-                """);
+                    left join TableLang lf on lf.nameTable='Factor' and lf.idTable=fv.id and lf.lang=:lang
+                    where
+                """+whe, Map.of("lang", lang));
         return st;
     }
 
-    protected Store loadTypCharGrRec(long id) throws Exception {
-        Store st = mdb.createStore("TypCharGr.full");
-        mdb.loadQuery(st, """
-                    select tcg.*, tv."name" as typName, fv."name" as fvName, t1.dbs, t1.dbNames
-                    from typchargr tcg
-                    inner join (
-                        select t.typ, t.factorval,
-                            string_agg (distinct  cast(t.db as varchar(4000)), ',' ) as dbs,
-                            string_agg (distinct  cast(t.name as varchar(4000)), ', ' ) as dbNames
-                        from (
-                            select distinct c.typ, cfv.factorval, c."database" as db, d.name
-                            from cls c
-                            inner join clsfactorval cfv on c.id=cfv.cls
-                            left join "database" d on c.database=d.id
-                            where 0=0
-                            order by c.typ, cfv.factorval
-                        ) t
-                        group by t.typ, t.factorval
-                    ) t1 on tcg.typ=t1.typ and tcg.factorval=t1.factorval
-                    left join TypVer tv on tv.ownerver=tcg.typ and tv.lastVer=1
-                    left join Factor fv on fv.id=tcg.factorval
-                    where tcg.id=:id
-                """, Map.of("id", id));
-        return st;
+    protected Store loadTypCharGrRec(long id, String lang) throws Exception {
+        return loadTypCharGr(id, lang);
     }
 
-    public StoreRecord loadTypCharGrInfo(long id) throws Exception {
+    public StoreRecord loadTypCharGrInfo(long id, String lang) throws Exception {
         StoreRecord st = mdb.createStoreRecord("TypCharGr.info");
         mdb.loadQueryRecord(st, """
-                    select tcg.id, tcg.cod, tcg.name as tcgName, t.modelName, t.dbs, t.dbTitle
-                    from typchargr tcg
-                    left join (
-                    select t.typ, t.factorval,
-                        string_agg (distinct  cast(t.modelName as varchar(2000)), ', ' ) as modelName,
-                        string_agg (distinct  cast(t.db as varchar(2000)), ',' ) as dbs,
-                        string_agg (distinct  cast(t.name as varchar(2000)), ', ' ) as dbTitle
-                    from (
-                    select distinct c.typ, cfv.factorval, c."database" as db, d.name, d.modelName
+            select tcg.id, tcg.cod, tcg.name as tcgName, t.modelName, t.dbs, t.dbTitle
+            from typchargr tcg
+            left join (
+                select t.typ, t.factorval,
+                    string_agg (distinct  cast(t.modelName as varchar(2000)), ', ' ) as modelName,
+                    string_agg (distinct  cast(t.db as varchar(2000)), ',' ) as dbs,
+                    string_agg (distinct  cast(t.name as varchar(2000)), ', ' ) as dbTitle
+                from (
+                    select distinct c.typ, cfv.factorval, c."database" as db, ld.name, d.modelName
                     from cls c
                     inner join clsfactorval cfv on c.id=cfv.cls
                     left join "database" d on c.database=d.id
+                    left join TableLang ld on ld.nameTable='DataBase' and ld.idTable=d.id and ld.lang=:lang
                     where 0=0
                     order by c.typ, cfv.factorval
                     ) t
                     group by t.typ, t.factorval
-                    ) t on tcg.typ=t.typ and tcg.factorval=t.factorval
-                    where tcg.id=:id
-                """, Map.of("id", id));
+            ) t on tcg.typ=t.typ and tcg.factorval=t.factorval
+            where tcg.id=:id
+        """, Map.of("id", id));
         return st;
     }
 
@@ -310,7 +295,7 @@ public class TypMdbUtils extends EntityMdbUtils {
     }*/
 
 
-    public Store loadTypClustFactorVal(long typ, String mode) throws Exception {
+    public Store loadTypClustFactorVal(long typ, String mode, String lang) throws Exception {
         Store st = mdb.createStore("Factor.cfv");
         String sql = """
                     with f as (
@@ -336,20 +321,21 @@ public class TypMdbUtils extends EntityMdbUtils {
             else
                 r.set("key", r.getLong("id"));
         });
-
-        return st;
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st,"Factor", lang);
     }
 
     public Store insertTypCharGr(Map<String, Object> rec) throws Exception {
         long id = insertEntity(rec);
         //
-        return loadTypCharGrRec(id);
+        return loadTypCharGrRec(id, UtCnv.toString(rec.get("lang")));
     }
 
     public Store updateTypCharGr(Map<String, Object> rec) throws Exception {
         updateEntity(rec);
         //
-        return loadTypCharGrRec(UtCnv.toLong(rec.get("id")));
+        return loadTypCharGrRec(UtCnv.toLong(rec.get("id")), UtCnv.toString(rec.get("lang")));
     }
 
     public void deleteTypCharGr(Map<String, Object> rec) throws Exception {
@@ -365,18 +351,21 @@ public class TypMdbUtils extends EntityMdbUtils {
         String lang = UtCnv.toString(params.get("lang"));
         Store st = mdb.createStore("TypCharGrProp.prop");
         String sql = """
-                    select
-                        tcp.id as typCharGrProp, typCharGrProp_measure, pm.name as p_measure, propVal_measure,
-                        m.name as pv_measure, storageType, 'p_'||p.id as id,
-                        case when p.parent is null then 'g_'||p.propGr else 'p_'||p.parent end as parent,
-                        p.id as prop, p.propgr, p.propType, p.cod, p.name, flatTable
-                    from typchargrprop tcp
-                        left join prop p on p.id=tcp.prop
-                        left join propVal pv on pv.id=tcp.propval_measure
-                        left join Measure m on m.id=pv.measure
-                        left join prop pm on pm.id=tcp.typchargrprop_measure
-                    where tcp.typchargr=:tcg and tcp.prop is not null
-                """;
+            select
+                tcp.id as typCharGrProp, typCharGrProp_measure, lpm.name as p_measure, propVal_measure,
+                lm.name as pv_measure, storageType, 'p_'||p.id as id,
+                case when p.parent is null then 'g_'||p.propGr else 'p_'||p.parent end as parent,
+                p.id as prop, p.propgr, p.propType, p.cod, lp.name, flatTable
+            from typchargrprop tcp
+                left join prop p on p.id=tcp.prop
+                left join TableLang lp on lp.nameTable='Prop' and lp.idTable=p.id and lp.lang=:lang
+                left join propVal pv on pv.id=tcp.propval_measure
+                left join Measure m on m.id=pv.measure
+                left join TableLang lm on lm.nameTable='Measure' and lm.idTable=m.id and lm.lang=:lang
+                left join prop pm on pm.id=tcp.typchargrprop_measure
+                left join TableLang lpm on lpm.nameTable='Prop' and lpm.idTable=pm.id and lpm.lang=:lang
+            where tcp.typchargr=:tcg and tcp.prop is not null
+        """;
         if (typ > 0) {
             sql = """
                         with tcg as (
@@ -396,7 +385,7 @@ public class TypMdbUtils extends EntityMdbUtils {
                 sql = sql + " and tcp.flatTable is null";
 
         }
-        mdb.loadQuery(st, sql, Map.of("tcg", typCharGr, "typ", typ));
+        mdb.loadQuery(st, sql, Map.of("tcg", typCharGr, "typ", typ, "lang", lang));
 
         //mdb.outTable(st);
 
@@ -438,27 +427,34 @@ public class TypMdbUtils extends EntityMdbUtils {
         if (whe.equals("()")) whe = "(0)";
         stGr = mdb.createStore("TypCharGrProp.prop");
         sqlGr = """
-                    select 'g_'||id as id, 'g_'||parent as parent, id as propGr, cod, name
+                    select 'g_'||id as id, 'g_'||parent as parent, id as propGr, cod
                     from PropGr where id in
                 """ + whe;
 
         mdb.loadQuery(stGr, sqlGr);
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        stGr = ut.getTranslatedStore(stGr,"PropGr", lang);
+        //
         stGr.add(st);
         //mdb.outTable(stGr);
 
         Store stGrAll = mdb.createStore("TypCharGrProp.prop");
         String sqlGrAll = """
-                    select 'g_'||id as id, 'g_'||parent as parent, id as propGr,
-                    null as prop, null as propType, cod, name, false as checked
-                    from PropGr where 0=0
-                    union all
-                    select 'p_'||p.id as id,
-                    case when p.parent is null then 'g_'||p.propGr else 'p_'||p.parent end as parent, p.propgr,
-                    p.id as prop, p.propType, p.cod, p.name, false as checked
-                    from Prop p
-                    where 0=0
-                """;
-        mdb.loadQuery(stGrAll, sqlGrAll);
+            select 'g_'||p.id as id, 'g_'||parent as parent, p.id as propGr,
+                null as prop, null as propType, cod, lp.name, false as checked
+            from PropGr p
+                left join TableLang lp on lp.nameTable='PropGr' and lp.idTable=p.id and lp.lang=:lang
+            where 0=0
+            union all
+            select 'p_'||p.id as id,
+                case when p.parent is null then 'g_'||p.propGr else 'p_'||p.parent end as parent, p.propgr,
+                p.id as prop, p.propType, p.cod, lp.name, false as checked
+            from Prop p
+                left join TableLang lp on lp.nameTable='Prop' and lp.idTable=p.id and lp.lang=:lang
+            where 0=0
+        """;
+        mdb.loadQuery(stGrAll, sqlGrAll, Map.of("lang", lang));
         StoreIndex indStAll = stGrAll.getIndex("id");
         //mdb.outTable(stGrAll);
 

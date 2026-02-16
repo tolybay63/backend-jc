@@ -238,14 +238,14 @@ public class TypDao extends BaseModelDao {
     }
 
     //TypCharGr
-    public Store loadTypCharGr() throws Exception {
+    public Store loadTypCharGr(long id, String lang) throws Exception {
         TypMdbUtils u = new TypMdbUtils(getMdb(), "Typ");
-        return u.loadTypCharGr();
+        return u.loadTypCharGr(id, lang);
     }
 
-    public StoreRecord loadTypCharGrInfo(long id) throws Exception {
+    public StoreRecord loadTypCharGrInfo(long id, String lang) throws Exception {
         TypMdbUtils u = new TypMdbUtils(getMdb(), "Typ");
-        return u.loadTypCharGrInfo(id);
+        return u.loadTypCharGrInfo(id, lang);
     }
 
 
@@ -256,9 +256,9 @@ public class TypDao extends BaseModelDao {
     }*/
 
 
-    public Store loadTypClustFactorVal(long typ, String mode) throws Exception {
+    public Store loadTypClustFactorVal(long typ, String mode, String lang) throws Exception {
         TypMdbUtils u = new TypMdbUtils(getMdb(), "Typ");
-        return u.loadTypClustFactorVal(typ, mode);
+        return u.loadTypClustFactorVal(typ, mode, lang);
     }
 
     public Store insertTypCharGr(Map<String, Object> rec) throws Exception {

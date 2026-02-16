@@ -26,7 +26,7 @@
         <field name="name" parent="f.name"/>
     </domain>
 
-    <domain name="Factor.cfv" parent="Factor">
+    <domain name="Factor.cfv" parent="Factor.lang">
         <field name="key" parent="long"/>
     </domain>
 

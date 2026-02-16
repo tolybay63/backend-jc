@@ -16,17 +16,20 @@
         <field name="ord" parent="f.ord"/>
     </domain>
 
-    <domain name="TypCharGr.full" parent="TypCharGr">
+    <domain name="TypCharGr.lang" parent="TypCharGr">
         <field name="typName" parent="string"/>
         <field name="fvName" parent="string"/>
         <field name="dbs" parent="string"/>
         <field name="dbNames" parent="string"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
     </domain>
 
     <domain name="TypCharGr.info" parent="base">
         <field name="id" parent="long"/>
         <field name="cod" parent="TypCharGr/cod"/>
-        <field name="tcgName" parent="TypCharGr/name"/>
+        <field name="tcgName" parent="string"/>
         <field name="dbs" parent="string"/>
         <field name="modelName" parent="string"/>
         <field name="dbTitle" parent="string"/>
