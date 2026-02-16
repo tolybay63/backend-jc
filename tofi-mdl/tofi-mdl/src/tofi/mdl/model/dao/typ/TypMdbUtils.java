@@ -22,7 +22,7 @@ public class TypMdbUtils extends EntityMdbUtils {
     Mdb mdb;
     String tableName;
 
-    public TypMdbUtils(Mdb mdb, String tableName) throws Exception {
+    public TypMdbUtils(Mdb mdb, String tableName) {
         super(mdb, tableName);
         this.mdb = mdb;
         this.tableName = tableName;
@@ -32,9 +32,8 @@ public class TypMdbUtils extends EntityMdbUtils {
     /**
      * Загрузка Typ с пагинацией
      *
-     * @param params
-     * @return
-     * @throws Exception
+     * @param params Map
+     * @return Map
      */
     public Map<String, Object> loadTypPaginate(Map<String, Object> params) throws Exception {
         String lang = UtCnv.toString(params.get("lang"));
@@ -92,8 +91,7 @@ public class TypMdbUtils extends EntityMdbUtils {
     /**
      * Delete Type
      *
-     * @param
-     * @throws Exception
+     * @param rec Map
      */
 
     public void delete(Map<String, Object> rec) throws Exception {
@@ -103,9 +101,8 @@ public class TypMdbUtils extends EntityMdbUtils {
     /**
      * Update Type
      *
-     * @param params
-     * @return
-     * @throws Exception
+     * @param params Map
+     * @return Store
      */
     public Store update(Map<String, Object> params) throws Exception {
         long id = UtCnv.toLong(params.get("id"));
@@ -261,9 +258,9 @@ public class TypMdbUtils extends EntityMdbUtils {
         return loadTypCharGr(id, lang);
     }
 
-    public StoreRecord loadTypCharGrInfo(long id, String lang) throws Exception {
-        StoreRecord st = mdb.createStoreRecord("TypCharGr.info");
-        mdb.loadQueryRecord(st, """
+    public Store loadTypCharGrInfo(long id, String lang) throws Exception {
+        Store st = mdb.createStore("TypCharGr.info");
+        mdb.loadQuery(st, """
             select tcg.id, tcg.cod, tcg.name as tcgName, t.modelName, t.dbs, t.dbTitle
             from typchargr tcg
             left join (
@@ -283,7 +280,7 @@ public class TypMdbUtils extends EntityMdbUtils {
                     group by t.typ, t.factorval
             ) t on tcg.typ=t.typ and tcg.factorval=t.factorval
             where tcg.id=:id
-        """, Map.of("id", id));
+        """, Map.of("id", id, "lang", lang));
         return st;
     }
 
@@ -570,24 +567,27 @@ public class TypMdbUtils extends EntityMdbUtils {
         return stGr;
     }
 
-    public Store loadTypCharGrPropForUpd(long typCharGr) throws Exception {
+    public Store loadTypCharGrPropForUpd(long typCharGr, String lang) throws Exception {
         //old values
-        Store stOld = loadTypCharGrProp(Map.of("typCharGr", typCharGr));
+        Store stOld = loadTypCharGrProp(Map.of("typCharGr", typCharGr, "lang", lang));
         StoreIndex indStOld = stOld.getIndex("id");
 
         Store st = mdb.createStore("TypCharGrProp.prop.checked");
         String sql = """
-                    select 'g_'||id as id, 'g_'||parent as parent, id as propGr,
-                    null as prop, null as propType, cod, name, false as checked
-                    from PropGr where 0=0
-                    union all
-                    select 'p_'||p.id as id,
-                    case when p.parent is null then 'g_'||p.propGr else 'p_'||p.parent end as parent, p.propgr,
-                    p.id as prop, p.propType, p.cod, p.name, false as checked
-                    from Prop p
-                    where 0=0
-                """;
-        mdb.loadQuery(st, sql);
+            select 'g_'||p.id as id, 'g_'||parent as parent, p.id as propGr,
+            null as prop, null as propType, cod, lp.name, false as checked
+            from PropGr p
+                left join TableLang lp on lp.nameTable='PropGr' and lp.idTable=p.id and lp.lang=:lang
+            where 0=0
+            union all
+            select 'p_'||p.id as id,
+            case when p.parent is null then 'g_'||p.propGr else 'p_'||p.parent end as parent, p.propgr,
+            p.id as prop, p.propType, p.cod, lp.name, false as checked
+            from Prop p
+                left join TableLang lp on lp.nameTable='Prop' and lp.idTable=p.id and lp.lang=:lang
+            where 0=0
+        """;
+        mdb.loadQuery(st, sql, Map.of("lang", lang));
         List<String> lst = new ArrayList<>();
         for (StoreRecord r : st) {
             if (r.getLong("propType") == FD_PropType_consts.complex)
