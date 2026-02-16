@@ -12,14 +12,14 @@ public class FlatTableDao extends BaseModelDao {
         return ut.loadTables(params);
     }
 
-    public Store load() throws Exception {
+    public Store load(long id, String lang) throws Exception {
         FlatTableMdbUtils ut = new FlatTableMdbUtils(getApp(), getMdb(), "FlatTable");
-        return ut.load();
+        return ut.load(id, lang);
     }
 
-    public Store loadRec(long id) throws Exception {
+    public Store loadRec(long id, String lang) throws Exception {
         FlatTableMdbUtils ut = new FlatTableMdbUtils(getApp(), getMdb(), "FlatTable");
-        return ut.loadRec(id);
+        return ut.load(id, lang);
     }
 
     public Store insertFlatTable(Map<String, Object> rec) throws Exception {

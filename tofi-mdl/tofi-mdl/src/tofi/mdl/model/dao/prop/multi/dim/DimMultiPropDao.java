@@ -62,9 +62,9 @@ public class DimMultiPropDao extends BaseModelDao {
 
     ///*****************************************************************************
 
-    public Store loadClsForSelect() throws Exception {
+    public Store loadClsForSelect(String lang) throws Exception {
         DimMultiPropMdbUtils u = new DimMultiPropMdbUtils(getMdb(), "DimMultiPropItem");
-        return u.loadClsForSelect();
+        return u.loadClsForSelect(lang);
     }
 
     public Store loadObjForSelect(long cls) throws Exception {
@@ -72,9 +72,9 @@ public class DimMultiPropDao extends BaseModelDao {
         return u.loadObjForSelect(cls);
     }
 
-    public Store loadRelClsForSelect() throws Exception {
+    public Store loadRelClsForSelect(String lang) throws Exception {
         DimMultiPropMdbUtils u = new DimMultiPropMdbUtils(getMdb(), "DimMultiPropItem");
-        return u.loadRelClsForSelect();
+        return u.loadRelClsForSelect(lang);
     }
 
     public Store loadRelObjForSelect(long relCls) throws Exception {

@@ -24,6 +24,11 @@
 
     </domain>
 
+    <domain name="CubeS.lang" parent="CubeS">
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
+    </domain>
 
     <domain name="IdName" parent="base">
         <field name="id" parent="long"/>

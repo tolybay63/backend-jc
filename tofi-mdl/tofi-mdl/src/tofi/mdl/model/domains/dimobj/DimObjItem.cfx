@@ -24,7 +24,7 @@
 
     </domain>
 
-    <domain name="DimObjItem.full" parent="DimObjItem">
+    <domain name="DimObjItem.lang" parent="DimObjItem">
         <field name="name" parent="string"/>
         <field name="nameProp" parent="string"/>
     </domain>

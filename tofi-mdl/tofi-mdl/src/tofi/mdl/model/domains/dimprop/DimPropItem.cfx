@@ -14,18 +14,22 @@
         -->
 
         <field name="dimProp" parent="DimProp/ref"/>
-        <field name="name" parent="f.name"/>
-        <field name="fullName" parent="f.fullName"/>
         <field name="parent" parent="DimPropItem/ref"/>
         <field name="prop" parent="Prop/ref"/>
         <field name="dimMultiPropItem" parent="DimMultiPropItem/ref"/>
         <field name="multiProp" parent="MultiProp/ref"/>
-        <field name="cmt" parent="f.cmt"/>
         <field name="ord" parent="f.ord"/>
     </domain>
 
+    <domain name="DimPropItem.lang" parent="DimPropItem">
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
+    </domain>
 
-    <domain name="DimPropItem.prop" parent="DimPropItem">
+
+
+    <domain name="DimPropItem.prop" parent="DimPropItem.lang">
         <field name="propType" parent="long"/>
     </domain>
 

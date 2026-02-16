@@ -15,7 +15,7 @@
 
     </domain>
 
-    <domain name="DimObjItemProp.full" parent="DimObjItemProp">
+    <domain name="DimObjItemProp.lang" parent="DimObjItemProp">
         <field name="name" parent="string"/>
         <field name="propType" parent="long"/>
         <field name="nameStatus" parent="string"/>
@@ -27,7 +27,9 @@
 
     <domain name="DimObjItemProp.source" parent="DimObjItemProp">
         <field name="idFlatTable" parent="long"/>
-        <field name="nameFlatTable" parent="string"/>
+        <field name="nameFlatTable" parent="string">
+            <!-- Только на английском -->
+        </field>
         <field name="statusFactor" parent="long"/>
         <field name="providerTyp" parent="long"/>
         <field name="defaultStatus" parent="long"/>

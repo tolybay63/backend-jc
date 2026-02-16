@@ -273,16 +273,16 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
     }
     ////
 
-    public Store loadClsForSelect() throws Exception {
+    public Store loadClsForSelect(String lang) throws Exception {
         return mdb.loadQuery("""
-                    select 't_'||t.id as id, null as parent, v.name, v.fullname, -t.id as cls, null as ent
-                    from Typ t, TypVer v
-                    where t.id=v.ownerVer and v.lastVer=1
-                    union all
-                    select 'c_'||c.id as id, 't_'||c.typ as parent, v.name, v.fullname, c.id as cls, 'cls' as ent
-                    from Cls c, ClsVer v
-                    where c.id=v.ownerVer and v.lastVer=1
-                """);
+            select 't_'||t.id as id, null as parent, l.name, l.fullname, -t.id as cls, null as ent
+            from Typ t, TypVer v, TableLang l
+            where t.id=v.ownerVer and v.lastVer=1 and l.nameTable='TypVer' and l.idTable=v.id and l.lang=:lang
+            union all
+            select 'c_'||c.id as id, 't_'||c.typ as parent, l.name, l.fullname, c.id as cls, 'cls' as ent
+            from Cls c, ClsVer v, TableLang l
+            where c.id=v.ownerVer and v.lastVer=1 and l.nameTable='ClsVer' and l.idTable=v.id and l.lang=:lang
+        """, Map.of("lang", lang));
 
     }
 
@@ -306,16 +306,16 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
 
     }
 
-    public Store loadRelClsForSelect() throws Exception {
+    public Store loadRelClsForSelect(String lang) throws Exception {
         return mdb.loadQuery("""
-                    select 't_'||t.id as id, null as parent, v.name, -t.id as relcls, null as ent
-                    from RelTyp t, RelTypVer v
-                    where t.id=v.ownerVer and v.lastVer=1
-                    union all
-                    select 'c_'||c.id as id, 't_'||c.reltyp as parent, v.name, c.id as relcls, 'relcls' as ent
-                    from RelCls c, RelClsVer v
-                    where c.id=v.ownerVer and v.lastVer=1
-                """);
+            select 't_'||t.id as id, null as parent, l.name, -t.id as relcls, null as ent
+            from RelTyp t, RelTypVer v, TableLang l
+            where t.id=v.ownerVer and v.lastVer=1 and l.nameTable='RelTypVer' and l.idTable=v.id and l.lang=:lang
+            union all
+            select 'c_'||c.id as id, 't_'||c.reltyp as parent, l.name, c.id as relcls, 'relcls' as ent
+            from RelCls c, RelClsVer v, TableLang l
+            where c.id=v.ownerVer and v.lastVer=1 and l.nameTable='RelClsVer' and l.idTable=v.id and l.lang=:lang
+        """, Map.of("lang", lang));
     }
 
 

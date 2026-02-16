@@ -15,15 +15,15 @@
         <field name="relCls" parent="RelCls/ref" req="true"/>
         <field name="cls" parent="Cls/ref"/>
         <field name="relCls" parent="RelCls/ref"/>
-        <field name="name" parent="f.name"/>
-        <field name="fullName" parent="f.fullName"/>
-        <field name="cmt" parent="f.cmt"/>
     </domain>
     <!--=========================================================-->
-    <domain name="FlatTable.full" parent="FlatTable">
+    <domain name="FlatTable.lang" parent="FlatTable">
         <field name="db" parent="DataBase/ref"/>
         <field name="nameDb" parent="f.name"/>
         <field name="nameCls" parent="f.name"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
     </domain>
 
 

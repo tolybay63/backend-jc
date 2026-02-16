@@ -7,10 +7,12 @@
         <field name="accessLevel" parent="FD_AccessLevel/ref" req="true"/>
         <field name="cod" parent="f.cod"/>
         <field name="parent" parent="DimObjGr/ref"/>
+    </domain>
+
+    <domain name="DimObjGr.lang" parent="DimObjGr">
         <field name="name" parent="f.name"/>
         <field name="fullName" parent="f.fullName"/>
         <field name="cmt" parent="f.cmt"/>
     </domain>
-
 
 </root>

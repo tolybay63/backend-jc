@@ -10,14 +10,14 @@
         <field name="dimMultiProp" parent="DimMultiProp/ref"/>
         <field name="cod" parent="f.cod"/>
         <field name="accessLevel" parent="FD_AccessLevel/ref" req="true"/>
-        <field name="name" parent="f.name"/>
-        <field name="fullName" parent="f.fullName"/>
-        <field name="cmt" parent="f.cmt"/>
         <field name="ord" parent="f.ord"/>
 
     </domain>
 
-    <domain name="DimProp.full" parent="DimProp">
+    <domain name="DimProp.lang" parent="DimProp">
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
         <field name="dimMultiPropType" parent="long"/>
     </domain>
 

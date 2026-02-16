@@ -13,28 +13,39 @@ import tofi.mdl.consts.FD_CubeSDimType_consts
 import tofi.mdl.consts.FD_DimObjItemType_consts
 import tofi.mdl.consts.FD_DimPropType_consts
 import tofi.mdl.model.utils.EntityMdbUtils
+import tofi.mdl.model.utils.UtEntityTranslate
 
 class CubesDao extends BaseMdbUtils {
 
     @DaoMethod
-    Store loadCubes(long cubesGr, long cubes) throws Exception {
+    Store loadCubes(long cubesGr, long cubes, String lang) {
         Store st = mdb.createStore("CubeS")
         String whe = "cubesGr=${cubesGr}"
         if (cubes > 0)
             whe = "id=${cubes}"
-        return mdb.loadQuery(st, """
-            select *
-            from cubes
-            where ${whe}
-            order by ord
+        mdb.loadQuery(st, """
+            select * from cubes where ${whe} order by ord
         """)
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st, "CubeS", lang);
     }
 
+    protected Store loadRec(long id, String lang) {
+        Store st = mdb.createStore("CubeS.lang")
+        mdb.loadQuery(st, "select * from cubes where id=${id}")
+        //
+        UtEntityTranslate ut = new UtEntityTranslate(mdb);
+        return ut.getTranslatedStore(st, "CubeS", lang);
+    }
+
+
     @DaoMethod
-    Store insertCube(Map<String, Object> params) throws Exception {
+    Store insertCube(Map<String, Object> params) {
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "CubeS")
         long id = eu.insertEntity(params)
-        return loadCubes(0, id)
+        //
+        return loadRec(id, UtCnv.toString(params.get("lang")))
     }
 
     @DaoMethod
@@ -42,7 +53,7 @@ class CubesDao extends BaseMdbUtils {
         long id = UtCnv.toLong(params.get("id"))
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "CubeS")
         eu.updateEntity(params)
-        return loadCubes(0, id)
+        return loadCubes(0, id, "")
     }
 
     @DaoMethod

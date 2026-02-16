@@ -8,11 +8,13 @@
         <field name="accessLevel" parent="FD_AccessLevel/ref"/>
         <field name="cod" parent="f.cod"/>
         <field name="parent" parent="PropGr/ref"/>
-        <field name="name" parent="f.name"/>
-        <field name="fullName" parent="f.fullName"/>
-        <field name="cmt" parent="f.cmt"/>
 
     </domain>
 
+    <domain name="CubeSGr.lang" parent="CubeSGr">
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
+    </domain>
 
 </root>
