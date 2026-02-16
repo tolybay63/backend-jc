@@ -83,6 +83,8 @@ class DataDao extends BaseMdbUtils {
             throw new XError("Не указан [objWork]")
         if (pms.getLong("objTask") == 0)
             throw new XError("Не указан [objTask]")
+        if (pms.getLong("Value") == 0)
+            throw new XError("Не указан [Value]")
         //
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelCls", "RC_TaskWork", "")
         long relCls = map.get("RC_TaskWork")
@@ -697,7 +699,7 @@ class DataDao extends BaseMdbUtils {
             pms.put("own", own)
 
             //1 Prop_TypTool
-            if (pms.containsKey("idTool"))
+            if (pms.containsKey("idTypTool"))
                 if (pms.getLong("fvTypTool") == 0)
                     throw new XError("[TypTool] не указан")
                 else
