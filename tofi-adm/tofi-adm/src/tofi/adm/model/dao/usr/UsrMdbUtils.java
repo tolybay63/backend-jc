@@ -156,7 +156,6 @@ public class UsrMdbUtils extends BaseMdbUtils {
         long id = getMdb().insertRec("AuthUser", record, true);
         st = getMdb().createStore("AuthUser");
         getMdb().loadQuery(st, "select * from AuthUser where id=:id", Map.of("id", id));
-        getMdb().resolveDicts(st);
         return st;
     }
 
