@@ -127,4 +127,22 @@ class ApiAdmImpl extends BaseMdbUtils implements ApiAdm {
         }
     }
 
+    @Override
+    void updateEmailAndPhone(Map<String, Object> rec) {
+        Store st = mdb.loadQuery("""
+            select * from AuthUser where login='${rec.get("login")}' 
+        """)
+        if (st.size() == 0)
+            throw new XError("Не найден пользователь с логиом [${rec.get('login')}]")
+
+        String set = ""
+        if (rec.containsKey("phone"))
+            set = """, phone='${rec.get("phone")}'"""
+
+
+        mdb.execQuery("""
+            update AuthUser set email='${rec.get("email")}'${set} where login='${rec.get('login')}'
+        """)
+    }
+
 }

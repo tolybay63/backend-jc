@@ -71,6 +71,19 @@ class Obj_Test extends Apx_Test {
         savePersonnal("upd", map)
     }
 
+    // For update email and phone
+    @Test
+    void updPersonnalUpd() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadPersonnal(1003)
+        Map<String, Object> map = st.get(0).getValues()
+        map.put("UserEmail", "kanat@gmail.com")
+        map.put("UserPhone", "1234567890")
+        //...
+
+        savePersonnal("upd", map)
+    }
+
     private void savePersonnal(String mode, Map<String, Object> params) {
         DataDao dao = mdb.createDao(DataDao.class)
         Store st = dao.savePersonnal(mode, params)

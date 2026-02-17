@@ -24,4 +24,7 @@ public interface ApiAdm {
     void deleteAuthUser(long id);
 
     Store loadSql(String sql, String domain);
+
+    void updateEmailAndPhone(Map<String, Object> rec);
+
 }

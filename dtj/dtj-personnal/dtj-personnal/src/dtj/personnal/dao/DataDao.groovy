@@ -396,10 +396,28 @@ class DataDao extends BaseMdbUtils {
             }
             //5 Prop_UserDateBirth
             updateProperties("Prop_UserDateBirth", params)
-            //6 Prop_UserEmail
-            updateProperties("Prop_UserEmail", params)
-            //7 Prop_UserPhone
-            updateProperties("Prop_UserPhone", params)
+
+            if (params.containsKey("login")) {
+                Map<String, Object> map = new HashMap<>()
+                //6 Prop_UserEmail
+                if (params.containsKey("UserEmail") && !UtCnv.toString(params.get("UserEmail")).isEmpty()) {
+                    updateProperties("Prop_UserEmail", params)
+                    map.put("email", params.get("UserEmail"))
+                }
+                if (params.containsKey("UserPhone") && !UtCnv.toString(params.get("UserPhone")).isEmpty()) {
+                    //7 Prop_UserPhone
+                    if (UtCnv.toString(params.get("UserPhone")).length() != 10)
+                        throw new XError("Количество цифр в номере телефона должно быть десять")
+
+                    updateProperties("Prop_UserPhone", params)
+                    map.put("phone", params.get("UserPhone"))
+                }
+                if (map.size() > 0) {
+                    map.put("login", params.get("login"))
+                    updateEmailAndPhone(map)
+                }
+            }
+
             //8 Prop_DateEmployment
             if (UtCnv.toLong(params.get("idDateEmployment")) > 0)
                 updateProperties("Prop_DateEmployment", params)
@@ -572,6 +590,10 @@ class DataDao extends BaseMdbUtils {
             throw new XError("[Location] not specified")
         if (UtCnv.toLong(params.containsKey("objUser")) == 0)
             throw new XError("[User] not specified")
+    }
+
+    private void updateEmailAndPhone(Map<String, Object> params) {
+        apiAdm().get(ApiAdm).updateEmailAndPhone(params)
     }
 
     private long regUser(Map<String, Object> params) {
