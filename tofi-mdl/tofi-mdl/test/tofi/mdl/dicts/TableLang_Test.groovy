@@ -220,7 +220,29 @@ class TableLang_Test extends Apx_Test {
         }
     }
 
+    @Test
+    void fill_TypCharGr() throws Exception { //18
+        Store st = mdb.loadQuery("""
+            select id, name, fullName, cmt from TypCharGr where 0=0 order by id
+        """)
 
+        for (StoreRecord r in st) {
+            fill_TableLang("TypCharGr", r.getLong("id"), r.getString("name"),
+                    r.getString("fullName"), r.getString("cmt"), "ru")
+        }
+    }
+
+    @Test
+    void fill_RelTypCharGr() throws Exception { //19
+        Store st = mdb.loadQuery("""
+            select id, name, fullName, cmt from RelTypCharGr where 0=0 order by id
+        """)
+
+        for (StoreRecord r in st) {
+            fill_TableLang("RelTypCharGr", r.getLong("id"), r.getString("name"),
+                    r.getString("fullName"), r.getString("cmt"), "ru")
+        }
+    }
     //********************************************************************
 
 
@@ -264,6 +286,17 @@ class TableLang_Test extends Apx_Test {
         translateTable("SourceStock", "kk")
     }
 
+    @Test
+    void test_Translate_TypCharGr() {
+        translateTable("TypCharGr", "kk")
+        translateTable("TypCharGr", "en-US")
+    }
+
+    @Test
+    void test_Translate_RelTypCharGr() {
+        translateTable("RelTypCharGr", "kk")
+        translateTable("RelTypCharGr", "en-US")
+    }
 
 
     /* ************************************************************** */

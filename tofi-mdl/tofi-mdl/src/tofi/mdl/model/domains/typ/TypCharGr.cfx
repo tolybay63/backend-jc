@@ -10,9 +10,6 @@
         <field name="cod" parent="f.cod"/>
         <field name="typ" parent="Typ/ref" req="true"/>
         <field name="factorVal" parent="Factor/ref" req="true"/>
-        <field name="name" parent="f.name"/>
-        <field name="fullName" parent="f.fullName"/>
-        <field name="cmt" parent="f.cmt"/>
         <field name="ord" parent="f.ord"/>
     </domain>
 

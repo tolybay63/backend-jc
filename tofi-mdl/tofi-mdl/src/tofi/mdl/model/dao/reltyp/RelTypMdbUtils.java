@@ -178,32 +178,42 @@ public class RelTypMdbUtils extends EntityMdbUtils {
     }
 
     //loadRelClsForSelect
-    public Store loadRelClsForSelect(long relTyp) throws Exception {
+    public Store loadRelClsForSelect(long relTyp, String lang) throws Exception {
         return mdb.loadQuery("""
-            select r.id, v.name
+            select r.id, l.name
             from RelCls r
                 left join RelClsVer v on r.id=v.ownerVer and v.lastVer=1
+                left join TableLang l on l.nameTable='RelClsVer' and l.idTable=v.id and l.lang=:lang
             where r.relTyp=:rt
-        """, Map.of("rt", relTyp));
+        """, Map.of("rt", relTyp, lang, lang));
     }
 
     //RelTypCharGr
-    public Store loadRelTypCharGr() throws Exception {
-        Store st = mdb.createStore("RelTypCharGr.full");
+    public Store loadRelTypCharGr(long id, String lang) throws Exception {
+        String whe = " 0=0 order by r.ord";
+        if (id > 0)
+            whe = " r.id=" + id;
+
+        Store st = mdb.createStore("RelTypCharGr.lang");
         mdb.loadQuery(st, """
-            select r.*, v.name as relClsName, d.name as dbNames, d.modelname, d.id as dbId
+            select r.*, lrc.name as relClsName, lr.cmt, lb.name as dbNames, d.modelname, d.id as dbId
             from RelTypCharGr r
+                left join TableLang lr on lr.nameTable='RelTypCharGr' and lr.idTable=r.id and lr.lang=:lang
                 left join RelCls c on c.id=r.relcls
                 left join RelClsVer v on c.id=v.ownerVer and v.lastVer=1
+                left join TableLang lrc on lrc.nameTable='RelClsVer' and lrc.idTable=v.id and lrc.lang=:lang
                 left join database d on d.id=c."database"
-            where 0=0
-            order by r.ord
-        """);
+                left join TableLang lb on lb.nameTable='DataBase' and lb.idTable=d.id and lb.lang=:lang
+            where
+        """+whe, Map.of("lang", lang));
+
         Store stDB = mdb.loadQuery("""
-            select distinct r.reltyp, modelname, name
-            from RelCls r, database d
-            where r."database"=d.id
-        """);
+            select distinct r.reltyp, modelname, lb.name
+            from RelCls r
+                inner join database d on r."database"=d.id
+                left join TableLang lb on lb.nameTable='DataBase' and idTable=d.id and lb.lang=:lang
+            where 0=0
+        """, Map.of("lang", lang));
         StoreIndex indDB = stDB.getIndex("reltyp");
         for (StoreRecord r : st) {
             if (r.isValueNull("modelname")) {
@@ -215,46 +225,43 @@ public class RelTypMdbUtils extends EntityMdbUtils {
                 }
             }
         }
+
         return st;
     }
 
-    protected Store loadRelTypCharGrRec(long id) throws Exception {
-        Store st = mdb.createStore("RelTypCharGr.full");
-        mdb.loadQuery(st, """
-            select r.*, v.name as relClsName, d.name as dbNames, d.id as dbId
-            from RelTypCharGr r
-                left join RelCls c on c.id=r.relcls
-                left join RelClsVer v on c.id=v.ownerVer and v.lastVer=1
-                left join database d on d.id=c."database"
-            where r.id=:id
-        """, Map.of("id", id));
-        return st;
+    protected Store loadRelTypCharGrRec(long id, String lang) throws Exception {
+        return loadRelTypCharGr(id, lang);
     }
 
-    public StoreRecord loadRelTypCharGrInfo(long id) throws Exception {
+    public StoreRecord loadRelTypCharGrInfo(long id, String lang) throws Exception {
         StoreRecord st = mdb.createStoreRecord("RelTypCharGr.info");
         mdb.loadQueryRecord(st, """
             select r.id, r.cod, r.name as rcgName, d.modelName, d.id as dbs,d.name as dbTitle
             from RelTypCharGr r
                 left join RelCls c on c.id=r.relcls
                 left join RelClsVer v on c.id=v.ownerVer and v.lastVer=1
+                left join TableLang lr on lr.nameTable='RelClsVer' and lr.idTable=v.id and lr.lang=:lang
                 left join database d on d.id=c."database"
+                left join TableLang lb on lb.nameTable='DataBase' and lb.idTable=d.id and lb.lang=:lang
             where r.id=:id
-        """, Map.of("id", id));
+        """, Map.of("id", id, "lang", lang));
         return st;
     }
-
 
     public Store insertRelTypCharGr(Map<String, Object> rec) throws Exception {
         long id = insertEntity(rec);
         //
-        return loadRelTypCharGrRec(id);
+        return loadRelTypCharGrRec(id, UtCnv.toString(rec.get("lang")));
     }
 
     public Store updateRelTypCharGr(Map<String, Object> rec) throws Exception {
+        long id = UtCnv.toLong(rec.get("id"));
+        if (id == 0) {
+            throw new XError("Поле id должно иметь не нулевое значение");
+        }
         updateEntity(rec);
         //
-        return loadRelTypCharGrRec(UtCnv.toLong(rec.get("id")));
+        return loadRelTypCharGr(id, UtCnv.toString(rec.get("lang")));
     }
 
     public void deleteRelTypCharGr(long id) throws Exception {

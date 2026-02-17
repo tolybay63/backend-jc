@@ -323,9 +323,9 @@ public class TypDao extends BaseModelDao {
         return u.loadPropMeasure(typCharGr);
     }
 
-    public Store loadMeasure(long prop) throws Exception {
+    public Store loadMeasure(long prop, String lang) throws Exception {
         TypMdbUtils u = new TypMdbUtils(getMdb(), "TypCharGr");
-        return u.loadMeasure(prop);
+        return u.loadMeasure(prop, lang);
     }
 
 

@@ -229,8 +229,10 @@ public class TypMdbUtils extends EntityMdbUtils {
 
         Store st = mdb.createStore("TypCharGr.lang");
         mdb.loadQuery(st, """
-                    select tcg.*, ltv."name" as typName, lf."name" as fvName, t1.dbs, t1.dbNames
+                    select tcg.*, ltc.name, ltc.fullName, ltc.cmt,
+                        ltv."name" as typName, lf."name" as fvName, t1.dbs, t1.dbNames
                     from typchargr tcg
+                    left join TableLang ltc on ltc.nameTable='TypCharGr' and ltc.idTable=tcg.id and ltc.lang=:lang
                     inner join (
                         select t.typ, t.factorval,
                             string_agg (distinct  cast(t.db as varchar(4000)), ',' ) as dbs,
@@ -330,9 +332,13 @@ public class TypMdbUtils extends EntityMdbUtils {
     }
 
     public Store updateTypCharGr(Map<String, Object> rec) throws Exception {
+        long id = UtCnv.toLong(rec.get("id"));
+        if (id == 0) {
+            throw new XError("Поле id должно иметь не нулевое значение");
+        }
         updateEntity(rec);
         //
-        return loadTypCharGrRec(UtCnv.toLong(rec.get("id")), UtCnv.toString(rec.get("lang")));
+        return loadTypCharGrRec(id, UtCnv.toString(rec.get("lang")));
     }
 
     public void deleteTypCharGr(Map<String, Object> rec) throws Exception {
@@ -962,11 +968,12 @@ public class TypMdbUtils extends EntityMdbUtils {
         return stGr;
     }
 
-    public Store loadMeasure(long prop) throws Exception {
+    public Store loadMeasure(long prop, String lang) throws Exception {
         return mdb.loadQuery("""
-                    select m.id, m.name, m.parent, v.id as propval from measure m, PropVal v
-                    where prop=:prop and m.id=v.measure
-                """, Map.of("prop", prop));
+            select m.id, l.name, m.parent, v.id as propval
+            from measure m, TableLang l, PropVal v
+            where prop=:prop and m.id=v.measure and l.nameTable='Measure' and l.idTable=m.id and l.lang=:lang
+        """, Map.of("prop", prop, "lang", lang));
     }
 
 

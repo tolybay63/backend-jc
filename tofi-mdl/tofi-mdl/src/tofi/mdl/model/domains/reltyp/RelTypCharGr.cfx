@@ -10,24 +10,24 @@
         <field name="accessLevel" parent="FD_AccessLevel/ref" req="true"/>
         <field name="relTyp" parent="RelTyp/ref"/>
         <field name="relCls" parent="RelCls/ref"/>
-        <field name="name" parent="f.name"/>
-        <field name="fullName" parent="f.fullName"/>
-        <field name="cmt" parent="f.cmt"/>
         <field name="ord" parent="f.ord"/>
     </domain>
 
 
-    <domain name="RelTypCharGr.full" parent="RelTypCharGr">
+    <domain name="RelTypCharGr.lang" parent="RelTypCharGr">
         <field name="relClsName" parent="string"/>
         <field name="dbId" parent="long"/>
         <field name="modelName" parent="string"/>
         <field name="dbNames" parent="string"/>
+        <field name="name" parent="f.name"/>
+        <field name="fullName" parent="f.fullName"/>
+        <field name="cmt" parent="f.cmt"/>
     </domain>
 
     <domain name="RelTypCharGr.info" parent="base">
         <field name="id" parent="long"/>
         <field name="cod" parent="RelTypCharGr/cod"/>
-        <field name="rcgName" parent="RelTypCharGr/name"/>
+        <field name="rcgName" parent="string"/>
         <field name="dbs" parent="string"/>
         <field name="modelName" parent="string"/>
         <field name="dbTitle" parent="string"/>

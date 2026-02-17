@@ -133,14 +133,14 @@ public class RelTypDao extends BaseModelDao {
 
 
     //RelTypCharGr
-    public Store loadRelTypCharGr() throws Exception {
+    public Store loadRelTypCharGr(long id, String lang) throws Exception {
         RelTypMdbUtils u = new RelTypMdbUtils(getMdb(), "RelTypCharGr");
-        return u.loadRelTypCharGr();
+        return u.loadRelTypCharGr(id, lang);
     }
 
-    public StoreRecord loadRelTypCharGrInfo(long id) throws Exception {
+    public StoreRecord loadRelTypCharGrInfo(long id, String lang) throws Exception {
         RelTypMdbUtils u = new RelTypMdbUtils(getMdb(), "RelTypCharGr");
-        return u.loadRelTypCharGrInfo(id);
+        return u.loadRelTypCharGrInfo(id, lang);
     }
 
     public Store insertRelTypCharGr(Map<String, Object> rec) throws Exception {
@@ -213,9 +213,9 @@ public class RelTypDao extends BaseModelDao {
         return ut.loadRelTypForSelect(lang);
     }
 
-    public Store loadRelClsForSelect(long relTyp) throws Exception {
+    public Store loadRelClsForSelect(long relTyp, String lang) throws Exception {
         RelTypMdbUtils u = new RelTypMdbUtils(getMdb(), "RelTyp");
-        return u.loadRelClsForSelect(relTyp);
+        return u.loadRelClsForSelect(relTyp, lang);
     }
 
 }
