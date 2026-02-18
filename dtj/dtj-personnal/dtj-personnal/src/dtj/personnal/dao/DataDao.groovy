@@ -602,8 +602,13 @@ class DataDao extends BaseMdbUtils {
         rec.put("passwd", params.get("passwd"))
         rec.put("accessLevel", 1)
         rec.put("email", params.get("UserEmail"))
-        if (params.containsKey("UserPhone"))
-            rec.put("phone", params.get("UserPhone"))
+        if (params.containsKey("UserPhone")) {
+            String ph = UtCnv.toString(params.get("UserPhone")).trim()
+            if (ph.length() != 10) {
+                throw new XError("Количество цифр в номере телефона должно быть десять")
+            }
+            rec.put("phone", ph)
+        }
         rec.put("name", params.get("name"))
         rec.put("fullName", params.get("fullName"))
         return apiAdm().get(ApiAdm).regUser(rec)
