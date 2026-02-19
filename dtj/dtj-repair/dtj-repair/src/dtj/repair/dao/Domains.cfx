@@ -165,6 +165,8 @@
 
         <field name="idValue" parent="long"/>
         <field name="Value" parent="double"/>
+        <field name="idQuantity" parent="long"/>
+        <field name="Quantity" parent="double"/>
 
         <field name="idCreatedAt" parent="long"/>
         <field name="CreatedAt" parent="string"/>
@@ -449,6 +451,18 @@
         <field name="meaMeasure" parent="long"/>
         <field name="pvMeasure" parent="long"/>
         <field name="nameMeasure" parent="string"/>
+
+    </domain>
+
+    <domain name="Obj.ResourceAverage" parent="base">
+        <field name="id" parent="long"/>
+
+        <field name="objWorkPlan" parent="long"/>
+        <field name="objTask" parent="long"/>
+
+        <field name="FactDateEnd" parent="string"/>
+
+        <field name="Value" parent="long"/>
 
     </domain>
 
