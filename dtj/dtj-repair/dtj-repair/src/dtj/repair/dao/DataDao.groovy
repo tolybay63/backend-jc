@@ -3314,6 +3314,7 @@ class DataDao extends BaseMdbUtils {
 
             StoreRecord recTaskLog = indTaskLog.get(r.getLong("objTaskLog"))
             if (recTaskLog != null) {
+                r.set("FactDateEnd", recTaskLog.getString("FactDateEnd"))
                 r.set("objTask", recTaskLog.getLong("objTask"))
                 r.set("objLocationClsSection", recTaskLog.getLong("objLocationClsSection"))
                 r.set("objWorkPlan", recTaskLog.getLong("objWorkPlan"))
