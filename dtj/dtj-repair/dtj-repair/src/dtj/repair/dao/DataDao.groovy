@@ -3183,6 +3183,162 @@ class DataDao extends BaseMdbUtils {
         return lst
     }
 
+    @DaoMethod
+    Store loadReportMaterial(Map<String, Object> params) {
+        if (UtCnv.toLong(params.get("periodType")) == 0)
+            throw new XError("Не указан [periodType]")
+        if (UtCnv.toString(params.get("date")).isEmpty())
+            throw new XError("Не указан [date]")
+
+        Store st = mdb.createStore("Obj.ReportMaterial")
+
+        long pt = UtCnv.toLong(params.get("periodType"))
+        String dte = UtCnv.toString(params.get("date"))
+        UtPeriod utPeriod = new UtPeriod()
+        XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(dte), pt, 0)
+        XDate d2 = utPeriod.calcDend(UtCnv.toDate(dte), pt, 0)
+        String wheV3 = "and v3.dateTimeVal between '${d1}' and '${d2}'"
+
+        Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_TaskLog", "")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        Map<String, Long> mapFV = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "", "FV_")
+        map.put("FV_Plan", mapFV.get("FV_Plan"))
+        map.put("FV_Fact", mapFV.get("FV_Fact"))
+
+        Store stTL = mdb.createStore("Obj.task.log")
+        mdb.loadQuery(stTL, """
+            select o.id, o.cls,
+                v1.obj as objWorkPlan,
+                v2.obj as objTask, null as nameTask,
+                v3.dateTimeVal as FactDateEnd,
+                v4.obj as objLocationClsSection, null as nameLocationClsSection
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_WorkPlan
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Task
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_FactDateEnd
+                inner join DataPropVal v3 on d3.id=v3.dataprop ${wheV3}
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_LocationClsSection
+                left join DataPropVal v4 on d4.id=v4.dataprop
+            where o.cls=${mapCls.get("Cls_TaskLog")}
+        """, map)
+        if (stTL.size() == 0)
+            return st
+        //
+        StoreIndex indTaskLog = stTL.getIndex("id")
+        Set<Object> idsTaskLog = stTL.getUniqueValues("id")
+        mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ResourceMaterial", "")
+
+        mdb.loadQuery(st, """
+            select o.id, o.cls,
+                v1.obj as objMaterial,
+                v2.obj as objTaskLog,
+                v3.propVal as pvMeasure,
+                v4.numberVal as ValueFact, v5.numberVal as ValuePlan
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Material
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_TaskLog
+                inner join DataPropVal v2 on d2.id=v2.dataprop and v2.obj in (0${idsTaskLog.join(",")})
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Measure
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Value and d4.status=:FV_Fact
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_Value and d5.status=:FV_Plan
+                left join DataPropVal v5 on d5.id=v5.dataprop
+            where o.cls=${mapCls.get("Cls_ResourceMaterial")}
+        """, map)
+        if (st.size() == 0)
+            return st
+        //Пересечение
+        Set<Object> idsMaterial = st.getUniqueValues("objMaterial")
+        Store stMaterial = loadSqlService("""
+            select o.id, o.cls, v.name
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsMaterial.join(",")})
+        """, "", "resourcedata")
+        StoreIndex indMaterial = stMaterial.getIndex("id")
+        //
+        Set<Object> idsTask = stTL.getUniqueValues("objTask")
+        Store stTask = loadSqlService("""
+            select o.id, v.fullName
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsTask.join(",")})
+        """, "", "nsidata")
+        StoreIndex indTask = stTask.getIndex("id")
+        //
+        Set<Object> idsLocation = stTL.getUniqueValues("objLocationClsSection")
+        Store stLocation = loadSqlService("""
+            select o.id, v.name
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsLocation.join(",")})
+        """, "", "orgstructuredata")
+        StoreIndex indLocation = stLocation.getIndex("id")
+        //
+        Map<Long, Long> mapMea = apiMeta().get(ApiMeta).mapEntityIdFromPV("measure", "Prop_Measure", true)
+        Store stMea = loadSqlMeta("""
+            select id, name from Measure where 0=0
+        """, "")
+        StoreIndex indMea = stMea.getIndex("id")
+        //
+        Set<Object> idsWorkPlan = stTL.getUniqueValues("objWorkPlan")
+        Store stWorkPlan = loadSqlService("""
+            select o.id, v1.obj as objWork
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_Work")}
+                left join DataPropVal v1 on d1.id=v1.dataProp
+            where o.id in (0${idsWorkPlan.join(",")})
+        """, "", "plandata")
+        StoreIndex indWorkPlan = stWorkPlan.getIndex("id")
+        //
+        Set<Object> idsWork = stWorkPlan.getUniqueValues("objWork")
+        Store stWork = loadSqlService("""
+            select o.id, v.fullName
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsWork.join(",")})
+        """, "", "nsidata")
+        StoreIndex indWork = stWork.getIndex("id")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord recMaterial = indMaterial.get(r.getLong("objMaterial"))
+            if (recMaterial != null)
+                r.set("nameMaterial", recMaterial.getString("name"))
+
+            if (r.getLong("pvMeasure") > 0) {
+                r.set("meaMeasure", mapMea.get(r.getLong("pvMeasure")))
+            }
+
+            StoreRecord recMea = indMea.get(r.getLong("meaMeasure"))
+            if (recMea != null)
+                r.set("nameMeasure", recMea.getString("name"))
+
+            StoreRecord recTaskLog = indTaskLog.get(r.getLong("objTaskLog"))
+            if (recTaskLog != null) {
+                r.set("objTask", recTaskLog.getLong("objTask"))
+                r.set("objLocationClsSection", recTaskLog.getLong("objLocationClsSection"))
+                r.set("objWorkPlan", recTaskLog.getLong("objWorkPlan"))
+            }
+
+            StoreRecord recTask = indTask.get(r.getLong("objTask"))
+            if (recTask != null)
+                r.set("nameTask", recTask.getString("fullName"))
+
+            StoreRecord recLocation = indLocation.get(r.getLong("objLocationClsSection"))
+            if (recLocation != null)
+                r.set("nameLocationClsSection", recLocation.getString("name"))
+
+            StoreRecord recWorkPlan = indWorkPlan.get(r.getLong("objWorkPlan"))
+            if (recWorkPlan != null)
+                r.set("objWork", recWorkPlan.getLong("objWork"))
+
+            StoreRecord recWork = indWork.get(r.getLong("objWork"))
+            if (recWork != null)
+                r.set("fullNameWork", recWork.getString("fullName"))
+        }
+        //
+        return st
+    }
+
     /**
      *
      * @param id Id Obj
