@@ -2182,9 +2182,30 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Map<String, Object> saveTaskLogPlan(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
-        pms.put("fvStatus", map.get("FV_Plan"))
         //
+        String whe = ""
+        if (mode == "upd") {
+            whe = "and o.id not in (0${pms.getLong("id")})"
+        }
+        Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_TaskLog", "")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        Store stTmp = mdb.loadQuery("""
+            select o.id, o.cls,
+                v1.obj as objWorkPlan,
+                v2.obj as objTask
+            from Obj o
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_WorkPlan
+                inner join DataPropVal v1 on d1.id=v1.dataprop and v1.obj=${pms.getLong("objWorkPlan")}
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Task
+                inner join DataPropVal v2 on d2.id=v2.dataprop and v2.obj=${pms.getLong("objTask")}
+            where o.cls=${mapCls.get("Cls_TaskLog")} ${whe}
+        """, map)
+        if (stTmp.size() > 0)
+            throw new XError("Такая задача уже запланирована")
+        //
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Plan", "")
+        pms.put("fvStatus", map.get("FV_Plan"))
+
         long own
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
         if (UtCnv.toString(params.get("name")).trim().isEmpty())
@@ -2194,8 +2215,7 @@ class DataDao extends BaseMdbUtils {
             //Проверка статуса Incident
             apiRepairData().get(ApiRepairData).checkStatusOfIncident(pms.getLong("objWorkPlan"), "FV_StatusWorkAssigned", "FV_StatusInPlanning")
             //
-            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_TaskLog", "")
-            par.put("cls", map.get("Cls_TaskLog"))
+            par.put("cls", mapCls.get("Cls_TaskLog"))
             par.putIfAbsent("fullName", par.get("name"))
             own = eu.insertEntity(par)
             pms.put("own", own)

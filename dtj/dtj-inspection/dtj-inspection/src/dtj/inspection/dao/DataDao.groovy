@@ -2775,9 +2775,29 @@ class DataDao extends BaseMdbUtils {
             select o.cls, v.name from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id=${owner}
         """)
         if (stObj.size() > 0) {
+            long cls = stObj.get(0).getLong("cls")
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Inspection", "")
+            if (cls == map.get("Cls_Inspection")) {
+                map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_WorkPlan", "")
+                map.put("owner", owner)
+                Store stTmp = mdb.loadQuery("""
+                    select v.obj
+                    from dataprop d, datapropval v
+                    where d.id=v.dataprop and d.prop=:Prop_WorkPlan and d.objorrelobj=:owner
+                """, map)
+                if (stTmp.size() > 0) {
+                    map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_FactDateEnd", "")
+                    stTmp = loadSqlService("""
+                        select v.dateTimeVal
+                        from dataprop d, datapropval v
+                        where d.id=v.dataprop and d.prop=${map.get("Prop_FactDateEnd")} and d.objorrelobj=${stTmp.get(0).get("obj")}
+                    """, "", "plandata")
+                    if (stTmp.size() > 0)
+                        throw new XError("Плановая работа уже завершена")
+                }
+            }
             //
             List<String> lstService = new ArrayList<>()
-            long cls = stObj.get(0).getLong("cls")
             String name = stObj.get(0).getString("name")
             Store stPV = loadSqlMeta("""
                 select id from PropVal where cls=${cls}
