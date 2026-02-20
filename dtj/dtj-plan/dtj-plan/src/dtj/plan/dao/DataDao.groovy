@@ -1376,10 +1376,10 @@ class DataDao extends BaseMdbUtils {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_PlanDateEnd", "")
         Store st = mdb.loadQuery("""
             select o.id, o.cls,
-                v7.dateTimeVal as date
+                v1.dateTimeVal as date
             from Obj o
-                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_PlanDateEnd
-                inner join DataPropVal v7 on d7.id=v7.dataprop
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_PlanDateEnd
+                inner join DataPropVal v1 on d1.id=v1.dataprop
             where o.id in (0${ids.join(",")})
         """, map)
         //
