@@ -3399,9 +3399,9 @@ class DataDao extends BaseMdbUtils {
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_TaskLog
                 inner join DataPropVal v2 on d2.id=v2.dataprop and v2.obj in (0${idsTaskLog.join(",")})
                 left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Quantity
-                left join DataPropVal v3 on d3.id=v3.dataprop
+                inner join DataPropVal v3 on d3.id=v3.dataprop
                 left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Value and d4.status=:FV_Plan
-                left join DataPropVal v4 on d4.id=v4.dataprop
+                inner join DataPropVal v4 on d4.id=v4.dataprop
             where o.cls=${mapCls.get("Cls_ResourcePersonnel")}
         """, map)
         if (st.size() == 0)
