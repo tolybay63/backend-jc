@@ -98,8 +98,44 @@ class DataDao extends BaseMdbUtils {
         """)
         if (st.size() == 0)
             return lst
+        
+        lst = loadResourceNormative(st.get(0).getLong("id"), "ru")
 
-        return loadResourceNormative(st.get(0).getLong("id"), "ru")
+        if (lst.size() == 1) {
+            List<Map<String, Object>> material = lst[0].get("material") as ArrayList
+            List<Map<String, Object>> tool = lst[0].get("tool") as ArrayList
+            List<Map<String, Object>> equipment = lst[0].get("equipment") as ArrayList
+            List<Map<String, Object>> service = lst[0].get("service") as ArrayList
+            List<Map<String, Object>> personnel = lst[0].get("personnel") as ArrayList
+            //
+            if (material != null) {
+                material.forEach {Map<String, Object> m -> {
+                    m.put("Value", UtCnv.toDouble(m.get("Value")) * pms.getInt("Value"))
+                }}
+            }
+            if (service != null) {
+                service.forEach {Map<String, Object> m -> {
+                    m.put("Value", UtCnv.toDouble(m.get("Value")) * pms.getInt("Value"))
+                }}
+            }
+            if (tool != null) {
+                tool.forEach {Map<String, Object> m -> {
+                    m.put("Quantity", UtCnv.toDouble(m.get("Quantity")) * pms.getInt("Value"))
+                }}
+            }
+            if (equipment != null) {
+                equipment.forEach {Map<String, Object> m -> {
+                    m.put("Quantity", UtCnv.toDouble(m.get("Quantity")) * pms.getInt("Value"))
+                }}
+            }
+            if (personnel != null) {
+                personnel.forEach {Map<String, Object> m -> {
+                    m.put("Quantity", UtCnv.toDouble(m.get("Quantity")) * pms.getInt("Value"))
+                }}
+            }
+        }
+        //
+        return lst
     }
 
     @DaoMethod

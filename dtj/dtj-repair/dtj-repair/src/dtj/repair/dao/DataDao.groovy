@@ -2817,7 +2817,7 @@ class DataDao extends BaseMdbUtils {
                 StoreRecord r = stMaterial.add()
                 r.set("objMaterial", UtCnv.toString(m.key).split("_")[0] as long)
                 r.set("pvMeasure", UtCnv.toString(m.key).split("_")[1] as long)
-                r.set("Value", Math.ceil(UtCnv.toDouble(UtCnv.toDouble(mapValue.get(m.key)) / UtCnv.toDouble(m.value))) as long)
+                r.set("Value", Math.ceil(UtCnv.toDouble(UtCnv.toDouble(mapValue.get(m.key)) / UtCnv.toDouble(m.value))) * pms.getInt("Value") as long)
             }
         }
         // TpService
@@ -2861,7 +2861,7 @@ class DataDao extends BaseMdbUtils {
             for (Map.Entry m in mapUnique.entrySet()) {
                 StoreRecord r = stService.add()
                 r.set("objTpService", m.key as long)
-                r.set("Value", Math.ceil(UtCnv.toDouble(UtCnv.toDouble(mapValue.get(m.key)) / UtCnv.toDouble(m.value))) as long)
+                r.set("Value", Math.ceil(UtCnv.toDouble(UtCnv.toDouble(mapValue.get(m.key)) / UtCnv.toDouble(m.value))) * pms.getInt("Value") as long)
             }
         }
         // Personnel
@@ -2928,7 +2928,7 @@ class DataDao extends BaseMdbUtils {
             for (Map.Entry m in mapUnique.entrySet()) {
                 StoreRecord r = stPersonnel.add()
                 r.set("pvPosition", m.key as long)
-                r.set("Quantity", Math.ceil(UtCnv.toDouble(UtCnv.toDouble(mapQuantity.get(m.key)) / UtCnv.toDouble(m.value))) as long)
+                r.set("Quantity", Math.ceil(UtCnv.toDouble(UtCnv.toDouble(mapQuantity.get(m.key)) / UtCnv.toDouble(m.value))) * pms.getInt("Value") as long)
                 r.set("Value", Math.ceil(UtCnv.toDouble(UtCnv.toDouble(mapValue.get(m.key)) / UtCnv.toDouble(m.value))) as long)
             }
         }
@@ -2996,7 +2996,7 @@ class DataDao extends BaseMdbUtils {
             for (Map.Entry m in mapUnique.entrySet()) {
                 StoreRecord r = stEquipment.add()
                 r.set("pvTypEquipment", m.key as long)
-                r.set("Quantity", Math.ceil(UtCnv.toDouble(UtCnv.toDouble(mapQuantity.get(m.key)) / UtCnv.toDouble(m.value))) as long)
+                r.set("Quantity", Math.ceil(UtCnv.toDouble(UtCnv.toDouble(mapQuantity.get(m.key)) / UtCnv.toDouble(m.value))) * pms.getInt("Value") as long)
                 r.set("Value", Math.ceil(UtCnv.toDouble(UtCnv.toDouble(mapValue.get(m.key)) / UtCnv.toDouble(m.value))) as long)
             }
         }
@@ -3064,7 +3064,7 @@ class DataDao extends BaseMdbUtils {
             for (Map.Entry m in mapUnique.entrySet()) {
                 StoreRecord r = stTool.add()
                 r.set("pvTypTool", m.key as long)
-                r.set("Quantity", Math.ceil(UtCnv.toDouble(UtCnv.toDouble(mapQuantity.get(m.key)) / UtCnv.toDouble(m.value))) as long)
+                r.set("Quantity", Math.ceil(UtCnv.toDouble(UtCnv.toDouble(mapQuantity.get(m.key)) / UtCnv.toDouble(m.value))) * pms.getInt("Value") as long)
                 r.set("Value", Math.ceil(UtCnv.toDouble(UtCnv.toDouble(mapValue.get(m.key)) / UtCnv.toDouble(m.value))) as long)
             }
         }
