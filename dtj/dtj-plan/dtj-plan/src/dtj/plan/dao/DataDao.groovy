@@ -1371,6 +1371,27 @@ class DataDao extends BaseMdbUtils {
         return map
     }
 
+    @DaoMethod
+    Store completeThePlanWorkAll(Set<Long> ids) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_PlanDateEnd", "")
+        Store st = mdb.loadQuery("""
+            select o.id, o.cls,
+                v7.dateTimeVal as date
+            from Obj o
+                left join DataProp d7 on d7.objorrelobj=o.id and d7.prop=:Prop_PlanDateEnd
+                inner join DataPropVal v7 on d7.id=v7.dataprop
+            where o.id in (0${ids.join(",")})
+        """, map)
+        //
+        if (st.size() > 0) {
+            for (StoreRecord r in st) {
+                Map<String, Object> mapRes = r.getValues()
+                completeThePlanWork(mapRes)
+            }
+        }
+        return st
+    }
+
     /**
      *
      * @param id Id Obj
