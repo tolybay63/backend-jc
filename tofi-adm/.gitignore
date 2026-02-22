@@ -20,3 +20,5 @@ node_modules
 /_*
 /lib/_*
 /dataSources
+.env
+

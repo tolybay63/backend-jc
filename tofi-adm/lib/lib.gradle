@@ -1,0 +1,8 @@
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+	implementation("com.google.cloud:google-cloud-translate:2.67.0")
+}
+

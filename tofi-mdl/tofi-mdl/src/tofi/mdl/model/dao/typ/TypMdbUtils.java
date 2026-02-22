@@ -42,7 +42,6 @@ public class TypMdbUtils extends EntityMdbUtils {
             select count(*) as cnt
             from Typ t
                 left join TypVer v on t.id=v.ownerVer and v.lastVer=1
-                --left join TableLang l on l.nameTable='TypVer' and l.idTable=v.id and l.lang=:lang -----------DELETE
             where 0=0
         """;
         SqlText sqlText = mdb.createSqlText(sqlCount);
@@ -63,7 +62,6 @@ public class TypMdbUtils extends EntityMdbUtils {
             select *, v.id as verId
             from Typ t
                 left join TypVer v on t.id=v.ownerVer and v.lastVer=1
-                -- left join TableLang l on l.nameTable='TypVer' and l.idTable=v.id and l.lang=:lang -----------DELETE
             where 0=0
         """;
         sqlText = mdb.createSqlText(sqlLoad);
@@ -160,6 +158,15 @@ public class TypMdbUtils extends EntityMdbUtils {
 
     public Store loadVer(long typ, String lang) throws Exception {
         Store st = mdb.createStore("TypVer.lang");
+        mdb.loadQuery(st, """
+            select v.*, l.name, l.fullName, l.cmt
+            from Typ t
+                left Join TypVer v on t.id=v.ownerVer
+                left join TableLang l on l.nameTable='TypVer' and l.idTable=v.id and l.lang=:lang
+            where t.id=:typ
+            order by dend desc
+         """, Map.of("typ", typ, "lang", lang));
+
         mdb.loadQuery(st, """
             select *, v.id as verId
             from TypVer v

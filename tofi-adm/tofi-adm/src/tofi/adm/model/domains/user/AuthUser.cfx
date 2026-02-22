@@ -18,11 +18,7 @@
              -->
          </field>
          <field name="phone" parent="string" size="32" title="Телефон"/>
-         <field name="name" parent="string" size="50" title="Наименование"/>
-         <field name="fullName" parent="string" size="100" title="Полное наименование"/>
          <field name="locked" parent="boolean" title="Заблокирован" />
-
-         <field name="cmt" parent="f.cmt" />
 
          <!-- ============================================== -->
          <dbindex name="i_login" fields="login" unique="true"/>
@@ -30,5 +26,11 @@
 
      </domain>
 
+    <domain name="AuthUser.lang" parent="AuthUser">
+        <field name="name" parent="string" size="50" title="Наименование"/>
+        <field name="fullName" parent="string" size="100" title="Полное наименование"/>
+        <field name="cmt" parent="f.cmt" />
+    </domain>
 
 </root>
+

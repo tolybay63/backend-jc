@@ -15,6 +15,7 @@ class P extends ProjectScript {
                 depends.prod(
                     "jandcode.core.apx",
                     "jandcode.core.db.postgresql",
+			"google-cloud-translate",
                         "tofi-api-adm",
                         "tofi-api-dta",
                         "tofi-api-mdl",

@@ -128,11 +128,11 @@ public class RelTypMdbUtils extends EntityMdbUtils {
     public Store loadVer(long reltyp, String lang) throws Exception {
         Store st = mdb.createStore("RelTyp.lang");
         mdb.loadQuery(st, """
-            select *, v.id as verId
+            select v.*, l.name, l.fullName, l.cmt
             from RelTyp t
                 left Join RelTypVer v on t.id=v.ownerVer
                 left join TableLang l on l.nameTable='RelTypVer' and l.idTable=v.id and l.lang=:lang
-            where v.ownerVer=:reltyp
+            where t.id=:reltyp
             order by dend desc
          """, Map.of("reltyp", reltyp, "lang", lang));
         UtEntityTranslate ut = new UtEntityTranslate(mdb);
@@ -196,7 +196,8 @@ public class RelTypMdbUtils extends EntityMdbUtils {
 
         Store st = mdb.createStore("RelTypCharGr.lang");
         mdb.loadQuery(st, """
-            select r.*, lrc.name as relClsName, lr.cmt, lb.name as dbNames, d.modelname, d.id as dbId
+            select r.*, lrc.name as relClsName, lr.name, lr.fullName, lr.cmt, 
+                lb.name as dbNames, d.modelname, d.id as dbId
             from RelTypCharGr r
                 left join TableLang lr on lr.nameTable='RelTypCharGr' and lr.idTable=r.id and lr.lang=:lang
                 left join RelCls c on c.id=r.relcls
@@ -235,12 +236,13 @@ public class RelTypMdbUtils extends EntityMdbUtils {
 
     public StoreRecord loadRelTypCharGrInfo(long id, String lang) throws Exception {
         StoreRecord st = mdb.createStoreRecord("RelTypCharGr.info");
+
         mdb.loadQueryRecord(st, """
-            select r.id, r.cod, r.name as rcgName, d.modelName, d.id as dbs,d.name as dbTitle
+            select r.id, r.cod, lr.name as rcgName, d.modelName, d.id as dbs, lb.name as dbTitle
             from RelTypCharGr r
+                left join TableLang lr on lr.nameTable='RelTypCharGr' and lr.idTable=r.id and lr.lang=:lang
                 left join RelCls c on c.id=r.relcls
-                left join RelClsVer v on c.id=v.ownerVer and v.lastVer=1
-                left join TableLang lr on lr.nameTable='RelClsVer' and lr.idTable=v.id and lr.lang=:lang
+                --left join RelClsVer v on c.id=v.ownerVer and v.lastVer=1
                 left join database d on d.id=c."database"
                 left join TableLang lb on lb.nameTable='DataBase' and lb.idTable=d.id and lb.lang=:lang
             where r.id=:id
@@ -276,18 +278,20 @@ public class RelTypMdbUtils extends EntityMdbUtils {
         long relTyp = UtCnv.toLong(params.get("typORrel"));
         Store st = mdb.createStore("RelTypCharGrProp.prop");
         String sql = """
-                    select
-                        tcp.id as relTypCharGrProp, relTypCharGrProp_measure, pm.name as p_measure, propVal_measure,
-                        m.name as pv_measure, storageType, 'p_'||p.id as id,
-                        case when p.parent is null then 'g_'||p.propGr else 'p_'||p.parent end as parent,
-                        p.id as prop, p.propgr, p.propType, p.cod, p.name, flatTable
-                    from RelTypCharGrProp tcp
-                        left join prop p on p.id=tcp.prop
-                        left join propVal pv on pv.id=tcp.propval_measure
-                        left join Measure m on m.id=pv.measure
-                        left join prop pm on pm.id=tcp.relTypCharGrprop_measure
-                    where tcp.relTypCharGr=:tcg and tcp.prop is not null
-                """;
+        select rtcp.id as relTypCharGrProp, relTypCharGrProp_measure, lpm.name as p_measure, propVal_measure,
+            lm.name as pv_measure, storageType, 'p_'||p.id as id,
+            case when p.parent is null then 'g_'||p.propGr else 'p_'||p.parent end as parent,
+            p.id as prop, p.propgr, p.propType, p.cod, lp.name, flatTable
+        from reltypchargrprop rtcp
+            left join prop p on p.id=rtcp.prop
+            left join TableLang lp on lp.nameTable='Prop' and lp.idTable=p.id and lp.lang=:lang
+            left join propVal pv on pv.id=rtcp.propval_measure
+            left join Measure m on m.id=pv.measure
+            left join TableLang lm on lm.nameTable='Measure' and lm.idTable=m.id and lm.lang=:lang
+            left join prop pm on pm.id=rtcp.reltypchargrprop_measure
+            left join TableLang lpm on lpm.nameTable='Prop' and lpm.idTable=pm.id and lpm.lang=:lang
+        where rtcp.reltypchargr=:tcp and rtcp.prop is not null
+        """;
         if (relTyp > 0)
             sql = """
                         with rtcg as (
@@ -304,7 +308,7 @@ public class RelTypMdbUtils extends EntityMdbUtils {
                     """;
 
 
-        mdb.loadQuery(st, sql, Map.of("tcg", relTypCharGr, "reltyp", relTyp));
+        mdb.loadQuery(st, sql, Map.of("tcp", relTypCharGr, "reltyp", relTyp, "lang", lang));
 
         //mdb.outTable(st);
 
@@ -312,9 +316,9 @@ public class RelTypMdbUtils extends EntityMdbUtils {
         // PropGr
         Store stGr = mdb.createStore("RelTypCharGrProp.propGr");
         String sqlGr = """
-                    select 'g_'||id as id, 'g_'||parent as parent, id as propGr
-                    from PropGr where 0=0
-                """;
+            select 'g_'||id as id, 'g_'||parent as parent, id as propGr
+            from PropGr where 0=0
+        """;
         mdb.loadQuery(stGr, sqlGr);
         StoreIndex indStGr = stGr.getIndex("id");
 
@@ -346,9 +350,9 @@ public class RelTypMdbUtils extends EntityMdbUtils {
         if (whe.equals("()")) whe = "(0)";
         stGr = mdb.createStore("RelTypCharGrProp.prop");
         sqlGr = """
-                    select 'g_'||id as id, 'g_'||parent as parent, id as propGr, cod, name
-                    from PropGr where id in
-                """ + whe;
+            select 'g_'||id as id, 'g_'||parent as parent, id as propGr, cod
+            from PropGr where id in
+        """ + whe;
 
         mdb.loadQuery(stGr, sqlGr);
         stGr.add(st);
@@ -356,17 +360,20 @@ public class RelTypMdbUtils extends EntityMdbUtils {
 
         Store stGrAll = mdb.createStore("RelTypCharGrProp.prop");
         String sqlGrAll = """
-                    select 'g_'||id as id, 'g_'||parent as parent, id as propGr,
-                    null as prop, null as propType, cod, name, false as checked
-                    from PropGr where 0=0
-                    union all
-                    select 'p_'||p.id as id,
-                    case when p.parent is null then 'g_'||p.propGr else 'p_'||p.parent end as parent, p.propgr,
-                    p.id as prop, p.propType, p.cod, p.name, false as checked
-                    from Prop p
-                    where 0=0
-                """;
-        mdb.loadQuery(stGrAll, sqlGrAll);
+            select 'g_'||p.id as id, 'g_'||parent as parent, p.id as propGr,
+                null as prop, null as propType, cod, lp.name, false as checked
+            from PropGr p
+                left join TableLang lp on lp.nameTable='PropGr' and lp.idTable=p.id and lp.lang=:lang
+            where 0=0
+            union all
+            select 'p_'||p.id as id,
+                case when p.parent is null then 'g_'||p.propGr else 'p_'||p.parent end as parent, p.propgr,
+                p.id as prop, p.propType, p.cod, lp.name, false as checked
+            from Prop p
+                left join TableLang lp on lp.nameTable='Prop' and lp.idTable=p.id and lp.lang=:lang
+            where 0=0
+        """;
+        mdb.loadQuery(stGrAll, sqlGrAll, Map.of("lang", lang));
         StoreIndex indStAll = stGrAll.getIndex("id");
         //mdb.outTable(stGrAll);
 
@@ -479,23 +486,26 @@ public class RelTypMdbUtils extends EntityMdbUtils {
         return stGr;
     }
 
-    public Store loadRelTypCharGrPropForUpd(long relTypCharGr) throws Exception {
+    public Store loadRelTypCharGrPropForUpd(long relTypCharGr, String lang) throws Exception {
         //old values
         Store stOld = loadRelTypCharGrProp(Map.of("relTypCharGr", relTypCharGr));
         StoreIndex indStOld = stOld.getIndex("id");
 
         Store st = mdb.createStore("RelTypCharGrProp.prop.checked");
         String sql = """
-                    select 'g_'||id as id, 'g_'||parent as parent, id as propGr,
-                    null as prop, null as propType, cod, name, false as checked
-                    from PropGr where 0=0
-                    union all
-                    select 'p_'||p.id as id,
-                    case when p.parent is null then 'g_'||p.propGr else 'p_'||p.parent end as parent, p.propgr,
-                    p.id as prop, p.propType, p.cod, p.name, false as checked
-                    from Prop p
-                    where 0=0
-                """;
+            select 'g_'||p.id as id, 'g_'||parent as parent, p.id as propGr,
+            null as prop, null as propType, cod, lp.name, false as checked
+            from PropGr p
+                left join TableLang lp on lp.nameTable='PropGr' and lp.idTable=p.id and lp.lang=:lang
+            where 0=0
+            union all
+            select 'p_'||p.id as id,
+            case when p.parent is null then 'g_'||p.propGr else 'p_'||p.parent end as parent, p.propgr,
+            p.id as prop, p.propType, p.cod, lp.name, false as checked
+            from Prop p
+                left join TableLang lp on lp.nameTable='Prop' and lp.idTable=p.id and lp.lang=:lang
+            where 0=0
+        """;
         mdb.loadQuery(st, sql);
         List<String> lst = new ArrayList<>();
         for (StoreRecord r : st) {

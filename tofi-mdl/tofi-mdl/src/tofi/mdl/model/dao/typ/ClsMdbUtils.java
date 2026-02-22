@@ -319,12 +319,13 @@ public class ClsMdbUtils extends EntityMdbUtils {
     public Store loadClsVer(long cls, String lang) throws Exception {
         Store st = mdb.createStore("ClsVer.lang");
         mdb.loadQuery(st, """
-            select * from
-            Cls c, ClsVer v, TableLang l
-            where c.id=:id and c.id=v.ownerVer and v.lastVer=1
-                and l.nameTable='ClsVer' and l.idTable=v.id and l.lang=:lang
+            select v.*, l.name, l.fullName, l.cmt
+            from Cls t
+                left Join ClsVer v on t.id=v.ownerVer
+                left join TableLang l on l.nameTable='ClsVer' and l.idTable=v.id and l.lang=:lang
+            where t.id=:cls
             order by dend desc
-        """, Map.of("id", cls, "lang", lang));
+         """, Map.of("cls", cls, "lang", lang));
         return st;
     }
 

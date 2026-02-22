@@ -23,7 +23,7 @@ import tofi.api.mdl.model.consts.*;
 class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
 
     @Override
-    Map<Long, String> loadDict(String dictName) {
+    Map<Long, String> loadDict(String dictName, String lang) {
         //long al = getAccessLevel()
         String wheAL = ""
 /*
@@ -32,7 +32,9 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
 */
 
         Store st = mdb.loadQuery("""
-            select * from ${dictName} where vis=1 ${wheAL} order by ord
+            select d.id, l.text from ${dictName} d
+            left join FD_DictsLang l on l.nameDict=LOWER('${dictName}') and l.idDict=d.id and l.lang='${lang}'
+            where vis=1 ${wheAL} order by ord
         """)
         Map<Long, String> map = [:]
         for (StoreRecord r in st) {
@@ -43,7 +45,7 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
     }
 
     @Override
-    Store loadDictAsStore(String dictName) {
+    Store loadDictAsStore(String dictName, String lang) {
         //long al = getAccessLevel()
         String wheAL = ""
 
@@ -53,7 +55,9 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
 */
 
         return mdb.loadQuery("""
-            select * from ${dictName} where vis=1 ${wheAL} order by ord
+            select d.id, l.text from ${dictName} d
+            left join FD_DictsLang l on l.nameDict=LOWER('${dictName}') and l.idDict=d.id and l.lang='${lang}'
+            where vis=1 ${wheAL} order by ord
         """)
     }
 

@@ -28,9 +28,9 @@ public class RoleDao extends BaseModelDao {
         return ut.insert(params);
     }
 
-    public Store loadRec(long id) throws Exception {
+    public Store loadRec(long id, String lang) throws Exception {
         RoleMdbUtils ut = new RoleMdbUtils(getMdb());
-        return ut.loadRec(id);
+        return ut.loadRec(id, lang);
     }
 
     public String getRolePermis(long id) throws Exception {
@@ -38,9 +38,9 @@ public class RoleDao extends BaseModelDao {
         return ut.getRolePermis(id);
     }
 
-    public Store loadRolePermis(long role) throws Exception {
+    public Store loadRolePermis(long role, String lang) throws Exception {
         RoleMdbUtils ut = new RoleMdbUtils(getMdb());
-        return ut.loadRolePermis(role);
+        return ut.loadRolePermis(role, lang);
     }
 
     public Store loadRolePermisForUpd(long role) throws Exception {

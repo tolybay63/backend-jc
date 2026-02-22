@@ -15,14 +15,14 @@ public interface ApiMeta {
      * @param dictName Имя словаря
      * @return [ id: text ]
      */
-    Map<Long, String> loadDict(String dictName);
+    Map<Long, String> loadDict(String dictName, String lang) throws Exception;
 
     /**
      *
      * @param dictName  Имя словаря
      * @return [ {id:1, text: "aaa" } ]
      */
-    Store loadDictAsStore(String dictName);
+    Store loadDictAsStore(String dictName, String lang);
 
     /**
      * Возвращает дерево-классов с учетом наследования

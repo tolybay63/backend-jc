@@ -11,6 +11,7 @@ import jandcode.core.std.CfgService;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
 import org.apache.tools.ant.taskdefs.Sleep;
+import tofi.adm.model.utils.UtEntityTranslate;
 import tofi.api.dta.ApiPersonnalData;
 import tofi.api.dta.ApiUserData;
 import tofi.api.mdl.ApiMeta;
@@ -51,22 +52,23 @@ public class UsrMdbUtils extends BaseMdbUtils {
 
 
     @DaoMethod
-    public Store loadGroup(Map<String, Object> params) throws Exception {
-        Store st = getMdb().createStore("AuthUserGr");
+    public Store loadGroup(String lang) throws Exception {
+        Store st = getMdb().createStore("AuthUserGr.lang");
         AuthService authSvc = getMdb().getApp().bean(AuthService.class);
         AuthUser au = authSvc.getCurrentUser();
         long al = au.getAttrs().getLong("accesslevel");
         getMdb().loadQuery(st, """
-                    select * from authusergr
-                    where id in (
-                        select authusergr from authuser
-                        where accesslevel <= :al
-                    ) or id not in (
-                        select authusergr from authuser
-                        where accesslevel <= :al
-                    )
-                """, Map.of("al", al));
-        return st;
+            select * from authusergr
+            where id in (
+                select authusergr from authuser
+                where accesslevel <= :al
+            ) or id not in (
+                select authusergr from authuser
+                where accesslevel <= :al
+            )
+        """, Map.of("al", al));
+        UtEntityTranslate ut = new UtEntityTranslate(getMdb());
+        return ut.getTranslatedStore(st, "AuthUserGr", lang);
     }
 
     @DaoMethod
@@ -96,15 +98,26 @@ public class UsrMdbUtils extends BaseMdbUtils {
     }
 
     @DaoMethod
-    public Store load(long gr) throws Exception {
-        Store st = getMdb().createStore("AuthUser");
-        return getMdb().loadQuery(st, "select * from AuthUser where authUserGr=:gr", Map.of("gr", gr));
+    public Store load(long gr, String lang) throws Exception {
+        Store st = getMdb().createStore("AuthUser.lang");
+        getMdb().loadQuery(st, "select * from AuthUser where authUserGr=:gr", Map.of("gr", gr));
+        UtEntityTranslate ut = new UtEntityTranslate(getMdb());
+        return ut.getTranslatedStore(st, "AuthUser", lang);
     }
 
     @DaoMethod
-    public Store loadUser(long id) throws Exception {
-        Store st = getMdb().createStore("AuthUser");
-        return getMdb().loadQuery(st, "select * from AuthUser where id=:id", Map.of("id", id));
+    public Store loadUser(long id, String lang) throws Exception {
+        Store st = getMdb().createStore("AuthUser.lang");
+        getMdb().loadQuery(st, "select * from AuthUser where id=:id", Map.of("id", id));
+        UtEntityTranslate ut = new UtEntityTranslate(getMdb());
+        return ut.getTranslatedStore(st, "AuthUser", lang);
+    }
+
+    private Store loadUserGrRec(long id, String lang) throws Exception {
+        Store st = getMdb().createStore("AuthUserGr.lang");
+        getMdb().loadQuery(st, "select * from AuthUserGr where id=:id", Map.of("id", id));
+        UtEntityTranslate ut = new UtEntityTranslate(getMdb());
+        return ut.getTranslatedStore(st, "AuthUserGr", lang);
     }
 
     @DaoMethod
@@ -114,9 +127,8 @@ public class UsrMdbUtils extends BaseMdbUtils {
         StoreRecord record = st.add(rec);
         record.set("id", null);
         long id = getMdb().insertRec("AuthUserGr", record, true);
-        st = getMdb().createStore("AuthUserGr");
-        getMdb().loadQuery(st, "select * from AuthUserGr where id=:id", Map.of("id", id));
-        return st;
+        String lang = UtCnv.toString(rec.get("lang"));
+        return loadUserGrRec(id, lang);
     }
 
     @DaoMethod
@@ -138,13 +150,21 @@ public class UsrMdbUtils extends BaseMdbUtils {
         }
 
         getMdb().updateRec("AuthUserGr", record);
-        st = getMdb().createStore("AuthUserGr");
-        getMdb().loadQuery(st, "select * from AuthUserGr where id=:id", Map.of("id", id));
-        return st;
+        UtEntityTranslate ut = new UtEntityTranslate(getMdb());
+        ut.updateTableLang("AuthUserGr", rec);
+        String lang = UtCnv.toString(rec.get("lang"));
+        return loadUserGrRec(id, lang);
     }
 
     public void deleteGr(long gr) throws Exception {
-        getMdb().deleteRec("AuthUserGr", gr);
+        try {
+            getMdb().deleteRec("AuthUserGr", gr);
+        } finally {
+            getMdb().execQuery("""
+                delete from TableLang where nameTable='AuthUserGr' and idTable=:id
+            """, Map.of("id", gr));
+        }
+
     }
 
     @DaoMethod
@@ -154,10 +174,11 @@ public class UsrMdbUtils extends BaseMdbUtils {
         record.set("passwd", UtString.md5Str(record.getString("passwd")));
         record.set("id", null);
         long id = getMdb().insertRec("AuthUser", record, true);
-        st = getMdb().createStore("AuthUser");
-        getMdb().loadQuery(st, "select * from AuthUser where id=:id", Map.of("id", id));
-        getMdb().resolveDicts(st);
-        return st;
+        UtEntityTranslate ut = new UtEntityTranslate(getMdb());
+        rec.put("id", id);
+        ut.insertToTableLang("AuthUser", rec);
+        String lang = UtCnv.toString(rec.get("lang"));
+        return loadUser(id, lang);
     }
 
     @DaoMethod
@@ -175,10 +196,10 @@ public class UsrMdbUtils extends BaseMdbUtils {
             throw new XError("Поле id должно иметь не нулевое значение");
         }
         getMdb().updateRec("AuthUser", record);
-        st = getMdb().createStore("AuthUser");
-        getMdb().loadQuery(st, "select * from AuthUser where id=:id", Map.of("id", id));
-        getMdb().resolveDicts(st);
-        return st;
+        UtEntityTranslate ut = new UtEntityTranslate(getMdb());
+        ut.updateTableLang("AuthUser", rec);
+        String lang = UtCnv.toString(rec.get("lang"));
+        return loadUser(id, lang);
     }
 
     @DaoMethod

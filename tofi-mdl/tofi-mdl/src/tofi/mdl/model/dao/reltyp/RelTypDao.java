@@ -163,9 +163,9 @@ public class RelTypDao extends BaseModelDao {
         return u.loadRelTypCharGrProp(params);
     }
 
-    public Store loadRelTypCharGrPropForUpd(long relTypCharGr) throws Exception {
+    public Store loadRelTypCharGrPropForUpd(long relTypCharGr, String lang) throws Exception {
         RelTypMdbUtils u = new RelTypMdbUtils(getMdb(), "RelTypCharGr");
-        return u.loadRelTypCharGrPropForUpd(relTypCharGr);
+        return u.loadRelTypCharGrPropForUpd(relTypCharGr, lang);
     }
 
     public String saveRelTypCharGrProps(Map<String, Object> params) throws Exception {

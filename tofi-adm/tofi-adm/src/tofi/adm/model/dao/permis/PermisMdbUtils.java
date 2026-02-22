@@ -61,7 +61,7 @@ public class PermisMdbUtils {
     public Store update(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         String sql = """
-            update Permis set text=:text where id=:id;
+            update Permis set name=:name where id=:id;
         """;
         mdb.execQuery(sql, rec);
         //
@@ -73,8 +73,8 @@ public class PermisMdbUtils {
     public Store insert(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         String sql = """
-            insert into Permis (id, parent, text, ord)
-            values (:id, :parent, :text, :ord)
+            insert into Permis (id, parent, name, ord)
+            values (:id, :parent, :name, :ord)
         """;
         int ord = mdb.loadQuery("select max(ord) as max from Permis").get(0).getInt("max");
         rec.put("ord", ord+1);

@@ -164,12 +164,13 @@ public class RelClsMdbUtils extends EntityMdbUtils {
     public Store loadVer(long relcls, String lang) throws Exception {
         Store st = mdb.createStore("RelClsVer.lang");
         mdb.loadQuery(st, """
-            select * from
-            RelCls c, RelClsVer v, TableLang l
-            where c.id=:id and c.id=v.ownerVer and v.lastVer=1
-                and l.nameTable='RelClsVer' and l.idTable=v.id and l.lang=:lang
+            select v.*, l.name, l.fullName, l.cmt
+            from RelCls t
+                left Join RelClsVer v on t.id=v.ownerVer
+                left join TableLang l on l.nameTable='RelClsVer' and l.idTable=v.id and l.lang=:lang
+            where t.id=:relcls
             order by dend desc
-        """, Map.of("id", relcls, "lang", lang));
+         """, Map.of("relcls", relcls, "lang", lang));
         return st;
     }
 

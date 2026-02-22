@@ -5,16 +5,15 @@
         <!-- Привилегии -->
         <field name="id" parent="string" size="60"/>
         <field name="parent"  parent="string" size="60" title="Родитель"/>
-        <field name="text" parent="string" size="300" title="Наименование"/>
         <field name="ord" parent="f.ord" />
     </domain>
 
-<!--
-alter table Permis add constraint fk_Permis_parent
-foreign key(parent) references Permis(id)
--->
+    <domain name="Permis.lang" parent="Permis">
+        <field name="name" parent="string" size="300" title="Наименование"/>
+    </domain>
 
-    <domain name="Permis.full" parent="Permis">
+
+    <domain name="Permis.full" parent="Permis.lang">
         <field name="accessLevel" parent="long"/>
         <field name="idInTable" parent="long"/>
         <field name="checked" parent="boolean"/>

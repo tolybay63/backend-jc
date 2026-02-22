@@ -44,8 +44,12 @@ public class EntityMdbUtils {
             mdb.execQuery("""
                 delete from TableLang
                 where nameTable=:tb
-                    and idTable in (select id from :tb where lastVer=1 and ownerVer=:id);
-                delete from :tb where ownerVer=:id;
+                    and idTable in (select id from
+            """ + tableName + "Ver where lastVer=1 and ownerVer=:id);"+
+            """
+                delete from
+            """ + tableName + "Ver " + """
+            where ownerVer=:id;
             """, Map.of("tb", tableName + "Ver", "id", id));
         } else if (EntityConst.getEntityInfo(ent).getHasTranslate()) {
             mdb.execQuery("delete from TableLang where nameTable=:tb and idTable=:id", Map.of("tb", tableName, "id", id));
