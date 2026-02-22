@@ -16,7 +16,7 @@ public class PermisDao extends BaseModelDao {
 
     public void delete(Map<String, Object> params) throws Exception {
         PermisMdbUtils ut = new PermisMdbUtils(getMdb());
-        ut.delete(UtCnv.toMap(params.get("rec")));
+        ut.delete(params);
     }
 
     public Store update(Map<String, Object> params) throws Exception {

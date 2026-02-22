@@ -30,64 +30,66 @@ public class PermisMdbUtils {
         return mdb.loadQuery(st, sql, Map.of("lang", lang));
     }
 
-    private void validateRec(String id) throws Exception {
+    private void validateRec(String id, String lang) throws Exception {
         Store stTmp = mdb.loadQuery("""
-                select r.name
+                select l.name
                 from AuthRolePermis p
                 	left join authrole r on p.authrole=r.id
+                	left join TableLang l on l.nameTable='AuthRole' and l.idTable=r.id and l.lang=:lang
                 where p.permis=:id
-        """, Map.of("id", id));
+        """, Map.of("id", id, "lang", lang));
         if (stTmp.size() > 0) {
             throw new XError("Используется в роли [{0}]", stTmp.get(0).getString("name"));
         }
 
         stTmp = mdb.loadQuery("""
-            select r.fullname
+            select l.fullname
             from AuthUserPermis p
             left join authuser r on p.authuser=r.id
+            left join TableLang l on l.nameTable='AuthUser' and l.idTable=r.id and l.lang=:lang
             where p.permis =:id
-        """, Map.of("id", id));
+        """, Map.of("id", id, "lang", lang));
         if (stTmp.size() > 0) {
             throw new XError("Используется в привилегии пользователя [{0}]", stTmp.get(0).getString("fullname"));
         }
     }
 
     public void delete(Map<String, Object> rec) throws Exception {
-        validateRec(UtCnv.toString(rec.get("id")));
+        validateRec(UtCnv.toString(rec.get("id")), UtCnv.toString(rec.get("lang")));
 
         String sql = """
             delete from Permis where id=:id;
+            delete from TableLang where nameTable='Permis' and name=:id;
         """;
         mdb.execQuery(sql, Map.of("id", UtCnv.toString(rec.get("id"))));
     }
 
     public Store update(Map<String, Object> params) throws Exception {
-        Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
+        String lang = UtCnv.toString(params.get("lang"));
         String sql = """
-            update Permis set name=:name where id=:id;
+            update TableLang set fullName=:name where nameTable='Permis' and name=:id and lang=:lang;
         """;
-        mdb.execQuery(sql, rec);
+        mdb.execQuery(sql, params);
         //
-        Store st = mdb.createStore("Permis");
-        return mdb.loadQuery(st, "select * from Permis where id=:id", Map.of("id",
-                rec.get("id")));
+        return load(lang);
     }
 
     public Store insert(Map<String, Object> params) throws Exception {
-        Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         String sql = """
-            insert into Permis (id, parent, name, ord)
-            values (:id, :parent, :name, :ord)
+            insert into Permis (id, parent, ord)
+            values (:id, :parent, :ord)
         """;
         int ord = mdb.loadQuery("select max(ord) as max from Permis").get(0).getInt("max");
-        rec.put("ord", ord+1);
-        mdb.execQuery(sql, rec);
+        params.put("ord", ord+1);
+        mdb.execQuery(sql, params);
         //
-        Store st = mdb.createStore("Permis");
-        mdb.loadQuery(st, "select * from Permis where id=:id", Map.of("id", rec.get("id")));
-        //
-        //mdb.outTable(st);
-        return st;
+        StoreRecord rec = mdb.createStoreRecord("TableLang");
+        rec.set("nameTable", "Permis");
+        rec.set("name", params.get("id"));
+        rec.set("fullName", params.get("name"));
+        rec.set("lang", params.get("lang"));
+        mdb.insertRec("TableLang", rec, true);
+        return load(UtCnv.toString(params.get("lang")));
     }
 
     public Set<String> getLeaf(String id) throws Exception {
