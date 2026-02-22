@@ -18,13 +18,16 @@ public class PermisMdbUtils {
         this.mdb = mdb;
     }
 
-    public Store load(Map<String, Object> params) throws Exception {
-        String sql = "select * from Permis where 0=0 order by ord";
-        Store st = mdb.createStore("Permis");
-
-        mdb.loadQuery(st, sql);
-
-        return st;
+    public Store load(String lang) throws Exception {
+        Store st = mdb.createStore("Permis.lang");
+        String sql = """
+            select p.id, p.parent, p.ord, l.fullName as name
+            from Permis p
+            left join TableLang l on l.nameTable='Permis' and p.id=l.name and l.lang=:lang
+            where 0=0
+            order by ord
+        """;
+        return mdb.loadQuery(st, sql, Map.of("lang", lang));
     }
 
     private void validateRec(String id) throws Exception {

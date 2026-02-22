@@ -9,9 +9,9 @@ import java.util.Set;
 
 public class PermisDao extends BaseModelDao {
 
-    public Store load(Map<String, Object> params) throws Exception {
+    public Store load(String lang) throws Exception {
         PermisMdbUtils ut = new PermisMdbUtils(getMdb());
-        return ut.load(params);
+        return ut.load(lang);
     }
 
     public void delete(Map<String, Object> params) throws Exception {
