@@ -50,7 +50,6 @@ public class UsrMdbUtils extends BaseMdbUtils {
         }
     }
 
-
     @DaoMethod
     public Store loadGroup(String lang) throws Exception {
         Store st = getMdb().createStore("AuthUserGr.lang");
@@ -183,12 +182,6 @@ public class UsrMdbUtils extends BaseMdbUtils {
 
     @DaoMethod
     public Store update(Map<String, Object> rec) throws Exception {
-
-/*
-         Sleep sss = new Sleep();
-         sss.doSleep(3000);
-*/
-
         Store st = getMdb().createStore("AuthUser");
         StoreRecord record = st.add(rec);
         long id = UtCnv.toLong(rec.get("id"));
@@ -213,7 +206,13 @@ public class UsrMdbUtils extends BaseMdbUtils {
             if (!str.isEmpty()) {
                 throw new XError("Существует аккаунт пользователя [" + str + "]");
             }
-            getMdb().deleteRec("AuthUser", id);
+            try {
+                getMdb().deleteRec("AuthUser", id);
+            } finally {
+                getMdb().execQuery("""
+                    delete from TableLang where nameTable='AuthUser' and idTable=:id
+                """, Map.of("id", id));
+            }
         }
 
     }
